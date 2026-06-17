@@ -16,12 +16,10 @@ Replays historical tick data through the **exact same `TradingEngine`** used for
 
 | 文件 | 用途 |
 |------|------|
-| [**SPEC.md**](SPEC.md) | **權威 spec**：定位、公開 API、確定性契約、tick cache、matching 模型、限制與驗證流程 |
-| [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) | v0.1.0 發布前檢查清單 |
-| [CHANGELOG.md](CHANGELOG.md) | 版本變更紀錄 |
-| [docs/ARCHIVE/releases/v0.1.0.md](docs/ARCHIVE/releases/v0.1.0.md) | v0.1.0 發布說明（歷史） |
-| [trading-engine/docs/STRATEGY.md](../trading-engine/docs/STRATEGY.md) | Strategy Protocol（plugin 注入方式） |
-| [trading-engine/docs/DESIGN.md](../trading-engine/docs/DESIGN.md) | Kernel invariants（與 live 相同） |
+| [**SPEC.md**](SPEC.md) | **權威 spec**：定位、公開 API、確定性契約、驗收測試對照 |
+| [CHANGELOG.md](../../CHANGELOG.md#trading-backtest) | 版本變更紀錄 |
+| [trading-engine/SPEC.md](../trading-engine/SPEC.md) | Strategy Protocol、kernel 不變量 |
+| [docs/DOC_MAP.md](../../docs/DOC_MAP.md) | 全 monorepo 文件索引 |
 
 ## Status
 

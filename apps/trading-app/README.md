@@ -6,12 +6,11 @@
 
 | 文件 | 用途 |
 |------|------|
-| [SPEC.md](SPEC.md) | App 層邊界、依賴方向、公開 wiring API |
-| [docs/UAT_CHECKLIST.md](docs/UAT_CHECKLIST.md) | App 層 UAT 執行清單 |
-| [../../docs/DOC_MAP.md](../../docs/DOC_MAP.md) | 全 monorepo 文件索引 |
-| [../../docs/Architecture.md](../../docs/Architecture.md) | 架構、資料流、模組邊界 |
-| [AGENTS.md](AGENTS.md) | AI / 開發安全護欄 |
-| [CHANGELOG.md](CHANGELOG.md) | 版本變更 |
+| [SPEC.md](SPEC.md) | App 層邊界、依賴方向、架構與資料流、公開 wiring API |
+| [../../docs/uat/APP.md](../../docs/uat/APP.md) | App 層 UAT→Pilot 執行清單 |
+| [../../docs/DOC_MAP.md](../../docs/DOC_MAP.md) | 全 monorepo 文件索引（高階導航） |
+| [../../docs/AGENTS.md](../../docs/AGENTS.md) | AI / 開發安全護欄 |
+| [../../CHANGELOG.md](../../CHANGELOG.md#trading-app) | 版本變更 |
 
 **Monorepo packages**（從 repo 根 `bash scripts/setup-dev.sh`）：
 
@@ -104,4 +103,4 @@ tfx-trading/
 
 ## Disclaimer
 
-個人研究用途。**UAT-ready ≠ Live-ready**。上線前請閱讀 [`packages/trading-engine/docs/LIVE_SAFETY.md`](../../packages/trading-engine/docs/LIVE_SAFETY.md) 與 [`packages/trading-engine/docs/UAT_CHECKLIST.md`](../../packages/trading-engine/docs/UAT_CHECKLIST.md)。
+個人研究用途。**UAT-ready ≠ Live-ready**。上線前請閱讀 [`docs/ops/LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md) 與 [`docs/uat/KERNEL.md`](../../docs/uat/KERNEL.md)。

@@ -20,10 +20,11 @@ Real calibration of trend_min_strength / opening the filter requires B-class UAT
 with a documented forward policy (fixed bars or to flatten). Never use synthetic delta for Go/No-Go.
 
 See:
-- TODO.md P6-1-CAL-2 / CAL-3 / CAL-5 (SOP) + CAL-7/8
-- strategy-vwap-momentum docs/CALIBRATION.md (P6-1 workflow)
-- src/strategy/trend.py (min_strength semantics, 0.0 = most aggressive)
-- src/observability.py + vwap_momentum.py (record_trend_veto + reason="trend_veto" emission)
+- docs/TODO.md §P6-1-CAL (SOP) + CAL-7/8 decision log in docs/WeeklyStatus.md
+- packages/strategies/vwap-momentum/SPEC.md §6.1 (P6-1 workflow)
+- apps/trading-app/SPEC.md §Integration contracts (sweep / calibration CLI)
+- strategy_vwap_momentum/trend.py (min_strength semantics, 0.0 = most aggressive)
+- observability + strategy plugin (record_trend_veto + reason="trend_veto" emission)
 """
 
 from __future__ import annotations

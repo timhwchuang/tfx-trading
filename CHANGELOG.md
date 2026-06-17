@@ -1,0 +1,207 @@
+# Changelog — tfx-trading monorepo
+
+All notable changes are documented here by package.  
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
+Per-package `version` in `pyproject.toml` follows [SemVer](https://semver.org/) (0.x = API may still evolve).
+
+Historical standalone-repo release links are kept for archaeology only; development continues in this monorepo.
+
+---
+
+## trading-engine
+
+### [0.2.2] - 2026-06-17
+
+#### Added
+
+- **P0** `RiskGate.atr_stale`: blocks new entries when last successful ATR refresh is older than `atr_refresh_sec × atr_stale_multiplier` (default 2×).
+- **P4-13** Reconnect warmup: `reconnect_warmup_sec` (default 300) blocks new entries after reconnect until exchange tick ts catches up; exits still allowed.
+- **P4-13** Daily disconnect limit: `max_disconnects_per_day` (default 3) sets `block_new_entry` + CRITICAL alert.
+- **P4-13** Alert on disconnect with open position (`alert_on_disconnect_with_position`, default true).
+
+#### Changed
+
+- ATR refresh: `last_atr_refresh` advances only on **successful** kbars fetch; failed refreshes retry sooner (30s when never succeeded, else `atr_refresh_sec`).
+- `_maybe_refresh_atr` uses in-flight guard to avoid duplicate daemon threads.
+
+### [0.2.1] - 2026-06-16
+
+Patch release to support `strategy-vwap-momentum` v0.1.0 (first public reference strategy plugin) and improve sweep integration.
+
+#### Added
+
+- `momentum_timeout_sec` (with const `MOMENTUM_TIMEOUT_SEC`) to `Settings`, `SWEEP_FIELD_TO_CONST`, `_CONST_TO_SNAKE`, and test defaults.
+  - Enables first-class `patch_strategy_params` / sweep support for the momentum episode timeout in strategy plugins.
+  - Default 180s (matching previous hardcoded value in the reference plugin).
+
+#### Changed
+
+- `SWEEPABLE_PARAMS` in consuming strategy plugins (e.g. `strategy-vwap-momentum`) will now automatically surface `MOMENTUM_TIMEOUT_SEC`.
+
+### [0.2.0] - 2026-06-16
+
+UAT-ready release addressing CodeReview#2 (see `docs/ARCHIVE/reviews/` for re-review).
+
+#### Added
+
+- `TradingEngine.get_state_snapshot()` and frozen `EngineStateSnapshot` for read-only state observation
+- `_validate_order_signal()` — kernel rejects invalid `OrderSignal` before arming pending
+- `RuntimeConfig.warn_if_placeholder_credentials()` on live login
+- Docs: LIVE_SAFETY, UAT checklist, ARCHIVE migration notes
+- README: Disclaimer, Live Safety, Go-Live Checklist, Secrets, Logging (`configure_root=False`)
+- `.env.example`, `examples/minimal_live/`
+- CI `quality` job: ruff lint/format, gradual mypy, explicit no-shioaji guard step
+- Tests: `test_state_snapshot.py`, `test_signal_validation.py` (73 kernel tests total)
+
+#### Changed
+
+- Logger name `theman` → `trading_engine`; lazy `get_logger()` init
+- SPEC.md: CI status, position model scope (§4.2.1), theman section historicalized
+- Ruff format applied across `src/` and `tests/` (CI enforcement)
+
+#### Fixed
+
+- Removed last `theman` reference in `NullTelemetryPort` docstring
+
+### [0.1.0] - 2026-06 (initial public release)
+
+- Broker-agnostic futures execution kernel (Shioaji + Mock adapters)
+- `position_qty` model, kernel-owned force-flatten, reconnect reconcile
+- 63 kernel tests, GitHub Actions CI matrix (Python 3.11–3.13)
+- Core docs: README, SPEC, DESIGN (now archived)
+
+---
+
+## trading-backtest
+
+### [0.1.1] - 2026-06-16
+
+#### Fixed
+
+- `MockBroker.process_matching_queue`: coerce `tick.close` with `float()` so CSV replay ticks (str close) match against limit price without `TypeError`.
+
+### [0.1.0] - 2026-06-16
+
+Initial public release of the deterministic tick replay driver for `trading-engine`.
+
+#### Added
+
+- `BacktestEngine`: thin deterministic host that wires `TradingEngine` (exact same as live) + `MockBroker` + `VirtualClock` + replay loop.
+- `MockBroker`: IOC matching, latency gate, normal/blowout/flatten slippage, no-lookahead kbars via loader, spread calibration option.
+- `loader`: `iter_replay_ticks`, `ReplayTick`, kbar helpers, cache (plain + .gz), data-quality warnings.
+- `VirtualClock`: injectable clock for determinism (no `time.time()`).
+- `validation`: audit log parsing, determinism hash, backtest-vs-reference fill comparison.
+- Examples: `compare_fill_audits.py`, `tick_cache_template.py`, `minimal_backtest_smoke.py`.
+- Tests (25+): MockBroker, BacktestEngine, loader guards, validation helpers.
+- Package metadata, MIT license, py.typed, runnable `python run_tests.py`.
+
+#### Documentation (pre-release polish)
+
+- Rewrote standalone SPEC.md — authoritative spec for this package.
+- Added prominent **Backtest Fidelity & Limitations** sections to README and release notes.
+
+#### Changed / Notes
+
+- Depends on `trading-engine>=0.2.0,<1.0`. Iron laws: reuses same `TradingEngine`; no strategy hard-coding; determinism contract.
+
+---
+
+## strategy-vwap-momentum
+
+### [0.1.2] - 2026-06-17
+
+#### Added
+
+- Block new entries when `RiskGate.atr_stale` or `RiskGate.reconnect_warmup_active` (exits unchanged).
+
+#### Changed
+
+- Depends on `trading-engine>=0.2.2,<1.0`.
+
+### [0.1.1] - 2026-06-16
+
+#### Fixed
+
+- `_try_pullback_entry`: define `trend_dir` from `market.trend_dir` before `trend_allows_entry` / `trend_veto` audit (fixes `NameError` on pullback entry path).
+
+### [0.1.0] - 2026-06-16
+
+Initial public release of the first reference `strategy-<name>` plugin for `trading-engine`.
+
+#### Added
+
+- `VWAPMomentumStrategy` — full implementation of the `trading_engine.core.strategy.Strategy` Protocol.
+- `StrategyParams` + live overlay / sweep helpers for research & calibration.
+- `trend.py` — `compute_trend`, Level-2 gating, dynamic trail / vwap-stop math.
+- Rich `SignalAudit` builders; unit & behavior tests (~27 tests).
+- Entry point registration: `trading_engine.strategies = "vwap_momentum"`.
+- Package metadata, MIT license, py.typed, runnable `python run_tests.py`.
+
+#### Changed / Notes
+
+- Removed dead `MomentumState.peak` + `update_momentum_peak()`.
+- `MOMENTUM_TIMEOUT_SEC` moved into `StrategyParams.momentum_timeout_sec` (sweepable).
+- Depends on `trading-engine>=0.2.0,<1.0`.
+
+---
+
+## trading-app
+
+### [Unreleased]
+
+#### Added / Changed (UAT to Pilot hardening)
+
+- `determinism_check.py` CLI for UAT evidence collection.
+- `docs/uat/APP.md` (formerly UAT_CHECKLIST) v2: phased UAT→Pilot flow, evidence collection, Pilot Readiness Gate.
+- Monorepo docs slim: single root CHANGELOG, centralized `docs/`.
+
+#### Changed
+
+- BeforePilot content fully merged into [`docs/uat/APP.md`](docs/uat/APP.md) Phase 5 (Pilot Readiness Gate).
+- Emphasis on determinism hash discipline from monorepo root.
+
+### [0.1.2] - 2026-06-17
+
+#### Added
+
+- P4-13 `operations` config: reconnect warmup, disconnect limits, `atr_stale_multiplier`
+- Cumulative MDD risk budget in `uat_report` / `performance_metrics`
+
+#### Changed
+
+- Pin `trading-engine@v0.2.2`, `strategy-vwap-momentum@v0.1.2`
+- Docs sync: README, SPEC, UAT, Architecture, WeeklyStatus
+
+### [0.1.1] - 2026-06-16
+
+#### Changed
+
+- Remove deprecated `theman_*` port / config aliases; use `trading_app_*` symbols only
+- Alert prefix `[theman]` → `[trading-app]`
+- Windows ops: `start-trading-app.ps1`, `register-task.ps1` default task `trading-app-vwap`
+- Pin siblings: `trading-backtest@v0.1.1`, `strategy-vwap-momentum@v0.1.1`
+
+#### Fixed
+
+- Sweep tick helpers: `ReplayTick.close` as `str` (pairs with backtest MockBroker float coercion fix)
+
+### [0.1.0] - 2026-06-16
+
+First public release as **reference integrator app** (renamed from internal `theman`).
+
+#### Added
+
+- `pyproject.toml`, `SPEC.md`, `LICENSE`, `.env.example`
+- `trading_app_engine_ports()` wiring for live, backtest, and tests
+- `reporting/` UAT log parser; `storage/` tick/kbar archive; `sweep/` param research tooling
+- CI: standalone clone via git-tagged sibling packages
+
+#### Changed
+
+- Renamed from `theman` → `trading-app`
+- Dependencies: `trading-engine`, `trading-backtest`, `strategy-vwap-momentum`
+- App tests scoped to integration / storage / reporting / sweep (~30 tests)
+
+#### Notes
+
+- **UAT-ready**, not Live-ready — see `docs/uat/APP.md`

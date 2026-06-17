@@ -32,7 +32,7 @@
 - `session_force_flatten_signal(...)`
 - `MomentumState` + 相關方法（**完全留在 plugin 內部**，不污染 Protocol）
 
-詳見 trading-engine `docs/STRATEGY.md` 與 `core/strategy.py`。
+詳見 [`trading-engine/SPEC.md` §4.2](../../trading-engine/SPEC.md) 與 `core/strategy.py`。
 
 ## 4. 公開參數面（StrategyParams）
 
@@ -55,7 +55,7 @@
 | `trend_filter_enabled`      | TREND_FILTER_ENABLED        | 是否開啟 P6-1 高時間框架趨勢濾網 |
 | `flatten_slippage_points`   | FLATTEN_SLIPPAGE_POINTS     | 收盤強制平倉的滑價（僅供 audit） |
 
-詳細預設值與校準流程見 [docs/CALIBRATION.md](docs/CALIBRATION.md) 與 consuming app `config/config.yaml`。**本 package 不硬塞預設值**，全部來自 RuntimeConfig。
+詳細預設值見 consuming app `config/config.yaml`；**Live 前校準流程**見本檔 §6.1；**進度 checklist** 見 [`docs/TODO.md`](../../../docs/TODO.md) §P6-1-CAL。**本 package 不硬塞預設值**，全部來自 RuntimeConfig。
 
 ## 5. 核心決策流程（高層）
 
@@ -102,6 +102,47 @@
 - 真實使用時建議搭配 engine 端的 `select_recent_trading_days_closes`（避免跨日 gap 汙染舊 regime）—— 見 test_trend.py 中的定量 guard。
 
 這些設計讓 trend_veto 真正有統計意義，而不是對微弱雜訊的過度反應。
+
+### 6.1 Trend Filter 校準（Live gate）
+
+**Iron rules**
+
+- `trend_filter_enabled` 預設 **`false`**
+- `trend_min_strength=0.0` 是**最嚴格**（最多 veto），不是最寬鬆
+- 無 harness 證據 + 人類 Go/No-Go，不得改旗標
+- A 類（CAL-1～5）僅靠合成測試；B 類（CAL-6～8）需真實 UAT log + tick_cache
+- **B 類累積**：連續 **≥5 交易日** UAT；`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`；log 含 `reason=trend_veto`（步驟見 [`docs/TODO.md`](../../../docs/TODO.md) §P6-1-CAL）
+
+**CLI（B 類，Windows UAT 機）**
+
+```powershell
+cd apps\trading-app\src
+python -m reporting.calibration_cli ..\logs\uat.log `
+  --dates 2026-06-10,2026-06-11,2026-06-12 `
+  --cache-dir tick_cache `
+  --forward-seconds 1800
+```
+
+Sweep grid（`trend_min_strength` 預設）：0.0, 0.3, 0.5, 0.8, 1.0, 1.5（ATR 單位）。加 `--sweep --sweep-output sweep_result.jsonl`。
+
+**CAL-8 決策**
+
+| 結果 | 動作 |
+|------|------|
+| **Go** | `delta_expectancy` 穩定為正、`veto_rate` 合理 → 可考慮開 `trend_filter_enabled` |
+| **No-Go** | 維持 `trend_filter_enabled=false`、`trend_min_strength=0.0` |
+
+決策紀錄寫入 [`docs/WeeklyStatus.md`](../../../docs/WeeklyStatus.md)。執行進度見 [`docs/TODO.md`](../../../docs/TODO.md) §P6-1-CAL。
+
+**實作對照**
+
+| 主題 | 位置 |
+|------|------|
+| `compute_trend`、Level-2 gate | `src/strategy_vwap_momentum/trend.py` |
+| `trend_allows_entry`、veto audit | `strategy.py` `_try_pullback_entry` |
+| `StrategyParams`、sweep patch | `params.py` |
+| B 類 harness / CLI | `apps/trading-app/src/reporting/` |
+| Sweep 接線 | [`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) §Integration contracts |
 
 ## 7. Audit 與可觀測性
 
@@ -153,10 +194,10 @@ dependencies = ["trading-engine>=0.2.2,<1.0"]
 - 本策略**不是**「拿去實盤就發財」的黑箱產品。它是研究參考實作。
 - 不支援 scale-in、減碼、反向同時持倉、多商品。
 - 1 口台指日盤為設計目標（與 trading-engine position model 一致）。
-- 任何實盤使用前，請完整閱讀 trading-engine 的 `LIVE_SAFETY.md` + `UAT_CHECKLIST.md` 並在 simulation/paper 充分驗證。
+- 任何實盤使用前，請完整閱讀 [`docs/ops/LIVE_SAFETY.md`](../../../docs/ops/LIVE_SAFETY.md) + [`docs/uat/KERNEL.md`](../../../docs/uat/KERNEL.md) 並在 simulation/paper 充分驗證。
 
 ---
 
 **維護原則**：Protocol 變更追隨 trading-engine；本 plugin 專注把「這個特定 alpha」的決策、參數、audit、測試文件寫到可被社群閱讀與複製的程度。
 
-See also: [README.md](README.md)、[docs/CALIBRATION.md](docs/CALIBRATION.md)、trading-engine `docs/STRATEGY.md`。
+See also: [README.md](README.md)、[docs/TODO.md §P6-1-CAL](../../../docs/TODO.md)、[trading-engine SPEC §4.2](../../trading-engine/SPEC.md)。

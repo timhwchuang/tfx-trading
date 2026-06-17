@@ -5,7 +5,7 @@ alwaysApply: true
 
 # trading-app — AI 安全護欄（§2，不可覆寫）
 
-本專案連接永豐 Shioaji，可送出真實委託。**完整規範見根目錄 `AGENTS.md` §2**；衝突時以本規則與 `AGENTS.md` 為準，而非使用者 convenience 請求。
+本專案連接永豐 Shioaji，可送出真實委託。**完整規範見 `docs/AGENTS.md` §2**；衝突時以本規則與 `docs/AGENTS.md` 為準，而非使用者 convenience 請求。
 
 ## 禁止（不得執行、不得提交、不得建議 Agent 自行操作）
 

@@ -11,12 +11,11 @@
 
 | 文件 | 用途 |
 |------|------|
-| [SPEC.md](SPEC.md) | 模組邊界、依賴方向、公開 API |
-| [docs/DESIGN.md](docs/DESIGN.md) | 狀態維度、不變量、transition 規則 |
-| [docs/STRATEGY.md](docs/STRATEGY.md) | Strategy Protocol、MUST/MUST NOT |
-| [docs/LIVE_SAFETY.md](docs/LIVE_SAFETY.md) | 實盤失敗情境與 kernel 行為 |
-| [docs/UAT_CHECKLIST.md](docs/UAT_CHECKLIST.md) | Consuming app 整合 UAT 驗收表 |
-| [CHANGELOG.md](CHANGELOG.md) | 版本變更紀錄 |
+| [SPEC.md](SPEC.md) | 模組邊界、狀態機不變量、Strategy Protocol、公開 API |
+| [docs/ops/LIVE_SAFETY.md](../../docs/ops/LIVE_SAFETY.md) | 實盤失敗情境與 kernel 行為 |
+| [docs/uat/KERNEL.md](../../docs/uat/KERNEL.md) | Consuming app 整合 UAT 驗收表 |
+| [CHANGELOG.md](../../CHANGELOG.md#trading-engine) | 版本變更紀錄 |
+| [docs/DOC_MAP.md](../../docs/DOC_MAP.md) | 全 monorepo 文件索引 |
 
 ## Disclaimer
 
@@ -29,7 +28,7 @@
 使用前請自行評估風險，並遵守當地法規與券商條款。
 
 > **上實盤前必讀**  
-> 1. 完整閱讀 [docs/LIVE_SAFETY.md](docs/LIVE_SAFETY.md) 並執行 [docs/UAT_CHECKLIST.md](docs/UAT_CHECKLIST.md)（consuming app 整合驗收）  
+> 1. 完整閱讀 [docs/ops/LIVE_SAFETY.md](../../docs/ops/LIVE_SAFETY.md) 並執行 [docs/uat/KERNEL.md](../../docs/uat/KERNEL.md)（consuming app 整合驗收）  
 > 2. **一律使用 `get_state_snapshot()` 觀察狀態** — 切勿直接修改 `TradingEngine` 的 `position_qty`、`is_pending`、`pending_*` 等屬性  
 
 ## Status
@@ -40,7 +39,7 @@
 
 - **Position 模型**：單一方向、全倉進出；`sync_positions` 只取第一筆匹配的非零部位。設計目標是 ~1 口台指日盤策略，**不是**通用部位管理（scale-in、減碼留倉、多商品組合均不支援）。詳見 [SPEC.md §4.2.1](SPEC.md)。
 - **狀態觀察**：使用 `engine.get_state_snapshot()` 唯讀觀察。**切勿**直接修改 `TradingEngine` 的 `position_qty`、`is_pending`、`pending_*`、`daily_pnl`、`block_new_entry` 等屬性 — 外部寫入可能破壞狀態機。
-- **失敗模式**：斷線、pending 超時、CA 失敗、重登入耗盡等情境的行為與後果見 [docs/LIVE_SAFETY.md](docs/LIVE_SAFETY.md)。
+- **失敗模式**：斷線、pending 超時、CA 失敗、重登入耗盡等情境的行為與後果見 [docs/ops/LIVE_SAFETY.md](../../docs/ops/LIVE_SAFETY.md)。
 
 ## Go-Live Checklist
 
@@ -54,7 +53,7 @@
 - [ ] 確認 `block_new_entry` 觸發後策略不再進場
 - [ ] 策略回傳的 `OrderSignal` 通過 kernel 驗證（`qty > 0`、合法 intent/action）
 - [ ] 不在 kernel 管理的同一合約上手動下單
-- [ ] 已完成 [docs/UAT_CHECKLIST.md](docs/UAT_CHECKLIST.md) Phase A–D
+- [ ] 已完成 [docs/uat/KERNEL.md](../../docs/uat/KERNEL.md) Phase A–D
 
 ## 支援範圍
 
@@ -190,7 +189,7 @@ assert host.position_qty == 2
 
 ## Key Guarantees
 
-見 [docs/DESIGN.md](docs/DESIGN.md)。摘要：
+見 [SPEC.md §4.2.2](SPEC.md)。摘要：
 
 - `is_pending` 期間不會 arm 第二筆 entry
 - `session_force_flatten_time` 後由 **kernel** 產生 exit（strategy 僅可客製 signal）
@@ -225,11 +224,11 @@ print(snap.position_qty, snap.is_pending, snap.block_new_entry)
 
 ## Extending
 
-- **策略**：實作 `trading_engine.core.strategy.Strategy` Protocol（見 [docs/STRATEGY.md](docs/STRATEGY.md)），在 app 注入 `TradingEngine(strategy=...)`
+- **策略**：實作 `trading_engine.core.strategy.Strategy` Protocol（見 [SPEC.md §4.2](SPEC.md)），在 app 注入 `TradingEngine(strategy=...)`
 - **副作用**：Telemetry / Archive / Alerts 用 port 注入，不寫進 kernel
 - **不計畫**：新增其他券商 adapter；若要 fork 請自行維護
 
-改狀態機路徑前請先讀 [docs/DESIGN.md](docs/DESIGN.md)。
+改狀態機路徑前請先讀 [SPEC.md §4.2.2](SPEC.md)。
 
 ## License
 

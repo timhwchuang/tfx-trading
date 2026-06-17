@@ -3,7 +3,7 @@
 > **Package**: `trading-backtest` · **Import**: `trading_backtest` · **Version**: 0.1.0  
 > **Depends on**: `trading-engine>=0.2.2,<1.0` (same major alignment)
 
-This document is the **single source of truth** for this standalone repo. All README, release notes, and packaging metadata should point here — not to paths that existed only in the old monorepo layout.
+This document is the **single source of truth** for the `trading-backtest` package within the `tfx-trading` monorepo. README and packaging metadata for this package should point here.
 
 ---
 
@@ -31,7 +31,7 @@ This document is the **single source of truth** for this standalone repo. All RE
 
 Optional integrator apps (e.g. `trading-app`) may wrap this package with ports, storage, and sweep tooling. That integration lives outside this repo.
 
-**Implementation detail**: [docs/BACKTEST_IMPLEMENTATION.md](docs/BACKTEST_IMPLEMENTATION.md)
+驗收測試對照：§10 Validation。歷史實作規格見 [`docs/ARCHIVE/BACKTEST_IMPLEMENTATION.md`](../../docs/ARCHIVE/BACKTEST_IMPLEMENTATION.md)。
 
 ---
 
@@ -322,19 +322,32 @@ CLI: `python examples/compare_fill_audits.py backtest.log paper.log` (exit 1 if 
 
 ---
 
-## 10. Testing
+## 10. Validation（測試對照）
 
 ```bash
-python run_tests.py
+python run_tests.py   # 27+ tests baseline
 ```
 
-Coverage focus:
+### `tests/test_backtester.py`
 
-- MockBroker: latency gate, blowout slip, flatten slip, fill ≤ limit, spread calibration, no-lookahead kbars.
-- BacktestEngine: clock advance, pending timeout ordering, premarket `on_tick` filter vs matching, empty run.
-- Loader: sort / duplicate / price anomaly warnings.
+| Test | Expectation |
+|------|-------------|
+| `test_engine_runs_empty` | No exception on empty/missing cache |
+| `test_clock_advances` | `clock()` equals last tick timestamp |
+| `test_pending_timeout_before_tick_processing` | `is_pending` False before `on_tick` after gap |
+| `test_premarket_ticks_are_filtered` | Pre-08:45 no `on_tick` |
+| `test_premarket_tick_still_runs_matching` | Premarket still matches inflight |
 
-CI: monorepo `bash scripts/run-all-tests.sh` (editable `trading-engine` from workspace).
+### `tests/test_mock_broker.py`
+
+Covers: normal slip, cancel above limit, sell fill, blowout, latency gate, no-lookahead kbars, limit clamp, first-tick ATR, spread calibration optional, string-close CSV replay.
+
+### Loader / validation
+
+- Loader: sort / duplicate / price anomaly warnings (`tests/test_loader.py`).
+- Determinism helpers: `tests/test_validation.py`; pipeline 見 §9。
+
+CI: monorepo `bash scripts/run-all-tests.sh`（editable `trading-engine` from workspace）。
 
 ---
 
@@ -357,9 +370,10 @@ dependencies = [
 
 | Document | Location |
 |----------|----------|
-| Strategy Protocol | `trading-engine/docs/STRATEGY.md` |
-| Kernel design / invariants | `trading-engine/docs/DESIGN.md` |
-| Live safety & UAT | `trading-engine/docs/UAT_CHECKLIST.md`, `trading-engine/docs/LIVE_SAFETY.md` |
+| Strategy Protocol | [`packages/trading-engine/SPEC.md` §4.2](../trading-engine/SPEC.md) |
+| Kernel invariants | [`packages/trading-engine/SPEC.md` §4.2.2](../trading-engine/SPEC.md) |
+| Backtest host contract | [`packages/trading-engine/SPEC.md`](../trading-engine/SPEC.md) §12 |
+| Live safety & UAT | [`docs/ops/LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md), [`docs/uat/KERNEL.md`](../../docs/uat/KERNEL.md) |
 | Usage quickstart | this repo `README.md` |
 | Example smoke script | `examples/minimal_backtest_smoke.py` |
 

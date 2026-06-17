@@ -1,35 +1,24 @@
 # 文件職責地圖（tfx-trading monorepo）
 
-> **原則**：每份文件一個真相來源。本檔為**全 repo 索引**；各 package 細規格見各自 `SPEC.md`。
+> **單一入口**：每份 active 文件一個真相來源。  
+> **分層**：**高階**（根 `SPEC.md`、`TODO`、`AGENTS`）描述 monorepo 整合；**低階**（各 package `SPEC.md`）描述該模組 API，**只連依賴、不連回根 SPEC**。
 
-## 頂層（先看這裡）
-
-| 文件 | 讀者 | 職責 |
-| ---- | ---- | ---- |
-| [`SPEC.md`](../SPEC.md) | 整合者 | **Monorepo 整合 SPEC** — 路徑、依賴、安裝、模組入口 |
-| [`docs/Architecture.md`](Architecture.md) | 開發者 | **架構** — 模組邊界、資料流、策略載入 |
-| [`README.md`](../README.md) | 所有人 | Clone、setup、快速連結 |
-| [`monorepo/SPEC.md`](../monorepo/SPEC.md) | 維護者 | 目錄慣例、新策略 scaffold、發布 SOP |
-| [`apps/trading-app/AGENTS.md`](../apps/trading-app/AGENTS.md) | AI / 開發者 | 安全護欄、gate、開發紀律 |
-
-## 路線圖與週報（app 層）
+## 1. 專案進度（先看）
 
 | 文件 | 職責 |
 | ---- | ---- |
-| [`apps/trading-app/TODO.md`](../apps/trading-app/TODO.md) | 未完成工作項、gate 摘要 |
-| [`apps/trading-app/docs/WeeklyStatus.md`](../apps/trading-app/docs/WeeklyStatus.md) | 人類週報、Follow-up |
+| [`TODO.md`](TODO.md) | 未完成項、blocker、Phase gate 摘要（含 **§P6-1-CAL** Live gate checklist） |
+| [`WeeklyStatus.md`](WeeklyStatus.md) | 人類週報、Follow-up（**讀最上方最新一節**）；CAL-8 決策紀錄 |
+| [`../CHANGELOG.md`](../CHANGELOG.md) | 全 monorepo 版本歷史（按 package 分區） |
 
-## UAT / 安全 / 運維
+## 2. 架構掌握
 
-| 文件 | 路徑 |
+| 文件 | 職責 |
 | ---- | ---- |
-| App UAT | [`apps/trading-app/docs/UAT_CHECKLIST.md`](../apps/trading-app/docs/UAT_CHECKLIST.md) |
-| Kernel UAT | [`packages/trading-engine/docs/UAT_CHECKLIST.md`](../packages/trading-engine/docs/UAT_CHECKLIST.md) |
-| LIVE_SAFETY | [`packages/trading-engine/docs/LIVE_SAFETY.md`](../packages/trading-engine/docs/LIVE_SAFETY.md) |
-| BeforePilot | [`apps/trading-app/docs/BeforePilot.md`](../apps/trading-app/docs/BeforePilot.md) |
-| WindowsOps | [`apps/trading-app/docs/WindowsOps.md`](../apps/trading-app/docs/WindowsOps.md) |
+| [`../SPEC.md`](../SPEC.md) | Monorepo 整合 SPEC（路徑、依賴、安裝、§7 架構與資料流、新策略、發布 SOP） |
+| [`../README.md`](../README.md) | Clone、setup、快速連結 |
 
-## Package SPEC（模組真相）
+### 模組 SPEC（各 package 真相）
 
 | Package | SPEC |
 | ------- | ---- |
@@ -38,29 +27,41 @@
 | vwap-momentum | [`packages/strategies/vwap-momentum/SPEC.md`](../packages/strategies/vwap-momentum/SPEC.md) |
 | trading-app | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) |
 
-## 研究 / 回測
+## 3. 執行與驗收
 
-| 文件 | 路徑 |
+| 文件 | 職責 |
 | ---- | ---- |
-| BACKTEST_HOST_CONTRACT | `packages/trading-engine/docs/BACKTEST_HOST_CONTRACT.md` |
-| BACKTEST_IMPLEMENTATION | `packages/trading-backtest/docs/BACKTEST_IMPLEMENTATION.md` |
-| CALIBRATION (P6-1) | `packages/strategies/vwap-momentum/docs/CALIBRATION.md` |
-| SWEEP_SPEC | `apps/trading-app/docs/SWEEP_SPEC.md` |
-| AuditContract | `apps/trading-app/docs/AuditContract.md` |
+| [`uat/APP.md`](uat/APP.md) | App 層 UAT→Pilot 循序清單（含 Pilot Readiness Gate） |
+| [`uat/KERNEL.md`](uat/KERNEL.md) | Engine 整合 UAT 驗收 |
+| [`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md) | 實盤失敗情境與 kernel 行為 |
+| [`ops/WindowsOps.md`](ops/WindowsOps.md) | Windows 排程、告警、路徑 |
+| [`AGENTS.md`](AGENTS.md) | AI 安全護欄、Callback MUST NOT、Production Gate |
 
-## 已廢止 / 僅供歷史
+## 4. 研究與整合規格（按需）
 
-| 文件 | 說明 |
+| 主題 | 文件 |
 | ---- | ---- |
-| `apps/trading-app/docs/ARCHIVE/UPGRADE_RUNBOOK.md` | 四 repo pin SOP（已棄用）→ 由 monorepo/SPEC 取代 |
-| `*/docs/ARCHIVE/` (incl. releases/, MIGRATION_FROM_THEMAN, old BackTesting) | 歷史週報、pre-monorepo 發布記錄、舊 spec、遷移對照。閱讀時注意路徑已過時 |
-| 舊 `docs/releases/*.md` | 已移至各 `ARCHIVE/releases/`；舊 standalone git+ 安裝指令僅供歷史 |
+| 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
+| MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
+| Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
+
+## 5. 考古（勿當現行流程）
+
+| 路徑 | 說明 |
+| ---- | ---- |
+| [`ARCHIVE/`](ARCHIVE/) | 舊設計稿（DESIGN/STRATEGY）、BACKTEST_IMPLEMENTATION、RELEASE_CHECKLIST、四-repo 發布紀錄；[`ARCHIVE/specs/`](ARCHIVE/specs/) 為已併入 package SPEC 的舊 standalone 規格 |
+| [`ARCHIVE/UPGRADE_RUNBOOK.md`](ARCHIVE/UPGRADE_RUNBOOK.md) | 已棄用 → 根 [`SPEC.md`](../SPEC.md) §5 |
+| [`ARCHIVE/MONOREPO_MIGRATION_PLAN.md`](ARCHIVE/MONOREPO_MIGRATION_PLAN.md) | 四-repo → monorepo 遷移 checklist（已完成） |
+| [`ARCHIVE/Architecture.md`](ARCHIVE/Architecture.md) | 已併入根 `SPEC.md` §7 |
+| 舊 standalone git+ 安裝 | 僅供歷史；現行用 `scripts/setup-dev.sh` |
 
 ## 常見混淆
 
 | 問題 | 答案 |
 | ---- | ---- |
-| 架構與邊界？ | **`docs/Architecture.md`** |
+| 我現在該做什麼？ | **`docs/TODO.md`** + WeeklyStatus 最新一節 |
+| 架構與邊界？ | 根 **`SPEC.md`** §7 + 相關 package `SPEC.md` |
 | 怎麼裝依賴？ | **`bash scripts/setup-dev.sh`** |
-| UAT 跑什麼？ | Kernel checklist + App checklist（上表） |
-| 加新策略？ | `packages/strategies/<name>/` + `monorepo/SPEC.md` §6 |
+| UAT 跑什麼？ | **`docs/uat/KERNEL.md`** + **`docs/uat/APP.md`** |
+| 版本變更寫哪？ | 根 **`CHANGELOG.md`**（對應 package 區塊） |
+| 加新策略？ | `packages/strategies/<name>/` + 根 [`SPEC.md`](../SPEC.md) §4 |

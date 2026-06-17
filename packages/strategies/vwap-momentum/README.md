@@ -9,15 +9,15 @@
 **本策略實作為作者個人研究與學習用途而公開，不構成投資建議、交易邀約或獲利保證。** 任何實盤或模擬交易之決策、參數設定、資金配置，以及因此產生的盈虧、漏單或其他損失，**均由使用者自行承擔**。作者與貢獻者不對任何直接或間接損害負責。
 
 > 上實盤（或大規模回測）前請務必：
-> 1. 完整閱讀 [trading-engine docs/LIVE_SAFETY.md](../../trading-engine/docs/LIVE_SAFETY.md) 與 [UAT_CHECKLIST.md](../../trading-engine/docs/UAT_CHECKLIST.md)
+> 1. 完整閱讀 [docs/ops/LIVE_SAFETY.md](../../../docs/ops/LIVE_SAFETY.md) 與 [docs/uat/KERNEL.md](../../../docs/uat/KERNEL.md)
 > 2. 在 simulation / paper trade 跑過完整交易日
 > 3. 使用 `engine.get_state_snapshot()` 唯讀觀察狀態，**切勿**直接修改 engine 內部屬性
 
 | 文件 | 用途 |
 |------|------|
 | [SPEC.md](SPEC.md) | 策略定位、完整參數表、決策邏輯細節、trend Level-2 語意、audit reason、遷移說明 |
-| [CHANGELOG.md](CHANGELOG.md) | 版本變更紀錄 |
-| [trading-engine docs/STRATEGY.md](../../trading-engine/docs/STRATEGY.md) | Strategy Protocol MUST / MUST NOT（必讀） |
+| [CHANGELOG.md](../../../CHANGELOG.md#strategy-vwap-momentum) | 版本變更紀錄 |
+| [trading-engine SPEC §4.2](../../trading-engine/SPEC.md) | Strategy Protocol MUST / MUST NOT（必讀） |
 
 ## Status
 

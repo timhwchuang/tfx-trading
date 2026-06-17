@@ -1,7 +1,7 @@
 # Trading Repo Spec
 
 > **Package**: `trading-engine` · **Import**: `trading_engine`  
-> 使用者入口：[README.md](README.md) · 狀態機：[docs/DESIGN.md](docs/DESIGN.md) · 策略：[docs/STRATEGY.md](docs/STRATEGY.md) · 實盤安全：[docs/LIVE_SAFETY.md](docs/LIVE_SAFETY.md) · UAT：[docs/UAT_CHECKLIST.md](docs/UAT_CHECKLIST.md) · 回測契約：[docs/BACKTEST_HOST_CONTRACT.md](docs/BACKTEST_HOST_CONTRACT.md) · [CHANGELOG.md](CHANGELOG.md)
+> 使用者入口：[README.md](README.md) · 實盤安全：[docs/ops/LIVE_SAFETY.md](../../docs/ops/LIVE_SAFETY.md) · UAT：[docs/uat/KERNEL.md](../../docs/uat/KERNEL.md) · 回測宿主：本 SPEC §12 · 變更：[CHANGELOG.md](../../CHANGELOG.md#trading-engine)
 
 ## 1. 定位
 
@@ -75,12 +75,33 @@ engine.on_tick(TickSnapshot(ts=..., price=..., volume=..., tick_type=1, exchange
 
 ### 4.2 Strategy Protocol（給 plugin 實作）
 
-定義於 `trading_engine.core.strategy`：
+定義於 `trading_engine.core.strategy`（**程式真相**）。注入：`TradingEngine(strategy=MyStrategy(), ...)`。
 
-- `evaluate(...) -> (OrderSignal | None, StrategySideEffects)`
-- `reset()`、`manage_exit(...)`、`build_*_audit(...)` 等
+| 方法 | 必填？ | 用途 |
+|------|--------|------|
+| `evaluate` | **是** | 每 tick 進出場決策 |
+| `reset` | **是**（可 no-op） | fill / resync 後清 episode state |
+| `manage_exit` | 選填 | 持倉中 trailing / TP / stop |
+| `build_*_audit` | 選填 | SIGNAL 審計 enrichment |
+| `session_force_flatten_signal` | 選填 | 客製 kernel force-flatten exit |
 
-**演進方向**（見 [docs/STRATEGY.md](docs/STRATEGY.md)）：收斂成更小的 community-facing surface；VWAP/momentum 專用方法移出 Protocol 或改 optional mixin。
+`evaluate` 收到預先計算的 `RiskGate` — 勿自行重推 pending / session 旗標。
+
+**MUST（策略作者）**
+
+1. 尊重 `RiskGate` — `is_pending`、`block_new_entry`（entry）、`api_connected` false、session gate 時回 `None`。
+2. 回傳合法 `OrderSignal` — `qty > 0`，`intent` ∈ `entry`/`exit`，`action` ∈ `Buy`/`Sell`（kernel 會拒絕非法 signal）。
+3. Intent 對應持倉 — entry 僅 `position.qty == 0`；exit 僅 `position.qty > 0`。
+4. **勿 mutate `TradingEngine`** — 策略為純決策；用 `get_state_snapshot()` 唯讀觀察。
+5. 實作 `reset` — 清除 momentum / episode 計數。
+
+**MUST NOT**
+
+- 在 plugin 內 `import shioaji` 或 app 層模組（Telegram、yaml loader）。
+- `risk.is_pending` 時仍回 entry signal（kernel 也擋，但避免 log 噪音）。
+- 假設 scale-in / partial exit — kernel exit 使用全量 `position.qty`（見 §4.2.1）。
+
+**0.x → 1.0 演進**：收斂成更小 surface（`evaluate` + `reset` 必填）；breaking 變更 → major bump。
 
 ### 4.2.1 Position Model Scope（重要限制）
 
@@ -94,6 +115,30 @@ engine.on_tick(TickSnapshot(ts=..., price=..., volume=..., tick_type=1, exchange
 | ~1 口台指日盤策略 | 通用投資組合 / 多商品同時管理 |
 
 外部整合者請勿假設本 repo 提供一般券商部位管理能力。觀察狀態請用 `TradingEngine.get_state_snapshot()`，**切勿**直接 mutate engine 公開屬性。
+
+### 4.2.2 狀態機不變量
+
+| 維度 | 合法值 | 備註 |
+|------|--------|------|
+| `position_qty` | `int >= 0` | 0 = Flat；主會計欄位 |
+| `position_dir` | Flat / Long / Short | `qty == 0` 時必須 Flat |
+| `is_pending` | bool | 委託在途 |
+| `pending_intent` | entry / exit / None | `is_pending` 時必須有值 |
+| `pending_order_id` | str / None | callback 嚴格比對 |
+| `filled_qty` | int | IOC partial 累積 |
+
+`has_position` 為衍生屬性（`position_qty > 0`）。
+
+**Kernel 保證**
+
+1. `is_pending` 期間不 arm 第二筆 entry（`_validate_order_signal` 硬擋）。
+2. `session_force_flatten_time` 後若 `position_qty > 0`，**kernel** 產生 exit（strategy 僅可 `session_force_flatten_signal` 客製）。
+3. `position_qty` 僅由 `sync_positions` 與 matching deal 的 `_apply_deal_fill` 變更。
+4. Exit 為全量平倉（`qty → 0`）；partial fill 未達 `pending_qty` 時維持 pending。
+5. 錯誤 `order_id` 的 deal/fill 忽略（idempotency）。
+6. 日內風控計數依 `trading_day_for_daily_reset` 重置。
+
+實作參考：`order_executor.py`、`session.py`、`engine.py`。歷史設計稿見 [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md)。
 
 ### 4.3 BrokerPort
 
@@ -131,7 +176,6 @@ trading-engine/
 ├── SPEC.md
 ├── README.md
 ├── LICENSE
-├── docs/DESIGN.md
 ├── pyproject.toml
 ├── run_tests.py
 └── src/trading_engine/
@@ -147,7 +191,7 @@ trading-engine/
 
 ## 7. 歷史遷移（舊內部消費者）
 
-從 theman monorepo 抽離的路徑對照見 [docs/ARCHIVE/MIGRATION_FROM_THEMAN.md](docs/ARCHIVE/MIGRATION_FROM_THEMAN.md)（**Historical — 新使用者可忽略**）。
+從 theman monorepo 抽離的路徑對照見 [docs/ARCHIVE/MIGRATION_FROM_THEMAN.md](../../docs/ARCHIVE/MIGRATION_FROM_THEMAN.md)（**Historical — 新使用者可忽略**）。
 
 ## 8. 測試
 
@@ -171,7 +215,7 @@ Breaking change 範例：`Strategy.evaluate` 簽名變更、`OrderSignal` 欄位
 - [x] Position qty 模型（Phase 1）
 - [x] Kernel-owned force-flatten + session_force_flatten_signal hook（Phase 2）
 - [x] Shioaji 隔離（position_normalizer + TickSnapshot + shioaji_live bootstrap）（Phase 3）
-- [x] DESIGN.md + 狀態維度 / 不變量 / transition 表
+- [x] 狀態維度 / 不變量（本 SPEC §4.2.2）
 - [x] Kernel test suite 擴充（37 → 73，含 adversarial + safety guards）
 - [x] CI pipeline（本 repo）
 - [ ] 發布 PyPI（或 GitHub Packages）
@@ -179,10 +223,61 @@ Breaking change 範例：`Strategy.evaluate` 簽名變更、`OrderSignal` 欄位
 - [x] Live safety docs + state snapshot + signal validation guards
 - [x] CI lint + typecheck（ruff / mypy）
 
-See `docs/DESIGN.md` for the authoritative state dimensions, invariants and transition rules. `core/trading_state.py` contains the lightweight `PendingIntent` enum + defensive guards.
+`core/trading_state.py` 含 `PendingIntent` enum + `validate_pending_consistency` 防禦性 guard。
 
 ## 11. 非目標
 
 - 不做策略 marketplace 宿主（屬 App 或獨立 tooling）
 - 不做分散式 order routing / MQ 熱路徑
 - 不做多券商抽象層（除 Shioaji + Mock 外，新券商用新 adapter PR）
+
+## 12. Backtest host contract
+
+> **Consumers**: `trading-backtest`, kernel tests, any replay driver.  
+> **App audit fields**: [`apps/trading-app/SPEC.md`](../../apps/trading-app/SPEC.md) §Integration contracts.
+
+`BacktestEngine` must drive the **same** `TradingEngine` class as live. Replay may only **inject**: `api`, `clock`, `strategy`, ports, `order_adapter`, `runtime_config`.
+
+**Golden rules**
+
+1. Decision logic lives in **Strategy plugins** — never in the replay driver.
+2. No `time.time()` / `datetime.now()` / `date.today()` on the replay path.
+3. Lock rule: do not call `refresh_atr()` while holding the engine lock (deadlock). Backtest uses pre-tick sync refresh outside lock（見 `trading-backtest` SPEC §7.1）。
+
+**Constructor**（同 §4.1；backtest 注入 `VirtualClock` + `MockOrderAdapter`）
+
+**Tick input** — `on_tick(tick)` duck-typed tick:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `datetime` | `datetime` | Taipei naive |
+| `close` | `str` or `float` | Engine normalizes |
+| `volume` | `int` | |
+| `tick_type` | `int` | |
+
+**Order / fill**
+
+- `place_order(signal)` → `api.place_order(contract, order, timeout=0)` → object with `.order.id`
+- `handle_order_event(stat, msg)`:
+  - `FuturesDeal`: `price`, `quantity`, `action`, `trade_id`
+  - `FuturesOrder` (cancel): `operation`, `status`, `trade_id`
+- Pending fields used by replay: `pending_order_id`, `pending_intent`, `is_pending`, `pending_qty`, etc.
+
+**ATR / kbars**
+
+- `refresh_atr()` calls `api.kbars(contract, start, end)` expecting `.High` / `.Low` / `.Close` lists.
+- Backtest sets `_maybe_refresh_atr` to no-op; driver refreshes **before** `on_tick` outside lock.
+
+**Session / premarket**
+
+- `exchange_time.is_trading_session(dt, SESSION_START, SESSION_END)` gates **decision** (`on_tick`).
+- Premarket ticks may still run matching + pending timeout（見 backtest SPEC）。
+
+**Audit lines**（determinism gate）
+
+Kernel + telemetry emit `SIGNAL_AUDIT`, `FILL_AUDIT`, `DAILY_SUMMARY` — field semantics in app SPEC §Integration contracts.
+
+**Tests**
+
+- Kernel state machine, pending, session, risk gates — `python run_tests.py`（本 repo）
+- Integration scenarios — [`docs/uat/KERNEL.md`](../../docs/uat/KERNEL.md) Phase B/C

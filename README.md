@@ -6,11 +6,13 @@ Monorepo for Taiwan TXF futures research: **trading-engine** kernel, **trading-b
 
 | 文件 | 用途 |
 |------|------|
-| [SPEC.md](SPEC.md) | Monorepo 整合規格（入口） |
-| [docs/Architecture.md](docs/Architecture.md) | 架構、資料流、模組邊界 |
-| [docs/DOC_MAP.md](docs/DOC_MAP.md) | 全文件索引 |
+| [docs/DOC_MAP.md](docs/DOC_MAP.md) | **全文件索引（入口）** |
+| [docs/TODO.md](docs/TODO.md) | 路線圖、未完成項 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本變更（全 monorepo） |
+| [LICENSE](LICENSE) | MIT |
+| [SPEC.md](SPEC.md) | Monorepo 整合規格（高階；含 §7 架構與資料流） |
+| [docs/AGENTS.md](docs/AGENTS.md) | AI / 開發安全護欄 |
 | [apps/trading-app/README.md](apps/trading-app/README.md) | Windows 安裝、執行、UAT |
-| [apps/trading-app/AGENTS.md](apps/trading-app/AGENTS.md) | AI / 開發安全護欄 |
 
 ## Quick start
 

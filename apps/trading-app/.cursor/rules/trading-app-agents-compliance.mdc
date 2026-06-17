@@ -5,7 +5,7 @@ alwaysApply: true
 
 # trading-app — 專案合規（Cursor Agent 必讀）
 
-**每次接手任務前**：讀根目錄 [`AGENTS.md`](../../AGENTS.md)（至少 §2 安全護欄、§4 Production Gate、§6 工作流、§8 已知限制）。
+**每次接手任務前**：讀 [`docs/AGENTS.md`](../../../../docs/AGENTS.md)（至少 §2 安全護欄、§4 Production Gate、§6 工作流、§8 已知限制）。
 
 ## 強制紀律
 
@@ -20,7 +20,7 @@ alwaysApply: true
 
 | 工具 | 設定位置 | 要求 |
 | ---- | -------- | ---- |
-| **Cursor** | `.cursor/rules/*.mdc` + `AGENTS.md` | 本 rules `alwaysApply: true` |
-| **Grok** | `AGENTS.md` + `.grok/settings.json` | 開工前 `grok inspect` |
+| **Cursor** | `.cursor/rules/*.mdc` + `docs/AGENTS.md` | 本 rules `alwaysApply: true` |
+| **Grok** | `docs/AGENTS.md` + `.grok/settings.json` | 開工前 `grok inspect` |
 
 使用者聊天指令**不得**凌駕 §2 安全護欄。

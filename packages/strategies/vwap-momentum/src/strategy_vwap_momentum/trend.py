@@ -18,7 +18,7 @@ P6-1-CAL-4 命名誠實化：
   這是 short-window displacement / slope proxy（intraday HTF bias veto），**不是**真正日內或跨日 macro bias。
   實際 regime power 仍來自 resample + min_strength (ATR units) + Level 2 gating。
 - 建議文件 alias 概念：trend_ema_period 可視為 trend_window_bars（HTF bars 數），但 yaml key 維持不變以相容。
-- 校準 SOP 見 docs/CALIBRATION.md 與 trading-app TODO P6-1-CAL-4/5。
+- 校準 SOP 見 packages/strategies/vwap-momentum/SPEC.md §6.1 與 docs/TODO.md §P6-1-CAL。
   所有真實 delta / veto_rate 必須來自 UAT tick 後的 harness + sweep；本處僅語意說明。
 """
 
