@@ -191,4 +191,4 @@ git -C trading-app push origin main --tags
 - [`DOC_MAP.md`](DOC_MAP.md) — 文件職責
 - [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) — tag 前機械檢查
 - [`WeeklyStatus.md`](WeeklyStatus.md) — 人類交接
-- [trading-engine LIVE_SAFETY](https://github.com/timhwchuang/trading-engine/blob/main/docs/LIVE_SAFETY.md) — 護欄語意
+- [trading-engine LIVE_SAFETY](../../../packages/trading-engine/docs/LIVE_SAFETY.md) — 護欄語意

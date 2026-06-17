@@ -2,7 +2,7 @@
 
 > **Owner**: `trading-engine`  
 > **Consumers**: `trading-backtest`, kernel tests, any replay driver  
-> **App checklist**: [trading-app UAT_CHECKLIST](https://github.com/timhwchuang/trading-app/blob/main/docs/UAT_CHECKLIST.md)
+> **App checklist**: [apps/trading-app UAT_CHECKLIST](../../../apps/trading-app/docs/UAT_CHECKLIST.md)
 
 `BacktestEngine` must drive the **same** `TradingEngine` class as live. This document lists the host API surface replay depends on.
 

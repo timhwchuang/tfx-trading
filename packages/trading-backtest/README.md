@@ -20,8 +20,8 @@ Replays historical tick data through the **exact same `TradingEngine`** used for
 | [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) | v0.1.0 發布前檢查清單 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本變更紀錄 |
 | [docs/releases/v0.1.0.md](docs/releases/v0.1.0.md) | v0.1.0 發布說明 |
-| [trading-engine/docs/STRATEGY.md](https://github.com/timhwchuang/trading-engine/blob/main/docs/STRATEGY.md) | Strategy Protocol（plugin 注入方式） |
-| [trading-engine/docs/DESIGN.md](https://github.com/timhwchuang/trading-engine/blob/main/docs/DESIGN.md) | Kernel invariants（與 live 相同） |
+| [trading-engine/docs/STRATEGY.md](../trading-engine/docs/STRATEGY.md) | Strategy Protocol（plugin 注入方式） |
+| [trading-engine/docs/DESIGN.md](../trading-engine/docs/DESIGN.md) | Kernel invariants（與 live 相同） |
 
 ## Status
 
@@ -47,32 +47,31 @@ Replays historical tick data through the **exact same `TradingEngine`** used for
 
 **建議驗證流程**：單元測試 → 確定性重跑 → paper trade → 比對 fill 統計 → 保守調高 slippage → 再考慮 live。完整說明見 [SPEC.md §9](SPEC.md#9-backtest-fidelity--limitations)。
 
-## Install（GitHub only，不上 PyPI）
+## Install
+
+### Monorepo（建議）
 
 ```bash
-# 鎖定 tag（建議）
-pip install "trading-backtest @ git+https://github.com/timhwchuang/trading-backtest.git@v0.1.0"
-
-# 搭配 trading-engine（通常一起鎖）
-pip install "trading-engine @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.2"
+git clone git@github.com:timhwchuang/tfx-trading.git
+cd tfx-trading
+bash scripts/setup-dev.sh   # editable install 全部 packages
 ```
 
-在你的 app / research script 的 `pyproject.toml`：
+本 package 路徑：`packages/trading-backtest/`。
 
-```toml
-dependencies = [
-  "trading-engine @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.2",
-  "trading-backtest @ git+https://github.com/timhwchuang/trading-backtest.git@v0.1.0",
-]
-```
-
-### 本地開發（workspace 或單獨 clone）
+### 單 package 從 monorepo git 安裝（進階）
 
 ```bash
-git clone https://github.com/timhwchuang/trading-backtest.git
-cd trading-backtest
+pip install "trading-engine @ git+https://github.com/timhwchuang/tfx-trading.git@v0.3.0-monorepo#subdirectory=packages/trading-engine"
+pip install "trading-backtest @ git+https://github.com/timhwchuang/tfx-trading.git@v0.3.0-monorepo#subdirectory=packages/trading-backtest"
+```
+
+### 本地開發（已在 monorepo 內）
+
+```bash
+cd packages/trading-backtest
 pip install -e ".[dev]"          # 含 ruff / mypy
-# 同時需要 trading-engine（可 sibling pip -e ../trading-engine 或上面 git 安裝）
+# trading-engine 已由 setup-dev.sh 或 pip -e ../trading-engine 安裝
 ```
 
 ## Usage

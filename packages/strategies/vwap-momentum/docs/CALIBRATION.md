@@ -1,7 +1,7 @@
 # P6-1 Trend Filter Calibration
 
 > **Owner**: `strategy-vwap-momentum`  
-> **App orchestration**: [trading-app SWEEP_SPEC](https://github.com/timhwchuang/trading-app/blob/main/docs/SWEEP_SPEC.md)  
+> **App orchestration**: [apps/trading-app SWEEP_SPEC](../../../apps/trading-app/docs/SWEEP_SPEC.md)  
 > **B-class tooling**: `trading-app` `python -m reporting.calibration_cli` (log + tick_cache replay)  
 > **Human gate**: CAL-8 Go/No-Go still requires ≥5 UAT days of real ticks + sign-off
 
@@ -107,4 +107,4 @@ Decision reads `StrategyParams.from_config()` — sweep must patch config namesp
 ## Related
 
 - [SPEC.md](../SPEC.md) §6 Trend Filter semantics
-- [trading-engine STRATEGY.md](https://github.com/timhwchuang/trading-engine/blob/main/docs/STRATEGY.md)
+- [trading-engine STRATEGY.md](../../../trading-engine/docs/STRATEGY.md)

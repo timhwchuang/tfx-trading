@@ -9,7 +9,7 @@
 **本策略實作為作者個人研究與學習用途而公開，不構成投資建議、交易邀約或獲利保證。** 任何實盤或模擬交易之決策、參數設定、資金配置，以及因此產生的盈虧、漏單或其他損失，**均由使用者自行承擔**。作者與貢獻者不對任何直接或間接損害負責。
 
 > 上實盤（或大規模回測）前請務必：
-> 1. 完整閱讀 [trading-engine docs/LIVE_SAFETY.md](https://github.com/timhwchuang/trading-engine/blob/main/docs/LIVE_SAFETY.md) 與 [UAT_CHECKLIST.md](https://github.com/timhwchuang/trading-engine/blob/main/docs/UAT_CHECKLIST.md)
+> 1. 完整閱讀 [trading-engine docs/LIVE_SAFETY.md](../../trading-engine/docs/LIVE_SAFETY.md) 與 [UAT_CHECKLIST.md](../../trading-engine/docs/UAT_CHECKLIST.md)
 > 2. 在 simulation / paper trade 跑過完整交易日
 > 3. 使用 `engine.get_state_snapshot()` 唯讀觀察狀態，**切勿**直接修改 engine 內部屬性
 
@@ -17,38 +17,37 @@
 |------|------|
 | [SPEC.md](SPEC.md) | 策略定位、完整參數表、決策邏輯細節、trend Level-2 語意、audit reason、遷移說明 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本變更紀錄 |
-| trading-engine `docs/STRATEGY.md` | Strategy Protocol MUST / MUST NOT（必讀） |
+| [trading-engine docs/STRATEGY.md](../../trading-engine/docs/STRATEGY.md) | Strategy Protocol MUST / MUST NOT（必讀） |
 
 ## Status
 
 **0.1.2** — 參考 strategy plugin；搭配 **trading-engine v0.2.2+**（`atr_stale` / reconnect warmup gates）。
 
-## Install（GitHub only，不上 PyPI）
+## Install
+
+### Monorepo（建議）
 
 ```bash
-# 鎖定 tag（建議）
-pip install "strategy-vwap-momentum @ git+https://github.com/timhwchuang/strategy-vwap-momentum.git@v0.1.2"
-
-# 搭配 trading-engine（通常一起鎖）
-pip install "trading-engine @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.2"
+git clone git@github.com:timhwchuang/tfx-trading.git
+cd tfx-trading
+bash scripts/setup-dev.sh   # editable install 全部 packages
 ```
 
-在你的 app / backtest repo 的 `pyproject.toml`：
+本 package 路徑：`packages/strategies/vwap-momentum/`。
 
-```toml
-dependencies = [
-  "trading-engine @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.2",
-  "strategy-vwap-momentum @ git+https://github.com/timhwchuang/strategy-vwap-momentum.git@v0.1.2",
-]
-```
-
-### 本地開發（workspace 或單獨 clone）
+### 單 package 從 monorepo git 安裝（進階）
 
 ```bash
-git clone https://github.com/timhwchuang/strategy-vwap-momentum.git
-cd strategy-vwap-momentum
+pip install "trading-engine @ git+https://github.com/timhwchuang/tfx-trading.git@v0.3.0-monorepo#subdirectory=packages/trading-engine"
+pip install "strategy-vwap-momentum @ git+https://github.com/timhwchuang/tfx-trading.git@v0.3.0-monorepo#subdirectory=packages/strategies/vwap-momentum"
+```
+
+### 本地開發（已在 monorepo 內）
+
+```bash
+cd packages/strategies/vwap-momentum
 pip install -e ".[dev]"          # 含 ruff / mypy
-# 同時需要 trading-engine（可 sibling pip -e ../trading-engine 或上面 git 安裝）
+# trading-engine 已由 setup-dev.sh 或 pip -e ../../trading-engine 安裝
 ```
 
 ## Usage

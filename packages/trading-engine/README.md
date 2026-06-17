@@ -65,35 +65,29 @@
 | Mock broker 回測 / kernel 單測 | 內建 tick replay 框架 |
 | IOC limit 單、持倉 sync、重連對帳 | 多帳號、多商品同時交易 |
 
-## Install（GitHub only，不上 PyPI）
+## Install
 
-### 從 GitHub 安裝（給其他 repo 依賴用）
-
-```bash
-# 最新 main
-pip install git+https://github.com/timhwchuang/trading-engine.git
-
-# 鎖定 tag（建議發版時打 git tag）
-pip install git+https://github.com/timhwchuang/trading-engine.git@v0.2.2
-
-# Live 需要 Shioaji SDK
-pip install "trading-engine[shioaji] @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.2"
-```
-
-在 consuming repo 的 `pyproject.toml`：
-
-```toml
-dependencies = [
-  "trading-engine @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.2",
-]
-```
-
-### 本地開發
+### Monorepo（建議）
 
 ```bash
-git clone https://github.com/timhwchuang/trading-engine.git
-cd trading-engine
+git clone git@github.com:timhwchuang/tfx-trading.git
+cd tfx-trading
+bash scripts/setup-dev.sh   # editable install 全部 packages（含 shioaji）
+```
 
+本 package 路徑：`packages/trading-engine/`。
+
+### 單 package 從 monorepo git 安裝（進階）
+
+```bash
+pip install "trading-engine @ git+https://github.com/timhwchuang/tfx-trading.git@v0.3.0-monorepo#subdirectory=packages/trading-engine"
+pip install "trading-engine[shioaji] @ git+https://github.com/timhwchuang/tfx-trading.git@v0.3.0-monorepo#subdirectory=packages/trading-engine"
+```
+
+### 本地開發（已在 monorepo 內）
+
+```bash
+cd packages/trading-engine
 pip install -e .              # 核心（跑 kernel tests 不需 shioaji）
 pip install -e ".[shioaji]"   # + 永豐 Shioaji（live）
 ```

@@ -1,7 +1,7 @@
 # Backtest Implementation Spec
 
 > **Owner**: `trading-backtest`  
-> **Companion**: [SPEC.md](../SPEC.md) (package API), [trading-engine BACKTEST_HOST_CONTRACT](https://github.com/timhwchuang/trading-engine/blob/main/docs/BACKTEST_HOST_CONTRACT.md)
+> **Companion**: [SPEC.md](../SPEC.md) (package API), [trading-engine BACKTEST_HOST_CONTRACT](../../trading-engine/docs/BACKTEST_HOST_CONTRACT.md)
 
 Executable spec for replay loop, MockBroker, and acceptance tests. Phase 2–3 + backtest-side Phase 6/7 revisions from the former monolith `BackTestingSpec.md`.
 
