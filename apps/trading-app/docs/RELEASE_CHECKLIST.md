@@ -1,7 +1,6 @@
 # Release checklist — trading-app
 
-Use this before tagging a release on GitHub.  
-Four-repo coordination: [`UPGRADE_RUNBOOK.md`](UPGRADE_RUNBOOK.md).
+> **現行發布**：見 monorepo 根 [`monorepo/SPEC.md`](../../../monorepo/SPEC.md) §7。本檔保留**舊四-repo** 機械檢查紀錄。
 
 ## v0.1.2 — completed 2026-06-17
 

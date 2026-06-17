@@ -1,6 +1,6 @@
 # Weekly Status — 人機協作開發日記
 
-> 給**人類**看的進度、Follow-up、待決策。工程路線圖見 [`TODO.md`](../TODO.md)；文件職責見 [`DOC_MAP.md`](DOC_MAP.md)。  
+> 給**人類**看的進度、Follow-up、待決策。工程路線圖見 [`TODO.md`](../TODO.md)；文件職責見 [`docs/DOC_MAP.md`](../../../docs/DOC_MAP.md)。  
 > **歷史週報**（2026-06-12～06-16）→ [`ARCHIVE/weekly-status-2026.md`](ARCHIVE/weekly-status-2026.md)
 
 **用法**：重大決策時在下方新增一節（最新放最上面）。
@@ -27,19 +27,23 @@
 
 ---
 
-### 2026-06-17（Monorepo 遷移 → tfx-trading）
+### 2026-06-17（Monorepo 遷移完成 + 文件/Windows 路徑對齊）
 
 **目前進度**
-- 四 repo 已合併為 **`timhwchuang/tfx-trading`** monorepo（`packages/` + `packages/strategies/` + `apps/trading-app`）。
-- 整合文件：根目錄 [`SPEC.md`](../../../SPEC.md)、[`docs/Architecture.md`](../../../docs/Architecture.md)、[`docs/DOC_MAP.md`](../../../docs/DOC_MAP.md)。
-- 安裝：`bash scripts/setup-dev.sh`；測試：`bash scripts/run-all-tests.sh`。
+- **`timhwchuang/tfx-trading`** monorepo 已上線；tag `v0.3.0-monorepo`；CI 綠燈。
+- 路徑：`packages/trading-engine`、`packages/trading-backtest`、`packages/strategies/vwap-momentum`、`apps/trading-app`。
+- 整合文件：[`SPEC.md`](../../../SPEC.md)、[`docs/Architecture.md`](../../../docs/Architecture.md)、[`docs/DOC_MAP.md`](../../../docs/DOC_MAP.md)。
+- Windows 預設：`C:\tfx-trading`（venv 在 repo 根）；live 從 `apps\trading-app\src`。
+- 舊四 repo README 封存橫幅已 push；**Archive 操作由人類在 GitHub 完成**。
 
 **人類必做（Follow-up）**
-- [ ] 兩台電腦改 `git clone git@github.com:timhwchuang/tfx-trading.git`
-- [ ] Windows UAT 機更新路徑與 venv
-- [ ] 舊四 repo Archive（README 轉址後）
+- [x] 兩台電腦改 `git clone git@github.com:timhwchuang/tfx-trading.git`
+- [ ] Windows UAT 機：clone 至 `C:\tfx-trading` → `bash scripts/setup-dev.sh`（或手動 venv + editable install）
+- [ ] 舊四 repo GitHub **Archive**（Settings → Archive）
+- [ ] UAT B3b：斷網暖機 / 有倉 CRITICAL（P4-13）
 
 **備註**
+- 安裝：`bash scripts/setup-dev.sh`；全測：`bash scripts/run-all-tests.sh`。
 - 舊 `UPGRADE_RUNBOOK.md` 已 deprecated。
 
 ---
@@ -48,83 +52,48 @@
 
 | 項目 | 說明 |
 | ---- | ---- |
+| **Monorepo** | [`tfx-trading`](https://github.com/timhwchuang/tfx-trading) — `bash scripts/setup-dev.sh`；見 [`SPEC.md`](../../../SPEC.md) |
 | **申請永豐 API** | 目前 **0 權限**。模擬 UAT：行情 + 帳務 + 交易（不需 CA）。 |
-| **UAT 累積 tick** | 不再批量下載歷史；`TICK_ARCHIVE=1` 每日落盤 → `tick_cache/`。 |
+| **UAT 累積 tick** | `TICK_ARCHIVE=1` 每日落盤 → repo 根 `tick_cache/`。 |
 | **KBARS_ARCHIVE** | 建議 UAT 一併開啟，供 ATR / 趨勢回測熱身。 |
-| **Phase 3 UAT** | 可開跑（待 API）→ [`UAT_CHECKLIST.md`](UAT_CHECKLIST.md) + [engine UAT](https://github.com/timhwchuang/trading-engine/blob/main/docs/UAT_CHECKLIST.md) |
-| **Phase 6 CAL B 類** | 待 UAT tick；見 [strategy CALIBRATION.md](https://github.com/timhwchuang/strategy-vwap-momentum/blob/main/docs/CALIBRATION.md) |
+| **Phase 3 UAT** | 可開跑（待 API）→ [`UAT_CHECKLIST.md`](UAT_CHECKLIST.md) + [`packages/trading-engine/docs/UAT_CHECKLIST.md`](../../../packages/trading-engine/docs/UAT_CHECKLIST.md) |
+| **Phase 6 CAL B 類** | 待 UAT tick；見 [`packages/strategies/vwap-momentum/docs/CALIBRATION.md`](../../../packages/strategies/vwap-momentum/docs/CALIBRATION.md) |
 | **Pilot 門檻** | UAT 全過 + CA；秒停損率硬指標 → [`BeforePilot.md`](BeforePilot.md) |
-| **Monorepo** | `tfx-trading` — `bash scripts/setup-dev.sh`；見 [`SPEC.md`](../../../SPEC.md) |
-| **文件分層** | 架構決策 → `Architecture.md`；討論/待決策 → 本檔；可開工項 → `TODO.md`（不另開 IDEAS.md） |
+| **文件分層** | 架構 → [`docs/Architecture.md`](../../../docs/Architecture.md)；週報 → 本檔；可開工 → `TODO.md` |
 
 ---
 
 ### 2026-06-17（P0/P4-13 落地 + v0.2.2 發布）
 
+> *（遷移前四-repo 紀錄；現行開發在 `tfx-trading` monorepo。）*
+
 **目前進度**
-- **P0 `atr_stale`** + **P4-13**（暖機、斷線上限、有倉告警）已實作並 commit：`trading-engine@cb4167a`（**v0.2.2**）、`strategy@7f7ff70`、`trading-app@641027b`。
-- `requirements.txt` pin → `trading-engine@v0.2.2`；暖機改為**重連後首筆 tick 起算**（長斷線仍有效）。
-- 新增 [`UPGRADE_RUNBOOK.md`](UPGRADE_RUNBOOK.md)：四 repo 升級 SOP（pin 矩陣、測試閘門、tag 順序）。
+- **P0 `atr_stale`** + **P4-13** 已實作：engine v0.2.2、strategy v0.1.2、app v0.1.2。
+- 暖機：重連後**首筆 tick** 起算。
 
 **人類必做（Follow-up）**
-- [ ] `pip install -r requirements.txt`（或 monorepo `pip install -e ../trading-engine`）後重跑 `python run_tests.py`
-- [ ] UAT B3b：手動斷網 30–60s → 確認暖機無 entry、有倉 CRITICAL、三次斷線停玩
-
-**Pending / 待決策**
-- HTF / NDJSON：仍待 UAT tick（不變）
-
-**備註**
-- 歷史 release 筆記（`docs/releases/v0.1.0.md` 等）保留當時 pin，**現行真相**以 `requirements.txt` + Runbook 為準。
+- [ ] UAT B3b（見上節）
 
 ---
 
 ### 2026-06-17（資料流釐清 + P6-1 暫緩 + Nautilus 借鏡）
 
 **目前進度**
-- 四 repo 本機已 `reset --hard origin/main`（與另一台電腦同步）；當時 `trading-engine` → v0.2.1（後續已升至 **v0.2.2**，見上一節）。
-- 釐清 **Live 資料流**：熱路徑全在記憶體（`IndicatorState` 滾動窗口）；`TICK_ARCHIVE=1` 才非同步落盤；`strategy-vwap-momentum` **不讀硬碟**，只吃 `MarketSnapshot`。
-- **P6-1 trend filter**：現有 5m×20≈100min stride 只是 intraday proxy，不足以代表長趨勢 → **決策：選 A，維持 `trend_filter_enabled: false`**，UAT 後用 `trend_veto` audit 量化再談開啟。
-- **1h 趨勢 / 夜盤**：日盤短趨勢、主戰 **09:45 後** → 純日盤 tick 足夠；僅開盤 1h 內若要完整 1h 上下文才需夜盤或前日尾盤（現策略不需要）。
-- **NautilusTrader 借鏡**（細節見 [`Architecture.md`](Architecture.md)「外部參考」）：借 event catalog + cache 抽象；不借 Rust 熱路徑 / MQ 決策路徑。
+- Live 熱路徑在記憶體；`TICK_ARCHIVE=1` 非同步落盤；策略只吃 `MarketSnapshot`。
+- **P6-1**：維持 `trend_filter_enabled: false`；UAT 後用 `trend_veto` audit 再評估。
+- Nautilus 借鏡：event catalog + cache 抽象；不借 Rust 熱路徑 / MQ。
 
-**人類必做（Follow-up）**
-- [ ] 申請永豐模擬 API（不變）
-- [ ] UAT：`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`，累積 ≥5 交易日再跑 calibration
+**Pending**
+- HTF / NDJSON：待 UAT tick。
 
-**Pending / 待決策**
-- ~~`requirements.txt` pin~~ → **已解決**：pin `v0.2.2`（見上一節）。
-- HTF 真實時間桶 / CachePort：UAT 後再評估（見 Architecture）
-- NDJSON 事件層：仍待第一段乾淨 UAT 後
-
-**Live 連線護欄（已納入 [`TODO.md`](../TODO.md) P4-13）**
-- 恢復訂閱後：**暖機期禁止新進場**，等 VWAP/動量窗口用新 tick 重新對齊（exit 不受限）。
-- 單日斷線 **≥3 次** → `block_new_entry` 至收盤 + CRITICAL 告警，**先排查網路**，當日不再開新倉。
-- **有持倉時斷線** → 立即告警（停損/trailing 在無 tick 時凍結，屬最高優先運維事件）。
-
-**備註 / 開發日記**
-- Backtest 載入是「整日 CSV 進 RAM 再 yield」，非 row streaming；多日 sweep 需注意記憶體峰值（單日通常 OK）。
-- 好點子紀錄慣例：已寫入 DOC_MAP 長期提醒「文件分層」列。
+**Live 連線護欄（P4-13，已落地）**
+- 暖機期禁止新 entry；單日斷線 ≥3 → `block_new_entry`；有倉斷線 → CRITICAL。
 
 ---
 
-### 2026-06-16（文件重構完成 — WeeklyStatus archive + BackTestingSpec 拆分）
+### 2026-06-16（文件重構 — archive）
 
 **目前進度**
-- **WeeklyStatus**：舊節移至 [`ARCHIVE/weekly-status-2026.md`](ARCHIVE/weekly-status-2026.md)；本檔只保留範本 + 長期提醒 + 最新一節。
-- **BackTestingSpec 拆分**：
-  - Kernel 契約 → `trading-engine/docs/BACKTEST_HOST_CONTRACT.md`
-  - 回放 / MockBroker → `trading-backtest/docs/BACKTEST_IMPLEMENTATION.md`
-  - 策略校準 → `strategy-vwap-momentum/docs/CALIBRATION.md`
-  - Sweep / 確定性 → `trading-app/docs/SWEEP_SPEC.md`
-- **trading-app `BackTestingSpec.md`** → 僅剩索引 stub。
+- BackTestingSpec 拆至各 package；WeeklyStatus 舊節 → `ARCHIVE/`。
 
-**人類必做（Follow-up）**
-- [ ] 申請永豐模擬 API
-- [ ] KEY 到手後跑 `docs/UAT_CHECKLIST.md` Phase A→E
-
-**Pending / 待決策**
-- B 類 P6-1-CAL 待 UAT tick 累積
-- NDJSON 事件層待第一段乾淨 UAT 後
-
-**備註**
-- 歷史 CodeReview / Phase8 spec 已刪（GitHub 歷史）；`theman` 已自運維路徑清除。
+*詳見 [`ARCHIVE/weekly-status-2026.md`](ARCHIVE/weekly-status-2026.md)。*

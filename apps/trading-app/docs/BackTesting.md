@@ -65,7 +65,7 @@ trading-app/                 # reference integrator（v0.1.1）
 │   ├── reporting/           # uat_report、績效指標
 │   ├── sweep/               # param_sweep、determinism_check
 │   └── config.py 等         # app 設定、觀測
-├── tests/                   # `python run_tests.py`（79 項整合測試）
+├── tests/                   # `python run_tests.py`（81 項整合測試）
 └── tick_cache/              # UAT / 回測 tick CSV 快取
 
 # Sibling packages（pip install -e ../ 或 requirements.txt git pin）
@@ -200,4 +200,4 @@ for tick in storage.tick_loader.iter_replay_ticks(code, dates):
 * [x] **Phase 5**：`sweep/param_sweep.py` + walk-forward 網格。
 * [x] **Phase 7**：`strategy.base.Strategy` + 建構子注入（見 §1.1）。
 
-詳細驗收見四 repo 規格索引 [`BackTestingSpec.md`](BackTestingSpec.md) → `SWEEP_SPEC` / `BACKTEST_*` / `CALIBRATION`。
+詳細驗收見 [`BackTestingSpec.md`](BackTestingSpec.md) 索引 → 各 package `BACKTEST_*` / `CALIBRATION` / [`SWEEP_SPEC.md`](SWEEP_SPEC.md)。

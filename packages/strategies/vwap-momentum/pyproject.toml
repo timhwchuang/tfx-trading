@@ -34,9 +34,9 @@ dev = ["ruff>=0.8", "mypy>=1.11"]
 vwap_momentum = "strategy_vwap_momentum:VWAPMomentumStrategy"
 
 [project.urls]
-Homepage = "https://github.com/timhwchuang/strategy-vwap-momentum"
-Documentation = "https://github.com/timhwchuang/strategy-vwap-momentum/blob/main/SPEC.md"
-Repository = "https://github.com/timhwchuang/strategy-vwap-momentum"
+Homepage = "https://github.com/timhwchuang/tfx-trading"
+Documentation = "https://github.com/timhwchuang/tfx-trading/blob/main/packages/strategies/vwap-momentum/SPEC.md"
+Repository = "https://github.com/timhwchuang/tfx-trading"
 
 [tool.ruff]
 line-length = 100

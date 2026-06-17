@@ -107,6 +107,6 @@ Backtest: tick_cache/*.csv(.gz) → load_ticks_csv（整日 RAM）→ iter_repla
 ## 時序與相容性
 
 - 新縫以可選參數 + 安全預設加入
-- `bash scripts/run-all-tests.sh` 每次全綠（engine ~80、strategy ~33、app ~81）
+- `bash scripts/run-all-tests.sh` 每次全綠（engine 80、strategy 33、app 81、backtest 全綠）
 - **tick_cache**：app 用 `storage.cache_paths.DEFAULT_TICK_CACHE_DIR`（repo 根 `tick_cache/`）
 - live 入口：`cd apps/trading-app/src && python -m live`（行為不變）

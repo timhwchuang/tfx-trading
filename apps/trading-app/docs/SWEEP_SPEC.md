@@ -2,7 +2,7 @@
 
 > **Owner**: `trading-app` (`src/sweep/`, `src/reporting/`)  
 > **Backtest driver**: `trading-backtest`  
-> **Strategy params**: `strategy-vwap-momentum` [CALIBRATION.md](https://github.com/timhwchuang/strategy-vwap-momentum/blob/main/docs/CALIBRATION.md)
+> **Strategy params**: [`packages/strategies/vwap-momentum/docs/CALIBRATION.md`](../../../packages/strategies/vwap-momentum/docs/CALIBRATION.md)
 
 App-layer research tooling: determinism hash gate + walk-forward param sweep. Former monolith `BackTestingSpec.md` Phase 4–5 + hash-related Phase 6/7 items.
 

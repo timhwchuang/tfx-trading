@@ -1,9 +1,9 @@
 # trading-app — Roadmap
 
 > **執行環境：Windows**。原則：**UAT 驗狀態機與對帳，不驗獲利**。  
-> 文件職責見 [`docs/DOC_MAP.md`](docs/DOC_MAP.md)。歷史實作細節見 git log（monolith 時代內容已瘦身）。
+> 文件職責見 [`docs/DOC_MAP.md`](../../docs/DOC_MAP.md)。Monorepo：[`tfx-trading`](https://github.com/timhwchuang/tfx-trading)。
 
-## 目前狀態（2026-06-16）
+## 目前狀態（2026-06-17）
 
 | 階段 | 狀態 |
 | ---- | ---- |
@@ -13,11 +13,11 @@
 | Phase 5 Pilot | 待 UAT 全過 + CA；秒停損率為硬指標 → [`docs/BeforePilot.md`](docs/BeforePilot.md) |
 | Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（待 UAT tick 跑 CAL-8）；P6-4/5 待做 |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
-| Phase 8 三 repo | ✅ 已發布 v0.1.1；`trading_app_engine_ports()` 接線 |
+| Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
 
 > **UAT Ready ≠ Live Ready**。Phase 6 是 Live gate，不是 UAT gate。
 
-**測試基線**：`python run_tests.py` — trading-app **79**；siblings 各自 `run_tests.py`（engine 73 / backtest 27 / strategy 31）。
+**測試基線**：`bash scripts/run-all-tests.sh`（monorepo 根）— app **81**、engine **80**、strategy **33**（backtest 各自）。
 
 ---
 
@@ -84,7 +84,7 @@
 | 需要… | 讀… |
 | ----- | --- |
 | 跑 UAT | `docs/UAT_CHECKLIST.md` |
-| Kernel scenario | [trading-engine UAT_CHECKLIST](https://github.com/timhwchuang/trading-engine/blob/main/docs/UAT_CHECKLIST.md) |
+| Kernel scenario | [`packages/trading-engine/docs/UAT_CHECKLIST.md`](../../packages/trading-engine/docs/UAT_CHECKLIST.md) |
 | 週報 / 人類 follow-up | `docs/WeeklyStatus.md` |
 | Windows 運維 | `docs/WindowsOps.md` |
 | 架構邊界 | `docs/Architecture.md`, `SPEC.md` |

@@ -80,7 +80,7 @@ Log lines consumed by `reporting/uat_report.py`:
 - `DAILY_SUMMARY {json}`
 
 Emitters: `trading-engine` (kernel) + `TradingAppTelemetryPort` (app observability).  
-Checklist: [`trading-engine/docs/UAT_CHECKLIST.md`](https://github.com/timhwchuang/trading-engine/blob/main/docs/UAT_CHECKLIST.md) (kernel) + [`docs/UAT_CHECKLIST.md`](docs/UAT_CHECKLIST.md) (app deployment).
+Checklist: [`packages/trading-engine/docs/UAT_CHECKLIST.md`](../../packages/trading-engine/docs/UAT_CHECKLIST.md) (kernel) + [`docs/UAT_CHECKLIST.md`](docs/UAT_CHECKLIST.md) (app deployment).
 
 ## Install (monorepo)
 

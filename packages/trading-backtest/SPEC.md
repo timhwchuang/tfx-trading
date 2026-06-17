@@ -334,7 +334,7 @@ Coverage focus:
 - BacktestEngine: clock advance, pending timeout ordering, premarket `on_tick` filter vs matching, empty run.
 - Loader: sort / duplicate / price anomaly warnings.
 
-CI installs pinned `trading-engine@v0.2.2`, runs ruff + tests (mypy non-blocking).
+CI: monorepo `bash scripts/run-all-tests.sh` (editable `trading-engine` from workspace).
 
 ---
 
@@ -346,8 +346,8 @@ CI installs pinned `trading-engine@v0.2.2`, runs ruff + tests (mypy non-blocking
 
 ```toml
 dependencies = [
-  "trading-engine @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.2",
-  "trading-backtest @ git+https://github.com/timhwchuang/trading-backtest.git@v0.1.0",
+  "trading-engine @ file:///${MONOREPO}/packages/trading-engine",
+  "trading-backtest @ file:///${MONOREPO}/packages/trading-backtest",
 ]
 ```
 

@@ -63,7 +63,7 @@ apps/trading-app/                 ← was trading-app/
 - [x] Root `README.md`, `SPEC.md`, `docs/Architecture.md`, `docs/DOC_MAP.md`
 - [x] App Architecture stub → root; UPGRADE_RUNBOOK deprecated
 - [x] `WeeklyStatus.md` migration section
-- [ ] Windows `.ps1` paths (verify on UAT machine)
+- [x] Windows `.ps1` paths → `-MonorepoRoot C:\tfx-trading`
 
 ---
 
@@ -89,7 +89,7 @@ apps/trading-app/                 ← was trading-app/
 - [ ] Final README banner:
 
   ```markdown
-  > **Archived.** Development moved to [txf-trading](https://github.com/timhwchuang/txf-trading).
+  > **Archived.** Development moved to [tfx-trading](https://github.com/timhwchuang/tfx-trading).
   > Historical tags remain available; no further updates.
   ```
 

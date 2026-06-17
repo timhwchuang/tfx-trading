@@ -1,3 +1,5 @@
+> **Monorepo**：[`tfx-trading`](https://github.com/timhwchuang/tfx-trading) → `packages/strategies/vwap-momentum/`。安裝：`bash scripts/setup-dev.sh`（repo 根）。
+
 # strategy-vwap-momentum
 
 **Reference VWAP momentum + higher-timeframe trend filter strategy plugin for `trading-engine`.**

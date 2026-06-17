@@ -45,9 +45,9 @@ disallow_untyped_defs = false
 ignore_missing_imports = true
 
 [project.urls]
-Homepage = "https://github.com/timhwchuang/trading-engine"
-Documentation = "https://github.com/timhwchuang/trading-engine/blob/main/SPEC.md"
-Repository = "https://github.com/timhwchuang/trading-engine"
+Homepage = "https://github.com/timhwchuang/tfx-trading"
+Documentation = "https://github.com/timhwchuang/tfx-trading/blob/main/packages/trading-engine/SPEC.md"
+Repository = "https://github.com/timhwchuang/tfx-trading"
 
 [tool.setuptools.packages.find]
 where = ["src"]

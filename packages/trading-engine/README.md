@@ -1,3 +1,5 @@
+> **Monorepo**：本 package 位於 [`tfx-trading`](https://github.com/timhwchuang/tfx-trading) → `packages/trading-engine/`。安裝請在 repo 根執行 `bash scripts/setup-dev.sh`。
+
 # trading-engine
 
 **永豐 Shioaji 台指期執行 kernel** — tick → 策略信號 → 下單 → 成交 → 持倉口數 → session / 風控邊界。

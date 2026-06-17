@@ -1,3 +1,5 @@
+> **Monorepo**：[`tfx-trading`](https://github.com/timhwchuang/tfx-trading) → `packages/trading-backtest/`。安裝：`bash scripts/setup-dev.sh`（repo 根）。
+
 # trading-backtest
 
 **Deterministic tick replay driver for `trading-engine`.**

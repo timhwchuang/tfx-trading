@@ -34,9 +34,9 @@ dependencies = [
 dev = ["ruff>=0.8", "mypy>=1.11"]
 
 [project.urls]
-Homepage = "https://github.com/timhwchuang/trading-app"
-Documentation = "https://github.com/timhwchuang/trading-app/blob/main/SPEC.md"
-Repository = "https://github.com/timhwchuang/trading-app"
+Homepage = "https://github.com/timhwchuang/tfx-trading"
+Documentation = "https://github.com/timhwchuang/tfx-trading/blob/main/SPEC.md"
+Repository = "https://github.com/timhwchuang/tfx-trading"
 
 [tool.ruff]
 line-length = 100
