@@ -10,7 +10,7 @@
 | Phase 0～2 狀態機 / 訊號 / 委託 | ✅ 已落地（kernel + plugin） |
 | **Phase 3 UAT** | **可開跑** — 待永豐模擬 API 金鑰 → [`docs/UAT_CHECKLIST.md`](docs/UAT_CHECKLIST.md) |
 | Phase 4 運維骨架 | ✅ P4-1～12 已落地；Pilot 前 Telegram / 斷網實機驗收 |
-| Phase 5 Pilot | 待 UAT 全過 + CA；秒停損率為硬指標 → [`docs/BeforePilot.md`](docs/BeforePilot.md) |
+| Phase 5 Pilot | 見 `docs/UAT_CHECKLIST.md` Phase D（量化 gate：Expectancy/Sharpe/MDD + 穩定性） |
 | Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（待 UAT tick 跑 CAL-8）；P6-4/5 待做 |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
@@ -74,7 +74,7 @@
 | ---- | ---- | ---- |
 | **Merge code** | `run_tests.py` 全綠 | 各 repo |
 | **UAT** | 模擬 API + `simulation: true` + checklist Pass | `docs/UAT_CHECKLIST.md` + engine checklist |
-| **Pilot** | UAT 連續零異常 + CA + 秒停損率達標 | `docs/BeforePilot.md` |
+| **Pilot** | UAT 連續零異常 + CA + 秒停損率達標 | `docs/UAT_CHECKLIST.md` Phase D |
 | **Live** | Phase 6 旗標經 tick 校準 + 人類簽核 | `trading-engine/LIVE_SAFETY.md` |
 
 ---

@@ -125,3 +125,33 @@ def capture_backtest_log_lines(
 
     records = _run_with_audit_capture(_run)
     return [f"10:00:00 [INFO] {label} {payload}" for label, payload in records]
+
+
+def main() -> None:
+    import argparse
+    from datetime import datetime
+
+    parser = argparse.ArgumentParser(description="Determinism check helper for UAT")
+    parser.add_argument("--date", required=True, help="Date in YYYY-MM-DD for backtest (or use for log capture)")
+    parser.add_argument("--code", default="TXFR1", help="Contract code")
+    parser.add_argument("--output", help="Optional path to write hash or lines")
+    parser.add_argument("--mode", choices=["hash", "capture"], default="hash", help="Run backtest and hash, or just capture lines")
+    args = parser.parse_args()
+
+    dates = [args.date]
+    if args.mode == "hash":
+        h = run_hash(args.code, dates)
+        print(f"Determinism hash for {args.date}: {h}")
+        if args.output:
+            Path(args.output).write_text(h)
+    else:
+        lines = capture_backtest_log_lines(args.code, dates)
+        if args.output:
+            Path(args.output).write_text("\n".join(lines))
+        else:
+            for line in lines:
+                print(line)
+
+
+if __name__ == "__main__":
+    main()

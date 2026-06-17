@@ -58,7 +58,7 @@
 | **KBARS_ARCHIVE** | 建議 UAT 一併開啟，供 ATR / 趨勢回測熱身。 |
 | **Phase 3 UAT** | 可開跑（待 API）→ [`UAT_CHECKLIST.md`](UAT_CHECKLIST.md) + [`packages/trading-engine/docs/UAT_CHECKLIST.md`](../../../packages/trading-engine/docs/UAT_CHECKLIST.md) |
 | **Phase 6 CAL B 類** | 待 UAT tick；見 [`packages/strategies/vwap-momentum/docs/CALIBRATION.md`](../../../packages/strategies/vwap-momentum/docs/CALIBRATION.md) |
-| **Pilot 門檻** | UAT 全過 + CA；秒停損率硬指標 → [`BeforePilot.md`](BeforePilot.md) |
+| **Pilot 門檻** | **主文件**：[`UAT_CHECKLIST.md`](UAT_CHECKLIST.md)（最上方有目前進度表 + 循序 Phase） |
 | **文件分層** | 架構 → [`docs/Architecture.md`](../../../docs/Architecture.md)；週報 → 本檔；可開工 → `TODO.md` |
 
 ---

@@ -100,4 +100,4 @@ See [`SPEC.md`](../../SPEC.md) · [`docs/Architecture.md`](../../docs/Architectu
 
 ## Status
 
-**v0.1.2** — UAT-ready reference deployment with P0/P4-13 live guards. `simulation: true` default in `config/config.yaml`. Live / Pilot requires human Go/No-Go per `TODO.md` + `docs/BeforePilot.md`.
+**v0.1.2** — UAT-ready reference deployment with P0/P4-13 live guards. `simulation: true` default in `config/config.yaml`. Live / Pilot requires human Go/No-Go per `UAT_CHECKLIST.md`（含量化 Pilot Readiness Gate）。

@@ -11,7 +11,7 @@
 | [`../../../SPEC.md`](../../../SPEC.md) | 整合 SPEC 入口 |
 | [`UAT_CHECKLIST.md`](UAT_CHECKLIST.md) | **App 層 UAT**（Windows 部署、落盤、報表） |
 | [`AuditContract.md`](AuditContract.md) | SIGNAL/FILL/DAILY_SUMMARY log 契約 |
-| [`BeforePilot.md`](BeforePilot.md) | UAT → Pilot gate |
+| [`UAT_CHECKLIST.md`](UAT_CHECKLIST.md) | UAT 完整清單 + **Pilot Readiness Gate**（含 MDD/Sharpe/Expectancy 硬門檻） |
 | [`WindowsOps.md`](WindowsOps.md) | 排程、告警（`C:\tfx-trading` 路徑） |
 | [`SWEEP_SPEC.md`](SWEEP_SPEC.md) | 確定性 + param sweep |
 | [`BackTestingSpec.md`](BackTestingSpec.md) | 索引 stub → 各 package 規格 |
