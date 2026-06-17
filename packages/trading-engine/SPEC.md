@@ -147,7 +147,7 @@ trading-engine/
 
 ## 7. 歷史遷移（舊內部消費者）
 
-從 theman monorepo 抽離的路徑對照見 [docs/MIGRATION_FROM_THEMAN.md](docs/MIGRATION_FROM_THEMAN.md)（**Historical — 新使用者可忽略**）。
+從 theman monorepo 抽離的路徑對照見 [docs/ARCHIVE/MIGRATION_FROM_THEMAN.md](docs/ARCHIVE/MIGRATION_FROM_THEMAN.md)（**Historical — 新使用者可忽略**）。
 
 ## 8. 測試
 
@@ -175,7 +175,7 @@ Breaking change 範例：`Strategy.evaluate` 簽名變更、`OrderSignal` 欄位
 - [x] Kernel test suite 擴充（37 → 73，含 adversarial + safety guards）
 - [x] CI pipeline（本 repo）
 - [ ] 發布 PyPI（或 GitHub Packages）
-- [x] ~~theman vendored copy~~ → cancelled（historical；見 MIGRATION_FROM_THEMAN.md）
+- [x] ~~theman vendored copy~~ → cancelled（historical；見 ARCHIVE/MIGRATION_FROM_THEMAN.md）
 - [x] Live safety docs + state snapshot + signal validation guards
 - [x] CI lint + typecheck（ruff / mypy）
 

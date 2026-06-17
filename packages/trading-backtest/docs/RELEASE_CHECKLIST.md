@@ -7,7 +7,7 @@ Use this before tagging `v0.1.0` on GitHub.
 - [ ] `python3 run_tests.py` — all tests pass (currently 25+)
 - [ ] `ruff check src tests` — no lint errors
 - [ ] `ruff format --check src tests` — formatted
-- [ ] `README.md` / `SPEC.md` / `docs/releases/v0.1.0.md` — no broken in-repo links
+- [x] Docs slimmed post-monorepo (releases moved to ARCHIVE/; links point to ARCHIVE where needed)
 - [ ] `pyproject.toml` `Documentation` URL → `SPEC.md`
 - [ ] `src/trading_backtest/_version.py` matches tag (`0.1.0`)
 - [ ] `CHANGELOG.md` date and `[0.1.0]` link ready
@@ -17,31 +17,36 @@ Use this before tagging `v0.1.0` on GitHub.
   git ls-files '*.egg-info'  # should print nothing
   ```
 
-## Dependency pin (document in release)
+## Dependency pin & install (current monorepo practice)
 
-Consumers must pin:
+Consumers use monorepo editable or:
 
 ```bash
-pip install "trading-engine @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.0"
-pip install "trading-backtest @ git+https://github.com/timhwchuang/trading-backtest.git@v0.1.0"
+pip install -e packages/trading-engine
+pip install -e packages/trading-backtest
 ```
 
-## Tag & publish
+(See root scripts/setup-dev.sh and monorepo/SPEC.md)
+
+Old standalone git+ examples are only in ARCHIVE/releases/.
+
+## Tag & publish (monorepo)
 
 ```bash
 git add -A
-git commit -m "Release v0.1.0: standalone spec, validation tools, public research alpha"
-git tag -a v0.1.0 -m "v0.1.0 — deterministic backtest driver (research alpha)"
-git remote add origin https://github.com/timhwchuang/trading-backtest.git  # if needed
-git push origin main
-git push origin v0.1.0
+git commit -m "..."
+# optional
+git tag -a ...
+git push origin main --tags
 ```
+
+Granular release notes go under ARCHIVE/ (or omitted); document in CHANGELOG.md. See monorepo/SPEC.md §7.
 
 ## Post-tag
 
-- [ ] GitHub Release notes — copy from `docs/releases/v0.1.0.md`
+- [ ] GitHub Release notes (historical: were copied from docs/releases/ which are now archived)
 - [ ] Verify CI green on `main` after push
-- [ ] Update workspace `docs/three-repo/README.md` Backtest status → ✅ *(internal monorepo only)*
+- [x] Architecture references updated for monorepo (historical three-repo checklist item removed)
 - [ ] Notify collaborators: **research alpha**, not production execution simulator
 
 ## Scope reminder (do not oversell)

@@ -52,9 +52,9 @@
 
 | 文件 | 說明 |
 | ---- | ---- |
-| `apps/trading-app/docs/UPGRADE_RUNBOOK.md` | 四 repo pin SOP → 已由 monorepo 取代 |
-| `docs/ARCHIVE/`、`apps/trading-app/docs/ARCHIVE/` | 歷史週報、舊 spec stub |
-| 各 `docs/releases/v0.x.x.md` | 當時發布記錄，不重寫 |
+| `apps/trading-app/docs/ARCHIVE/UPGRADE_RUNBOOK.md` | 四 repo pin SOP（已棄用）→ 由 monorepo/SPEC 取代 |
+| `*/docs/ARCHIVE/` (incl. releases/, MIGRATION_FROM_THEMAN, old BackTesting) | 歷史週報、pre-monorepo 發布記錄、舊 spec、遷移對照。閱讀時注意路徑已過時 |
+| 舊 `docs/releases/*.md` | 已移至各 `ARCHIVE/releases/`；舊 standalone git+ 安裝指令僅供歷史 |
 
 ## 常見混淆
 

@@ -71,7 +71,7 @@
 - **`TODO.md`**（根目錄，**路線圖**）
   - 更新「目前狀態」表格與 **Open items**（未完成項）。
   - 不寫歷史 changelog、不重複 UAT 逐步清單（見 `docs/UAT_CHECKLIST.md`）。
-  - 職責分工見 [`docs/DOC_MAP.md`](../../docs/DOC_MAP.md)（全 repo 索引）或 app 內 [`docs/DOC_MAP.md`](docs/DOC_MAP.md)（轉址）。
+  - 職責分工見 [`docs/DOC_MAP.md`](../../docs/DOC_MAP.md)（全 repo 索引）。App 內舊 redirect stub 已移除。
 - **`docs/WeeklyStatus.md`**
   - 這是「給人類看的週報 + 交接日記」。
   - 重大工作結束時，在**最上方**新增一節（用範本）。

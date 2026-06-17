@@ -35,7 +35,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - `trend.py` — `compute_trend` (ema/slope + Level-2 `min_strength` gate in ATR units), `trend_allows_entry`, `dynamic_trail_points`, `dynamic_vwap_stop_distance`, supporting math (ema with proper SMA-seed warmup, resample_closes that guarantees latest bar, linear regression slope).
 - `MomentumState` (internal to the plugin — correctly **not** part of the public Protocol).
 - Rich `SignalAudit` builders emitting `reason="pullback" | "stop_loss" | "stop_loss_vwap" | "take_profit" | "trailing_stop" | "session_force_flatten" | "trend_veto"`.
-- Unit & behavior tests (trend math + Level-2 gating + gap hygiene + CAL-1 slice guard, cooldown, exit-grace period, session force-flatten). ~27 tests (count per three-repo workspace doc).
+- Unit & behavior tests (trend math + Level-2 gating + gap hygiene + CAL-1 slice guard, cooldown, exit-grace period, session force-flatten). ~27 tests (count per pre-monorepo workspace doc).
 - Entry point registration: `trading_engine.strategies = "vwap_momentum"`.
 - Package metadata, MIT license, py.typed, runnable `python run_tests.py` (after trading-engine installed).
 - `README.md`, `SPEC.md`, `CHANGELOG.md`, CI scaffold, docs/ structure.
@@ -51,7 +51,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - SPEC.md: explicit notes on daily-loss-breach tick arming window and hard-stop (entry_price) vs vwap-stop (current vwap) reference difference.
 - Type polish: `_try_activate_momentum` call site no longer assigns return value (was -> None but treated as signal).
 - This package is the **reference implementation** of the VWAP + momentum pullback + P6 (trend filter + ATR-dynamic exits) logic previously developed inside the internal `theman` monorepo.
-- Depends on `trading-engine>=0.2.0,<1.0`. Follows the three-repo architecture (see `docs/three-repo/README.md` and `strategy/SPEC.md`).
+- Depends on `trading-engine>=0.2.0,<1.0`. (pre-monorepo multi-package design reference; now in tfx-trading monorepo)
 - Strategy decision logic is **pure** (no broker, no replay, no side effects except lightweight `StrategySideEffects` + audit logs). All heavy lifting (state machine, MockBroker, live Shioaji bootstrap) lives in `trading-engine` / `trading-backtest`.
 - Strong emphasis: this reference strategy (and the package) is published for academic / personal research and learning. See README Disclaimer.
 

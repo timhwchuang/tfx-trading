@@ -67,11 +67,13 @@ Windows 執行與 UAT：[`apps/trading-app/README.md`](apps/trading-app/README.m
 
 ## 5. 版本與發布
 
-各 package 保留獨立 `version` + `CHANGELOG.md`。Monorepo 發布 SOP：
+各 package 保留獨立 `version` + `CHANGELOG.md`（主要歷史來源）。Monorepo 發布 SOP：
 
 1. 改動 → `bash scripts/run-all-tests.sh` 全綠  
 2. 更新相關 `CHANGELOG.md`  
 3. commit；可選 monorepo tag  
+
+**注意**：不再建立新的 `docs/releases/vX.Y.Z.md`。歷史釋出記錄已移至各 `docs/ARCHIVE/releases/`。舊 standalone git+ 安裝範例僅供考古。
 
 舊四 repo 已封存；歷史 tag 仍指向舊 GitHub，**現行開發僅此 repo**。
 

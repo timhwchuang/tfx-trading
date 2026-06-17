@@ -37,7 +37,7 @@ UAT-ready release addressing [CodeReview#2](CodeReview#2.md) (see [CodeReview#2-
 - `TradingEngine.get_state_snapshot()` and frozen `EngineStateSnapshot` for read-only state observation
 - `_validate_order_signal()` — kernel rejects invalid `OrderSignal` before arming pending
 - `RuntimeConfig.warn_if_placeholder_credentials()` on live login
-- Docs: [docs/LIVE_SAFETY.md](docs/LIVE_SAFETY.md), [docs/STRATEGY.md](docs/STRATEGY.md), [docs/MIGRATION_FROM_THEMAN.md](docs/MIGRATION_FROM_THEMAN.md), [docs/UAT_CHECKLIST.md](docs/UAT_CHECKLIST.md)
+- Docs: [docs/LIVE_SAFETY.md](docs/LIVE_SAFETY.md), [docs/STRATEGY.md](docs/STRATEGY.md), [docs/ARCHIVE/MIGRATION_FROM_THEMAN.md](docs/ARCHIVE/MIGRATION_FROM_THEMAN.md) (historical), [docs/UAT_CHECKLIST.md](docs/UAT_CHECKLIST.md)
 - README: Disclaimer, Live Safety, Go-Live Checklist, Secrets, Logging (`configure_root=False`)
 - `.env.example`, [examples/minimal_live/](examples/minimal_live/)
 - CI `quality` job: ruff lint/format, gradual mypy, explicit no-shioaji guard step

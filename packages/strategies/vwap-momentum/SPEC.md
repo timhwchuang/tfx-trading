@@ -1,7 +1,7 @@
 # Strategy Plugin Spec — strategy-vwap-momentum
 
 > **Package**: `strategy-vwap-momentum` · **Import**: `strategy_vwap_momentum`  
-> **第一個公開 reference `strategy-<name>`**（依據 `strategy/SPEC.md` 與 `docs/three-repo/README.md`）  
+> **第一個公開 reference `strategy-<name>`**（monorepo 下的策略 plugin 範例）  
 > 使用者入口：[README.md](README.md) · 契約 source of truth：`trading_engine.core.strategy`（trading-engine） · 完整參數與邏輯：本文
 
 **一句話**：這是 trading-engine 社群第一個參考實作的 VWAP momentum pullback + 高時間框架 trend 濾網 + ATR 動態出場策略 plugin。**僅供學術研究與個人學習**。
@@ -138,7 +138,7 @@ dependencies = ["trading-engine>=0.2.2,<1.0"]
 
 - trading-engine major bump → 本 plugin 需跟進發新版
 - Plugin 內部改動（參數預設、校準值、細微規則調整）→ 只 bump plugin patch/minor
-- 建議 consuming app 鎖 tag：`strategy-vwap-momentum @ git+...@v0.1.0`
+- 建議 consuming app 從 monorepo 安裝：`pip install -e packages/strategies/vwap-momentum`（或參考 root `scripts/setup-dev.sh`）。歷史 standalone pin 見 ARCHIVE/releases/。
 
 ## 10. 測試
 

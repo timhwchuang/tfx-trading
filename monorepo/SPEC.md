@@ -154,10 +154,16 @@ Dropping a failed experiment: delete or move folder to `experiments/` — no sep
 Release SOP (replaces four-repo `UPGRADE_RUNBOOK`):
 
 1. Change code in affected package(s)
-2. Bump that package’s `version` + `CHANGELOG.md` if user-facing
+2. Bump that package’s `version` + **update `CHANGELOG.md`** (primary history)
 3. `bash scripts/run-all-tests.sh` — all green
 4. Commit; optional monorepo tag
 5. No cross-repo pin matrix
+
+**Future releases guidance**:
+- Do **not** create new files under `docs/releases/`.
+- Granular historical release notes live in `*/docs/ARCHIVE/releases/`.
+- All user-facing changes go in the package's `CHANGELOG.md`.
+- Old standalone-repo `git+@tag` examples exist only for archaeology in ARCHIVE/. Current installs use the monorepo + `scripts/setup-dev.sh` or editable `-e packages/...`.
 
 ---
 

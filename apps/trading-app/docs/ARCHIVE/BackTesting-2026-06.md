@@ -1,4 +1,6 @@
-# Micro TAIEX VWAP 策略：UAT 回測規格書（同構性 / 確定性 / 啟發式執行）
+# Micro TAIEX VWAP 策略：UAT 回測規格書（同構性 / 確定性 / 啟發式執行） [PRE-MONOREPO HISTORICAL]
+
+> This file contains pre-monorepo internal paths (src/runtime/, runtime.TradingEngine, etc.) and is archived for reference. Current specs are split across packages/trading-engine/docs/BACKTEST_*, packages/trading-backtest/docs/BACKTEST_*, and apps/trading-app/docs/BackTestingSpec.md.
 
 > 本文件已對照實際專案（`src/runtime/engine.py:TradingEngine`、`src/strategy/`、
 > `src/observability.py`、`src/exchange_time.py`、`src/config.py`、`src/reporting/uat_report.py`）與 Shioaji `_core.pyi` 修訂。

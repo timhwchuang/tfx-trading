@@ -12,7 +12,7 @@ Versioning follows [SemVer](https://semver.org/) (0.x = API may still evolve).
 
 - P4-13 `operations` config: reconnect warmup, disconnect limits, `atr_stale_multiplier`
 - Cumulative MDD risk budget in `uat_report` / `performance_metrics` (`initial_capital_points`, `max_acceptable_mdd_points`)
-- [`docs/UPGRADE_RUNBOOK.md`](docs/UPGRADE_RUNBOOK.md) — four-repo upgrade SOP
+- UPGRADE_RUNBOOK (now in ARCHIVE) — four-repo upgrade SOP (historical)
 
 ### Changed
 

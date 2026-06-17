@@ -16,8 +16,8 @@
 | [`SWEEP_SPEC.md`](SWEEP_SPEC.md) | 確定性 + param sweep |
 | [`BackTestingSpec.md`](BackTestingSpec.md) | 索引 stub → 各 package 規格 |
 | [`ARCHIVE/`](ARCHIVE/) | 歷史週報（非現行真相） |
-| [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) | 舊四-repo 發布紀錄 |
-| [`UPGRADE_RUNBOOK.md`](UPGRADE_RUNBOOK.md) | **已 deprecated** → `monorepo/SPEC.md` |
+| [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) | 舊四-repo 發布紀錄（現已更新） |
+| [`ARCHIVE/UPGRADE_RUNBOOK.md`](ARCHIVE/UPGRADE_RUNBOOK.md) | **已 deprecated** → `monorepo/SPEC.md` |
 
 ## Package 規格（monorepo 內相對路徑）
 

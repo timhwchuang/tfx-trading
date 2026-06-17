@@ -30,7 +30,7 @@ Use this before tagging `v0.1.0` on GitHub.
 
 - [ ] `python run_tests.py` — all tests pass (~30 integration tests)
 - [ ] `ruff check src tests` — no lint errors (if ruff installed)
-- [ ] `README.md` / `SPEC.md` / `docs/releases/v0.1.0.md` — no broken links
+- [x] Post-monorepo docs slim: releases/ archived; links and stubs cleaned (see root DOC_MAP)
 - [ ] `pyproject.toml` version = `0.1.0`
 - [ ] `CHANGELOG.md` date and `[0.1.0]` link ready
 - [ ] `config/config.yaml` → `simulation: true`
@@ -44,31 +44,38 @@ Use this before tagging `v0.1.0` on GitHub.
 - [ ] **0 high-severity issues** (medium/low documented or fixed)
 - [ ] Re-run `python run_tests.py` after review fixes
 
-## Dependency pins (document in release)
+## Dependency pins & install (current monorepo practice)
 
 ```bash
-pip install "trading-engine @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.0"
-pip install "trading-backtest @ git+https://github.com/timhwchuang/trading-backtest.git@v0.1.0"
-pip install "strategy-vwap-momentum @ git+https://github.com/timhwchuang/strategy-vwap-momentum.git@v0.1.0"
-pip install -r requirements.txt
+cd /path/to/tfx-trading
+bash scripts/setup-dev.sh   # editable installs from packages/
+# or for a consuming environment:
+pip install -e packages/trading-engine
+pip install -e packages/trading-backtest
+pip install -e packages/strategies/vwap-momentum
+pip install -r apps/trading-app/requirements.txt
 ```
 
-## Tag and publish
+Old standalone `git+` pins are in ARCHIVE/releases/ only (pre-monorepo).
+
+## Tag and publish (monorepo)
 
 ```bash
 git add -A
-git commit -m "Release v0.1.0: reference integrator app, UAT-ready"
-git tag -a v0.1.0 -m "v0.1.0 — reference integrator app, UAT-ready"
-git remote add origin https://github.com/timhwchuang/trading-app.git  # if needed
+git commit -m "Release vX.Y.Z: ..."
+# Optional monorepo integration tag
+git tag -a v2026.06.XX-monorepo -m "..."
 git push origin main
-git push origin v0.1.0
+git push origin --tags
 ```
+
+See monorepo/SPEC.md §7 for current release SOP. No new docs/releases/ files — use CHANGELOG.md.
 
 ## Post-tag
 
-- [ ] GitHub Release notes — copy from `docs/releases/v0.1.0.md`
+- [ ] GitHub Release notes (pre-monorepo; releases/ content now in ARCHIVE)
 - [ ] CI green on `main`
-- [ ] Update workspace `docs/three-repo/README.md` → trading-app ✅
+- [x] Docs consolidated to monorepo root (pre-monorepo three-repo checklist cleaned)
 - [ ] Begin UAT per `docs/UAT_CHECKLIST.md`
 
 ## Scope reminder

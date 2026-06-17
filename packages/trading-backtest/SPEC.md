@@ -9,13 +9,13 @@ This document is the **single source of truth** for this standalone repo. All RE
 
 ## 1. Purpose & positioning
 
-`trading-backtest` implements the **Backtest** role in a three-repo ecosystem:
+`trading-backtest` implements the **Backtest** role (in the monorepo alongside trading-engine and pluggable strategies under packages/strategies/).
 
-| Role | Repo | Import |
-|------|------|--------|
-| Trading (kernel) | `trading-engine` | `trading_engine` |
-| Backtest (replay driver) | `trading-backtest` (this repo) | `trading_backtest` |
-| Strategy (plugin) | `strategy-<name>` e.g. `strategy-vwap-momentum` | `strategy_<name>` |
+| Role | Location | Import |
+|------|----------|--------|
+| Trading (kernel) | `packages/trading-engine` | `trading_engine` |
+| Backtest (replay driver) | `packages/trading-backtest` (this package) | `trading_backtest` |
+| Strategy (plugin) | `packages/strategies/<name>` e.g. `vwap-momentum` | `strategy_<name>` |
 
 **Iron law**: Backtest drives the **exact same `TradingEngine`** used for live trading. It does not duplicate, simplify, or fork the state machine.
 
@@ -296,7 +296,7 @@ def net_exit_pnl(gross_pts: float, *, is_sell: bool, extra_slip_pts: float = 1.0
     return gross_pts - extra_slip_pts - (COMMISSION_PER_SIDE * 2 / POINT_VALUE_TWD)
 ```
 
-`POINT_VALUE_TWD` depends on contract (e.g. TXF ≈ 200 TWD/point). Keep cost logic in your research / app layer (`theman` reporting, notebooks, etc.) — not in `trading-backtest`.
+`POINT_VALUE_TWD` depends on contract (e.g. TXF ≈ 200 TWD/point). Keep cost logic in your research / app layer (trading-app reporting, notebooks, etc.) — not in `trading-backtest`.
 
 ### Recommended validation pipeline
 

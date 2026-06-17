@@ -7,7 +7,7 @@
 ## 執行摘要
 
 已完整重新審視整個專案，包含：
-- README.md、SPEC.md、docs/DESIGN.md、docs/LIVE_SAFETY.md、docs/STRATEGY.md、docs/MIGRATION_FROM_THEMAN.md
+- README.md、SPEC.md、docs/DESIGN.md、docs/LIVE_SAFETY.md、docs/STRATEGY.md、docs/ARCHIVE/MIGRATION_FROM_THEMAN.md (historical)
 - pyproject.toml、.github/workflows/tests.yml
 - 所有核心原始碼（engine.py、session.py、order_executor.py、core/*、adapters/*）
 - 73 個 kernel tests（含新增 test_state_snapshot.py、test_signal_validation.py）
@@ -34,7 +34,7 @@
   - Architecture 表更新，加入 `get_state_snapshot()` 與 position 模型限制說明。
   - 專門章節「Observing engine state」展示 snapshot 使用方式 + 警告。
   - 明確引用 `docs/LIVE_SAFETY.md` 與 examples/minimal_live/。
-- **docs/MIGRATION_FROM_THEMAN.md** 獨立存在，開頭即說明「For previous internal consumers only. New users can ignore this document.」
+- **docs/ARCHIVE/MIGRATION_FROM_THEMAN.md** 獨立存在（historical），開頭即說明「For previous internal consumers only. New users can ignore this document.」
 
 #### 1.2 狀態封裝極弱（原點 1，高風險）
 - 新增 `TradingEngine.get_state_snapshot() -> EngineStateSnapshot`（`src/trading_engine/engine.py:225`）。

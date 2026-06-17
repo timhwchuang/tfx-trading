@@ -14,7 +14,7 @@ Versioning follows [SemVer](https://semver.org/) and tracks `trading-engine` maj
 
 ## [0.1.0] - 2026-06-16
 
-Initial public release of the deterministic tick replay driver for `trading-engine` (completes the public three-repo core with trading-engine + strategy-vwap-momentum).
+Initial public release of the deterministic tick replay driver for `trading-engine` (completes the initial public packages in what became the monorepo).
 
 ### Added
 - `BacktestEngine`: thin deterministic host that wires `TradingEngine` (exact same as live) + `MockBroker` + `VirtualClock` + replay loop. Reuses `TradingEngine` for state machine, pending, session, risk gates.
@@ -25,16 +25,16 @@ Initial public release of the deterministic tick replay driver for `trading-engi
 - Examples: `compare_fill_audits.py`, `tick_cache_template.py`, `minimal_backtest_smoke.py`.
 - Tests (25+): MockBroker, BacktestEngine, loader guards, validation helpers.
 - Package metadata, MIT license, py.typed, runnable `python run_tests.py`.
-- `README.md`, standalone `SPEC.md`, CHANGELOG.md, CI scaffold, docs/releases/.
+- `README.md`, standalone `SPEC.md`, CHANGELOG.md, CI scaffold, docs/releases/ (later moved to ARCHIVE in monorepo).
 - theman thin wrappers already delegate (`src/backtest/engine.py` etc.); remaining call-site cleanups coordinated.
 
 ### Documentation (pre-release polish)
 - Rewrote standalone [SPEC.md](SPEC.md) — authoritative spec for this repo (replaces broken `backtest/SPEC.md` pointers from monorepo extraction).
-- Added prominent **Backtest Fidelity & Limitations** sections to README and `docs/releases/v0.1.0.md`.
+- Added prominent **Backtest Fidelity & Limitations** sections to README and release notes (v0.1.0 release note now archived).
 - Fixed `pyproject.toml` Documentation URL and all in-repo broken links.
 
 ### Changed / Notes
-- This package is the **reference implementation** of the Backtest role in the three-repo ecosystem (see `SPEC.md` §1).
+- This package is the **reference implementation** of the Backtest role (see `SPEC.md` §1; architecture evolved to monorepo).
 - Depends on `trading-engine>=0.2.0,<1.0`. Follows iron laws: Backtest only depends on Trading; reuses same `TradingEngine`; no strategy hard-coding; determinism (single-thread, sync orders, VirtualClock, byte-identical audits).
 - theman `BacktestEngine` is now thin delegation (M2 per spec); app/sweep/CLI updated to external package.
 
