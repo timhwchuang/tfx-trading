@@ -91,6 +91,12 @@
 
 **文件分層**（與程式依賴同向）：**高階** = 根 `SPEC.md` + `docs/`（整合、進度、UAT）；**低階** = 各 package `SPEC.md`（該模組 API 真相）。低階文件**只連依賴**（如 strategy → engine SPEC），**禁止**在 `packages/` 內寫「詳見根 SPEC.md」。
 
+**Features（ft）**（[`features/README.md`](features/README.md)）：
+
+- 跨模組能力用 **`docs/features/<slug>/`**：`SPEC.md`（交付什麼）+ `PLAN.md`（怎麼交付）；一 slug 一張 ft。
+- **Draft / InProgress**：以 feature SPEC 為設計真相；**MUST NOT** 與 app SPEC 長期矛盾。
+- **Landed**：**MUST** 將穩定契約併入 [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts（或對應 package SPEC）+ **MUST** 更新 [`CHANGELOG.md`](../CHANGELOG.md)；更新 feature board Status。
+
 **規範**：不要只改 code。**文件不同步 = 工作未完成**。下一位 Agent 主要靠這些文件快速上線。
 
 ---
@@ -142,6 +148,7 @@ tfx-trading/                          # git clone 根目錄（Windows 例：C:\t
 ├── prompts/roles/                    # AI role 正文 + references/（gate 速查）
 ├── docs/
 │   ├── DOC_MAP.md · TODO.md · AGENTS.md（本檔）
+│   ├── features/                     # 跨模組 ft（SPEC + PLAN）；見 features/README.md
 │   ├── WeeklyStatus.md
 │   ├── uat/ · ops/ · ARCHIVE/
 ├── scripts/

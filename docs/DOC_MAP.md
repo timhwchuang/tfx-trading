@@ -55,7 +55,15 @@
 | [`ARCHIVE/Architecture.md`](ARCHIVE/Architecture.md) | 已併入根 `SPEC.md` §7 |
 | 舊 standalone git+ 安裝 | 僅供歷史；現行用 `scripts/setup-dev.sh` |
 
-## 6. AI 角色與 Grok skills
+## 6. Features（跨模組 ft）
+
+| ID | Slug | Status | 文件 |
+| ---- | ---- | ------ | ---- |
+| FT-001 | audit-event-replay | Draft | [`features/audit-event-replay/SPEC.md`](features/audit-event-replay/SPEC.md) · [PLAN](features/audit-event-replay/PLAN.md) |
+
+索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
+
+## 7. AI 角色與 Grok skills
 
 | 路徑 | 職責 |
 | ---- | ---- |
@@ -76,3 +84,5 @@
 | 版本變更寫哪？ | 根 **`CHANGELOG.md`**（對應 package 區塊） |
 | 加新策略？ | `packages/strategies/<name>/` + 根 [`SPEC.md`](../SPEC.md) §4 |
 | 交易視角 / Pilot gate？ | **`/senior-trading-professional`** → [`prompts/roles/`](../prompts/roles/) |
+| 規劃中能力 / 開 ft？ | [`features/README.md`](features/README.md) |
+| Audit 事件回放？ | **FT-001** → [`features/audit-event-replay/`](features/audit-event-replay/) |
