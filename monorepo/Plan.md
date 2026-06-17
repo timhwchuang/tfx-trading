@@ -31,64 +31,47 @@ apps/trading-app/                 ← was trading-app/
 
 - [x] `monorepo/SPEC.md`
 - [x] `monorepo/Plan.md`
-- [ ] User creates GitHub repo `txf-trading` with Description/Topics from SPEC §8
+- [x] GitHub repo `tfx-trading` created
 
 ---
 
 ## Phase 1 — Restructure directories
 
-- [ ] Create `packages/`, `packages/strategies/`, `apps/`
-- [ ] Move `trading-engine/` → `packages/trading-engine/`
-- [ ] Move `trading-backtest/` → `packages/trading-backtest/`
-- [ ] Move `strategy-vwap-momentum/` → `packages/strategies/vwap-momentum/`
-- [ ] Move `trading-app/` → `apps/trading-app/`
-- [ ] Remove nested `.git/` in each moved tree
-- [ ] Remove per-package `.github/workflows/` (consolidate at root)
-- [ ] Merge `.gitignore` at repo root
+- [x] Create `packages/`, `packages/strategies/`, `apps/`
+- [x] Move trees; remove nested `.git/`
+- [x] Consolidate CI at root; merge `.gitignore`
 
 ---
 
 ## Phase 2 — Dependencies & scripts
 
-- [ ] Add `scripts/setup-dev.sh` (install engine, backtest, `strategies/vwap-momentum`, shioaji, PyYAML)
-- [ ] Update `apps/trading-app/requirements.txt` → path `-e ../../packages/...`
-- [ ] Update `apps/trading-app/scripts/ci-setup.sh` paths for new layout
-- [ ] Update `apps/trading-app/run_tests.py` sibling path fallback
-- [ ] Keep pyproject dependency floors (`trading-engine>=0.2.2`) — resolved via editable install
+- [x] `scripts/setup-dev.sh` (auto `.venv`)
+- [x] Path editable `requirements.txt`
+- [x] `ci-setup.sh`, `run_tests.py` paths
 
 ---
 
 ## Phase 3 — CI & test runner
 
-- [ ] Update `scripts/run-all-tests.sh`:
-  - `packages/trading-engine`
-  - `packages/trading-backtest`
-  - `packages/strategies/vwap-momentum`
-  - `apps/trading-app`
-  - Remove stale `theman` reference
-- [ ] Add root `.github/workflows/ci.yml` (setup-dev + run-all-tests)
-- [ ] Delete old four-repo workflow files (already moved/removed with nested `.github`)
+- [x] `scripts/run-all-tests.sh` (four suites, no `theman`)
+- [x] Root `.github/workflows/ci.yml`
 
 ---
 
 ## Phase 4 — Documentation & Windows ops
 
-- [ ] Root `README.md` — clone `txf-trading`, `setup-dev.sh`, link to app README
-- [ ] Update `apps/trading-app/docs/Architecture.md` for monorepo paths
-- [ ] Mark `apps/trading-app/docs/UPGRADE_RUNBOOK.md` deprecated → `monorepo/SPEC.md` §7
-- [ ] Update package README install paths (`packages/strategies/vwap-momentum`, etc.)
-- [ ] Update `apps/trading-app/scripts/windows/*.ps1` if paths hardcoded
-- [ ] `WeeklyStatus.md` — add migration complete section
+- [x] Root `README.md`, `SPEC.md`, `docs/Architecture.md`, `docs/DOC_MAP.md`
+- [x] App Architecture stub → root; UPGRADE_RUNBOOK deprecated
+- [x] `WeeklyStatus.md` migration section
+- [ ] Windows `.ps1` paths (verify on UAT machine)
 
 ---
 
 ## Phase 5 — Publish
 
-- [ ] `git init` at repo root (if not already)
-- [ ] Initial commit: `chore: migrate four repos into txf-trading monorepo`
-- [ ] `git remote add origin git@github.com:timhwchuang/txf-trading.git`
-- [ ] `git push -u origin main`
-- [ ] Optional tag: `v0.3.0-monorepo` (see SPEC §7)
+- [x] `git init`, initial commit `39b6c2d`
+- [x] `git push origin main` → `timhwchuang/tfx-trading`
+- [ ] Optional tag: `v0.3.0-monorepo`
 
 ---
 
