@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "strategy-vwap-momentum"
+version = "0.1.2"
+description = "Reference VWAP momentum + trend-filter strategy plugin for trading-engine (first strategy-<name> package)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+  {name = "strategy-vwap-momentum maintainers"}
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+  "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = [
+    "trading-engine>=0.2.2,<1.0",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.8", "mypy>=1.11"]
+
+[project.entry-points."trading_engine.strategies"]
+vwap_momentum = "strategy_vwap_momentum:VWAPMomentumStrategy"
+
+[project.urls]
+Homepage = "https://github.com/timhwchuang/strategy-vwap-momentum"
+Documentation = "https://github.com/timhwchuang/strategy-vwap-momentum/blob/main/SPEC.md"
+Repository = "https://github.com/timhwchuang/strategy-vwap-momentum"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501", "UP042"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"strategy_vwap_momentum" = ["py.typed"]

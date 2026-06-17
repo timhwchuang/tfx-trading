@@ -1,0 +1,6 @@
+# Monorepo path dependencies — run from repo root: bash scripts/setup-dev.sh
+-e ../../packages/trading-engine
+-e ../../packages/trading-backtest
+-e ../../packages/strategies/vwap-momentum
+shioaji
+PyYAML>=6.0

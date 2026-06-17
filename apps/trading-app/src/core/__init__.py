@@ -1,0 +1,1 @@
+"""Trading-app core bridge (RuntimeConfig from YAML + env)."""

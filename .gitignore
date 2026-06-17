@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+*.log
+logs/
+shioaji.log
+
+# Tick cache (runtime data)
+tick_cache/
+
+# Secrets & certificates
+.env
+.env.*
+*.pfx
+*.p12
+*.pem
+*.key
+credentials/
+secrets/
+
+# IDE / OS
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Build / packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Third-party vendor clone (not part of monorepo)
+Shioaji/

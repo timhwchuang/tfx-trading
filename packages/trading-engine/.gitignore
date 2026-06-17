@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build / packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Secrets / local config (never commit)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Broker CA / credentials (paths often in .env; ignore cert files if stored in repo tree)
+*.pem
+*.p12
+*.pfx
+*.key
+credentials/
+secrets/
