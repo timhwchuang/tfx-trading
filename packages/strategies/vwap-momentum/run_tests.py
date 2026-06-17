@@ -10,7 +10,7 @@ from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parent
 _SRC = _ROOT / "src"
-_SIBLING = _ROOT.parent / "trading-engine"
+_SIBLING = _ROOT.parent.parent.parent / "packages/trading-engine"
 
 
 def _ensure_packages() -> None:

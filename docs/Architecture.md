@@ -35,7 +35,7 @@ apps/trading-app
 - **Backtest**：`TradingEngine(api=MockBroker(...))`（不走 `start()`，直接 `on_tick`）
 - **單測**：`TradingEngine(api=MagicMock())`
 
-[`apps/trading-app/src/core/ports.py`](../apps/trading-app/src/core/ports.py) 的 `BrokerPort` Protocol 正名 engine 對 api 的需求；runtime 仍以 duck typing 通過。
+[`packages/trading-engine/src/trading_engine/core/ports.py`](../packages/trading-engine/src/trading_engine/core/ports.py) 的 `BrokerPort` Protocol 正名 engine 對 api 的需求；runtime 仍以 duck typing 通過。
 
 Engine 模組頂層已移除 `import shioaji`（`TYPE_CHECKING` + lazy import）。
 

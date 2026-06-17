@@ -71,7 +71,7 @@ apps/trading-app/                 ← was trading-app/
 
 - [x] `git init`, initial commit `39b6c2d`
 - [x] `git push origin main` → `timhwchuang/tfx-trading`
-- [ ] Optional tag: `v0.3.0-monorepo`
+- [x] Optional tag: `v0.3.0-monorepo`（遷移里程碑；非每日必需）
 
 ---
 

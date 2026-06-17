@@ -82,15 +82,21 @@ Log lines consumed by `reporting/uat_report.py`:
 Emitters: `trading-engine` (kernel) + `TradingAppTelemetryPort` (app observability).  
 Checklist: [`trading-engine/docs/UAT_CHECKLIST.md`](https://github.com/timhwchuang/trading-engine/blob/main/docs/UAT_CHECKLIST.md) (kernel) + [`docs/UAT_CHECKLIST.md`](docs/UAT_CHECKLIST.md) (app deployment).
 
-## Version pins (v0.1.2)
+## Install (monorepo)
+
+From repo root:
 
 ```bash
-pip install "trading-engine @ git+https://github.com/timhwchuang/trading-engine.git@v0.2.2"
-pip install "trading-backtest @ git+https://github.com/timhwchuang/trading-backtest.git@v0.1.1"
-pip install "strategy-vwap-momentum @ git+https://github.com/timhwchuang/strategy-vwap-momentum.git@v0.1.2"
+bash scripts/setup-dev.sh
 ```
 
-Monorepo: [`SPEC.md`](../../SPEC.md) · [`docs/Architecture.md`](../../docs/Architecture.md).
+Or path editable only:
+
+```bash
+pip install -r apps/trading-app/requirements.txt
+```
+
+See [`SPEC.md`](../../SPEC.md) · [`docs/Architecture.md`](../../docs/Architecture.md).
 
 ## Status
 

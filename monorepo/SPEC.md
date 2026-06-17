@@ -85,7 +85,7 @@ Strategy plugins register via setuptools entry point group `trading_engine.strat
 
 ```bash
 git clone https://github.com/timhwchuang/tfx-trading.git
-cd txf-trading
+cd tfx-trading
 python -m venv .venv
 source .venv/bin/activate   # Windows: .\.venv\Scripts\activate
 bash scripts/setup-dev.sh
@@ -196,7 +196,7 @@ After migration verified, archive (read-only, **do not delete**):
 
 | Old repo | Redirect banner |
 |----------|-----------------|
-| `trading-engine` | → `txf-trading` / `packages/trading-engine` |
+| `trading-engine` | → `tfx-trading` / `packages/trading-engine` |
 | `trading-backtest` | → `packages/trading-backtest` |
 | `strategy-vwap-momentum` | → `packages/strategies/vwap-momentum` |
 | `trading-app` | → `apps/trading-app` |
