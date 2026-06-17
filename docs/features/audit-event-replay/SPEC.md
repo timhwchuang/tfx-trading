@@ -101,6 +101,16 @@ flowchart TB
 | `momentum_timeout` | episode 逾 `momentum_timeout_sec` | `episode_id`, `direction`, `elapsed_sec`, `price` | `trend_dir`, `trend_strength` |
 | `risk_blocked` | min_atr / consecutive_loss / block_new_entry / after_flatten | `block_reason`, `price` | 依 reason 附 `atr`, `consecutive_loss` |
 
+**壓力上下文（SHOULD，Phase 3–4）** — 適用 `trend_veto`、`momentum_timeout`、`risk_blocked`：
+
+| 欄位 | 說明 |
+|------|------|
+| `consecutive_veto_streak` | 當日連續 veto 計數（至本事件） |
+| `consecutive_timeout_streak` | 當日連續 timeout 計數 |
+| `episodes_since_last_entry` | 距上一筆 entry 之間的 episode 數 |
+
+**emit_policy（MAY，Phase 4 文件預留）**：`required` \| `optional` \| `toggleable`。`toggleable` 實作屬 **FT-002**（見 [`REVIEW.md`](REVIEW.md) §6）。
+
 **節流（SHOULD）**：
 
 - `pullback_candidate`：每 `episode_id` 最多 **1 筆**（僅 `dist_vwap` 最小時更新）+ episode 結束時可選 1 筆 `closest_summary`
@@ -141,6 +151,20 @@ flowchart TB
   "closest_dist_p50": 1.8
 }
 ```
+
+**壓力指標 `pressure`（SHOULD，Phase 3）** — 詳見 [`REVIEW.md`](REVIEW.md) §3.1：
+
+```json
+"pressure": {
+  "max_consecutive_veto": 0,
+  "max_consecutive_timeout": 5,
+  "max_episodes_without_entry": 8,
+  "armed_to_entered_ratio": 0.25,
+  "risk_blocked_count": 2
+}
+```
+
+`uat_report` MAY 依 REVIEW 警戒線產生 tuning hints（非 UAT pass 條件）。
 
 ## 6. Episode 回放樣貌（核心交付）
 
@@ -188,6 +212,27 @@ DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_timeout","ts":17
 DECISION_AUDIT {"audit_schema_version":1,"event_type":"risk_blocked","ts":1740129000,"block_reason":"min_atr","price":21820.0,"atr":22.4}
 ```
 
+### 6.4 高壓情境 — 連續 timeout + veto（ep.005–008）
+
+橫盤日上午：三次 timeout、一次 veto，第四次才進場。`consecutive_*_streak` 為 Phase 3 optional。
+
+```text
+DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_armed","ts":1740129600,"episode_id":"20260617-005","direction":"Long","trigger_price":21825.0,"vol_1s":170,"buy_ratio":0.81,"sell_ratio":0.19,"vol_threshold":150.0,"multiplier":1.0}
+DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_timeout","ts":1740129780,"episode_id":"20260617-005","direction":"Long","elapsed_sec":180,"price":21828.0,"consecutive_timeout_streak":1,"episodes_since_last_entry":1}
+DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_armed","ts":1740129800,"episode_id":"20260617-006","direction":"Long","trigger_price":21830.0,"vol_1s":168,"buy_ratio":0.82,"sell_ratio":0.18,"vol_threshold":150.0,"multiplier":1.0}
+DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_timeout","ts":1740129980,"episode_id":"20260617-006","direction":"Long","elapsed_sec":180,"price":21831.0,"consecutive_timeout_streak":2,"episodes_since_last_entry":2}
+DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_armed","ts":1740130000,"episode_id":"20260617-007","direction":"Short","trigger_price":21832.0,"vol_1s":160,"buy_ratio":0.20,"sell_ratio":0.80,"vol_threshold":150.0,"multiplier":1.0}
+DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_timeout","ts":1740130180,"episode_id":"20260617-007","direction":"Short","elapsed_sec":180,"price":21833.0,"consecutive_timeout_streak":3,"episodes_since_last_entry":3}
+DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_armed","ts":1740130200,"episode_id":"20260617-008","direction":"Long","trigger_price":21834.0,"vol_1s":175,"buy_ratio":0.83,"sell_ratio":0.17,"vol_threshold":150.0,"multiplier":1.0}
+DECISION_AUDIT {"audit_schema_version":1,"event_type":"trend_veto","ts":1740130280,"episode_id":"20260617-008","direction":"Buy","price":21835.0,"vol_1s":12,"reason":"trend_veto","trend_dir":"Short","trend_strength":0.6,"consecutive_veto_streak":1,"episodes_since_last_entry":4}
+```
+
+**人類可讀摘要**
+
+1. 09:40–09:49 連續 3 次 episode timeout，無進場
+2. 09:50 episode-008 有 pullback 候選但被 trend_veto
+3. 日終 `pressure.max_consecutive_timeout=3`、`armed_to_entered_ratio` 偏低 → Daily Reviewer 應標註「漏斗空轉」
+
 ## 7. Determinism
 
 - **納入 hash**（延續 [`determinism_check.py`](../../../apps/trading-app/src/sweep/determinism_check.py) 政策）：`DECISION_AUDIT`、`SIGNAL_AUDIT`、`EXEC_AUDIT`、`FILL_AUDIT`、`DAILY_SUMMARY` 的**決策欄位** JSON body
@@ -197,17 +242,45 @@ DECISION_AUDIT {"audit_schema_version":1,"event_type":"risk_blocked","ts":174012
 
 ## 8. 消費者
 
+### 8.1 程式模組
+
 | 模組 | 變更 |
 |------|------|
-| [`uat_report.py`](../../../apps/trading-app/src/reporting/uat_report.py) | 解析新 prefix；`build_episode_timeline()`；`--episodes` CLI |
+| [`uat_report.py`](../../../apps/trading-app/src/reporting/uat_report.py) | 解析新 prefix；`build_episode_timeline()`；`--episodes` CLI；`pressure` hints |
 | [`trend_calibration.py`](../../../apps/trading-app/src/reporting/trend_calibration.py) | veto 優先讀 `DECISION_AUDIT` |
 | [`determinism_check.py`](../../../apps/trading-app/src/sweep/determinism_check.py) | hash 納入 DECISION/EXEC |
 | [`forward_pnl.py`](../../../apps/trading-app/src/reporting/forward_pnl.py) | join `episode_id` / closest candidate |
+
+### 8.2 Agent 消費者（預留介面，Phase 3）
+
+`build_episode_timeline(log) -> list[EpisodeTimeline]` 為 Agent 交接格式：
+
+```python
+# 概念結構（實作時定為 dataclass / TypedDict）
+EpisodeTimeline = {
+    "episode_id": str,
+    "trade_date": str,
+    "direction": "Long" | "Short",
+    "outcome": "entered" | "timeout" | "veto" | "risk_blocked",
+    "events": list[dict],       # 時間序 DECISION/SIGNAL/EXEC/FILL
+    "pressure_context": dict,   # 該 episode 結束時的 streak 快照（若有）
+}
+```
+
+| Agent | 輸入 | 用途 |
+|-------|------|------|
+| **Daily Reviewer** | 全日 `EpisodeTimeline[]` + `DAILY_SUMMARY.pressure` | 漏斗異常、near-miss、週報 Follow-up |
+| **Senior Trading Professional** | 單一 `episode_id` timeline + Phase 5 KPI | Pilot 歸因、高壓演練、調參建議（非 live 指令） |
+| **工程 Agent** | raw audit JSON + PLAN phase | FT-001 實作、determinism 測試 |
+
+Grok skills：[`/audit-event-replay`](../../../.grok/skills/audit-event-replay/SKILL.md)、[`/senior-trading-professional`](../../../.grok/skills/senior-trading-professional/SKILL.md)。
 
 ## 9. Definition of Done
 
 - [ ] 單日 log 可產出 ≥95% episode 清單（對照 legacy `MOMENTUM` regex 計數）
 - [ ] `python -m reporting <log> --episodes` 輸出人類可讀 timeline
+- [ ] `DAILY_SUMMARY.pressure` 與 REVIEW 警戒線 hints 可產出（Phase 3）
+- [ ] `EpisodeTimeline` 可作為 Agent 交接格式（Phase 3）
 - [ ] Pilot 審查不再依賴 `MOMENTUM Long|Short 突破` regex 作為主要漏斗來源
 - [ ] CAL-8：`trend_veto` 100% 帶 `episode_id`；forward_pnl 可 join
 - [ ] `test_determinism.py` + `test_episode_replay.py` 全綠
@@ -215,6 +288,7 @@ DECISION_AUDIT {"audit_schema_version":1,"event_type":"risk_blocked","ts":174012
 
 ## 參考
 
+- 資深交易人員審閱：[`REVIEW.md`](REVIEW.md)
 - PLAN：[`PLAN.md`](PLAN.md)
 - 現行契約：[`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) §Integration contracts
 - 策略 audit reason：[`packages/strategies/vwap-momentum/SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) §7

@@ -59,7 +59,7 @@
 
 | ID | Slug | Status | 文件 |
 | ---- | ---- | ------ | ---- |
-| FT-001 | audit-event-replay | Draft | [`features/audit-event-replay/SPEC.md`](features/audit-event-replay/SPEC.md) · [PLAN](features/audit-event-replay/PLAN.md) |
+| FT-001 | audit-event-replay | Draft | [SPEC](features/audit-event-replay/SPEC.md) · [PLAN](features/audit-event-replay/PLAN.md) · [REVIEW](features/audit-event-replay/REVIEW.md) |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 

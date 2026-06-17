@@ -13,6 +13,7 @@ Read and follow the feature contract before coding or reviewing:
 ```
 docs/features/audit-event-replay/SPEC.md
 docs/features/audit-event-replay/PLAN.md
+docs/features/audit-event-replay/REVIEW.md
 ```
 
 Feature board and ft SOP:

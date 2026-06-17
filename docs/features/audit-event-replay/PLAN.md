@@ -46,6 +46,7 @@ blockers: []
 - [x] `docs/DOC_MAP.md` §Features
 - [x] `docs/AGENTS.md` §3 ft 紀律
 - [x] `CHANGELOG.md` [Unreleased]
+- [x] `docs/features/audit-event-replay/REVIEW.md`（資深交易人員審閱 + 補強併入 SPEC）
 
 ### Phase 1 — Schema + 高價值缺口
 
@@ -88,6 +89,10 @@ blockers: []
 - [ ] CLI `--episodes` / `--episode-id`
 - [ ] `tests/reporting/test_episode_replay.py`
 - [ ] `build_tuning_hints` 改用 episode funnel（減少 regex 依賴）
+- [ ] `DAILY_SUMMARY.pressure` 彙總（`max_consecutive_*`、`armed_to_entered_ratio`）
+- [ ] DECISION_AUDIT optional：`consecutive_veto_streak`、`consecutive_timeout_streak`、`episodes_since_last_entry`
+- [ ] `build_episode_timeline()` → `EpisodeTimeline`（SPEC §8.2 Agent 交接格式）
+- [ ] `uat_report` pressure 警戒線 hints（見 REVIEW §3.1）
 
 **主要檔案**：
 
@@ -104,7 +109,13 @@ blockers: []
 - [ ] 併入 [`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) §Integration contracts
 - [ ] 更新 [`packages/strategies/vwap-momentum/SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) §7 指向新契約
 - [ ] `CHANGELOG.md` 行為變更條目
+- [ ] SPEC 事件目錄註記 `emit_policy`（`toggleable` 實作留 **FT-002**）
 - [ ] 執行 **Land checklist**（下節）
+
+**後續 ft（本 PLAN 不實作）**：
+
+- **FT-002** `audit-emit-toggle` — Feature Toggle 控制 audit 發射 + determinism 例外
+- **FT-003** `pressure-response-mode` — 高壓門檻觸發行為（需人類簽核）
 
 ## Acceptance（關閉整張 ft）
 
