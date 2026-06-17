@@ -12,6 +12,7 @@ Monorepo for Taiwan TXF futures research: **trading-engine** kernel, **trading-b
 | [LICENSE](LICENSE) | MIT |
 | [SPEC.md](SPEC.md) | Monorepo 整合規格（高階；含 §7 架構與資料流） |
 | [docs/AGENTS.md](docs/AGENTS.md) | AI / 開發安全護欄 |
+| [prompts/roles/senior-trading-professional.md](prompts/roles/senior-trading-professional.md) | 資深交易人員 role（Grok **`/senior-trading-professional`**） |
 | [apps/trading-app/README.md](apps/trading-app/README.md) | Windows 安裝、執行、UAT |
 
 ## Quick start
@@ -28,6 +29,8 @@ bash scripts/run-all-tests.sh
 ## Layout
 
 ```text
+.grok/skills/                     # Grok project skills
+prompts/roles/                    # AI role definitions + gate references
 packages/trading-engine/          # kernel
 packages/trading-backtest/        # tick replay
 packages/strategies/vwap-momentum/  # VWAP strategy plugin

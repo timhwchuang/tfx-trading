@@ -55,6 +55,16 @@
 | [`ARCHIVE/Architecture.md`](ARCHIVE/Architecture.md) | 已併入根 `SPEC.md` §7 |
 | 舊 standalone git+ 安裝 | 僅供歷史；現行用 `scripts/setup-dev.sh` |
 
+## 6. AI 角色與 Grok skills
+
+| 路徑 | 職責 |
+| ---- | ---- |
+| [`.grok/skills/senior-trading-professional/SKILL.md`](../.grok/skills/senior-trading-professional/SKILL.md) | Grok project skill；slash **`/senior-trading-professional`** |
+| [`prompts/roles/senior-trading-professional.md`](../prompts/roles/senior-trading-professional.md) | 資深交易人員 role 正文（MUST NOT、workflow、Phase 5 checklist） |
+| [`prompts/roles/references/txf-gates.md`](../prompts/roles/references/txf-gates.md) | UAT / Pilot / Live gate 速查（交易視角） |
+
+**分層**：`docs/AGENTS.md` §2 安全護欄 > role MUST NOT > `txf-gates.md`。本 role 用於策略可行性、Pilot Go/No-Go、sweep 解讀；**不**取代工程 Agent 改 code。
+
 ## 常見混淆
 
 | 問題 | 答案 |
@@ -65,3 +75,4 @@
 | UAT 跑什麼？ | **`docs/uat/KERNEL.md`** + **`docs/uat/APP.md`** |
 | 版本變更寫哪？ | 根 **`CHANGELOG.md`**（對應 package 區塊） |
 | 加新策略？ | `packages/strategies/<name>/` + 根 [`SPEC.md`](../SPEC.md) §4 |
+| 交易視角 / Pilot gate？ | **`/senior-trading-professional`** → [`prompts/roles/`](../prompts/roles/) |

@@ -149,6 +149,11 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 ### [Unreleased]
 
+#### Added
+
+- Grok project skill **`senior-trading-professional`** (slash `/senior-trading-professional`): risk-first trader persona for strategy review, Pilot Go/No-Go, sweep interpretation, CAL-8 framing.
+- Role prompts: `prompts/roles/senior-trading-professional.md`, `prompts/roles/references/txf-gates.md` (UAT / Pilot / Live gate quick reference).
+
 #### Added / Changed (UAT to Pilot hardening)
 
 - `determinism_check.py` CLI for UAT evidence collection.
