@@ -152,6 +152,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 #### Added
 
 - **FT-001** `docs/features/audit-event-replay/`: audit event replay SPEC + PLAN (qualified audit contract, episode timeline examples); `docs/features/` feature board + `_template/`.
+- Grok project skill **`audit-event-replay`** (slash `/audit-event-replay`) for FT-001 implementation and audit contract review.
 - Grok project skill **`senior-trading-professional`** (slash `/senior-trading-professional`): risk-first trader persona for strategy review, Pilot Go/No-Go, sweep interpretation, CAL-8 framing.
 - Role prompts: `prompts/roles/senior-trading-professional.md`, `prompts/roles/references/txf-gates.md` (UAT / Pilot / Live gate quick reference).
 

@@ -68,6 +68,7 @@
 | 路徑 | 職責 |
 | ---- | ---- |
 | [`.grok/skills/senior-trading-professional/SKILL.md`](../.grok/skills/senior-trading-professional/SKILL.md) | Grok project skill；slash **`/senior-trading-professional`** |
+| [`.grok/skills/audit-event-replay/SKILL.md`](../.grok/skills/audit-event-replay/SKILL.md) | Grok project skill；slash **`/audit-event-replay`**（FT-001 實作/審閱） |
 | [`prompts/roles/senior-trading-professional.md`](../prompts/roles/senior-trading-professional.md) | 資深交易人員 role 正文（MUST NOT、workflow、Phase 5 checklist） |
 | [`prompts/roles/references/txf-gates.md`](../prompts/roles/references/txf-gates.md) | UAT / Pilot / Live gate 速查（交易視角） |
 
