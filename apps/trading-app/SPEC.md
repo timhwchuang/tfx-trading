@@ -66,6 +66,7 @@ TradingEngine(
 
 | Command | Purpose |
 |---------|---------|
+| `python -m cli_help` | CLI catalog; `python -m cli_help <module>` → module `--help` |
 | `python -m live` | Simulation or live session |
 | `python -m reporting <log>` | UAT metrics; `--json` / `--trend` / `--episodes` |
 | `python -m reporting.uat_evidence_export <broker\|tick\|both> reports/day*.json` | Broker reconciliation + tick stratification CSV |

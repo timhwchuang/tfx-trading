@@ -132,7 +132,17 @@ def main() -> None:
     import argparse
     from datetime import datetime
 
-    parser = argparse.ArgumentParser(description="Determinism check helper for UAT")
+    parser = argparse.ArgumentParser(
+        description="Determinism check helper for UAT (backtest audit hash).",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  python -m sweep.determinism_check --date 2026-06-12 --mode hash\n"
+            "  python -m sweep.determinism_check --date 2026-06-12 --mode hash "
+            "--output ..\\..\\..\\snapshots\\determinism_20260612.txt\n"
+            "  python -m sweep.determinism_check --date 2026-06-12 --mode capture --output audits.log\n"
+        ),
+    )
     parser.add_argument("--date", required=True, help="Date in YYYY-MM-DD for backtest (or use for log capture)")
     parser.add_argument("--code", default="TXFR1", help="Contract code")
     parser.add_argument("--output", help="Optional path to write hash or lines")

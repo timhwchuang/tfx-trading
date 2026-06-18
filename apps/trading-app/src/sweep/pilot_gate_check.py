@@ -431,7 +431,19 @@ def main(argv: list[str] | None = None) -> int:
     default_tick = DEFAULT_UAT_EVIDENCE_DIR / "phase4_stress" / "tick_quality_stratification.csv"
 
     parser = argparse.ArgumentParser(
-        description="Evaluate APP.md Phase 5 Pilot Readiness Gate from saved UAT JSON reports."
+        description="Evaluate APP.md Phase 5 Pilot Readiness Gate from saved UAT JSON reports.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  python -m sweep.pilot_gate_check reports\\day*.json\n"
+            "  python -m sweep.pilot_gate_check reports\\day*.json --log-file C:\\logs\\trading-app-uat.log\n"
+            "  python -m sweep.pilot_gate_check reports\\day*.json --json\n"
+            "  python -m sweep.pilot_gate_check reports\\day*.json "
+            "--broker-csv uat_evidence\\phase3_weekly\\broker_reconciliation.csv\n"
+            "\n"
+            "Sharpe gate uses per-trade returns when available, else daily PnL.\n"
+            "Broker/tick CSV checks are MANUAL until files exist (run uat_evidence_export first).\n"
+        ),
     )
     parser.add_argument(
         "report_files",

@@ -2,14 +2,38 @@
 
 from __future__ import annotations
 
+import argparse
+import sys
+
 import shioaji as sj
 
 from config import SIMULATION
 from integrations.engine_wiring import default_strategy, trading_app_engine_ports
 from trading_engine.engine import TradingEngine
 
+_LIVE_EPILOG = """\
+Examples:
+  python -m live
 
-def main() -> None:
+Environment (see apps/trading-app/README.md):
+  SJ_API_KEY, SJ_SEC_KEY          Shioaji credentials
+  CONFIG_PATH                     config.yaml path
+  LOG_FILE, LOG_LEVEL             logging
+  TICK_ARCHIVE=1, KBARS_ARCHIVE=1 archive under monorepo tick_cache/
+  SJ_CA_PATH, SJ_CA_PASSWD        required when simulation: false
+
+Config: config/config.yaml — simulation: true for UAT (default).
+"""
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        description="Start VWAP momentum live/simulation session (Shioaji + TradingEngine).",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=_LIVE_EPILOG,
+    )
+    parser.parse_args(argv)
+
     api = sj.Shioaji(simulation=SIMULATION)
     ports = trading_app_engine_ports(
         api=api,
@@ -25,4 +49,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

@@ -1166,7 +1166,15 @@ def read_log_lines(paths: list[Path]) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Analyze trading-app log for UAT metrics."
+        description="Analyze trading-app log or saved JSON reports for UAT metrics.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples (from apps/trading-app/src):\n"
+            "  python -m reporting C:\\logs\\trading-app-uat.log\n"
+            "  python -m reporting C:\\logs\\trading-app-uat.log --json > ..\\..\\..\\reports\\day20260618.json\n"
+            "  python -m reporting ..\\..\\..\\reports\\day*.json --trend\n"
+            "  python -m reporting C:\\logs\\trading-app-uat.log --episodes --episode-id 20260617-010\n"
+        ),
     )
     parser.add_argument(
         "log_files",

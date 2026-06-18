@@ -226,7 +226,16 @@ def main(argv: list[str] | None = None) -> int:
     default_tick = DEFAULT_UAT_EVIDENCE_DIR / "phase4_stress" / "tick_quality_stratification.csv"
 
     parser = argparse.ArgumentParser(
-        description="Export broker reconciliation and tick stratification CSVs from UAT JSON reports."
+        description="Export broker reconciliation and tick stratification CSVs from UAT JSON reports.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  python -m reporting.uat_evidence_export both reports\\day*.json\n"
+            "  python -m reporting.uat_evidence_export broker reports\\day*.json "
+            "--broker-data uat_evidence\\phase3_weekly\\broker_pnl_input.csv\n"
+            "  python -m reporting.uat_evidence_export tick reports\\day*.json "
+            "--tick-output uat_evidence\\phase4_stress\\tick_quality_stratification.csv\n"
+        ),
     )
     parser.add_argument(
         "mode",

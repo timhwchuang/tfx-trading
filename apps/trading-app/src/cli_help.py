@@ -1,0 +1,123 @@
+"""CLI catalog for trading-app — discovery + delegate to per-module --help."""
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class CliEntry:
+    module: str
+    summary: str
+    example: str
+
+
+# Run from apps/trading-app/src with PYTHONPATH=. (or monorepo scripts).
+CATALOG: tuple[CliEntry, ...] = (
+    CliEntry("live", "模擬 / 正式連線交易", "python -m live"),
+    CliEntry("backtest", "Tick 回放回測", "python -m backtest --code TXFR1 --dates 2026-06-12"),
+    CliEntry(
+        "reporting",
+        "UAT log / JSON 分析（--json, --trend, --episodes）",
+        "python -m reporting C:\\logs\\trading-app-uat.log --json",
+    ),
+    CliEntry(
+        "reporting.uat_evidence_export",
+        "券商對帳 + tick 分層 CSV",
+        "python -m reporting.uat_evidence_export both reports\\day*.json",
+    ),
+    CliEntry(
+        "sweep.pilot_gate_check",
+        "APP.md Phase 5 Pilot 門檻預檢",
+        "python -m sweep.pilot_gate_check reports\\day*.json --log-file %LOG_FILE%",
+    ),
+    CliEntry(
+        "sweep.determinism_check",
+        "可重現性 hash / audit 擷取",
+        "python -m sweep.determinism_check --date 2026-06-12 --mode hash",
+    ),
+    CliEntry("storage", "壓縮 tick_cache CSV → .gz", "python -m storage"),
+    CliEntry(
+        "reporting.calibration_cli",
+        "Trend filter 校準（CAL-8 研究）",
+        "python -m reporting.calibration_cli --help",
+    ),
+)
+
+
+def format_catalog() -> str:
+    lines = [
+        "trading-app CLI catalog",
+        "",
+        "前置（Windows 範例，monorepo 根 C:\\tfx-trading）：",
+        "  cd apps\\trading-app\\src",
+        "  $env:PYTHONPATH = (Get-Location).Path   # 或已 setup-dev editable install",
+        "",
+        "指令一覽（細部參數請用下方 MODULE --help）：",
+        "",
+    ]
+    name_w = max(len(e.module) for e in CATALOG)
+    for entry in CATALOG:
+        lines.append(f"  {entry.module.ljust(name_w)}  {entry.summary}")
+        lines.append(f"    {'':<{name_w}}  例：{entry.example}")
+    lines.extend(
+        [
+            "",
+            "查看單一指令說明：",
+            "  python -m cli_help reporting",
+            "  python -m reporting --help",
+            "",
+            "UAT 流程 SSOT：docs/uat/APP.md",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def run_module_help(module: str) -> int:
+    result = subprocess.run(
+        [sys.executable, "-m", module, "--help"],
+        check=False,
+    )
+    return int(result.returncode)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="List trading-app CLI entry points and show per-module --help.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  python -m cli_help\n"
+            "  python -m cli_help reporting\n"
+            "  python -m cli_help sweep.pilot_gate_check\n"
+        ),
+    )
+    parser.add_argument(
+        "module",
+        nargs="?",
+        help="Optional module name from catalog (runs MODULE --help)",
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="Print catalog only (default when module omitted)",
+    )
+    args = parser.parse_args(argv)
+
+    known = {e.module for e in CATALOG}
+    if args.module:
+        if args.module not in known:
+            print(f"未知模組: {args.module}", file=sys.stderr)
+            print(f"可用: {', '.join(sorted(known))}", file=sys.stderr)
+            return 1
+        return run_module_help(args.module)
+
+    print(format_catalog())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

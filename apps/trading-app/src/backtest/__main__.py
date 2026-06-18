@@ -13,7 +13,16 @@ from .engine import BacktestEngine
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run VWAP momentum backtest")
+    parser = argparse.ArgumentParser(
+        description="Run VWAP momentum backtest (app-wired BacktestEngine).",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  python -m backtest --code TXFR1 --dates 2026-06-12\n"
+            "  python -m backtest --code TXFR1 --dates 2026-06-12 2026-06-13 "
+            "--cache-dir C:\\tfx-trading\\tick_cache\n"
+        ),
+    )
     parser.add_argument("--code", default="TXFR1", help="Futures product code")
     parser.add_argument(
         "--dates",

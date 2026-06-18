@@ -185,6 +185,12 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - Risk_blocked now throttled (60s/reason).
 - Full review fixes + 89+ tests green.
 
+#### CLI discoverability
+
+- **`python -m cli_help`**: catalog of all trading-app entry points; delegates to per-module `--help`.
+- Richer `--help` epilog examples on `live`, `reporting`, `uat_evidence_export`, `pilot_gate_check`, `determinism_check`, `storage`, `backtest`.
+- Root [`README.md`](README.md) + [`apps/trading-app/README.md`](apps/trading-app/README.md) CLI index tables.
+
 #### UAT tooling (Phase 3–5 automation)
 
 - **`reporting.uat_evidence_export`**: broker reconciliation + tick stratification CSV from `reports/day*.json`; merge-by-date; `--broker-data` import; invalid PnL safe-parse.

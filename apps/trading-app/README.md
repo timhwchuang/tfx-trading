@@ -70,12 +70,18 @@ C:\tfx-trading\.venv\Scripts\python.exe -m live
 C:\tfx-trading\apps\trading-app\scripts\windows\start-trading-app.ps1 -MonorepoRoot C:\tfx-trading
 ```
 
-| 用途 | 指令 |
-|------|------|
-| Live / 模擬 | `python -m live`（在 `apps/trading-app/src`） |
-| 回測 | `python -m backtest --code TXFR1 --dates 2026-06-12` |
-| UAT 報告 | `python -m reporting C:\logs\trading-app-uat.log` |
-| 壓縮 tick | `python -m storage.compress` |
+| 用途 | 指令 | 完整參數 |
+|------|------|----------|
+| **指令總覽** | `python -m cli_help` | `python -m cli_help <module>` → 轉該模組 `--help` |
+| Live / 模擬 | `python -m live` | `python -m live --help` |
+| 回測 | `python -m backtest --code TXFR1 --dates 2026-06-12` | `python -m backtest --help` |
+| UAT 日報 JSON | `python -m reporting %LOG_FILE% --json` | `python -m reporting --help` |
+| 週 KPI 趨勢 | `python -m reporting ..\..\..\reports\day*.json --trend` | 同上 |
+| Episode 回放 | `python -m reporting %LOG_FILE% --episodes` | 同上 |
+| 證據 CSV | `python -m reporting.uat_evidence_export both ..\..\..\reports\day*.json` | `python -m reporting.uat_evidence_export --help` |
+| Pilot 預檢 | `python -m sweep.pilot_gate_check ..\..\..\reports\day*.json` | `python -m sweep.pilot_gate_check --help` |
+| Determinism | `python -m sweep.determinism_check --date YYYY-MM-DD --mode hash` | `python -m sweep.determinism_check --help` |
+| 壓縮 tick | `python -m storage` | `python -m storage --help` |
 
 首次請確認 `config/config.yaml` 中 **`simulation: true`**。
 
@@ -92,7 +98,7 @@ tfx-trading/
     ├── config/config.yaml
     ├── src/                   # live, backtest, integrations, storage, reporting, sweep
     ├── scripts/windows/       # -MonorepoRoot C:\tfx-trading
-    ├── tests/                   # 81 項整合測試
+    ├── tests/                   # 116+ 項整合測試
     └── run_tests.py
 ```
 

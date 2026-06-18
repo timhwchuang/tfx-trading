@@ -44,7 +44,14 @@ def compress_tick_cache(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Compress tick_cache plain CSV files to .csv.gz"
+        description="Compress tick_cache plain CSV files to .csv.gz",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  python -m storage\n"
+            "  python -m storage --include-today\n"
+            "  python -m storage --cache-dir C:\\tfx-trading\\tick_cache\n"
+        ),
     )
     parser.add_argument(
         "--cache-dir",

@@ -45,6 +45,24 @@ python -m live          # simulation default — see config/config.yaml
 python -m backtest --code TXFR1 --dates 2026-06-12
 ```
 
+## CLI 指令（trading-app）
+
+> **原則**：每個模組用 `python -m <module> --help` 查完整參數；下列為索引。  
+> Windows UAT 從 monorepo 根執行時請設 `$env:PYTHONPATH="apps\trading-app\src"`。
+
+| 模組 | 用途 | 說明 |
+|------|------|------|
+| `cli_help` | **指令總覽** | `python -m cli_help` 或 `python -m cli_help reporting` |
+| `live` | 模擬 / 連線交易 | `python -m live --help` |
+| `backtest` | Tick 回放回測 | `python -m backtest --help` |
+| `reporting` | UAT log / JSON KPI | `python -m reporting --help` |
+| `reporting.uat_evidence_export` | 券商對帳 + tick CSV | `python -m reporting.uat_evidence_export --help` |
+| `sweep.pilot_gate_check` | Phase 5 Pilot 預檢 | `python -m sweep.pilot_gate_check --help` |
+| `sweep.determinism_check` | 可重現性 hash | `python -m sweep.determinism_check --help` |
+| `storage` | 壓縮 tick_cache | `python -m storage --help` |
+
+UAT 流程逐步 SOP：[`docs/uat/APP.md`](docs/uat/APP.md) · Windows 細節：[`apps/trading-app/README.md`](apps/trading-app/README.md)
+
 ## Migrated from
 
 Former sibling repos (`trading-engine`, `trading-backtest`, `strategy-vwap-momentum`, `trading-app`) are **archived** on GitHub. Development continues here only.
