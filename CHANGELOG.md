@@ -14,6 +14,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **KERNEL UAT regression** `tests/runtime/test_kernel_uat_regression.py`: B3 `event_code` 12/13 reconnect, B4 pending-timeout CRITICAL + `sync_positions` + `EXEC_AUDIT`, B6 `sync_positions` → `get_state_snapshot` chain (85 kernel tests).
+
 - **FT-001 Phase 1** `DecisionAudit` + emitter in strategy; `episode_id` generation (date-seq); enriched `SignalAudit` (entry/exit fields); `EXEC` prep (pending ids stored in kernel).
 - Audit fields are optional; old logs/parsers/determinism unaffected.
 
@@ -183,10 +185,20 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - Risk_blocked now throttled (60s/reason).
 - Full review fixes + 89+ tests green.
 
+#### UAT tooling (Phase 3–5 automation)
+
+- **`reporting.uat_evidence_export`**: broker reconciliation + tick stratification CSV from `reports/day*.json`; merge-by-date; `--broker-data` import; invalid PnL safe-parse.
+- **`sweep.pilot_gate_check`**: APP.md Phase 5 auto checklist (sample, density, expectancy, Sharpe per-trade/daily, MDD, big-loss streak, Critical scan); reads broker/tick evidence CSV when present.
+- **`reporting.metrics_extract`** / **`reporting.evidence_csv`**: shared JSON→metric helpers + CSV validation for gate.
+- **Episode timeline**: EXEC `pending_*` via `signal_id`; `position_sync` operational section in `--episodes` output.
+- **Tests**: +23 (112 app tests); KERNEL regression in engine package.
+- **Docs**: [`docs/uat/APP.md`](docs/uat/APP.md), [`uat_evidence/README.md`](uat_evidence/README.md), [`apps/trading-app/SPEC.md`](apps/trading-app/SPEC.md).
+
 #### Changed
 
 - BeforePilot content fully merged into [`docs/uat/APP.md`](docs/uat/APP.md) Phase 5 (Pilot Readiness Gate).
 - Emphasis on determinism hash discipline from monorepo root.
+- Phase 3/4 evidence CSV: manual copy-from-template → `python -m reporting.uat_evidence_export` (broker PnL still human/API sourced).
 
 ### [0.1.2] - 2026-06-17
 

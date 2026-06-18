@@ -22,8 +22,8 @@ uat_evidence/
 1. **Phase 0**：存 `phase0/setup_YYYYMMDD.txt`（`run_tests` 結果、`git branch`）。
 2. **Phase 3 起每週**：
    - 複製 `templates/weekly_kpi_snapshot.md` → `phase3_weekly/weekly_YYYYMMDD.md`
-   - 複製 `templates/broker_reconciliation.csv` → `phase3_weekly/broker_reconciliation.csv`（累積列；勿改 `templates/` 原件）
-3. **Phase 4**：壓力測試 → `templates/stress_test_record.md` 複製到 `phase4_stress/`；tick 分層 → `phase4_stress/tick_quality_stratification.csv`
+   - 執行 `python -m reporting.uat_evidence_export broker reports\day*.json`（累積至 `phase3_weekly/broker_reconciliation.csv`）；券商損益可手填或用 `--broker-data` CSV 匯入
+3. **Phase 4**：壓力測試 → `templates/stress_test_record.md` 複製到 `phase4_stress/`；tick 分層 → `python -m reporting.uat_evidence_export tick reports\day*.json`
 4. **Phase 5**：`phase5_review/top5_loss_days.md` + ≥3 壓力情境 audit timeline
 5. **Phase 6**：`phase6_alerts/alert_CRITICAL_YYYYMMDD_HHMMSS.png` + `log_snippet.txt`（**用 `.txt`，勿用 `.log`** — 根 `.gitignore` 會忽略 `*.log`）
 
@@ -38,6 +38,13 @@ python -m reporting $env:LOG_FILE --json > reports\dayYYYYMMDD.json
 
 # 週 KPI 趨勢（須為 --json 產出的報告檔）
 python -m reporting reports\day*.json --trend
+
+# 券商對帳 + tick 分層 CSV（從 day*.json 自動填入）
+python -m reporting.uat_evidence_export both reports\day*.json
+python -m reporting.uat_evidence_export broker reports\day*.json --broker-data uat_evidence\phase3_weekly\broker_pnl_input.csv
+
+# Pilot Readiness Gate 預檢（含 CSV / Sharpe per-trade）
+python -m sweep.pilot_gate_check reports\day*.json --log-file $env:LOG_FILE
 
 # Determinism hash
 python -m sweep.determinism_check --date YYYY-MM-DD --mode hash --output snapshots\determinism_YYYYMMDD.txt

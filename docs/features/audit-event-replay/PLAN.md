@@ -75,8 +75,6 @@ blockers: []
 - [x] `episode_id` 從 armed 貫穿至 entry FILL
 - [x] 測試：EXEC_AUDIT produced on pending paths (seen in runtime tests)
 
-**Note (2026-06-18)**: Phase 1 + Phase 2 生產者（DECISION_AUDIT / EXEC_AUDIT + ID 貫穿）已實作並通過 review + 全套測試。消費者（Phase 3 reporting）與契約落地（Phase 4）尚未開始。
-
 **主要檔案**：
 
 - [`packages/trading-engine/src/trading_engine/order_executor.py`](../../../packages/trading-engine/src/trading_engine/order_executor.py)

@@ -90,7 +90,7 @@ No-tick 看門狗
 
 ## Regression（Pilot 前持續）
 
-Phase B3–B6（斷線重連、pending 超時、invalid signal、`get_state_snapshot` 對帳）應在以下時機**重跑並更新簽名表**：
+Phase B3–B6（斷線重連、pending 超時、invalid signal、`get_state_snapshot` 對帳）應在以下時機**重跑並更新簽名表**（自動化：`cd packages/trading-engine && python run_tests.py`，含 `test_kernel_uat_regression.py`）：
 - `trading-engine` tag 升級
 - app 重連 / 暖機 / `sync_positions` 邏輯變更
 - [`APP.md`](APP.md) Phase 6 切 CA 前（若 Phase 4 後有程式變更）

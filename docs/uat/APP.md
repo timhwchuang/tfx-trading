@@ -174,9 +174,10 @@ python -m reporting $env:LOG_FILE --trend
 | 事件 | near-miss 摘要 | timeout / veto / 差價未成交等；每週至少一筆或標「本週無」 |
 
 **摩擦成本 SOP**（Phase 3 起，非等到 Phase 7）：
-1. 每日收盤：從券商模擬帳務抄寫當日實際損益（或匯出截圖路徑）。
-2. 對照當日 `reports\dayYYYYMMDD.json` 的 `daily_summaries[-1].pnl.daily_pnl_points` 與 `completed_rounds`。
-3. 累積「真實摩擦 vs config 假設」差異趨勢；Phase 5 審核前須能說明 gap 是否合理。
+1. 每日收盤：`python -m reporting $env:LOG_FILE --json > reports\dayYYYYMMDD.json`
+2. `python -m reporting.uat_evidence_export broker reports\day*.json`（log 側自動填入 CSV）
+3. 補券商日損益：手填 `uat_evidence\phase3_weekly\broker_reconciliation.csv`，或 `--broker-data` 匯入含 `date,broker_daily_pnl_pts,broker_source_note` 的 CSV
+4. 差異 > 0.5 點須在週報註記；Phase 5 審核前須能說明摩擦 gap
 
 **Phase 3 目標**：
 - 累積至少 10 個**交易所交易日**（見 Phase 5 樣本定義；0 成交日可計入但須標記）
@@ -207,11 +208,13 @@ python -m reporting $env:LOG_FILE --trend
 
 若高 `type0_pct` 日 conversion 明顯偏低或 expectancy 為負，須在 Phase 5 書面說明是否為 tick 品質問題、策略問題，或單日噪音。**不可**在未分層的情況下只用全樣本 KPI 通過 gate。
 
-**分層填表 SOP**（手動，至 tooling 完成前）：
-1. 從當日 `reports\day*.json` 讀 `tick_type.type0_pct`（或 log 的 `tick_type 分布` 行）。
-2. 記錄當日 `momentum_to_entry_conversion` 與 `completed_rounds`（JSON 頂層欄位）。
-3. 記錄當日 `performance.expectancy.expectancy_per_trade_net`（樣本不足可標 N/A）。
-4. 填入 `uat_evidence/phase4_stress/tick_quality_stratification.csv`（自 `templates/` 複製累積，勿改壞範本）。
+**分層填表 SOP**：
+```powershell
+python -m reporting.uat_evidence_export tick reports\day*.json
+# 或一次產出 broker + tick：
+python -m reporting.uat_evidence_export both reports\day*.json
+```
+輸出預設：`uat_evidence\phase4_stress\tick_quality_stratification.csv`（含 `type0_pct`、tier、conversion、expectancy）。`notes` 可手動補充。
 
 **Phase 4 強制**：
 - 完成所有測試 + 記錄在 `uat_evidence/`（含斷網演練實際執行日期）
@@ -258,7 +261,17 @@ python -m reporting $env:LOG_FILE --trend
 
 範例命令（從 monorepo 根）：
 ```powershell
+$env:PYTHONPATH="apps\trading-app\src"
+
+# Pilot gate 自動預檢（量化門檻 + broker/tick CSV + Critical 掃描）
+python -m sweep.pilot_gate_check reports\day*.json --log-file $env:LOG_FILE
+
+# 可重現性 hash
 python -m sweep.determinism_check --date 2026-06-10 --mode hash
+
+# 壓力情境 audit timeline（含 EXEC pending / position_sync）
+python -m reporting $env:LOG_FILE --episodes
+
 # 建議：抽 3 個交易日用 backtest engine 重跑並比對 SIGNAL/FILL audit 序列
 ```
 

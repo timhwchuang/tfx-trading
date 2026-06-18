@@ -49,7 +49,7 @@ class Episode:
     episode_id: str
     trade_date: str = ""
     direction: str = ""
-    outcome: str = ""  # entered | timeout | veto | risk_blocked
+    outcome: str = ""  # entered | timeout | veto | risk_blocked | pending_timeout | position_sync
     armed_ts: int | None = None
     events: list[dict] = None
     pressure_context: dict = None
@@ -309,6 +309,43 @@ def compute_episodes(lines: list[str]) -> list[Episode]:
     return build_episode_timeline(decisions, signals, execs, fills)
 
 
+def _build_signal_to_episode_map(
+    signals: list[SignalAudit],
+    fills: list[FillAudit],
+) -> dict[str, str]:
+    """Map signal_id → episode_id for EXEC_AUDIT cross-linking."""
+    mapping: dict[str, str] = {}
+    for signal in signals:
+        if signal.signal_id and signal.episode_id:
+            mapping[signal.signal_id] = signal.episode_id
+    for fill in fills:
+        signal_id = getattr(fill, "signal_id", "")
+        episode_id = getattr(fill, "episode_id", "")
+        if signal_id and episode_id:
+            mapping.setdefault(signal_id, episode_id)
+    return mapping
+
+
+def _exec_event_dict(exec_audit: ExecAudit) -> dict:
+    skip = frozenset({"audit_schema_version"})
+    payload = {
+        k: v
+        for k, v in asdict(exec_audit).items()
+        if k not in skip and v not in ("", None)
+    }
+    return {
+        "source": "exec",
+        "event_type": exec_audit.event_type,
+        "ts": exec_audit.ts,
+        "signal_id": exec_audit.signal_id,
+        **{
+            k: v
+            for k, v in payload.items()
+            if k not in ("event_type", "ts", "signal_id")
+        },
+    }
+
+
 def build_episode_timeline(
     decisions: list[DecisionAudit],
     signals: list[SignalAudit],
@@ -318,9 +355,10 @@ def build_episode_timeline(
     """Build episode timelines from all audit types (Phase 3).
 
     Groups events by episode_id from DECISION (armed etc), SIGNAL (entry/exit with episode),
-    EXEC, and FILL (entry with episode).
+    EXEC (via signal_id), and FILL (entry with episode).
     """
     by_ep: dict[str, Episode] = {}
+    signal_to_episode = _build_signal_to_episode_map(signals, fills)
 
     def get_or_create(ep_id: str) -> Episode:
         if ep_id not in by_ep:
@@ -380,14 +418,21 @@ def build_episode_timeline(
             # fallback: attach to episodes that may link via other means, but for now ignore
             pass
 
-    # Exec
-    for e in execs:
-        if not e.signal_id:
+    # Exec — position_sync as operational episode; others via signal_id
+    for exec_audit in execs:
+        if exec_audit.event_type == "position_sync":
+            ep_id = f"sync-{exec_audit.ts}"
+            ep = get_or_create(ep_id)
+            ep.outcome = "position_sync"
+            ep.events.append(_exec_event_dict(exec_audit))
             continue
-        # We don't have direct episode in EXEC, so we can't easily attach unless we cross link.
-        # For Phase 3 basic, we'll rely on signals/fills for entry episodes.
-        # Add as standalone if needed, but prefer linked.
-        pass  # For now, timeline is primarily driven by DECISION + entry SIGNAL/FILL
+        if not exec_audit.signal_id:
+            continue
+        episode_id = signal_to_episode.get(exec_audit.signal_id)
+        if not episode_id:
+            continue
+        ep = get_or_create(episode_id)
+        ep.events.append(_exec_event_dict(exec_audit))
 
     # Fills — entry fills carry episode_id
     for f in fills:
@@ -410,6 +455,8 @@ def build_episode_timeline(
     # Determine outcome and sort events
     for ep in by_ep.values():
         ep.events.sort(key=lambda ev: ev.get("ts", 0))
+        if ep.outcome == "position_sync":
+            continue
         # simple outcome detection
         has_entry_fill = any(
             ev.get("source") == "fill" and ev.get("event_type") == "entry"
@@ -419,11 +466,17 @@ def build_episode_timeline(
             ev.get("event_type") == "momentum_timeout" for ev in ep.events
         )
         has_veto = any(ev.get("event_type") == "trend_veto" for ev in ep.events)
+        has_pending_timeout = any(
+            ev.get("source") == "exec" and ev.get("event_type") == "pending_timeout"
+            for ev in ep.events
+        )
         has_risk = any(ev.get("event_type") == "risk_blocked" for ev in ep.events or [])
         if has_risk:
             ep.outcome = "risk_blocked"
         elif has_entry_fill:
             ep.outcome = "entered"
+        elif has_pending_timeout:
+            ep.outcome = "pending_timeout"
         elif has_veto:
             ep.outcome = "veto"
         elif has_timeout:
@@ -852,7 +905,9 @@ def format_episode_timeline(episodes: list[Episode]) -> str:
     if not episodes:
         return "No episodes found."
     lines = ["=== Episode Timeline (Phase 3) ==="]
-    for ep in episodes:
+    sync_episodes = [ep for ep in episodes if ep.outcome == "position_sync"]
+    trade_episodes = [ep for ep in episodes if ep.outcome != "position_sync"]
+    for ep in trade_episodes:
         lines.append(
             f"\nEpisode {ep.episode_id} | dir={ep.direction or '?'} | outcome={ep.outcome}"
         )
@@ -865,6 +920,16 @@ def format_episode_timeline(episodes: list[Episode]) -> str:
             lines.append(f"  {ts} | {src}/{et} | { {k:v for k,v in ev.items() if k not in ('ts','source','event_type')} }")
         if len(ep.events or []) > 20:
             lines.append("  ... (truncated)")
+    if sync_episodes:
+        lines.append("\n=== Operational EXEC (position_sync) ===")
+        for ep in sync_episodes:
+            for ev in ep.events or []:
+                ts = ev.get("ts", "?")
+                lines.append(
+                    f"  {ts} | exec/position_sync | "
+                    f"qty {ev.get('qty_before')}→{ev.get('qty_after')} "
+                    f"dir={ev.get('position_dir', '?')}"
+                )
     return "\n".join(lines)
 
 

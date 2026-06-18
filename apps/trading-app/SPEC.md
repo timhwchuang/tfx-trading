@@ -31,8 +31,8 @@ flowchart TD
 | `src/live/` | `python -m live` — Shioaji + TradingEngine entry |
 | `src/backtest/engine.py` | Thin wrapper injecting app ports into `trading_backtest.BacktestEngine` |
 | `src/storage/` | Tick/kbar archive and loaders |
-| `src/reporting/` | `uat_report`, performance metrics, trend calibration |
-| `src/sweep/` | Walk-forward param sweep (research) |
+| `src/reporting/` | `uat_report`, `uat_evidence_export`, `metrics_extract`, `evidence_csv`, performance metrics, trend calibration |
+| `src/sweep/` | Walk-forward param sweep, `pilot_gate_check`, determinism gate |
 | `config/config.yaml` | Strategy/runtime parameters (non-secrets) |
 
 ## Out of scope
@@ -67,7 +67,9 @@ TradingEngine(
 | Command | Purpose |
 |---------|---------|
 | `python -m live` | Simulation or live session |
-| `python -m reporting <log>` | UAT metrics from `SIGNAL_AUDIT` / `FILL_AUDIT` / `DAILY_SUMMARY` |
+| `python -m reporting <log>` | UAT metrics; `--json` / `--trend` / `--episodes` |
+| `python -m reporting.uat_evidence_export <broker\|tick\|both> reports/day*.json` | Broker reconciliation + tick stratification CSV |
+| `python -m sweep.pilot_gate_check reports/day*.json` | APP.md Phase 5 Pilot Readiness Gate |
 | `python -m storage.compress` | Post-session tick gzip |
 | `python -m backtest` | App-wired backtest |
 
@@ -159,11 +161,14 @@ Tests (`tests/sweep/test_param_sweep.py`): `test_sweep_small_grid`, `test_config
 | Determinism | `src/sweep/determinism_check.py` |
 | Param sweep | `src/sweep/param_sweep.py` |
 | UAT report | `src/reporting/uat_report.py` |
+| Evidence CSV export | `src/reporting/uat_evidence_export.py` |
+| Evidence CSV validation | `src/reporting/evidence_csv.py` |
+| Pilot gate | `src/sweep/pilot_gate_check.py` |
 | Trend harness | `src/reporting/trend_calibration.py` |
 | Forward PnL replay | `src/reporting/forward_pnl.py` |
 | B-class CLI | `src/reporting/calibration_cli.py` |
 
-**Done**: same inputs → same hash (with fills); sweep restores config; `uat_report` parses backtest logs; app **89** tests green (`bash scripts/run-all-tests.sh`); FT-001 Phase 4 landed (DEC/EXEC in contracts + determinism).
+**Done**: same inputs → same hash (with fills); sweep restores config; `uat_report` parses backtest logs; app **112** tests green (`bash scripts/run-all-tests.sh`); FT-001 Phase 4 landed (DEC/EXEC in contracts + determinism); UAT evidence export + Pilot gate automation.
 
 ### UAT execution
 

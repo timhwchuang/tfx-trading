@@ -43,7 +43,7 @@
 | 4 | 目錄 | ✅ 骨架 | `reports/`、`snapshots/`、`uat_evidence/`（見 [`uat_evidence/README.md`](../uat_evidence/README.md)） |
 | 5 | Phase 0 證據 | ☐ | 首次 `python -m live` 10 分鐘 + git commit |
 | 6 | Phase 3 摩擦 | ☐ 建議 | `config.yaml` → `friction.enabled: true`（net expectancy 從第 6 交易日追蹤） |
-| 7 | 週報 | ☐ | 複製 `uat_evidence/templates/weekly_kpi_snapshot.md`；摩擦用 `broker_reconciliation.csv` |
+| 7 | 週報 | ☐ | 複製 `weekly_kpi_snapshot.md`；`python -m reporting.uat_evidence_export both reports\day*.json` |
 
 **UAT 期間建議啟用的功能**（已落地、不阻擋上線）：
 
@@ -54,6 +54,8 @@
 | 日報 + KPI | `python -m reporting <log> --json` | gross/net、near-miss、type0_pct |
 | 週趨勢 | `python -m reporting reports\day*.json --trend`（monorepo 根 + PYTHONPATH） | Phase 3 gross/net、Sharpe、MDD |
 | Determinism | `python -m sweep.determinism_check --date …` | Phase 5 可重現性 |
+| 證據 CSV | `python -m reporting.uat_evidence_export both reports\day*.json` | broker 對帳 + tick 分層 |
+| Pilot gate | `python -m sweep.pilot_gate_check reports\day*.json` | Phase 5 量化預檢 |
 | Tick 壓縮 | `python -m storage.compress` | 收盤後維護 |
 | 回測重跑 | `python -m backtest --code TXFR1 --dates …` | UAT tick 驗證 |
 | P4-13 護欄 | `config.yaml` `operations.*` | 暖機、斷線上限、有倉 CRITICAL |

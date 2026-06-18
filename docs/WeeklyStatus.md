@@ -15,7 +15,8 @@
 |------|-------------|
 | Expectancy (gross) / (net) | monorepo 根：`python -m reporting reports\day*.json --trend`（JSON 報告檔） |
 | Sharpe、MDD 使用率 | 同上 |
-| 券商日損益 vs `daily_summaries[-1].pnl.daily_pnl_points` | 收盤對帳；差異 >0.5 點須註記；CSV 見 `uat_evidence/phase3_weekly/broker_reconciliation.csv` |
+| 券商日損益 vs `daily_summaries[-1].pnl.daily_pnl_points` | `python -m reporting.uat_evidence_export broker reports\day*.json`；差異 >0.5 點須註記 |
+| Tick 分層 | `python -m reporting.uat_evidence_export tick reports\day*.json` → `phase4_stress/tick_quality_stratification.csv` |
 | near-miss 本週摘要 | timeout / veto / 未成交；無則寫「本週無」 |
 | `type0_pct` 偏高日 | conversion / expectancy 是否異常（Phase 4 起） |
 

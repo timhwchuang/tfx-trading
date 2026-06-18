@@ -26,6 +26,50 @@ class TestEpisodeReplay(unittest.TestCase):
         self.assertIsNotNone(e)
         self.assertEqual(e.event_type, "pending_armed")
 
+    def test_exec_linked_to_episode_via_signal_id(self):
+        lines = [
+            'DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_armed","ts":100,"episode_id":"20260617-010","direction":"Long"}',
+            'SIGNAL_AUDIT {"audit_schema_version":1,"intent":"entry","direction":"Buy","price":21840.0,"ts":120,"episode_id":"20260617-010","signal_id":"20260617-sig-010"}',
+            'EXEC_AUDIT {"audit_schema_version":1,"event_type":"pending_armed","ts":121,"signal_id":"20260617-sig-010","order_id":"OID-100"}',
+            'EXEC_AUDIT {"audit_schema_version":1,"event_type":"pending_timeout","ts":130,"signal_id":"20260617-sig-010","pending_sec":8}',
+        ]
+        eps = compute_episodes(lines)
+        self.assertEqual(len(eps), 1)
+        ep = eps[0]
+        exec_events = [ev for ev in ep.events if ev.get("source") == "exec"]
+        self.assertEqual(len(exec_events), 2)
+        self.assertEqual(
+            {ev["event_type"] for ev in exec_events},
+            {"pending_armed", "pending_timeout"},
+        )
+        self.assertEqual(ep.outcome, "pending_timeout")
+
+    def test_pending_cancelled_linked_to_episode(self):
+        lines = [
+            'DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_armed","ts":100,"episode_id":"20260617-011","direction":"Long"}',
+            'SIGNAL_AUDIT {"audit_schema_version":1,"intent":"entry","direction":"Buy","price":21840.0,"ts":120,"episode_id":"20260617-011","signal_id":"20260617-sig-011"}',
+            'EXEC_AUDIT {"audit_schema_version":1,"event_type":"pending_armed","ts":121,"signal_id":"20260617-sig-011","order_id":"OID-101"}',
+            'EXEC_AUDIT {"audit_schema_version":1,"event_type":"pending_cancelled","ts":125,"signal_id":"20260617-sig-011","tag":"intent_cancelled"}',
+        ]
+        eps = compute_episodes(lines)
+        ep = eps[0]
+        exec_types = {
+            ev["event_type"]
+            for ev in ep.events
+            if ev.get("source") == "exec"
+        }
+        self.assertEqual(exec_types, {"pending_armed", "pending_cancelled"})
+
+    def test_position_sync_operational_episode(self):
+        lines = [
+            'EXEC_AUDIT {"audit_schema_version":1,"event_type":"position_sync","ts":1740130400,"qty_before":0,"qty_after":1,"position_dir":"Long"}',
+        ]
+        eps = compute_episodes(lines)
+        self.assertEqual(len(eps), 1)
+        self.assertEqual(eps[0].outcome, "position_sync")
+        out = format_episode_timeline(eps)
+        self.assertIn("Operational EXEC (position_sync)", out)
+
     def test_episode_filter_by_id(self):
         # just smoke
         eps = compute_episodes([])
