@@ -171,7 +171,7 @@ Tests (`tests/sweep/test_param_sweep.py`): `test_sweep_small_grid`, `test_config
 | Forward PnL replay | `src/reporting/forward_pnl.py` |
 | B-class CLI | `src/reporting/calibration_cli.py` |
 
-**Done**: same inputs → same hash (with fills); sweep restores config; `uat_report` parses backtest logs; app **112** tests green (`bash scripts/run-all-tests.sh`); FT-001 Phase 4 landed (DEC/EXEC in contracts + determinism); UAT evidence export + Pilot gate automation.
+**Done**: same inputs → same hash (with fills); sweep restores config; `uat_report` parses backtest logs; app **122** tests green (`bash scripts/run-all-tests.sh` 合計 **270**)；FT-001 Phase 4 landed (DEC/EXEC in contracts + determinism); UAT evidence export + Pilot gate automation.
 
 ### UAT execution
 

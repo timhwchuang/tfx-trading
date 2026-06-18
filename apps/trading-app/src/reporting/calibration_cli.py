@@ -86,8 +86,9 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "Examples (from apps/trading-app/src):\n"
             "  python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log --dates 2026-06-12\n"
-            "  python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log "
-            "--dates 2026-06-10,2026-06-11,2026-06-12 --forward-seconds 1800\n"
+            "  python -m reporting.calibration_cli $LOG_FILE --dates 2026-06-12  # Linux/GCE\n"
+            "  python -m reporting.calibration_cli ~/tfx-trading/logs-from-gce/trading-app-uat.log "
+            "--dates 2026-06-12 --cache-dir ~/tfx-trading/tick_cache\n"
             "  python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log "
             "--dates 2026-06-10,2026-06-11,2026-06-12 --sweep --sweep-output sweep_result.jsonl\n"
         ),

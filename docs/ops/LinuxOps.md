@@ -15,7 +15,7 @@
   - `TICK_ARCHIVE=1`、`KBARS_ARCHIVE=1`
   - 選配：`TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` 或 `ALERT_WEBHOOK_URL`
 - [ ] `apps/trading-app/config/config.yaml` → `simulation: true`（UAT）或 `false`（Pilot + CA）
-- [ ] **靜態外部 IP**（GCP regional）；防火牆僅開必要 egress（Shioaji API 443）
+- [ ] **靜態外部 IP**（GCP regional）；ingress **SSH 22**（或 IAP）；egress 443（Shioaji API）
 - [ ] 開機不自動 suspend；`systemd` 守護 live 進程
 
 ## P4-3 告警通道
@@ -61,10 +61,11 @@ MONOREPO_ROOT=~/tfx-trading bash scripts/linux/start-trading-app.sh
 30 15 * * 1-5 tfx /opt/tfx-trading/scripts/linux/post-session.sh >> /var/log/tfx-trading/post-session.log 2>&1
 ```
 
-`post-session.sh` 會執行：
+`post-session.sh` 會 source `/etc/tfx-trading/env`，並執行：
 
 - `python -m storage`（`storage.compress` 為相容 alias）
-- `python -m reporting $LOG_FILE --json` → `reports/dayYYYYMMDD.json`
+- `python -m reporting $LOG_FILE --json` → `reports/dayYYYYMMDD.json`（log 不存在則略過）
+- `python -m sweep.determinism_check --date … --output snapshots/determinism_YYYYMMDD.txt`
 
 ## 地端研究機（回測 / CAL / 分析）
 
@@ -75,8 +76,8 @@ cd ~/tfx-trading
 source .venv/bin/activate
 bash scripts/run-all-tests.sh
 
-# 從 GCE 拉 tick / reports（見 HYBRID_DEPLOY.md）
-GCE_HOST=tfx@<GCE_STATIC_IP> bash scripts/linux/sync-from-gce.sh
+# 從 GCE 拉 tick / kbars / reports / snapshots（deploy 帳號，勿用 tfx）
+GCE_HOST=ubuntu@<GCE_STATIC_IP> bash scripts/linux/sync-from-gce.sh
 
 cd apps/trading-app/src
 python -m backtest --code TXFR1 --dates 2026-06-12

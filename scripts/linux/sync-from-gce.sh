@@ -1,29 +1,39 @@
 #!/usr/bin/env bash
-# Pull tick_cache, reports, snapshots, logs from GCE live host to on-prem research machine.
-# Usage: GCE_HOST=user@1.2.3.4 MONOREPO_ROOT=~/tfx-trading ./scripts/linux/sync-from-gce.sh
+# Pull tick_cache, kbar_cache, reports, snapshots, logs from GCE live host to on-prem.
+# Usage: GCE_HOST=ubuntu@1.2.3.4 MONOREPO_ROOT=~/tfx-trading ./scripts/linux/sync-from-gce.sh
 set -euo pipefail
 
 MONOREPO_ROOT="${MONOREPO_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
-GCE_HOST="${GCE_HOST:?set GCE_HOST=user@static-ip}"
+GCE_HOST="${GCE_HOST:?set GCE_HOST=ubuntu@static-ip (deploy user, not tfx)}"
 REMOTE_ROOT="${REMOTE_ROOT:-/opt/tfx-trading}"
 
-rsync -avz --progress \
-  "$GCE_HOST:$REMOTE_ROOT/tick_cache/" \
-  "$MONOREPO_ROOT/tick_cache/"
+_sync_dir() {
+  local name="$1"
+  local local_dir="$MONOREPO_ROOT/$name"
+  mkdir -p "$local_dir"
+  if ssh -o BatchMode=yes -o ConnectTimeout=10 "$GCE_HOST" "test -d '$REMOTE_ROOT/$name'" 2>/dev/null; then
+    rsync -avz --progress \
+      "$GCE_HOST:$REMOTE_ROOT/$name/" \
+      "$local_dir/"
+  else
+    echo "略過 $name：遠端尚無 $REMOTE_ROOT/$name/" >&2
+  fi
+}
 
-rsync -avz --progress \
-  "$GCE_HOST:$REMOTE_ROOT/reports/" \
-  "$MONOREPO_ROOT/reports/"
+_sync_dir tick_cache
+_sync_dir kbar_cache
+_sync_dir reports
+_sync_dir snapshots
 
-rsync -avz --progress \
-  "$GCE_HOST:$REMOTE_ROOT/snapshots/" \
-  "$MONOREPO_ROOT/snapshots/"
-
-# Optional: pull rotated logs for calibration_cli / episode replay
 if [[ -n "${SYNC_LOGS:-}" ]]; then
-  rsync -avz --progress \
-    "$GCE_HOST:/var/log/tfx-trading/" \
-    "$MONOREPO_ROOT/logs-from-gce/"
+  mkdir -p "$MONOREPO_ROOT/logs-from-gce"
+  if ssh -o BatchMode=yes -o ConnectTimeout=10 "$GCE_HOST" "test -d /var/log/tfx-trading" 2>/dev/null; then
+    rsync -avz --progress \
+      "$GCE_HOST:/var/log/tfx-trading/" \
+      "$MONOREPO_ROOT/logs-from-gce/"
+  else
+    echo "略過 logs：遠端尚無 /var/log/tfx-trading/" >&2
+  fi
 fi
 
-echo "Sync complete → $MONOREPO_ROOT (tick_cache, reports, snapshots)"
+echo "Sync complete → $MONOREPO_ROOT (tick_cache, kbar_cache, reports, snapshots)"

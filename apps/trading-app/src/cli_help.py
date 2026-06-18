@@ -61,10 +61,19 @@ CATALOG: tuple[CliEntry, ...] = (
 
 
 def parse_spec_cli_modules(spec_path: Path | None = None) -> frozenset[str]:
-    """Parse module names from apps/trading-app/SPEC.md CLI table (excludes cli_help meta)."""
+    """Parse module names from apps/trading-app/SPEC.md ## CLI table only (excludes cli_help)."""
     path = spec_path or _APP_SPEC_PATH
+    text = path.read_text(encoding="utf-8")
+    start = text.find("## CLI")
+    if start < 0:
+        return frozenset()
+    rest = text[start:]
+    end = rest.find("\n## ", 1)
+    section = rest[:end] if end >= 0 else rest
     modules: set[str] = set()
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in section.splitlines():
+        if not line.startswith("|") or line.startswith("| Command") or line.startswith("|---"):
+            continue
         for match in re.finditer(r"`python -m ([\w.]+)", line):
             mod = match.group(1)
             if mod != "cli_help":

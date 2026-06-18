@@ -30,6 +30,27 @@ class TestCliHelp(unittest.TestCase):
         catalog_modules = {e.module for e in CATALOG}
         self.assertEqual(catalog_modules, parse_spec_cli_modules())
 
+    def test_parse_spec_cli_modules_cli_section_only(self):
+        import tempfile
+        from pathlib import Path
+
+        spec = (
+            "## CLI (from `src/`)\n\n"
+            "| Command | Purpose |\n"
+            "|---------|--------|\n"
+            "| `python -m live` | Live |\n"
+            "| `python -m backtest` | Backtest |\n\n"
+            "## Integration contracts\n\n"
+            "Prose `python -m fake.prose_module` must not be counted.\n"
+        )
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as f:
+            f.write(spec)
+            path = Path(f.name)
+        try:
+            self.assertEqual(parse_spec_cli_modules(path), frozenset({"live", "backtest"}))
+        finally:
+            path.unlink()
+
     def test_format_catalog_mentions_help(self):
         text = format_catalog()
         self.assertIn("python -m reporting --help", text)

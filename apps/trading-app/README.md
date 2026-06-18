@@ -103,7 +103,7 @@ tfx-trading/
     ├── config/config.yaml
     ├── src/                   # live, backtest, integrations, storage, reporting, sweep
     ├── scripts/windows/       # -MonorepoRoot C:\tfx-trading
-    ├── tests/                   # 121 項整合測試（`run_tests.py`）
+    ├── tests/                   # 122 項整合測試（`run_tests.py`）
     └── run_tests.py
 ```
 

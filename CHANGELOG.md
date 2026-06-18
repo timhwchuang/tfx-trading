@@ -205,6 +205,13 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - **Doc sweep**: `python -m storage` 為主、`storage.compress` alias — [`TODO.md`](docs/TODO.md), [`AGENTS.md`](docs/AGENTS.md), [`uat/APP.md`](docs/uat/APP.md), [`WindowsOps.md`](docs/ops/WindowsOps.md)；測試基線 **269**（85+27+36+121）。
 - **`calibration_cli`**: `--help` epilog examples；`cli_help.parse_spec_cli_modules()` 從 SPEC 解析防 catalog drift。
 
+#### Fixed (hybrid ops review follow-up)
+
+- **`install-systemd.sh`**: `chown -R tfx:tfx` monorepo + data dirs；env `640 root:tfx`；`TICK_ARCHIVE`/`KBARS_ARCHIVE` 預設啟用。
+- **`post-session.sh`**: source `/etc/tfx-trading/env`；加 `determinism_check` → `snapshots/`；略過缺 log。
+- **`sync-from-gce.sh`**: `ubuntu@` deploy 帳號；sync `kbar_cache/`；遠端缺目錄不 fail。
+- **`parse_spec_cli_modules`**: 僅解析 SPEC `## CLI` 表格；`calibration_cli` Linux epilog；AGENTS/SPEC 測試數對齊。
+
 #### UAT tooling (Phase 3–5 automation)
 
 - **`reporting.uat_evidence_export`**: broker reconciliation + tick stratification CSV from `reports/day*.json`; merge-by-date; `--broker-data` import; invalid PnL safe-parse.

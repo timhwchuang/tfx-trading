@@ -7,7 +7,7 @@
 ```text
 ┌─────────────────────────────┐         rsync (收盤後)        ┌──────────────────────────────┐
 │  地端（Linux / macOS）       │  ◄──── tick_cache, reports ─── │  GCP GCE asia-east1（台灣）   │
-│  • backtest / sweep          │                               │  • python -m live（唯一 live） │
+│  • backtest / sweep          │                               │  • python -m live（雙管模式單一 live 節點） │
 │  • calibration_cli (CAL-8)   │  ───► config.yaml (git) ───►  │  • TICK_ARCHIVE / KBARS       │
 │  • determinism_check         │                               │  • systemd 守護 + 靜態 IP     │
 │  • reporting / pilot_gate    │                               │  • post-session.sh            │
@@ -17,8 +17,8 @@
 
 | 層 | 地端 | GCE |
 |----|------|-----|
-| **Live 連線** | 不建議 | **是**（Shioaji 長連線） |
-| **tick_cache 寫入** | 從 GCE sync 讀 | **是**（盤中 archive） |
+| **Live 連線** | 不建議（雙管模式） | **是**（Shioaji 長連線）；或 Windows 單機（§5） |
+| **tick_cache / kbar_cache 寫入** | 從 GCE sync 讀 | **是**（盤中 archive） |
 | **回測 / CAL** | **是** | 僅 smoke test |
 | **UAT 證據 git** | commit 分析結果 | commit 當日 `reports/`、`snapshots/` |
 | **config SSOT** | git `apps/trading-app/config/config.yaml` | 部署時 pull 同 commit |
@@ -64,10 +64,11 @@
 
 1. 建立 VM（規格見 §3），綁定靜態 IP，SSH 登入
 2. `git clone` → `bash scripts/setup-dev.sh`
-3. `sudo bash scripts/linux/install-systemd.sh`
-4. 編輯 `/etc/tfx-trading/env`（API keys、`TICK_ARCHIVE=1`）
+3. `sudo MONOREPO_ROOT=/opt/tfx-trading bash scripts/linux/install-systemd.sh`（`chown tfx:tfx` 整個 repo）
+4. 編輯 `/etc/tfx-trading/env`（API keys；`TICK_ARCHIVE=1`、`KBARS_ARCHIVE=1` 已預設）
 5. `sudo systemctl start tfx-trading`；盤中確認 `tick_cache/TXFR1_*.csv` 成長
-6. cron：`scripts/linux/post-session.sh`（15:30）
+6. cron：`scripts/linux/post-session.sh`（15:30）— `storage` + `reporting` + `determinism_check` → `snapshots/`
+7. **git pull** 用 `sudo -u tfx git -C /opt/tfx-trading pull`（repo 屬 `tfx`）
 
 詳見 [`LinuxOps.md`](LinuxOps.md)。
 
@@ -77,8 +78,10 @@
 2. 收盤後：
 
 ```bash
-GCE_HOST=tfx@<GCE_STATIC_IP> REMOTE_ROOT=/opt/tfx-trading \
+# 用 deploy 帳號（如 ubuntu@），勿用 tfx（nologin 無法 SSH）
+GCE_HOST=ubuntu@<GCE_STATIC_IP> REMOTE_ROOT=/opt/tfx-trading \
   bash scripts/linux/sync-from-gce.sh
+# 要拉 log 做 calibration_cli：SYNC_LOGS=1 GCE_HOST=ubuntu@... bash scripts/linux/sync-from-gce.sh
 ```
 
 3. 地端跑：
@@ -95,8 +98,9 @@ python -m sweep.determinism_check --date 2026-06-12 --mode hash
 | 路徑 | 誰寫 | 同步 |
 |------|------|------|
 | `tick_cache/` | GCE live | rsync → 地端 |
-| `reports/day*.json` | GCE post-session | rsync → 地端 |
-| `snapshots/` | GCE（determinism hash） | rsync → 地端 |
+| `kbar_cache/` | GCE live（`KBARS_ARCHIVE=1`） | rsync → 地端 |
+| `reports/day*.json` | GCE `post-session.sh` | rsync → 地端 |
+| `snapshots/determinism_*.txt` | GCE `post-session.sh` | rsync → 地端 |
 | `uat_evidence/` | 人類 | git |
 | `config/config.yaml` | git | GCE `git pull` 部署 |
 
