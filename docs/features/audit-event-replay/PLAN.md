@@ -52,12 +52,12 @@ blockers: []
 
 **目標**：單 episode 可從 `momentum_armed` → entry SIGNAL → FILL 串起。
 
-- [ ] `DecisionAudit` dataclass + `format_decision_audit()`（engine 或 app 層，SPEC 實作時定案）
-- [ ] `VWAPMomentumStrategy._try_activate_momentum` → `DECISION_AUDIT` `momentum_armed` + `episode_id` 生成
-- [ ] `build_exit_audit`  enrichment：`entry_price`, `hold_ticks`, `in_grace`, stop levels, `trailing_peak`
-- [ ] `SignalAudit` optional 欄位：`episode_id`, `signal_id`, `elapsed_since_arm_sec`, `dist_vwap`
-- [ ] `FillAudit` optional：`signal_id`；entry 加 `episode_id`
-- [ ] 單元測試：strategy 發 `momentum_armed`；exit audit 新欄位
+- [x] `DecisionAudit` dataclass + `format_decision_audit()`（engine 或 app 層，SPEC 實作時定案）
+- [x] `VWAPMomentumStrategy._try_activate_momentum` → `DECISION_AUDIT` `momentum_armed` + `episode_id` 生成
+- [x] `build_exit_audit`  enrichment：`entry_price`, `hold_ticks`, `in_grace`, stop levels, `trailing_peak`
+- [x] `SignalAudit` optional 欄位：`episode_id`, `signal_id`, `elapsed_since_arm_sec`, `dist_vwap`
+- [x] `FillAudit` optional：`signal_id`；entry 加 `episode_id`
+- [x] 單元測試：strategy 發 `momentum_armed`；exit audit 新欄位
 
 **主要檔案**：
 

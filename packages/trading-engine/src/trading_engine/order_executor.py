@@ -72,10 +72,15 @@ class OrderExecutorMixin:
             if signal.audit is not None and signal.intent == PendingIntent.EXIT
             else ""
         )
+        self.pending_episode_id = ""
+        self.pending_signal_id = ""
+        if signal.audit is not None:
+            self.pending_episode_id = getattr(signal.audit, "episode_id", "") or ""
+            self.pending_signal_id = getattr(signal.audit, "signal_id", "") or ""
         if signal.intent == PendingIntent.EXIT:
             self.exit_pending = True
 
-        # Phase 4 defensive guard (logs only)
+        # Defensive guard (logs only). Permanent invariant check.
         try:
             from trading_engine.core.trading_state import validate_pending_consistency
 
@@ -549,6 +554,8 @@ class OrderExecutorMixin:
                 order_id=order_id,
                 ts=self.pending_exchange_ts,
                 ioc_slippage_allowed=self.pending_ioc_slippage,
+                episode_id=self.pending_episode_id,
+                signal_id=self.pending_signal_id,
             )
             logger.info("FILL_AUDIT %s", self._telemetry.format_fill_audit(fill_audit))
             self.reset_strategy_state()
@@ -585,6 +592,7 @@ class OrderExecutorMixin:
                 exit_reason=self.pending_exit_reason,
                 pnl_points=pnl,
                 hold_sec=hold_sec,
+                signal_id=self.pending_signal_id,
             )
             self._telemetry.update_risk_state(self.daily_pnl, self.consecutive_loss)
             logger.info("FILL_AUDIT %s", self._telemetry.format_fill_audit(fill_audit))
@@ -610,7 +618,7 @@ class OrderExecutorMixin:
                 order_id,
             )
 
-        # Phase 4: light state guard after fill (defensive logging)
+        # Light state guard after fill (defensive logging)
         try:
             from trading_engine.core.trading_state import validate_pending_consistency
 

@@ -70,6 +70,12 @@ class Strategy(Protocol):
         reason: str,
         *,
         trail_points_used: float = 0.0,
+        entry_price: float = 0.0,
+        hold_ticks: int = 0,
+        in_grace: bool = False,
+        hard_stop_level: float = 0.0,
+        vwap_stop_level: float = 0.0,
+        trailing_peak: float = 0.0,
     ) -> SignalAudit: ...
 
     def session_force_flatten_signal(
@@ -128,6 +134,12 @@ class BaseStrategy(ABC):
         reason: str,
         *,
         trail_points_used: float = 0.0,
+        entry_price: float = 0.0,
+        hold_ticks: int = 0,
+        in_grace: bool = False,
+        hard_stop_level: float = 0.0,
+        vwap_stop_level: float = 0.0,
+        trailing_peak: float = 0.0,
     ) -> SignalAudit:
         return SignalAudit(
             intent="exit",
@@ -136,6 +148,12 @@ class BaseStrategy(ABC):
             ts=market.ts,
             reason=reason,
             trail_points_used=trail_points_used,
+            entry_price=entry_price,
+            hold_ticks=hold_ticks,
+            in_grace=in_grace,
+            hard_stop_level=hard_stop_level,
+            vwap_stop_level=vwap_stop_level,
+            trailing_peak=trailing_peak,
         )
 
     def session_force_flatten_signal(

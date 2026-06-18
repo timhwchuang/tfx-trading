@@ -64,6 +64,8 @@ def arm_pending_entry(
     host.pending_signal_price = signal_price
     host.pending_limit_price = signal_price + 3
     host.pending_ioc_slippage = 3
+    host.pending_episode_id = ""
+    host.pending_signal_id = ""
 
 
 def arm_pending_exit(
@@ -85,6 +87,8 @@ def arm_pending_exit(
     host.pending_limit_price = signal_price - 3
     host.pending_ioc_slippage = 3
     host.pending_exit_reason = exit_reason
+    host.pending_episode_id = ""
+    host.pending_signal_id = ""
 
 
 def make_broker_with_positions(*positions: dict) -> MagicMock:

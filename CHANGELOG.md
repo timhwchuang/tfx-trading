@@ -10,6 +10,13 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 ## trading-engine
 
+### [Unreleased]
+
+#### Added
+
+- **FT-001 Phase 1** `DecisionAudit` + emitter in strategy; `episode_id` generation (date-seq); enriched `SignalAudit` (entry/exit fields); `EXEC` prep (pending ids stored in kernel).
+- Audit fields are optional; old logs/parsers/determinism unaffected.
+
 ### [0.2.2] - 2026-06-17
 
 #### Added
@@ -151,6 +158,9 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Added
 
+- **FT-001 Phase 1**: `DECISION_AUDIT` + `DecisionAudit` dataclass + `format_decision_audit`; `momentum_armed` emission from `vwap-momentum` with `episode_id`; `SignalAudit`/`FillAudit` enriched with optional `episode_id`/`signal_id`/exit fields; `episode_id` propagated through pending to entry FILL.
+- `build_exit_audit` now carries `entry_price`, `hold_ticks`, `in_grace`, stop levels, `trailing_peak`.
+- Unit tests in `strategy` for armed DECISION and enriched exits (Phase 1 DoD).
 - **FT-001** `docs/features/audit-event-replay/`: audit event replay SPEC + PLAN (qualified audit contract, episode timeline examples); `docs/features/` feature board + `_template/`.
 - Grok project skill **`audit-event-replay`** (slash `/audit-event-replay`) for FT-001 implementation and audit contract review.
 - FT-001 **REVIEW.md** (senior-trader): pressure metrics, high-pressure episode §6.4, Agent consumers §8.2; FT-002/003 scoped out.

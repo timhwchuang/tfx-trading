@@ -312,6 +312,70 @@ class TestEvaluatePure(unittest.TestCase):
         )
         self.assertIsNone(sig)
 
+    def test_momentum_armed_emits_decision_audit_and_episode_id(self) -> None:
+        """Phase 1: _try_activate_momentum on qualifying vol emits DECISION_AUDIT momentum_armed + sets episode_id."""
+        obs = MagicMock()
+        strategy = VWAPMomentumStrategy(params=self.params, obs=obs)
+        mkt = _make_market(vol_1s=200, buy_vol_1s=180, sell_vol_1s=20, price=18010.0, vwap=18005.0)
+        # Directly exercise arm path (evaluate may gate); use low threshold to guarantee
+        with self.assertLogs("strategy_vwap_momentum.strategy", level=logging.INFO) as cap:
+            strategy._try_activate_momentum(mkt, (80.0, 1.0, 150.0))
+        self.assertTrue(strategy.momentum.active)
+        self.assertTrue(getattr(strategy.momentum, "episode_id", "").startswith("20"))
+        self.assertIn("-", getattr(strategy.momentum, "episode_id", ""))
+
+        dec_lines = [line for line in cap.output if "DECISION_AUDIT" in line and "momentum_armed" in line]
+        self.assertEqual(len(dec_lines), 1)
+        payload = json.loads(dec_lines[0].split("DECISION_AUDIT ", 1)[1])
+        self.assertEqual(payload["event_type"], "momentum_armed")
+        self.assertEqual(payload["episode_id"], strategy.momentum.episode_id)
+        self.assertEqual(payload["direction"], "Long")
+        self.assertGreater(payload["vol_1s"], 0)
+        self.assertIn("audit_schema_version", payload)
+
+    def test_entry_signal_audit_carries_episode_id_and_timing_fields(self) -> None:
+        """Phase 1 propagation surface: after armed, a qualifying pullback produces OrderSignal whose audit carries episode_id + elapsed/dist."""
+        obs = MagicMock()
+        strategy = VWAPMomentumStrategy(params=self.params, obs=obs)
+        arm_mkt = _make_market(vol_1s=200, buy_vol_1s=180, sell_vol_1s=20, price=18010.0, vwap=18005.0, ts=1_700_000_000)
+        strategy._try_activate_momentum(arm_mkt, (80.0, 1.0, 150.0))
+        self.assertTrue(strategy.momentum.active)
+        ep = strategy.momentum.episode_id
+
+        # qualifying pullback (near vwap + low vol)
+        pull_mkt = _make_market(
+            ts=1_700_000_080, price=18005.3, vwap=18005.0, vol_1s=5, buy_vol_1s=3, sell_vol_1s=2,
+            current_atr=9.0,
+        )
+        sig = strategy._try_pullback_entry(pull_mkt, (80.0, 1.0, 150.0))
+        self.assertIsNotNone(sig)
+        a = sig.audit  # type: ignore[union-attr]
+        self.assertEqual(a.episode_id, ep)
+        self.assertGreater(a.elapsed_since_arm_sec, 0)
+        self.assertAlmostEqual(a.dist_vwap, 0.3, places=1)
+
+    def test_exit_audit_enriched_with_entry_and_stop_fields(self) -> None:
+        """Phase 1: build_exit_audit / manage_exit populates entry_price, hold_ticks, levels, trailing_peak."""
+        # Use price above entry + fixed_tp (20 default) to reliably trigger take_profit exit
+        mkt = _make_market(price=18010.0 + 25, vwap=18020.0, current_atr=10.0, ts=1_700_000_500)
+        pos = PositionSnapshot(
+            has_position=True,
+            position_dir="Long",
+            entry_price=18010.0,
+            trailing_peak=18035.0,
+            entry_exchange_ts=1_700_000_100,
+            ticks_since_entry=300,
+            qty=1,
+        )
+        sig, _ = self.strategy.manage_exit(mkt, pos)
+        self.assertIsNotNone(sig)
+        a = sig.audit  # type: ignore[union-attr]
+        self.assertEqual(a.entry_price, 18010.0)
+        self.assertEqual(a.hold_ticks, 300)
+        self.assertGreater(a.trailing_peak, 0)
+        self.assertGreater(a.hard_stop_level, 0)  # still populated
+        self.assertIn(a.reason, ("trailing_stop", "take_profit", "stop_loss", "session_force_flatten"))
+
 
 if __name__ == "__main__":
     unittest.main()

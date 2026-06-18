@@ -8,6 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from trading_engine.core.audit.decision_audit import DecisionAudit, format_decision_audit
 from trading_engine.core.audit.signal_audit import SignalAudit, format_signal_audit
 from trading_engine.core.strategy import BaseStrategy
 from trading_engine.core.types import (
@@ -17,6 +18,7 @@ from trading_engine.core.types import (
     RiskGate,
     StrategySideEffects,
 )
+from trading_engine.calendar.taifex import TAIWAN_TZ
 
 from strategy_vwap_momentum.params import StrategyParams
 from strategy_vwap_momentum.trend import (
@@ -41,6 +43,7 @@ class MomentumState:
     active: bool = False
     direction: str = "None"
     trigger_time: int = 0
+    episode_id: str = ""
 
 
 class VWAPMomentumStrategy(BaseStrategy):
@@ -60,18 +63,65 @@ class VWAPMomentumStrategy(BaseStrategy):
         self.params = params
         self.obs = obs
         self.momentum = MomentumState()
+        self._episode_seq: int = 0
+        self._current_trade_date: str = ""
 
     def reset(self) -> None:
         self.momentum = MomentumState()
+        # Note: episode seq and trade_date are *not* reset here (persist for day-level seq across episodes)
 
     def reset_momentum(self) -> None:
         self.reset()
 
-    def activate_momentum(self, direction: str, price: float, ts: int) -> None:
+    def _make_episode_id(self, ts: int) -> str:
+        """Generate per-day episode_id like 20260617-003. Seq resets on trade date change."""
+        try:
+            dt = datetime.datetime.fromtimestamp(ts, tz=TAIWAN_TZ)
+            trade_date = dt.strftime("%Y%m%d")
+        except Exception:
+            # Fallback (tests, non-tz env): use UTC for ID generation.
+            # Behavior is equivalent during trading hours.
+            dt = datetime.datetime.fromtimestamp(ts, tz=datetime.timezone.utc)
+            trade_date = dt.strftime("%Y%m%d")
+        if trade_date != self._current_trade_date:
+            self._current_trade_date = trade_date
+            self._episode_seq = 0
+        self._episode_seq += 1
+        return f"{trade_date}-{self._episode_seq:03d}"
+
+    def _emit_momentum_armed(
+        self,
+        direction: str,
+        episode_id: str,
+        market: MarketSnapshot,
+        buy_ratio: float,
+        sell_ratio: float,
+        threshold: float,
+        multiplier: float,
+    ) -> None:
+        """Emit DECISION_AUDIT for momentum_armed. Extracted to avoid Long/Short duplication."""
+        decision = DecisionAudit(
+            event_type="momentum_armed",
+            ts=market.ts,
+            episode_id=episode_id,
+            direction=direction,
+            trigger_price=round(market.price, 1),
+            vol_1s=market.vol_1s,
+            buy_ratio=round(buy_ratio, 4),
+            sell_ratio=round(sell_ratio, 4),
+            vol_threshold=round(threshold, 1),
+            multiplier=multiplier,
+            vwap=round(market.vwap, 1),
+            atr=round(market.current_atr, 2),
+        )
+        logger.info("DECISION_AUDIT %s", format_decision_audit(decision))
+
+    def activate_momentum(self, direction: str, price: float, ts: int, episode_id: str = "") -> None:
         self.momentum = MomentumState(
             active=True,
             direction=direction,
             trigger_time=ts,
+            episode_id=episode_id,
         )
         if self.obs is not None:
             self.obs.record_momentum_trigger()
@@ -159,7 +209,7 @@ class VWAPMomentumStrategy(BaseStrategy):
                 trend_dir=trend_dir,
                 trend_strength=market.trend_strength,
             )
-            logging.getLogger(__name__).info(
+            logger.info(
                 "SIGNAL_AUDIT %s", format_signal_audit(timeout_audit)
             )
 
@@ -198,7 +248,11 @@ class VWAPMomentumStrategy(BaseStrategy):
                 threshold,
                 buy_ratio,
             )
-            self.activate_momentum("Long", market.price, market.ts)
+            episode_id = self._make_episode_id(market.ts)
+            self.activate_momentum("Long", market.price, market.ts, episode_id=episode_id)
+            self._emit_momentum_armed(
+                "Long", episode_id, market, buy_ratio, sell_ratio, threshold, multiplier
+            )
         elif market.vol_1s >= threshold and sell_ratio >= self.params.momentum_sell_ratio:
             logger.info(
                 "MOMENTUM 量能通過 | dir=Short vol_1s=%d base=%.0f mult=%.2f "
@@ -209,7 +263,11 @@ class VWAPMomentumStrategy(BaseStrategy):
                 threshold,
                 sell_ratio,
             )
-            self.activate_momentum("Short", market.price, market.ts)
+            episode_id = self._make_episode_id(market.ts)
+            self.activate_momentum("Short", market.price, market.ts, episode_id=episode_id)
+            self._emit_momentum_armed(
+                "Short", episode_id, market, buy_ratio, sell_ratio, threshold, multiplier
+            )
         # implicit None -- activation is purely side-effecting
 
     def _try_pullback_entry(
@@ -267,7 +325,7 @@ class VWAPMomentumStrategy(BaseStrategy):
                 trend_dir=trend_dir,
                 trend_strength=market.trend_strength,
             )
-            logging.getLogger(__name__).info("SIGNAL_AUDIT %s", format_signal_audit(veto_audit))
+            logger.info("SIGNAL_AUDIT %s", format_signal_audit(veto_audit))
             return None
 
         if self.obs is not None:
@@ -295,6 +353,9 @@ class VWAPMomentumStrategy(BaseStrategy):
     ) -> SignalAudit:
         buy_ratio = market.buy_vol_1s / market.vol_1s if market.vol_1s > 0 else 0.0
         sell_ratio = market.sell_vol_1s / market.vol_1s if market.vol_1s > 0 else 0.0
+        episode_id = self.momentum.episode_id if self.momentum.active else ""
+        elapsed = (market.ts - self.momentum.trigger_time) if self.momentum.active else 0
+        dist_vwap = round(abs(market.price - market.vwap), 1) if market.vwap is not None else 0.0
         return SignalAudit(
             intent="entry",
             direction=direction,
@@ -310,6 +371,9 @@ class VWAPMomentumStrategy(BaseStrategy):
             reason="pullback",
             trend_dir=market.trend_dir,
             trend_strength=market.trend_strength,
+            episode_id=episode_id,
+            elapsed_since_arm_sec=elapsed,
+            dist_vwap=dist_vwap,
         )
 
     def build_exit_audit(
@@ -319,6 +383,12 @@ class VWAPMomentumStrategy(BaseStrategy):
         reason: str,
         *,
         trail_points_used: float = 0.0,
+        entry_price: float = 0.0,
+        hold_ticks: int = 0,
+        in_grace: bool = False,
+        hard_stop_level: float = 0.0,
+        vwap_stop_level: float = 0.0,
+        trailing_peak: float = 0.0,
     ) -> SignalAudit:
         return SignalAudit(
             intent="exit",
@@ -329,6 +399,12 @@ class VWAPMomentumStrategy(BaseStrategy):
             vwap=round(market.vwap, 1),
             reason=reason,
             trail_points_used=round(trail_points_used, 2),
+            entry_price=round(entry_price, 1),
+            hold_ticks=hold_ticks,
+            in_grace=in_grace,
+            hard_stop_level=round(hard_stop_level, 1),
+            vwap_stop_level=round(vwap_stop_level, 1),
+            trailing_peak=round(trailing_peak, 1),
         )
 
     def _effective_trail_points(self, atr: float) -> float:
@@ -400,7 +476,16 @@ class VWAPMomentumStrategy(BaseStrategy):
                         "exit",
                         exchange_ts=market.ts,
                         audit=self.build_exit_audit(
-                            market, "Sell", reason, trail_points_used=trail_pts
+                            market,
+                            "Sell",
+                            reason,
+                            trail_points_used=trail_pts,
+                            entry_price=position.entry_price,
+                            hold_ticks=position.ticks_since_entry,
+                            in_grace=self._in_exit_grace_period(market.ts, position),
+                            hard_stop_level=position.entry_price - self.params.hard_stop_points,
+                            vwap_stop_level=market.vwap - self._effective_vwap_stop_distance(market.current_atr),
+                            trailing_peak=position.trailing_peak,
                         ),
                     ),
                     StrategySideEffects(),
@@ -419,7 +504,16 @@ class VWAPMomentumStrategy(BaseStrategy):
                         "exit",
                         exchange_ts=market.ts,
                         audit=self.build_exit_audit(
-                            market, "Buy", reason, trail_points_used=trail_pts
+                            market,
+                            "Buy",
+                            reason,
+                            trail_points_used=trail_pts,
+                            entry_price=position.entry_price,
+                            hold_ticks=position.ticks_since_entry,
+                            in_grace=self._in_exit_grace_period(market.ts, position),
+                            hard_stop_level=position.entry_price + self.params.hard_stop_points,
+                            vwap_stop_level=market.vwap + self._effective_vwap_stop_distance(market.current_atr),
+                            trailing_peak=position.trailing_peak,
                         ),
                     ),
                     StrategySideEffects(),
@@ -447,7 +541,14 @@ class VWAPMomentumStrategy(BaseStrategy):
                 "exit",
                 exchange_ts=market.ts,
                 slippage_points=self.params.flatten_slippage_points,
-                audit=self.build_exit_audit(market, action, "session_force_flatten"),
+                audit=self.build_exit_audit(
+                    market,
+                    action,
+                    "session_force_flatten",
+                    entry_price=position.entry_price if position.has_position else 0.0,
+                    hold_ticks=position.ticks_since_entry if position.has_position else 0,
+                    trailing_peak=position.trailing_peak if position.has_position else 0.0,
+                ),
             ),
             StrategySideEffects(),
         )

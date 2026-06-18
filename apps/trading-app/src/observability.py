@@ -30,6 +30,9 @@ class FillAudit:
     pnl_points: float = 0.0
     exit_reason: str = ""
     ioc_slippage_allowed: int = 0
+    # FT-001 optional
+    episode_id: str = ""
+    signal_id: str = ""
 
 
 def format_fill_audit(audit: FillAudit) -> str:
@@ -232,6 +235,8 @@ class DailyObservability:
         exit_reason: str = "",
         pnl_points: float = 0.0,
         hold_sec: int = 0,
+        episode_id: str = "",
+        signal_id: str = "",
     ) -> FillAudit:
         slippage_pts = compute_adverse_slippage(
             signal_price, fill_price, is_buy=is_buy
@@ -253,6 +258,8 @@ class DailyObservability:
             pnl_points=round(pnl_points, 2),
             exit_reason=exit_reason,
             ioc_slippage_allowed=ioc_slippage_allowed,
+            episode_id=episode_id,
+            signal_id=signal_id,
         )
         self.fills.append(asdict(audit))
         if intent == "entry":

@@ -98,6 +98,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.pending_limit_price = 0.0
         self.pending_exit_reason = ""
         self.pending_ioc_slippage = self._cfg.ioc_slippage_points
+        self.pending_episode_id: str = ""
+        self.pending_signal_id: str = ""
         self.filled_qty = 0  # P2-1: 累計部分成交；IOC 結束前不全解鎖；多口管理前置（Mock+單測）
         self._resynced_position = False  # sync_positions 後待首 tick 校準 trailing_peak
         self._api_connected = True
@@ -208,11 +210,31 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         reason: str,
         *,
         trail_points_used: float = 0.0,
+        entry_price: float = 0.0,
+        hold_ticks: int = 0,
+        in_grace: bool = False,
+        hard_stop_level: float = 0.0,
+        vwap_stop_level: float = 0.0,
+        trailing_peak: float = 0.0,
     ) -> SignalAudit:
+        """Delegate to strategy. Extended signature for FT-001 exit audit enrichment.
+
+        Note: Most call sites go directly through the strategy plugin's build_exit_audit.
+        This wrapper exists for API symmetry and future kernel use.
+        """
         dt = self._last_tick_exchange_dt or datetime.datetime.fromtimestamp(ts)
         market = self.indicators.snapshot(ts, price, dt)
         return self.strategy.build_exit_audit(
-            market, direction, reason, trail_points_used=trail_points_used
+            market,
+            direction,
+            reason,
+            trail_points_used=trail_points_used,
+            entry_price=entry_price,
+            hold_ticks=hold_ticks,
+            in_grace=in_grace,
+            hard_stop_level=hard_stop_level,
+            vwap_stop_level=vwap_stop_level,
+            trailing_peak=trailing_peak,
         )
 
     def _position_snapshot(self) -> PositionSnapshot:
@@ -711,6 +733,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.pending_limit_price = 0.0
         self.pending_exit_reason = ""
         self.pending_ioc_slippage = self._cfg.ioc_slippage_points
+        self.pending_episode_id = ""
+        self.pending_signal_id = ""
         self.filled_qty = 0
         self._pending_action = None
         self._exit_order_retry_count = 0
