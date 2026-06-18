@@ -29,7 +29,7 @@
   - Lock 內絕對禁止網路 I/O（P2-2 核心守則）。
   - Callback 熱路徑必須非阻塞（P0-7 異步日誌 + P0-11 tick 落盤）。
 
-**當前階段（2026-06-17）**：已遷移至 **`timhwchuang/tfx-trading`** monorepo；Phase 7 + P0/P4-13 已落地；**待永豐模擬 API 金鑰**後開 UAT。見 [`TODO.md`](TODO.md) + [`WeeklyStatus.md`](WeeklyStatus.md)（最新一節）；架構見根 [`SPEC.md`](../SPEC.md) §7。
+**當前階段（2026-06-18）**：已遷移至 **`timhwchuang/tfx-trading`** monorepo；Phase 7 + P0/P4-13 已落地；**模擬 API 金鑰就緒**，執行 [`uat/APP.md`](uat/APP.md) Phase 0→1。見 [`TODO.md`](TODO.md) + [`WeeklyStatus.md`](WeeklyStatus.md)（最新一節）；證據 [`uat_evidence/`](../uat_evidence/)。
 
 ---
 

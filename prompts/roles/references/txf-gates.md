@@ -13,16 +13,11 @@
 
 **UAT Ready ≠ Live Ready ≠ Pilot Ready** — 三層不可混用。
 
-## Pilot Phase 5 硬門檻（摘要）
+## Pilot Phase 5 硬門檻（摘要 → SSOT）
 
-- 樣本：≥20 交易日 + 80 round-trip；最近 10 日 ≥35 筆
-- Expectancy (net) 最近窗 > +0.35 點/筆
-- Sharpe > 0.60
-- Max DD 使用率 < 70% of `max_acceptable_mdd_points`
-- 最近 10 日 Expectancy > +0.30、無連續 3 日大虧
-- 過去 10 日 **零 Critical**
-- 參數凍結 ≥10 交易日（git 證明）
-- determinism hash 可重現
+**完整門檻與審核表**：[`docs/uat/APP.md`](../../../docs/uat/APP.md) **Phase 5**（樣本定義、摩擦對帳、tick 分層、壓力情境審閱、可重現性）。
+
+交易視角速記：20 交易日 + 80 round-trip；net/gross Expectancy + Sharpe + MDD；零 Critical（10 日）；凍結 10 日；人類簽核。
 
 ## 系統能力限制（評估策略時必提）
 

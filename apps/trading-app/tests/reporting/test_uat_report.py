@@ -8,6 +8,7 @@ import unittest
 from reporting.uat_report import (
     build_tuning_hints,
     compute_metrics,
+    format_kpi_trend_from_json_reports,
     format_report,
     format_trend_report,
     parse_daily_summary_line,
@@ -126,6 +127,29 @@ class TestUatReport(unittest.TestCase):
         self.assertTrue(
             any("累積 MDD" in h for h in metrics["tuning_hints"])
         )
+
+    def test_kpi_trend_from_json_reports(self):
+        reports = [
+            (
+                "2026-06-10",
+                {
+                    "performance": {
+                        "expectancy": {
+                            "expectancy_per_trade_gross": 0.5,
+                            "expectancy_per_trade_net": 0.3,
+                        },
+                        "risk_adjusted": {"sharpe": 0.8},
+                    },
+                    "cumulative_risk": {"budget_used_pct": 12.5},
+                    "daily_summaries": [
+                        {"date": "2026-06-10", "pnl": {"daily_pnl_points": 4.0}}
+                    ],
+                },
+            )
+        ]
+        trend = format_kpi_trend_from_json_reports(reports)
+        self.assertIn("exp_gross=0.5", trend)
+        self.assertIn("Sharpe=0.8", trend)
 
     def test_format_report_contains_slippage_and_hints(self):
         lines = [

@@ -14,7 +14,7 @@
   - `SJ_API_KEY` / `SJ_SEC_KEY`
   - `LOG_FILE=C:\logs\trading-app-uat.log`
   - `CONFIG_PATH=C:\tfx-trading\apps\trading-app\config\config.yaml`（選配，預設會找 app 內 config）
-  - `TICK_ARCHIVE=1`（UAT 累積 tick → `C:\tfx-trading\tick_cache\`）
+  - `TICK_ARCHIVE=1`（UAT 累積 tick → monorepo 根 `C:\tfx-trading\tick_cache\`，見 `cache_paths.py`）
   - `KBARS_ARCHIVE=1`
   - 選配：`TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` 或 `ALERT_WEBHOOK_URL`
 - [ ] `C:\logs\` 目錄存在且執行帳號可寫入
@@ -32,6 +32,8 @@
 | `ALERT_WEBHOOK_URL` | 通用 JSON webhook（body: `{text, level}`） |
 
 驗收：設定 Telegram 後，以 `tests/test_alerts.py` 或（在 `apps\trading-app` 目錄）`python -c "from alerts import send_alert; send_alert('test')"` 確認收到訊息。
+
+**Phase 6 證據**（[`uat/APP.md`](../uat/APP.md)）：CRITICAL 實機觸發後，將訊息截圖 + UTC+8 時間戳 + log 片段存入 `uat_evidence/`。
 
 ## P4-4 進程守護
 

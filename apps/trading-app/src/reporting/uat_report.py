@@ -767,6 +767,50 @@ def format_trend_report(summaries: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def _report_date_from_json(data: dict, path: Path) -> str:
+    summaries = data.get("daily_summaries") or []
+    if summaries and summaries[0].get("date"):
+        return str(summaries[0]["date"])
+    stem = path.stem
+    if stem.startswith("day") and len(stem) >= 11:
+        return f"{stem[3:7]}-{stem[7:9]}-{stem[9:11]}"
+    return stem
+
+
+def load_metrics_from_json_paths(paths: list[Path]) -> list[tuple[str, dict]]:
+    loaded: list[tuple[str, dict]] = []
+    for path in paths:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        loaded.append((_report_date_from_json(data, path), data))
+    loaded.sort(key=lambda item: item[0])
+    return loaded
+
+
+def format_kpi_trend_from_json_reports(reports: list[tuple[str, dict]]) -> str:
+    if not reports:
+        return "無 JSON 報告可分析"
+
+    lines = ["=== Multi-day KPI Trend (saved reports) ==="]
+    for date, data in reports:
+        perf = data.get("performance") or {}
+        exp = perf.get("expectancy") or {}
+        risk = perf.get("risk_adjusted") or {}
+        cum = data.get("cumulative_risk") or {}
+        pnl_pts = None
+        summaries = data.get("daily_summaries") or []
+        if summaries:
+            pnl_pts = (summaries[-1].get("pnl") or {}).get("daily_pnl_points")
+        mdd_used = cum.get("budget_used_pct")
+        mdd_text = f"{mdd_used:.1f}%" if mdd_used is not None else "N/A"
+        lines.append(
+            f"{date} | exp_gross={exp.get('expectancy_per_trade_gross')} "
+            f"exp_net={exp.get('expectancy_per_trade_net')} | "
+            f"Sharpe={risk.get('sharpe')} | MDD_budget={mdd_text} | "
+            f"daily_pnl_points={pnl_pts}"
+        )
+    return "\n".join(lines)
+
+
 def read_log_lines(paths: list[Path]) -> list[str]:
     lines: list[str] = []
     for path in paths:
@@ -798,7 +842,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--trend",
         action="store_true",
-        help="Show multi-day trend from DAILY_SUMMARY lines only",
+        help="Multi-day trend: log files use DAILY_SUMMARY lines; .json reports use saved KPI fields",
     )
     parser.add_argument(
         "--summaries-only",
@@ -809,15 +853,21 @@ def main(argv: list[str] | None = None) -> int:
 
     for path in args.log_files:
         if not path.is_file():
-            print(f"找不到 log 檔: {path}", file=sys.stderr)
+            print(f"找不到檔案: {path}", file=sys.stderr)
             return 1
+
+    if args.trend or args.summaries_only:
+        if all(p.suffix.lower() == ".json" for p in args.log_files):
+            reports = load_metrics_from_json_paths(args.log_files)
+            print(format_kpi_trend_from_json_reports(reports))
+            return 0
+        lines = read_log_lines(args.log_files)
+        summaries = parse_daily_summaries(lines)
+        print(format_trend_report(summaries))
+        return 0
 
     lines = read_log_lines(args.log_files)
     summaries = parse_daily_summaries(lines)
-
-    if args.trend or args.summaries_only:
-        print(format_trend_report(summaries))
-        return 0
 
     metrics = compute_metrics(lines, quick_sl_sec=args.quick_sl_sec)
 

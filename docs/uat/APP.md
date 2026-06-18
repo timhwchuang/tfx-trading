@@ -33,7 +33,7 @@
    │   ├── config_YYYYMMDD.yaml
    │   └── determinism_YYYYMMDD.txt
    ├── tick_cache\               # 原始 tick（已壓縮）
-   └── uat_evidence\             # 本 checklist 簽名截圖、log 片段
+   └── uat_evidence\             # 簽名截圖、log 片段（範本見 repo uat_evidence/templates/）
    ```
 
 2. **每個 Phase 結束強制步驟**（記錄在下方）：
@@ -63,7 +63,7 @@
 | 0.1 | monorepo 根 + 正確分支 | ☐ | `cd C:\tfx-trading && git status && git branch` | |
 | 0.2 | 執行 setup | ☐ | `bash scripts/setup-dev.sh` | 看到 "editable" 成功 |
 | 0.3 | 跑完整測試 | ☐ | `cd apps\trading-app && python run_tests.py` | 全部 Pass |
-| 0.4 | 建立強制目錄結構 | ☐ | `mkdir -p reports snapshots uat_evidence` | |
+| 0.4 | 確認證據目錄 | ☐ | clone 已含 `reports/`、`snapshots/`、`uat_evidence/`（含 `templates/`、`phase*/`）；缺目錄再 `mkdir` | |
 | 0.5 | 設定模擬環境變數（永不 commit） | ☐ | `SJ_API_KEY` / `SJ_SEC_KEY` / `LOG_FILE=C:\logs\trading-app-uat.log` / `TICK_ARCHIVE=1` / `KBARS_ARCHIVE=1` | |
 | 0.6 | 確認 simulation + 建立 log 目錄 | ☐ | `config/config.yaml` 是 true；`mkdir C:\logs` | |
 | 0.7 | 第一次啟動驗證 | ☐ | `cd apps\trading-app\src && python -m live`（跑 10 分鐘 Ctrl+C） | 看到策略啟動 + ATR 更新 |
@@ -91,18 +91,19 @@
    - 確認 `tick_cache\TXFR1_YYYY-MM-DD.csv` 大小持續增加
    - 觀察至少一筆 SIGNAL_AUDIT（用 `grep "SIGNAL_AUDIT" logs\...` 或報告）
 
-3. **收盤後必做（15:00 後）**：
+3. **收盤後必做（15:00 後）** — 建議從 **monorepo 根**執行：
    ```powershell
-   cd C:\tfx-trading\apps\trading-app\src
+   cd C:\tfx-trading
+   $env:PYTHONPATH="apps\trading-app\src"
    python -m storage.compress
-   python -m reporting C:\logs\trading-app-uat.log --json > ..\..\reports\day$(Get-Date -Format yyyyMMdd).json
+   python -m reporting $env:LOG_FILE --json > reports\day$(Get-Date -Format yyyyMMdd).json
    ```
 
 4. **強制 Evidence Collection（Phase 1 結束）**：
    - `git add reports/ snapshots/ uat_evidence/`
    - `git commit -m "UAT Phase 1 Day1 complete - $(Get-Date -Format yyyyMMdd)"`
-   - `python -m sweep.determinism_check --date $(Get-Date -Format yyyyMMdd) --mode hash --output ..\..\snapshots\determinism_$(Get-Date -Format yyyyMMdd).txt`
-   - `cp ..\..\apps\trading-app\config\config.yaml ..\..\snapshots\config_$(Get-Date -Format yyyyMMdd).yaml`
+   - `python -m sweep.determinism_check --date $(Get-Date -Format yyyyMMdd) --mode hash --output snapshots\determinism_$(Get-Date -Format yyyyMMdd).txt`
+   - `cp apps\trading-app\config\config.yaml snapshots\config_$(Get-Date -Format yyyyMMdd).yaml`
    - 在上方進度表簽名 + 填證據路徑
 
 **注意**：determinism_check 現在支援 CLI。
@@ -114,8 +115,8 @@ python -m sweep.determinism_check --date 2026-06-17 --mode hash --output snapsho
 或直接 `python -m ...` 如果 PYTHONPATH 已正確。
 
 **Day 1 完成 Check**（全部 ☐）：
-- [ ] 完整 log + tick_cache >1MB + 壓縮 .gz
-- [ ] reports\day*.json 存在且含 DAILY_SUMMARY + 三指標
+- [ ] 完整 log + `tick_cache\TXFR1_*.csv`（monorepo 根）>1MB + 壓縮 `.gz`
+- [ ] `reports\day*.json` 存在且含 KPI 欄位：`performance.expectancy.expectancy_per_trade_gross`、`performance.expectancy.expectancy_per_trade_net`、`performance.risk_adjusted.sharpe`、`cumulative_risk.budget_used_pct`
 - [ ] 至少一筆 SIGNAL_AUDIT + FILL_AUDIT
 - [ ] git commit + determinism hash + config snapshot 完成
 - [ ] 無明顯錯誤
@@ -140,30 +141,47 @@ python -m sweep.determinism_check --date 2026-06-17 --mode hash --output snapsho
 - [ ] 至少 3 日有實際進場意圖（SIGNAL_AUDIT）
 - [ ] 無雙 entry / pending 問題
 - [ ] 每日都有 git commit + snapshot
-- [ ] 開始在 WeeklyStatus.md 記錄每日三指標趨勢
 
 **Kernel 對應**：完成 kernel Phase B3-B4 並簽名： ________________
 
+> 三指標週報自 **Phase 3（第 6 交易日）** 起；Phase 2 只需每日 evidence，不必填 KPI 週報。
+
 ---
 
-## Phase 3 — 指標計算與日常觀測（引入三指標）
+## Phase 3 — 指標計算與日常觀測（引入三指標 + 摩擦對帳）
 
-**從第 6 日開始** 強制追蹤。
+**從第 6 日開始** 強制追蹤。**參數凍結期從本 Phase 起算**（須有 git 證明）。
 
-**每日/每週固定**：
+**每日/每週固定**（monorepo 根；PowerShell 會展開 `day*.json`）：
 ```powershell
+cd C:\tfx-trading
+$env:PYTHONPATH="apps\trading-app\src"
+# 週 KPI 趨勢（gross/net、Sharpe、MDD 使用率）— 輸入須為 --json 產出的報告檔
 python -m reporting reports\day*.json --trend
+# 或從累積 log 看 DAILY_SUMMARY 趨勢（conversion / 日 pnl）
+python -m reporting $env:LOG_FILE --trend
 ```
 
-**強制追蹤項目**（記錄在 WeeklyStatus）：
-- Expectancy (net)
-- Sharpe (依 config sharpe_period)
-- Max DD 使用率 (% of max_acceptable_mdd_points)
+**強制追蹤項目**（記錄在 [`WeeklyStatus.md`](../WeeklyStatus.md)）：
+
+| 類別 | 欄位 | 說明 |
+|------|------|------|
+| 績效 | Expectancy **(gross)** | 未扣摩擦；與 net 並列，避免只看 net 掩蓋執行品質 |
+| 績效 | Expectancy **(net)** | 含 config `round_trip_friction_points`（若已開啟） |
+| 績效 | Sharpe | 依 config `sharpe_period` |
+| 風控 | Max DD 使用率 | % of `max_acceptable_mdd_points` |
+| 對帳 | **券商日損益 vs log 日損益** | 券商帳務（點）對照 JSON `daily_summaries[-1].pnl.daily_pnl_points`；差異 > 0.5 點須在週報註記 |
+| 事件 | near-miss 摘要 | timeout / veto / 差價未成交等；每週至少一筆或標「本週無」 |
+
+**摩擦成本 SOP**（Phase 3 起，非等到 Phase 7）：
+1. 每日收盤：從券商模擬帳務抄寫當日實際損益（或匯出截圖路徑）。
+2. 對照當日 `reports\dayYYYYMMDD.json` 的 `daily_summaries[-1].pnl.daily_pnl_points` 與 `completed_rounds`。
+3. 累積「真實摩擦 vs config 假設」差異趨勢；Phase 5 審核前須能說明 gap 是否合理。
 
 **Phase 3 目標**：
-- 累積至少 10 交易日
-- 開始看到三指標趨勢
-- 建立摩擦成本意識
+- 累積至少 10 個**交易所交易日**（見 Phase 5 樣本定義；0 成交日可計入但須標記）
+- 同時觀察 gross / net 期望值分叉（執行與摩擦是否吃掉 edge）
+- 建立券商對帳習慣，避免 Pilot 才發現 log 與帳務不一致
 
 **強制 Evidence**：每 3 日一次完整 git + determinism + config snapshot。
 
@@ -171,63 +189,101 @@ python -m reporting reports\day*.json --trend
 
 ## Phase 4 — 壓力測試與操作成熟度
 
-**必須執行並有證據的測試**：
+**必須執行並有證據的測試**（不可僅打勾；須附 log 片段或截圖至 `uat_evidence/`）：
 
 | 測試 | 執行方式 | 通過標準 | 證據 |
 |------|----------|----------|------|
-| 斷網暖機期 | 盤中斷網 30-60s | 無新 entry | log + 報告 |
-| 斷網有倉 | 同上 | 正確對帳 | |
-| No-tick 看門狗 | 長時間無 tick | 正確重訂閱 | |
-| 完整對帳 | 收盤比對 | daily_pnl 合理 | |
-| tick_type 品質 | 看 type0_pct | <40% 或有解釋 | |
+| 斷網暖機期（P4-13） | 盤中斷網 30–60s | 暖機期無新 entry | log + 時間戳 |
+| 斷網有倉 | 持倉時斷網 | CRITICAL + 重連後 `sync_positions` 對帳正確 | log + 券商倉位截圖 |
+| No-tick 看門狗 | 長時間無 tick | 正確重訂閱 | log |
+| 完整對帳 | 收盤比對 | `daily_summaries[-1].pnl.daily_pnl_points` 與券商一致或可解釋 | `uat_evidence/phase3_weekly/broker_reconciliation.csv` |
+| tick_type 品質 | 看 `type0_pct` | <40% 或有書面解釋 | 日報 JSON |
+
+**Tick 品質 × 訊號品質觀測**（Phase 4 起累積，Phase 5 審核必附）：
+
+依當日 `type0_pct` 分層（建議閾值：低 <30%、中 30–40%、高 >40%），每層追蹤：
+- 動量→進場 **conversion rate**（`SIGNAL_AUDIT` 中有意圖 vs 實際 `FILL_AUDIT`）
+- 該層 **Expectancy (net)** 與 round-trip 筆數
+
+若高 `type0_pct` 日 conversion 明顯偏低或 expectancy 為負，須在 Phase 5 書面說明是否為 tick 品質問題、策略問題，或單日噪音。**不可**在未分層的情況下只用全樣本 KPI 通過 gate。
+
+**分層填表 SOP**（手動，至 tooling 完成前）：
+1. 從當日 `reports\day*.json` 讀 `tick_type.type0_pct`（或 log 的 `tick_type 分布` 行）。
+2. 記錄當日 `momentum_to_entry_conversion` 與 `completed_rounds`（JSON 頂層欄位）。
+3. 記錄當日 `performance.expectancy.expectancy_per_trade_net`（樣本不足可標 N/A）。
+4. 填入 `uat_evidence/phase4_stress/tick_quality_stratification.csv`（自 `templates/` 複製累積，勿改壞範本）。
 
 **Phase 4 強制**：
-- 完成所有測試 + 記錄在 uat_evidence/
+- 完成所有測試 + 記錄在 `uat_evidence/`（含斷網演練實際執行日期）
 - git commit + determinism
+- 至少累積 3 個「壓力情境」完整 audit timeline（含 1 個 near-miss），供 Phase 5 人類審閱
 
-**Kernel 對應**：完成 kernel 對應安全測試並簽名。
+**Kernel 對應**：完成 kernel Phase B3–B6 安全測試並簽名；B3–B6 應作為 **regression** 在後續 Phase 有變更時重跑（見 [`KERNEL.md`](KERNEL.md)）。
 
 ---
 
 ## Phase 5 — Pilot Readiness Gate（硬門檻審核）
 
-**只有全部通過 + 人類簽名，才考慮 simulation: false + 正式 CA。**
+**UAT Ready ≠ Pilot Ready** — 只有本 Phase **全部通過 + 人類負責人簽名**，才考慮 `simulation: false` + 正式 CA。
 
-**調整後的務實硬門檻**（台指期日內選擇性策略）：
+### 樣本定義（交易員視角，避免口徑模糊）
 
-- **樣本**：至少 20 個交易日 + 80 筆 round-trip（整體）；最近 10 日至少 35 筆
-- **Expectancy (net)**：最近窗 > +0.35 點/筆（同時看 gross）
-- **Sharpe**：> 0.60（明確使用 config 裡的 sharpe_period）
-- **Max DD 使用率**：整個 UAT 最高 < 70% of max_acceptable_mdd_points
-- **最近窗健康**：最近 10 日 Expectancy > +0.30 且無連續 3 日大虧損
-- **零 Critical**：過去 10 個交易日完全沒有
-- **凍結**：參數完全凍結至少 10 個交易日（有 git 證明）
-- **可重現**：能用 frozen config + tick_cache 在 backtest 重現相同 audits。
-  範例命令（從 monorepo 根）：
-  ```powershell
-  python -m sweep.determinism_check --date 2026-06-10 --mode hash
-  # 或比對：用 backtest engine 跑並比對 audit hash
-  ```
-  附上 determinism hash 在審核表。
+| 術語 | 定義 |
+|------|------|
+| **交易日** | 台指期有正常日盤交易時段的**交易所日**（含節假日休市除外）；以 `reports\day*.json` 與 `tick_cache` 日期對齊 |
+| **0 成交日** | **可計入** 20 交易日總數，但須在審核表單獨列出筆數與原因（無訊號 / 風控擋 / 連線問題等） |
+| **round-trip** | 一組進場 + 平倉（含 session flatten）；以 `FILL_AUDIT` 配對計數 |
+| **有效交易密度** | 每 **5 個交易日**至少 **8 筆** round-trip；若策略設計為低頻（例如日均 <2 筆），須在審核前提交**書面密度預期**並相應延長累積期，不得用 0 成交日「灌水」通過 20 日門檻 |
+| **Regime 覆蓋** | 20 日可能落在單一波動環境；審核時須註記是否含高波動日、重大事件日；**不另設硬門檻**，但須誠實揭露樣本侷限 |
+
+**量化硬門檻**（台指期日內選擇性策略）：
+
+- **樣本**：≥20 交易日 + **80** round-trip（整體）；**最近 10 日 ≥35** 筆
+- **Expectancy (net)**：最近窗 > +0.35 點/筆（**必須同時附 gross**；gross 為負而 net 為正 → 須解釋摩擦假設）
+- **Sharpe**：> 0.60（使用 config `sharpe_period`）
+- **Max DD 使用率**：整個 UAT 最高 < 70% of `max_acceptable_mdd_points`
+- **最近窗健康**：最近 10 日 Expectancy (net) > +0.30 且無連續 3 日大虧損
+- **零 Critical**：過去 10 交易日完全沒有
+- **凍結**：參數完全凍結 ≥10 交易日（git 證明，自 Phase 3 起算）
+- **摩擦對帳**：Phase 3 起累積的「券商日損益 vs log」差異已審閱，無未解釋系統性偏差
+- **Tick 分層**：Phase 4 的 `type0_pct` 分層觀測已附（見 Phase 4 小節）
+
+### 可重現性與 Fidelity gap（不可只看 hash）
+
+須用 **frozen config + 真實 UAT `tick_cache`** 在 backtest 重現相同 audits；hash 一致是必要條件，**非充分條件**。
+
+已知落差（審核時須主動提及）：
+- Backtest 撮合為啟發式 slippage（[`packages/trading-backtest/SPEC.md`](../../packages/trading-backtest/SPEC.md) §9），非 order book
+- Live 的 queue position、partial fill、網路延遲可能與回測不同
+
+範例命令（從 monorepo 根）：
+```powershell
+python -m sweep.determinism_check --date 2026-06-10 --mode hash
+# 建議：抽 3 個交易日用 backtest engine 重跑並比對 SIGNAL/FILL audit 序列
+```
 
 **Phase 5 強制 Evidence Collection**：
 - 完整 git tag 或 commit
-- 最新 determinism hash
-- 書面 Pilot 風險預案 + escalation matrix（誰決定什麼時候 flatten）
-- 所有 near-miss + 前 5 大虧損的人類審閱紀錄
+- 最新 determinism hash + 至少 3 日 audit 序列比對紀錄
+- 書面 Pilot 風險預案 + escalation matrix（誰決定何時 flatten）
+- 前 **5 大虧損日**整理（日期、筆數、MDD 貢獻、是否 near-miss 相關）— 供人類親閱
+- Phase 3 起累積的摩擦對帳摘要
 
 **審核表**（全部 ☐ + 負責人簽名）：
 
-- [ ] 樣本量達到
-- [ ] 三指標達到門檻 + 最近窗健康（附 JSON）
-- [ ] 所有壓力測試通過 + 證據
+- [ ] 樣本量達標（含 0 成交日清單 + 有效密度說明）
+- [ ] gross + net 三指標達門檻 + 最近窗健康（附 JSON）
+- [ ] Tick 品質分層觀測已附且可解釋
+- [ ] 所有 Phase 4 壓力測試通過 + `uat_evidence/` 證據
+- [ ] **人類已親自 review ≥3 個壓力情境**（含 **≥1 個 near-miss**）的完整 audit timeline + 券商對帳
 - [ ] 零 Critical（過去 10 日）
 - [ ] 凍結期 + git 證明
-- [ ] 可重現性驗證通過 + determinism hash
-- [ ] 書面風險預案簽名
-- [ ] 人類負責人親自審閱最差情境
+- [ ] 可重現性驗證通過（hash + 真實 tick audit 比對）
+- [ ] 摩擦對帳無未解釋系統性偏差
+- [ ] 書面風險預案 + escalation matrix 簽名
+- [ ] 人類負責人親自審閱最差情境 + 前 5 大虧損日
 
-**審核結果**： ☐ 通過（可準備上 CA）　☐ 未通過 → 繼續 Phase 2-4 至少 X 日
+**審核結果**： ☐ 通過（可準備 Phase 6）　☐ 未通過 → 繼續 Phase 2–4 至少 X 日（填寫：____）
 
 ---
 
@@ -236,16 +292,26 @@ python -m reporting reports\day*.json --trend
 - 申請正式 CA + 設定環境變數
 - 把 config 改 `simulation: false`（**只有通過 Phase 5 才改**）
 - **驗證步驟**（必須做 + 記錄證據）：
-  1. 先用 simulation=false 但小規模測試登入 + sync_positions
-  2. **Alerts 驗證**（具體）：
-     - 確保 Telegram / webhook 已設定（見 [`docs/ops/WindowsOps.md`](../ops/WindowsOps.md)）
-     - 手動觸發一筆 CRITICAL（例如用測試 script 模擬 pending timeout 或 no-tick）
-     - 確認 log 出現 CRITICAL + 實際訊息在 Telegram 收到（記錄時間戳）
-  3. 跑一次 force_flatten 測試（確認 kernel 行為）
-  4. 確認 daily_pnl 計算與券商對帳一致（即使 0 成交）
-- 記錄所有步驟 + git commit + 截圖到 uat_evidence/
+  1. 先用 `simulation: false` 但小規模測試登入 + `sync_positions`
+  2. **Alerts 實機驗證**（Ops 責任，對照 [`docs/ops/WindowsOps.md`](../ops/WindowsOps.md) §P4-3）：
+     - Telegram / webhook 已設定且 `tests/test_alerts.py` 或手動 `send_alert` 曾成功
+     - 盤中或測試環境手動觸發一筆 **CRITICAL**（pending timeout / no-tick 模擬皆可）
+     - 確認 log 出現 `ALERT [CRITICAL]` + 終端實際收到訊息
+     - **`uat_evidence/` 必附**：訊息截圖 + **UTC+8 時間戳** + 對應 log 行號
+  3. **斷線演練複驗**（P4-13）：若 Phase 4 後有 engine/app 變更，須重做一次斷網暖機或有倉情境
+  4. 跑一次 `session_force_flatten` / force_flatten 測試（確認 kernel 行為）
+  5. 確認 `daily_summaries[-1].pnl.daily_pnl_points` 與券商對帳一致（即使 0 成交）
+- 記錄所有步驟 + git commit + 截圖至 `uat_evidence/`
 
-**Kernel 對應**：完成 kernel 最終安全 gate。
+**Kernel 對應**：完成 kernel Phase D 前置 + Phase E sign-off 草稿（見 [`KERNEL.md`](KERNEL.md)）。
+
+### 角色協作備註（Phase 4–7 有效）
+
+| 角色 | 必做 | 文件錨點 |
+|------|------|----------|
+| **Ops** | Phase 6 告警實機驗證、Windows 排程、斷線演練證據歸檔 | [`WindowsOps.md`](../ops/WindowsOps.md) |
+| **永豐 API / Kernel** | B3–B6 regression；重連後 `sync_positions` + 首 tick 暖機對帳 | [`KERNEL.md`](KERNEL.md)、[`LIVE_SAFETY.md`](../ops/LIVE_SAFETY.md) |
+| **Daily Reviewer** | 每週三指標 + gross/net + 摩擦差異 + near-miss；Phase 5 前整理前 5 大虧損日 | [`WeeklyStatus.md`](../WeeklyStatus.md) |
 
 ---
 
@@ -258,7 +324,7 @@ python -m reporting reports\day*.json --trend
    - 單日虧損接近 daily limit
    - MDD 累積 > 40% budget
    - 出現任何 Critical
-5. 每週在 WeeklyStatus 更新「真實摩擦成本 vs 預估」
+5. 每週在 WeeklyStatus 更新「真實摩擦成本 vs 預估」（Phase 3 已開始的對帳在此延續並加強）
 6. 只有累積足夠實盤正期望值 + 穩定後，才討論放大口數
 
 **Rollback 預案（可執行清單）**：
@@ -282,10 +348,9 @@ python -m reporting reports\day*.json --trend
 
 ## 執行環境統一（Phase 0 強制執行一次）
 
-- 強烈建議從 **monorepo 根** (`C:\tfx-trading`) 執行。
-- `tick_cache` / `reports` / `snapshots` 位置由 `apps/trading-app/src/storage/cache_paths.py` 控制（預設相對 app）。
-- 範例：先 `cd C:\tfx-trading` ，再用 `python -m` 或 `PYTHONPATH=apps/trading-app/src python -m ...`
-- Phase 0 時建立標準目錄（見強制規範）。
+- 強烈建議從 **monorepo 根** (`C:\tfx-trading`) 執行；`$env:PYTHONPATH="apps\trading-app\src"`。
+- 路徑 SSOT：`apps/trading-app/src/storage/cache_paths.py` 定義 `tick_cache/`、`kbar_cache/`、`reports/`、`snapshots/`、`uat_evidence/`（皆在 monorepo 根）。
+- Phase 0 確認目錄存在（clone 已含骨架，見強制規範）。
 
 ## 長期資料管理（從 Phase 3 開始遵守）
 
@@ -301,11 +366,11 @@ python -m reporting reports\day*.json --trend
 3. 把 artifacts 放在標準目錄
 4. 需要我（AI）幫忙時，直接貼「目前進度表」 + 最新 report JSON + determinism hash + 最近 git commit
 
-**本次已補進去的 TOP1~5（現階段可執行部分）**：
-- determinism_check 現在有基本 CLI（見下）
-- 統一執行環境 + 路徑說明 + 長期備份小節
-- Phase 6 alerts 驗證具體步驟
-- Phase 7 rollback 可執行清單
-- Phase 5 加強可重現性命令範例
+**文件修訂紀錄（資深交易人員 review 納入）**：
+- Phase 3：gross/net 並列 + 券商對帳摩擦追蹤（自 Phase 3 起，非 Phase 7 才開始）
+- Phase 4：tick 品質分層觀測 + 壓力情境 audit timeline 累積
+- Phase 5：樣本/密度/0 成交日定義、fidelity gap、≥3 壓力情境人類審閱（含 near-miss）
+- Phase 6：Ops 告警實機證據格式 + 角色協作表
+- determinism_check CLI、執行環境、rollback 清單（沿用）
 
 **加油。我們用可驗證的步驟，一步一步到 Pilot。**

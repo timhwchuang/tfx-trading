@@ -31,7 +31,8 @@
 
 | 文件 | 職責 |
 | ---- | ---- |
-| [`uat/APP.md`](uat/APP.md) | App 層 UAT→Pilot 循序清單（含 Pilot Readiness Gate） |
+| [`uat/APP.md`](uat/APP.md) | App 層 UAT→Pilot 循序清單（**Pilot Phase 5 SSOT**） |
+| [`../uat_evidence/README.md`](../uat_evidence/README.md) | UAT 證據歸檔 SOP + 範本 |
 | [`uat/KERNEL.md`](uat/KERNEL.md) | Engine 整合 UAT 驗收 |
 | [`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md) | 實盤失敗情境與 kernel 行為 |
 | [`ops/WindowsOps.md`](ops/WindowsOps.md) | Windows 排程、告警、路徑 |

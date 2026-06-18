@@ -3,30 +3,74 @@
 > **執行環境：Windows**。原則：**UAT 驗狀態機與對帳，不驗獲利**。
 > 文件職責見 [`DOC_MAP.md`](DOC_MAP.md)。Monorepo：[`tfx-trading`](https://github.com/timhwchuang/tfx-trading)。
 
-## 目前狀態（2026-06-17）
+## 目前狀態（2026-06-18）
 
 | 階段 | 狀態 |
 | ---- | ---- |
 | Phase 0～2 狀態機 / 訊號 / 委託 | ✅ 已落地（kernel + plugin） |
-| **Phase 3 UAT** | **可開跑** — 待永豐模擬 API 金鑰 → [`uat/APP.md`](uat/APP.md) |
-| Phase 4 運維骨架 | ✅ P4-1～12 已落地；Pilot 前 Telegram / 斷網實機驗收 |
-| Phase 5 Pilot | 見 [`uat/APP.md`](uat/APP.md) Phase 5（量化 gate：Expectancy/Sharpe/MDD + 穩定性） |
+| **Phase 3 UAT** | **🟢 API 金鑰就緒** — 執行 [`uat/APP.md`](uat/APP.md) Phase 0→1 |
+| Phase 4 運維骨架 | ✅ P4-1～12 已落地；**P4-13-F 斷網實機**、Telegram 實機待 UAT 演練 |
+| Phase 5 Pilot | 見 [`uat/APP.md`](uat/APP.md) Phase 5（量化 gate + 摩擦對帳 + 壓力情境審閱） |
 | Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（待 UAT tick 跑 CAL-8）；P6-4/5 待做 |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
+| **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
 
-> **UAT Ready ≠ Live Ready**。Phase 6 是 Live gate，不是 UAT gate。
+> **UAT Ready ≠ Live Ready**。Phase 6 CAL-8 / trend filter 是 Live gate，不是 UAT gate。
 
-**測試基線**：`bash scripts/run-all-tests.sh`（monorepo 根）— app **81**、engine **80**、strategy **33**（backtest 各自）。
+**測試基線**：`bash scripts/run-all-tests.sh` — 以實際 `Ran N tests` 輸出為準（2026-06-18：app **82**、engine **80**、strategy **33** 全綠）。
+
+### Phase 編號對照（避免混淆）
+
+| 本檔 Roadmap | [`uat/APP.md`](uat/APP.md) 清單 | 意義 |
+|--------------|--------------------------------|------|
+| Phase 3 UAT | Phase 0–4 | 模擬累積、壓力測試 |
+| Phase 5 Pilot | **Phase 5** | 量化 gate + 人類簽核 |
+| Phase 6 策略真實化 | Phase 6（切 CA）+ Live CAL-8 | trend filter 等 |
+| Phase 7 策略介面 | Phase 7（Pilot 1 口） | 上 CA 後執行 |
+
+> **Pilot 門檻 SSOT**：[`uat/APP.md`](uat/APP.md) Phase 5。`txf-gates.md` / role 檔僅摘要 + 連結。
+
+---
+
+## UAT 開跑檢查（API 金鑰就緒後）
+
+| # | 項目 | 狀態 | 動作 |
+|---|------|------|------|
+| 1 | Monorepo + venv | ☐ | `bash scripts/setup-dev.sh`；`run-all-tests.sh` 全綠 |
+| 2 | `simulation: true` | ✅ 預設 | `apps/trading-app/config/config.yaml` |
+| 3 | 環境變數 | ☐ | `SJ_API_KEY` / `SJ_SEC_KEY`；`TICK_ARCHIVE=1`；`KBARS_ARCHIVE=1`；`LOG_FILE` |
+| 4 | 目錄 | ✅ 骨架 | `reports/`、`snapshots/`、`uat_evidence/`（見 [`uat_evidence/README.md`](../uat_evidence/README.md)） |
+| 5 | Phase 0 證據 | ☐ | 首次 `python -m live` 10 分鐘 + git commit |
+| 6 | Phase 3 摩擦 | ☐ 建議 | `config.yaml` → `friction.enabled: true`（net expectancy 從第 6 交易日追蹤） |
+| 7 | 週報 | ☐ | 複製 `uat_evidence/templates/weekly_kpi_snapshot.md`；摩擦用 `broker_reconciliation.csv` |
+
+**UAT 期間建議啟用的功能**（已落地、不阻擋上線）：
+
+| 功能 | 路徑 / 指令 | 用途 |
+|------|-------------|------|
+| Tick 落盤 | `TICK_ARCHIVE=1` → `tick_cache/` | determinism、backtest 重現 |
+| K 線落盤 | `KBARS_ARCHIVE=1` | ATR 熱身、CAL-8 B 類 |
+| 日報 + KPI | `python -m reporting <log> --json` | gross/net、near-miss、type0_pct |
+| 週趨勢 | `python -m reporting reports\day*.json --trend`（monorepo 根 + PYTHONPATH） | Phase 3 gross/net、Sharpe、MDD |
+| Determinism | `python -m sweep.determinism_check --date …` | Phase 5 可重現性 |
+| Tick 壓縮 | `python -m storage.compress` | 收盤後維護 |
+| 回測重跑 | `python -m backtest --code TXFR1 --dates …` | UAT tick 驗證 |
+| P4-13 護欄 | `config.yaml` `operations.*` | 暖機、斷線上限、有倉 CRITICAL |
+| Near-miss 漏斗 | `DAILY_SUMMARY.near_miss` | pullback / timeout 診斷 |
+| Trend CAL tooling | `python -m reporting.calibration_cli` | Live gate 前校準（預設 filter 關） |
 
 ---
 
 ## Open items（未完成）
 
-### Blocker — 人類
+### UAT 執行 — 人類（API 已就緒）
 
-- [ ] 申請永豐**模擬** API（行情 + 帳務 + 交易；UAT 不需 CA）
-- [ ] 依 [`uat/APP.md`](uat/APP.md) 跑第一段模擬
+- [x] 申請永豐**模擬** API（行情 + 帳務 + 交易；UAT 不需 CA）
+- [ ] Windows UAT 機：clone + `setup-dev.sh` + 環境變數（見 [`ops/WindowsOps.md`](ops/WindowsOps.md)）
+- [ ] [`uat/APP.md`](uat/APP.md) **Phase 0** 完成 + 證據 commit
+- [ ] **Phase 1** 首個完整模擬交易日 + `reports/day*.json`
+- [ ] Phase 3 起：每週 [`WeeklyStatus.md`](WeeklyStatus.md) + `uat_evidence/templates/*`
 
 ### P2-1 多口 / 部分成交
 
@@ -70,7 +114,7 @@
 - [x] **P4-13-C 有倉斷線告警**：`_mark_disconnected` 時若 `position_qty>0` → `AlertPort` **CRITICAL**
 - [x] **P4-13-D config**：`config.yaml` `operations` + engine `Settings`（`reconnect_warmup_sec`、`max_disconnects_per_day`、`alert_on_disconnect_with_position`、`atr_stale_multiplier`）
 - [x] **P4-13-E 測試**：`trading-engine/tests/runtime/test_atr_stale_and_reconnect_guards.py` + strategy `test_evaluate_pure`
-- [ ] **P4-13-F UAT**：[`uat/APP.md`](uat/APP.md) 增「手動斷網 30–60s → 恢復 → 確認無意外 entry / 有倉有告警 / 三次斷線停玩」
+- [ ] **P4-13-F UAT**：[`uat/APP.md`](uat/APP.md) Phase 4 + 範本 [`uat_evidence/templates/stress_test_record.md`](../uat_evidence/templates/stress_test_record.md)
 - owner: `trading-engine`（護欄邏輯）+ `trading-app`（config、AlertPort、UAT 條目）
 - gate: **Pilot 前**必過；[`uat/APP.md`](uat/APP.md) Phase 4 可先行驗 reconnect / 暖機 / 斷線上限（實作後）
 
@@ -97,6 +141,7 @@
 | 需要… | 讀… |
 | ----- | --- |
 | 跑 UAT | `uat/APP.md` |
+| 證據範本 / 歸檔 | [`uat_evidence/README.md`](../uat_evidence/README.md) |
 | Kernel scenario | [`uat/KERNEL.md`](uat/KERNEL.md) |
 | 週報 / 人類 follow-up | [`WeeklyStatus.md`](WeeklyStatus.md) |
 | Windows 運維 | [`ops/WindowsOps.md`](ops/WindowsOps.md) |

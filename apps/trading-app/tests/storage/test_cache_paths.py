@@ -5,7 +5,11 @@ from __future__ import annotations
 import unittest
 
 from backtest.engine import BacktestEngine
-from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
+from storage.cache_paths import (
+    DEFAULT_REPORTS_DIR,
+    DEFAULT_TICK_CACHE_DIR,
+    _MONOREPO_ROOT,
+)
 from storage.tick_loader import DEFAULT_CACHE_DIR
 from sweep.param_sweep import sweep
 
@@ -15,6 +19,8 @@ class TestCachePathsUnified(unittest.TestCase):
         self.assertEqual(DEFAULT_CACHE_DIR, DEFAULT_TICK_CACHE_DIR)
         self.assertTrue(DEFAULT_TICK_CACHE_DIR.name == "tick_cache")
         self.assertTrue(DEFAULT_TICK_CACHE_DIR.is_absolute())
+        self.assertEqual(DEFAULT_TICK_CACHE_DIR.parent, _MONOREPO_ROOT)
+        self.assertEqual(DEFAULT_REPORTS_DIR.parent, _MONOREPO_ROOT)
 
     def test_backtest_engine_default_cache_is_repo_tick_cache(self):
         import inspect

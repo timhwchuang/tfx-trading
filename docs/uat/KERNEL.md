@@ -2,7 +2,7 @@
 
 Use when integrating `trading-engine@v0.2.2` for simulation → paper → small live.
 
-**App deployment** (Windows env, tick archive, reporting): complete [`docs/uat/APP.md`](../APP.md) **Phases 0–2** (through first stable simulation week) **before** kernel Phase B below.
+**App deployment** (Windows env, tick archive, reporting): complete [`APP.md`](APP.md) **Phases 0–2** (through first stable simulation week) **before** kernel Phase B below.
 
 Prerequisites: [trading-engine README § Go-Live](../../packages/trading-engine/README.md), [docs/ops/LIVE_SAFETY.md](../ops/LIVE_SAFETY.md), [trading-engine SPEC §4.2](../../packages/trading-engine/SPEC.md).
 
@@ -33,6 +33,8 @@ Prerequisites: [trading-engine README § Go-Live](../../packages/trading-engine/
 ---
 
 ## Phase C — Paper trade (≥3 sessions)
+
+> **範圍說明**：≥3 sessions 是**狀態機與 audit 產出**的最低驗證，**不是** Pilot 量化門檻。Expectancy / Sharpe / MDD、樣本 20 日、人類簽核等**全部在** [`APP.md`](APP.md) **Phase 5**。Kernel UAT Pass ≠ Pilot Ready。
 
 | # | Item | Pass | Notes / date |
 |---|------|:----:|--------------|
@@ -85,6 +87,15 @@ Session 看門狗
 No-tick 看門狗
 持倉對帳
 ```
+
+## Regression（Pilot 前持續）
+
+Phase B3–B6（斷線重連、pending 超時、invalid signal、`get_state_snapshot` 對帳）應在以下時機**重跑並更新簽名表**：
+- `trading-engine` tag 升級
+- app 重連 / 暖機 / `sync_positions` 邏輯變更
+- [`APP.md`](APP.md) Phase 6 切 CA 前（若 Phase 4 後有程式變更）
+
+重連後 **sync_positions → 首 tick 暖機 → 倉位與券商一致** 是 Pilot 前最該信任的機制；證據併入 `uat_evidence/`。
 
 ## After UAT
 

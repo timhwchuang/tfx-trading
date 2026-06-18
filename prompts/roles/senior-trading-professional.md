@@ -71,12 +71,15 @@ argument-hint: "[scenario or question]"
 
 ```markdown
 ## Phase 5 對照（交易視角）
-- [ ] 樣本量
-- [ ] Expectancy / Sharpe / MDD 使用率
+- [ ] 樣本量（20 日 + 80 筆 + 最近 10 日 35 筆；0 成交日清單 + 有效密度）
+- [ ] Expectancy gross + net / Sharpe / MDD 使用率
 - [ ] 最近 10 日健康度
+- [ ] Tick 分層觀測（type0_pct × conversion / expectancy）
+- [ ] 壓力測試證據 + ≥3 情境人類審閱（含 near-miss）
 - [ ] 零 Critical（10 日）
 - [ ] 參數凍結 + git
-- [ ] determinism hash
+- [ ] determinism + 真實 tick audit 比對
+- [ ] 摩擦對帳（Phase 3 起）+ 前 5 大虧損日已親閱
 → 結論：Go / No-Go / 缺證據（列缺項）
 ```
 
