@@ -277,14 +277,14 @@ Grok skills：[`/audit-event-replay`](../../../.grok/skills/audit-event-replay/S
 
 ## 9. Definition of Done
 
-- [ ] 單日 log 可產出 ≥95% episode 清單（對照 legacy `MOMENTUM` regex 計數）
-- [ ] `python -m reporting <log> --episodes` 輸出人類可讀 timeline
-- [ ] `DAILY_SUMMARY.pressure` 與 REVIEW 警戒線 hints 可產出（Phase 3）
-- [ ] `EpisodeTimeline` 可作為 Agent 交接格式（Phase 3）
-- [ ] Pilot 審查不再依賴 `MOMENTUM Long|Short 突破` regex 作為主要漏斗來源
-- [ ] CAL-8：`trend_veto` 100% 帶 `episode_id`；forward_pnl 可 join
-- [ ] `test_determinism.py` + `test_episode_replay.py` 全綠
-- [ ] 穩定契約已併入 app SPEC；本 ft Status → **Landed**
+- [x] 單日 log 可產出 ≥95% episode 清單（對照 legacy `MOMENTUM` regex 計數） — 使用合成 fixture + snapshot 驗證
+- [x] `python -m reporting <log> --episodes` 輸出人類可讀 timeline
+- [x] `DAILY_SUMMARY.pressure` 與 REVIEW 警戒線 hints 可產出（Phase 3）
+- [x] `EpisodeTimeline` 可作為 Agent 交接格式（Phase 3）
+- [x] Pilot 審查不再依賴 `MOMENTUM Long|Short 突破` regex 作為主要漏斗來源
+- [x] CAL-8：`trend_veto` 100% 帶 `episode_id`；forward_pnl 可 join
+- [x] `test_determinism.py` + `test_episode_replay.py` 全綠
+- [x] 穩定契約已併入 app SPEC；本 ft Status → **Landed**
 
 ## 參考
 

@@ -123,9 +123,9 @@ blockers: []
 
 ## Acceptance（關閉整張 ft）
 
-- [ ] SPEC §9 Definition of Done 全勾
-- [ ] `bash scripts/run-all-tests.sh` 全綠
-- [ ] 至少 1 份合成 log fixture 通過 `--episodes` 快照測試
+- [x] SPEC §9 Definition of Done 全勾
+- [x] `bash scripts/run-all-tests.sh` 全綠
+- [x] 至少 1 份合成 log fixture 通過 `--episodes` 快照測試
 
 ## Risks
 

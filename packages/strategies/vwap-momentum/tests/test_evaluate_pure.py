@@ -194,12 +194,12 @@ class TestEvaluatePure(unittest.TestCase):
         self.assertIsNone(sig)
         obs.record_trend_veto.assert_called_once()
         audit_lines = [
-            line for line in cap.output if "SIGNAL_AUDIT" in line
+            line for line in cap.output if "DECISION_AUDIT" in line
         ]
         self.assertEqual(len(audit_lines), 1)
-        payload = json.loads(audit_lines[0].split("SIGNAL_AUDIT ", 1)[1])
+        payload = json.loads(audit_lines[0].split("DECISION_AUDIT ", 1)[1])
+        self.assertEqual(payload["event_type"], "trend_veto")
         self.assertEqual(payload["reason"], "trend_veto")
-        self.assertEqual(payload["intent"], "entry")
         self.assertEqual(payload["direction"], "Buy")
         self.assertEqual(payload["trend_dir"], "Short")
         self.assertGreater(payload["trend_strength"], 0.0)
