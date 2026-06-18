@@ -84,19 +84,8 @@ class OrderExecutorMixin:
         if signal.intent == PendingIntent.EXIT:
             self.exit_pending = True
 
-        # Emit EXEC_AUDIT for the armed pending (Phase 2)
-        try:
-            exec_audit = ExecAudit(
-                event_type="pending_armed",
-                ts=signal.exchange_ts or 0,
-                signal_id=signal.signal_id or self.pending_signal_id,
-                order_id=self.pending_order_id or "",
-                limit_price=self.pending_limit_price,
-                direction=signal.action,
-            )
-            logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
-        except Exception:
-            pass  # never break hot path
+        # Note: pending_armed EXEC is emitted from place_order after order_id is known (to satisfy SPEC order_id MUST).
+        # See place_order below.
 
         # Defensive guard (logs only). Permanent invariant check.
         try:
@@ -273,6 +262,21 @@ class OrderExecutorMixin:
                 self.pending_since = self._clock()
                 self._exit_order_retry_count = 0
                 self._exit_order_retry_at = 0.0
+
+                # Phase 2: Emit pending_armed here so order_id is populated (SPEC §5.3 MUST)
+                try:
+                    exec_audit = ExecAudit(
+                        event_type="pending_armed",
+                        ts=signal.exchange_ts or 0,
+                        signal_id=signal.signal_id or self.pending_signal_id,
+                        order_id=self.pending_order_id,
+                        limit_price=self.pending_limit_price,
+                        direction=signal.action,
+                    )
+                    logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
+                except Exception:
+                    pass  # never break hot path
+
             logger.info(
                 "下單 %s %d 口 @ %.1f (%s) | trade=%s",
                 action,
@@ -486,15 +490,17 @@ class OrderExecutorMixin:
                         "委託未成交/已取消，重置 pending | tag=%s",
                         tag,
                     )
+                    cancel_tag = tag
                 else:
                     logger.info("委託未成交/已取消，重置 pending")
-                # Emit EXEC cancel (Phase 2)
+                    cancel_tag = ""
+                # Emit EXEC cancel (Phase 2) - for non-happy cancel path coverage
                 try:
                     exec_audit = ExecAudit(
                         event_type="pending_cancelled",
                         ts=int(self.pending_exchange_ts or 0),
                         signal_id=self.pending_signal_id,
-                        tag=tag if 'tag' in dir() else "",
+                        tag=cancel_tag,
                         order_id=self.pending_order_id or "",
                     )
                     logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
@@ -720,6 +726,18 @@ class OrderExecutorMixin:
                 if not self._still_own_pending(trade):
                     return True
                 logger.info("補查確認委託未成交/已取消，重置 pending")
+                # Phase 2: also emit from reconcile path (covers live backfill cancels)
+                try:
+                    exec_audit = ExecAudit(
+                        event_type="pending_cancelled",
+                        ts=int(self.pending_exchange_ts or 0),
+                        signal_id=self.pending_signal_id,
+                        tag="",
+                        order_id=self.pending_order_id or "",
+                    )
+                    logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
+                except Exception:
+                    pass
                 self._clear_pending()
             return True
 

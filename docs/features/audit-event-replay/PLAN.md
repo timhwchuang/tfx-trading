@@ -1,7 +1,7 @@
 ---
 id: FT-001
 slug: audit-event-replay
-status: Draft
+status: InProgress
 opened: 2026-06-17
 owner: human+agent
 target: UAT-Pilot
@@ -75,6 +75,8 @@ blockers: []
 - [x] `episode_id` 從 armed 貫穿至 entry FILL
 - [x] 測試：EXEC_AUDIT produced on pending paths (seen in runtime tests)
 
+**Note (2026-06-18)**: Phase 1 + Phase 2 生產者（DECISION_AUDIT / EXEC_AUDIT + ID 貫穿）已實作並通過 review + 全套測試。消費者（Phase 3 reporting）與契約落地（Phase 4）尚未開始。
+
 **主要檔案**：
 
 - [`packages/trading-engine/src/trading_engine/order_executor.py`](../../../packages/trading-engine/src/trading_engine/order_executor.py)
@@ -84,15 +86,17 @@ blockers: []
 
 **目標**：`python -m reporting <log> --episodes` 輸出人類可讀 timeline。
 
-- [ ] `uat_report.parse_decision_audit_line` / `parse_exec_audit_line`
-- [ ] `build_episode_timeline(audits, fills, execs) -> list[Episode]`
-- [ ] CLI `--episodes` / `--episode-id`
-- [ ] `tests/reporting/test_episode_replay.py`
-- [ ] `build_tuning_hints` 改用 episode funnel（減少 regex 依賴）
-- [ ] `DAILY_SUMMARY.pressure` 彙總（`max_consecutive_*`、`armed_to_entered_ratio`）
-- [ ] DECISION_AUDIT optional：`consecutive_veto_streak`、`consecutive_timeout_streak`、`episodes_since_last_entry`
-- [ ] `build_episode_timeline()` → `EpisodeTimeline`（SPEC §8.2 Agent 交接格式）
-- [ ] `uat_report` pressure 警戒線 hints（見 REVIEW §3.1）
+- [x] `uat_report.parse_decision_audit_line` / `parse_exec_audit_line`
+- [x] `build_episode_timeline(audits, fills, execs) -> list[Episode]`
+- [x] CLI `--episodes` / `--episode-id`
+- [x] `tests/reporting/test_episode_replay.py` (basic)
+- [x] `build_tuning_hints` 改用 episode funnel + pressure hints
+- [x] `DAILY_SUMMARY.pressure` / `episode_funnel` 彙總
+- [x] DECISION_AUDIT streak 欄位 emit (for timeout/veto/risk_blocked + armed)
+- [x] `build_episode_timeline()` + richer EpisodeTimeline with pressure_context
+- [x] `uat_report` pressure 警戒線 hints
+
+
 
 **主要檔案**：
 

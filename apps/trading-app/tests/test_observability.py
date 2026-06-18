@@ -111,6 +111,8 @@ class TestDailyObservability(unittest.TestCase):
             hold_sec=10,
         )
         obs.update_risk_state(8, 0)
+        obs.record_risk_blocked("min_atr", ts=100)
+        obs.record_risk_blocked("min_atr", ts=101)  # should throttle
         summary = obs.build_summary("2026-06-10")
 
         self.assertEqual(summary["date"], "2026-06-10")
@@ -118,6 +120,9 @@ class TestDailyObservability(unittest.TestCase):
         self.assertEqual(summary["fills"]["entry_count"], 1)
         self.assertEqual(summary["pnl"]["by_reason"]["stop_loss"]["avg_pnl"], 8.0)
         self.assertEqual(summary["quick_stop_loss"]["count"], 0)
+        self.assertIn("episode_funnel", summary)
+        self.assertIn("pressure", summary)
+        self.assertEqual(summary["pressure"]["risk_blocked_count"], 1)  # throttled
 
     def test_exit_fill_clears_entry_tracking_scalars(self):
         obs = DailyObservability()

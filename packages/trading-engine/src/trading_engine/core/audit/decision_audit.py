@@ -44,6 +44,7 @@ class DecisionAudit:
     trend_dir: str = ""
     trend_strength: float = 0.0
     block_reason: str = ""
+    consecutive_loss: int = 0
 
     # pressure context (Phase 3+)
     consecutive_veto_streak: int = 0
@@ -59,26 +60,41 @@ def format_decision_audit(audit: DecisionAudit) -> str:
 
     Always keep MUST fields per SPEC even if zero (e.g. dist_vwap=0.0, elapsed_sec=0).
     Only drop truly empty string/None defaults for optional fields.
+    For momentum_armed: explicitly clean, omit irrelevant 0s and pressure ctx streaks (per SPEC examples; pressure ctx for veto/timeout/risk_blocked).
     """
     raw = asdict(audit)
     payload: dict = {}
-    # Always keep structural + MUST for current events
-    must_fields = {
-        "audit_schema_version", "event_type", "ts", "episode_id",
-        # momentum_armed MUST
-        "direction", "trigger_price", "vol_1s", "buy_ratio", "sell_ratio",
-        "vol_threshold", "multiplier",
-        # other potential MUST that can legitimately be 0
-        "dist_vwap", "elapsed_sec", "price",
-    }
-    for k in must_fields:
+    et = audit.event_type
+    # structural always
+    for k in ("audit_schema_version", "event_type", "ts", "episode_id"):
         if k in raw:
             payload[k] = raw[k]
 
+    if et == "momentum_armed":
+        armed_must = {"direction", "trigger_price", "vol_1s", "buy_ratio", "sell_ratio", "vol_threshold", "multiplier", "vwap", "atr"}
+        for k in armed_must:
+            if k in raw:
+                payload[k] = raw[k]
+        # explicitly do not add 0-value fields like price, consecutive_*=0 etc for armed (clean per SPEC examples)
+    else:
+        # for timeout/veto/risk keep price etc if set
+        for k in ("direction", "trigger_price", "price", "vol_1s", "buy_ratio", "sell_ratio", "elapsed_sec", "reason", "trend_dir", "trend_strength", "block_reason", "atr", "consecutive_loss"):
+            if k in raw and raw[k] not in (None, "", 0, 0.0, False) or k in ("price", "elapsed_sec"):
+                payload[k] = raw[k]
+
+    # include streak/pressure ctx (even 0) only for non-armed events (Phase 3 SPEC: applicable to veto/timeout/risk_blocked)
+    # armed remains clean (no irrelevant zeros)
+    for k in ("consecutive_veto_streak", "consecutive_timeout_streak", "episodes_since_last_entry", "parent_id"):
+        if k in raw:
+            v = raw[k]
+            if et == "momentum_armed" and v in (0, 0.0, None, False, ""):
+                continue
+            payload[k] = v
+
+    # other non-empty
     for k, v in raw.items():
         if k in payload:
             continue
-        # Drop only empty strings and None for optional fields
         if v not in ("", None):
             payload[k] = v
     return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))

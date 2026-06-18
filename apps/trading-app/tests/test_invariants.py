@@ -27,9 +27,21 @@ class TestIntentCancelledTag(unittest.TestCase):
             )
 
         self.assertFalse(host.is_pending)
-        cancelled = [line for line in logs.output if "intent_cancelled" in line]
+        # Legacy log for intent_cancelled (ensure exact message, not polluted by new EXEC)
+        cancelled = [
+            line for line in logs.output
+            if "委託未成交/已取消" in line and "intent_cancelled" in line
+        ]
         self.assertEqual(len(cancelled), 1)
         self.assertIn("intent_cancelled_open_session", cancelled[0])
+
+        # Phase 2: EXEC_AUDIT for pending_cancelled must also be emitted (non-happy path)
+        exec_cancel = [
+            line for line in logs.output
+            if "EXEC_AUDIT" in line and "pending_cancelled" in line
+        ]
+        self.assertEqual(len(exec_cancel), 1)
+        self.assertIn("intent_cancelled_open_session", exec_cancel[0])
 
 
 class TestRawOrderEventDump(unittest.TestCase):

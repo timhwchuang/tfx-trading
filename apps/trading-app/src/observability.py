@@ -147,18 +147,37 @@ class DailyObservability:
     daily_pnl: float = 0.0
     consecutive_loss: int = 0
     trend_vetoes: int = 0
+    momentum_timeouts: int = 0
+    consecutive_veto_streak: int = 0
+    consecutive_timeout_streak: int = 0
+    episodes_since_last_entry: int = 0
+    max_consecutive_veto: int = 0
+    max_consecutive_timeout: int = 0
+    max_episodes_without_entry: int = 0
+    risk_blocked_count: int = 0
+    _last_risk_blocked: dict[str, int] = field(default_factory=dict)
     _entry_fill_ts: int = 0
     _entry_signal_price: float = 0.0
 
     def record_momentum_trigger(self) -> None:
         self.momentum_triggers += 1
         self.near_miss.on_momentum_start()
+        self.episodes_since_last_entry += 1
+        self.max_episodes_without_entry = max(self.max_episodes_without_entry, self.episodes_since_last_entry)
 
     def record_momentum_timeout(self) -> None:
         self.near_miss.on_momentum_end(timeout=True)
+        self.momentum_timeouts += 1
+        self.consecutive_timeout_streak += 1
+        self.consecutive_veto_streak = 0
+        self.max_consecutive_timeout = max(self.max_consecutive_timeout, self.consecutive_timeout_streak)
+        # episodes_since_last_entry already +1 on trigger (armed)
 
     def record_momentum_entry(self) -> None:
         self.near_miss.on_momentum_end(timeout=False)
+        self.consecutive_veto_streak = 0
+        self.consecutive_timeout_streak = 0
+        self.episodes_since_last_entry = 0
 
     def record_trend_veto(self) -> None:
         """Count a pullback entry that was blocked by the HTF trend filter.
@@ -168,6 +187,10 @@ class DailyObservability:
         strategy at veto time so that uat_report can see forward returns etc.
         """
         self.trend_vetoes += 1
+        self.consecutive_veto_streak += 1
+        self.consecutive_timeout_streak = 0
+        self.max_consecutive_veto = max(self.max_consecutive_veto, self.consecutive_veto_streak)
+        # episodes_since_last_entry already +1 on trigger (armed)
 
     def record_pullback_tick(
         self,
@@ -219,6 +242,21 @@ class DailyObservability:
             self.tick_type_inferred_counts[str(effective)] = (
                 self.tick_type_inferred_counts.get(str(effective), 0) + 1
             )
+
+    def get_pressure_context(self) -> dict[str, int]:
+        return {
+            "consecutive_veto_streak": self.consecutive_veto_streak,
+            "consecutive_timeout_streak": self.consecutive_timeout_streak,
+            "episodes_since_last_entry": self.episodes_since_last_entry,
+        }
+
+    def record_risk_blocked(self, reason: str = "", ts: int = 0) -> None:
+        key = reason or "unknown"
+        last = self._last_risk_blocked.get(key, 0)
+        if ts == 0 or ts - last >= 60:
+            self.risk_blocked_count += 1
+            self._last_risk_blocked[key] = ts
+        # do not reset streaks for risk_blocked (per current design)
 
     def record_fill(
         self,
@@ -363,6 +401,23 @@ class DailyObservability:
                 "rate": len(quick_sl) / completed_exits if completed_exits else None,
             },
             "near_miss": self.near_miss.to_dict(),
+            "episode_funnel": {
+                "armed": self.momentum_triggers,
+                "entered": self.entry_signals,
+                "timeout": self.momentum_timeouts,
+                "veto": self.trend_vetoes,
+            },
+            "pressure": {
+                "max_consecutive_veto": self.max_consecutive_veto,
+                "max_consecutive_timeout": self.max_consecutive_timeout,
+                "max_episodes_without_entry": self.max_episodes_without_entry,
+                "armed_to_entered_ratio": (
+                    self.entry_signals / self.momentum_triggers
+                    if self.momentum_triggers
+                    else None
+                ),
+                "risk_blocked_count": self.risk_blocked_count,
+            },
             "operational": {
                 "intent_cancelled": self.intent_cancelled,
                 "intent_cancelled_open_session": self.intent_cancelled_open_session,
@@ -405,6 +460,16 @@ class DailyObservability:
         self.atr_max = None
         self.daily_pnl = 0.0
         self.consecutive_loss = 0
+        self.momentum_timeouts = 0
+        self.trend_vetoes = 0
+        self.consecutive_veto_streak = 0
+        self.consecutive_timeout_streak = 0
+        self.episodes_since_last_entry = 0
+        self.max_consecutive_veto = 0
+        self.max_consecutive_timeout = 0
+        self.max_episodes_without_entry = 0
+        self.risk_blocked_count = 0
+        self._last_risk_blocked.clear()
         self._entry_fill_ts = 0
         self._entry_signal_price = 0.0
 

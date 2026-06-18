@@ -95,6 +95,23 @@ class TestUatReport(unittest.TestCase):
         )
         self.assertTrue(any("exit_grace" in h for h in hints))
 
+    def test_tuning_hints_with_episodes_funnel(self):
+        from reporting.uat_report import Episode
+        eps = [Episode(episode_id=f"20260617-00{i}", outcome="timeout", events=[{"event_type": "momentum_armed"}]) for i in range(6)]
+        eps.append(Episode(episode_id="e", outcome="entered", events=[{"event_type": "momentum_armed"}]))
+        hints = build_tuning_hints(
+            conversion_rate=0.05,
+            quick_sl_rate=None,
+            slippage={},
+            expectancy={},
+            near_miss=None,
+            cancel_rate=None,
+            tick_type=None,
+            daily_summaries=[],
+            episodes=eps,
+        )
+        self.assertTrue(any("armed_to_entered" in h or "timeout" in h for h in hints))
+
     def test_cumulative_risk_in_report(self):
         summaries = [
             {

@@ -36,16 +36,23 @@ class ExecAudit:
 
 
 def format_exec_audit(audit: ExecAudit) -> str:
-    """Compact JSON matching the audit contract."""
+    """Compact JSON matching the audit contract.
+
+    Always preserve MUST fields per SPEC §5.3 even when falsy (order_id, tag, limit_price etc.).
+    """
     raw = asdict(audit)
     payload: dict = {}
-    # structural + common
-    for k in ("audit_schema_version", "event_type", "ts", "signal_id"):
+    must = {
+        "audit_schema_version", "event_type", "ts", "signal_id",
+        "order_id", "limit_price", "direction", "tag", "pending_sec",
+        "qty_before", "qty_after", "position_dir",
+    }
+    for k in must:
         if k in raw:
             payload[k] = raw[k]
     for k, v in raw.items():
         if k in payload:
             continue
-        if v not in ("", None, 0, 0.0):
+        if v not in ("", None):
             payload[k] = v
     return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))

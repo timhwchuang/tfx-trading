@@ -7,7 +7,7 @@
 
 | ID | Slug | Status | Opened | Target | 文件 |
 |----|------|--------|--------|--------|------|
-| FT-001 | [audit-event-replay](audit-event-replay/SPEC.md) | **Draft** | 2026-06-17 | UAT→Pilot | [SPEC](audit-event-replay/SPEC.md) · [PLAN](audit-event-replay/PLAN.md) · [REVIEW](audit-event-replay/REVIEW.md) · **`/audit-event-replay`** |
+| FT-001 | [audit-event-replay](audit-event-replay/SPEC.md) | **InProgress** | 2026-06-17 | UAT→Pilot | [SPEC](audit-event-replay/SPEC.md) · [PLAN](audit-event-replay/PLAN.md) · [REVIEW](audit-event-replay/REVIEW.md) · **`/audit-event-replay`** |
 
 ## 狀態定義
 

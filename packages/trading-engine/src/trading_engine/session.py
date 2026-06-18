@@ -162,9 +162,10 @@ class SessionMixin:
 
             if qty_before != qty_after:
                 try:
+                    ts = getattr(self, 'last_tick_exchange_ts', 0) or int(time.time())
                     exec_audit = ExecAudit(
                         event_type="position_sync",
-                        ts=int(time.time()),
+                        ts=ts,
                         qty_before=qty_before,
                         qty_after=qty_after,
                         position_dir=new_dir,

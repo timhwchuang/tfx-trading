@@ -15,10 +15,14 @@ from reporting.performance_metrics import (
     compute_cumulative_risk_progression,
     compute_performance_from_fills,
 )
+from trading_engine.core.audit.decision_audit import DecisionAudit
+from trading_engine.core.audit.exec_audit import ExecAudit
 from trading_engine.core.audit.signal_audit import SignalAudit
 
 MOMENTUM_TRIGGER_RE = re.compile(r"MOMENTUM (Long|Short) 突破")
+DECISION_AUDIT_RE = re.compile(r"DECISION_AUDIT (.+)$")
 SIGNAL_AUDIT_RE = re.compile(r"SIGNAL_AUDIT (.+)$")
+EXEC_AUDIT_RE = re.compile(r"EXEC_AUDIT (.+)$")
 FILL_AUDIT_RE = re.compile(r"FILL_AUDIT (.+)$")
 DAILY_SUMMARY_RE = re.compile(r"DAILY_SUMMARY (.+)$")
 INTENT_CANCELLED_RE = re.compile(
@@ -38,15 +42,61 @@ class TradeRound:
     hold_sec: int | None = None
 
 
+@dataclass
+class Episode:
+    """Episode for timeline (Phase 3, richer EpisodeTimeline)."""
+
+    episode_id: str
+    trade_date: str = ""
+    direction: str = ""
+    outcome: str = ""  # entered | timeout | veto | risk_blocked
+    armed_ts: int | None = None
+    events: list[dict] = None
+    pressure_context: dict = None
+
+    def __post_init__(self):
+        if self.events is None:
+            self.events = []
+        if self.pressure_context is None:
+            self.pressure_context = {}
+        if not self.trade_date and self.episode_id:
+            self.trade_date = self.episode_id.split("-")[0] if "-" in self.episode_id else ""
+
+
+def parse_decision_audit_line(line: str) -> DecisionAudit | None:
+    match = DECISION_AUDIT_RE.search(line)
+    if not match:
+        return None
+    try:
+        payload = json.loads(match.group(1))
+        payload.pop("audit_schema_version", None)
+    except json.JSONDecodeError:
+        return None
+    return DecisionAudit(**payload)
+
+
 def parse_signal_audit_line(line: str) -> SignalAudit | None:
     match = SIGNAL_AUDIT_RE.search(line)
     if not match:
         return None
     try:
         payload = json.loads(match.group(1))
+        payload.pop("audit_schema_version", None)
     except json.JSONDecodeError:
         return None
     return SignalAudit(**payload)
+
+
+def parse_exec_audit_line(line: str) -> ExecAudit | None:
+    match = EXEC_AUDIT_RE.search(line)
+    if not match:
+        return None
+    try:
+        payload = json.loads(match.group(1))
+        payload.pop("audit_schema_version", None)
+    except json.JSONDecodeError:
+        return None
+    return ExecAudit(**payload)
 
 
 def parse_fill_audit_line(line: str) -> FillAudit | None:
@@ -55,6 +105,7 @@ def parse_fill_audit_line(line: str) -> FillAudit | None:
         return None
     try:
         payload = json.loads(match.group(1))
+        payload.pop("audit_schema_version", None)
     except json.JSONDecodeError:
         return None
     return FillAudit(**payload)
@@ -229,6 +280,177 @@ def parse_log_audits_and_fills(
         fill for line in lines if (fill := parse_fill_audit_line(line)) is not None
     ]
     return audits, fills
+
+
+def parse_decision_audits(lines: list[str]) -> list[DecisionAudit]:
+    return [
+        audit
+        for line in lines
+        if (audit := parse_decision_audit_line(line)) is not None
+    ]
+
+
+def parse_exec_audits(lines: list[str]) -> list[ExecAudit]:
+    return [
+        audit
+        for line in lines
+        if (audit := parse_exec_audit_line(line)) is not None
+    ]
+
+
+def compute_episodes(lines: list[str]) -> list[Episode]:
+    """Convenience: parse all audit types and build timelines."""
+    decisions = parse_decision_audits(lines)
+    signals = [
+        a for line in lines if (a := parse_signal_audit_line(line)) is not None
+    ]
+    execs = parse_exec_audits(lines)
+    fills = [f for line in lines if (f := parse_fill_audit_line(line)) is not None]
+    return build_episode_timeline(decisions, signals, execs, fills)
+
+
+def build_episode_timeline(
+    decisions: list[DecisionAudit],
+    signals: list[SignalAudit],
+    execs: list[ExecAudit],
+    fills: list[FillAudit],
+) -> list[Episode]:
+    """Build episode timelines from all audit types (Phase 3).
+
+    Groups events by episode_id from DECISION (armed etc), SIGNAL (entry/exit with episode),
+    EXEC, and FILL (entry with episode).
+    """
+    by_ep: dict[str, Episode] = {}
+
+    def get_or_create(ep_id: str) -> Episode:
+        if ep_id not in by_ep:
+            by_ep[ep_id] = Episode(episode_id=ep_id, events=[])
+        return by_ep[ep_id]
+
+    # Decisions (armed, timeout, veto, etc) — primary source of episode_id
+    for d in decisions:
+        if not d.episode_id:
+            if d.event_type == "risk_blocked":
+                # support standalone risk_blocked without ep_id (SPEC allows)
+                ep_id = f"risk-{d.ts}"
+                ep = get_or_create(ep_id)
+                ep.outcome = "risk_blocked"
+            else:
+                continue
+        else:
+            ep = get_or_create(d.episode_id)
+        if d.event_type == "momentum_armed":
+            ep.direction = d.direction
+            ep.armed_ts = d.ts
+        if d.event_type == "risk_blocked":
+            ep.outcome = "risk_blocked"
+        ep.events.append(
+            {
+                "source": "decision",
+                "event_type": d.event_type,
+                "ts": d.ts,
+                "direction": d.direction,
+                **{
+                    k: v
+                    for k, v in asdict(d).items()
+                    if k not in ("audit_schema_version", "event_type", "ts", "episode_id")
+                    # keep 0s for streaks in pressure_context
+                },
+            }
+        )
+
+    # Signals (entry/exit) — carry episode_id for entry, signal_id for linking
+    for s in signals:
+        if s.episode_id:
+            ep = get_or_create(s.episode_id)
+            if not ep.direction and s.direction in ("Buy", "Sell"):
+                ep.direction = "Long" if s.direction == "Buy" else "Short"
+            ep.events.append(
+                {
+                    "source": "signal",
+                    "event_type": s.intent,
+                    "ts": s.ts,
+                    "direction": s.direction,
+                    "reason": s.reason,
+                    "signal_id": s.signal_id,
+                    "episode_id": s.episode_id,
+                }
+            )
+        elif s.signal_id:
+            # fallback: attach to episodes that may link via other means, but for now ignore
+            pass
+
+    # Exec
+    for e in execs:
+        if not e.signal_id:
+            continue
+        # We don't have direct episode in EXEC, so we can't easily attach unless we cross link.
+        # For Phase 3 basic, we'll rely on signals/fills for entry episodes.
+        # Add as standalone if needed, but prefer linked.
+        pass  # For now, timeline is primarily driven by DECISION + entry SIGNAL/FILL
+
+    # Fills — entry fills carry episode_id
+    for f in fills:
+        if f.intent == "entry" and getattr(f, "episode_id", None):
+            ep = get_or_create(f.episode_id)
+            ep.events.append(
+                {
+                    "source": "fill",
+                    "event_type": f.intent,
+                    "ts": f.ts,
+                    "direction": f.direction,
+                    "fill_price": f.fill_price,
+                    "episode_id": f.episode_id,
+                    "signal_id": getattr(f, "signal_id", ""),
+                }
+            )
+            if not ep.direction:
+                ep.direction = "Long" if f.direction == "Buy" else "Short"
+
+    # Determine outcome and sort events
+    for ep in by_ep.values():
+        ep.events.sort(key=lambda ev: ev.get("ts", 0))
+        # simple outcome detection
+        has_entry_fill = any(
+            ev.get("source") == "fill" and ev.get("event_type") == "entry"
+            for ev in ep.events
+        )
+        has_timeout = any(
+            ev.get("event_type") == "momentum_timeout" for ev in ep.events
+        )
+        has_veto = any(ev.get("event_type") == "trend_veto" for ev in ep.events)
+        has_risk = any(ev.get("event_type") == "risk_blocked" for ev in ep.events or [])
+        if has_risk:
+            ep.outcome = "risk_blocked"
+        elif has_entry_fill:
+            ep.outcome = "entered"
+        elif has_veto:
+            ep.outcome = "veto"
+        elif has_timeout:
+            ep.outcome = "timeout"
+        else:
+            ep.outcome = "unknown"
+
+        # pressure_context from last decision event that carries streaks (Phase 3)
+        for ev in reversed(ep.events or []):
+            if "consecutive_veto_streak" in ev or "consecutive_timeout_streak" in ev:
+                ep.pressure_context = {
+                    k: ev.get(k, 0)
+                    for k in (
+                        "consecutive_veto_streak",
+                        "consecutive_timeout_streak",
+                        "episodes_since_last_entry",
+                    )
+                    if k in ev
+                }
+                break
+
+        # detect risk after setting from decision
+        has_risk = any(ev.get("event_type") == "risk_blocked" for ev in ep.events or [])
+        if has_risk and ep.outcome in ("", "unknown"):
+            ep.outcome = "risk_blocked"
+
+    return sorted(by_ep.values(), key=lambda e: e.episode_id)
 
 
 def compute_trade_rounds(
@@ -479,6 +701,7 @@ def compute_metrics(
             tick_type=tick_type,
             daily_summaries=daily_summaries,
             cumulative_risk=cumulative_risk,
+            episodes=compute_episodes(lines) if daily_summaries else None,
         ),
     }
 
@@ -494,9 +717,27 @@ def build_tuning_hints(
     tick_type: dict | None,
     daily_summaries: list[dict],
     cumulative_risk: dict | None = None,
+    episodes: list[Episode] | None = None,
 ) -> list[str]:
-    """Rule-based hints for humans / AI — maps KPIs to candidate params."""
+    """Rule-based hints for humans / AI — maps KPIs to candidate params.
+    Now prioritizes episode funnel (Phase 3).
+    """
     hints: list[str] = []
+
+    # Phase 3: use episode funnel first
+    if episodes:
+        armed = sum(1 for e in episodes if any((ev.get("event_type") or "") == "momentum_armed" for ev in (e.events or [])))
+        entered = sum(1 for e in episodes if e.outcome == "entered")
+        ratio = entered / armed if armed else 0
+        if armed >= 5 and ratio < 0.10:
+            hints.append(
+                f"armed_to_entered_ratio={ratio:.2f} (armed={armed}) → 漏斗空轉，檢查 entry_band / exhaustion_vol 或 regime"
+            )
+        timeouts = sum(1 for e in episodes if e.outcome == "timeout")
+        if timeouts >= 5:
+            hints.append(
+                f"timeout 連續/總數 {timeouts} → band 太緊或 momentum_timeout 需調"
+            )
 
     if quick_sl_rate is not None and quick_sl_rate > 0.30:
         hints.append(
@@ -582,9 +823,49 @@ def build_tuning_hints(
                 f"累積 MDD 已用預算 {used:.1f}%（{cum_mdd}/{budget} 點）→ 接近風險上限"
             )
 
+    # Phase 3 pressure hints (from daily pressure or episodes)
+    if daily_summaries:
+        last = daily_summaries[-1] if daily_summaries else {}
+        p = last.get("pressure", {})
+        if p.get("armed_to_entered_ratio") is not None and p.get("armed_to_entered_ratio", 1) < 0.10:
+            hints.append("pressure: armed_to_entered_ratio <10% → 漏斗空轉，優先檢查 entry 參數")
+        if p.get("max_consecutive_timeout", 0) >= 5:
+            hints.append("pressure: max_consecutive_timeout>=5 → 調寬 entry 或 timeout")
+        if p.get("max_consecutive_veto", 0) >= 3:
+            hints.append("pressure: max_consecutive_veto>=3 → trend filter 可能過嚴 (CAL-8)")
+
     if not hints:
         hints.append("無明顯調參警示；繼續累積樣本")
-    return hints
+    # dedup overlapping funnel/pressure hints (normalize key)
+    seen = set()
+    deduped = []
+    for h in hints:
+        key = h.lower().split("→")[0].strip().replace("pressure: ", "").replace("funnel: ", "")
+        if key not in seen:
+            seen.add(key)
+            deduped.append(h)
+    return deduped
+
+
+def format_episode_timeline(episodes: list[Episode]) -> str:
+    """Human readable episode timeline output for --episodes."""
+    if not episodes:
+        return "No episodes found."
+    lines = ["=== Episode Timeline (Phase 3) ==="]
+    for ep in episodes:
+        lines.append(
+            f"\nEpisode {ep.episode_id} | dir={ep.direction or '?'} | outcome={ep.outcome}"
+        )
+        if ep.pressure_context:
+            lines.append(f"  pressure_context: {ep.pressure_context}")
+        for ev in (ep.events or [])[:20]:  # limit for readability
+            ts = ev.get("ts", "?")
+            src = ev.get("source", "")
+            et = ev.get("event_type", ev.get("intent", ""))
+            lines.append(f"  {ts} | {src}/{et} | { {k:v for k,v in ev.items() if k not in ('ts','source','event_type')} }")
+        if len(ep.events or []) > 20:
+            lines.append("  ... (truncated)")
+    return "\n".join(lines)
 
 
 def format_report(metrics: dict, *, quick_sl_sec: int = 5) -> str:
@@ -849,6 +1130,17 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Alias for --trend",
     )
+    parser.add_argument(
+        "--episodes",
+        action="store_true",
+        help="Output episode timelines from DECISION/EXEC/SIGNAL/FILL audits (Phase 3)",
+    )
+    parser.add_argument(
+        "--episode-id",
+        type=str,
+        default=None,
+        help="Filter to a specific episode_id when using --episodes",
+    )
     args = parser.parse_args(argv)
 
     for path in args.log_files:
@@ -868,6 +1160,13 @@ def main(argv: list[str] | None = None) -> int:
 
     lines = read_log_lines(args.log_files)
     summaries = parse_daily_summaries(lines)
+
+    if args.episodes:
+        episodes = compute_episodes(lines)
+        if args.episode_id:
+            episodes = [e for e in episodes if e.episode_id == args.episode_id]
+        print(format_episode_timeline(episodes))
+        return 0
 
     metrics = compute_metrics(lines, quick_sl_sec=args.quick_sl_sec)
 

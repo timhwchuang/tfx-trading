@@ -211,16 +211,33 @@ class TestEvaluatePure(unittest.TestCase):
 
         pos = _make_flat_position()
 
+        # use strategy with obs to trigger risk emit
+        obs = MagicMock()
+        strategy = VWAPMomentumStrategy(params=self.params, obs=obs)
         for r in (risk_blocked, risk_pending):
-            sig, _ = self.strategy.evaluate(
-                mkt,
-                pos,
-                r,
-                self.vol_threshold,
-                session_force_flatten_time=datetime.time(13, 45),
-                max_daily_loss_points=150.0,
-            )
-            self.assertIsNone(sig)
+            if r.block_new_entry:
+                with self.assertLogs("strategy_vwap_momentum.strategy", level=logging.INFO) as cap:
+                    sig, _ = strategy.evaluate(
+                        mkt,
+                        pos,
+                        r,
+                        self.vol_threshold,
+                        session_force_flatten_time=datetime.time(13, 45),
+                        max_daily_loss_points=150.0,
+                    )
+                self.assertIsNone(sig)
+                risk_logs = [line for line in cap.output if "DECISION_AUDIT" in line and "risk_blocked" in line]
+                self.assertTrue(len(risk_logs) >= 1)
+            else:
+                sig, _ = strategy.evaluate(
+                    mkt,
+                    pos,
+                    r,
+                    self.vol_threshold,
+                    session_force_flatten_time=datetime.time(13, 45),
+                    max_daily_loss_points=150.0,
+                )
+                self.assertIsNone(sig)
 
     def test_momentum_timeout_resets_state_and_prevents_entry(self) -> None:
         """Momentum times out after momentum_timeout_sec without a qualifying pullback.
