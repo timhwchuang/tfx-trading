@@ -17,6 +17,7 @@ class OrderSignal:
     exchange_ts: int = 0
     audit: SignalAudit | None = None
     slippage_points: int | None = None
+    signal_id: str = ""  # assigned by kernel (FT-001 Phase 2)
 
 
 @dataclass

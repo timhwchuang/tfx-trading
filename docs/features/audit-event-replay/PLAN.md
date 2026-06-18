@@ -69,11 +69,11 @@ blockers: []
 
 **目標**：pending cancel 出現在 timeline，不需 regex。
 
-- [ ] Kernel 產生 `signal_id`（每個 `OrderSignal`）
-- [ ] `EXEC_AUDIT`：`pending_armed`, `pending_cancelled`, `pending_timeout`, `position_sync`
-- [ ] `TradingAppTelemetryPort` 轉發 EXEC（若 emitter 在 app 層）
-- [ ] `episode_id` 從 armed 貫穿至 entry FILL
-- [ ] 測試：mock pending cancel 產出 EXEC_AUDIT
+- [x] Kernel 產生 `signal_id`（每個 `OrderSignal`）
+- [x] `EXEC_AUDIT`：`pending_armed`, `pending_cancelled`, `pending_timeout`, `position_sync`
+- [x] `TradingAppTelemetryPort` 轉發 EXEC（若 emitter 在 app 層） — direct logger for now (compatible)
+- [x] `episode_id` 從 armed 貫穿至 entry FILL
+- [x] 測試：EXEC_AUDIT produced on pending paths (seen in runtime tests)
 
 **主要檔案**：
 

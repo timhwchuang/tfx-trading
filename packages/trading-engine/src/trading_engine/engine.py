@@ -100,6 +100,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.pending_ioc_slippage = self._cfg.ioc_slippage_points
         self.pending_episode_id: str = ""
         self.pending_signal_id: str = ""
+        self._next_signal_seq: int = 0
+        self._current_signal_date: str = ""
         self.filled_qty = 0  # P2-1: 累計部分成交；IOC 結束前不全解鎖；多口管理前置（Mock+單測）
         self._resynced_position = False  # sync_positions 後待首 tick 校準 trailing_peak
         self._api_connected = True
@@ -393,6 +395,10 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                         self._telemetry.record_entry_signal()
                     elif signal.intent == "exit":
                         self._telemetry.record_exit_signal()
+                    if not getattr(signal, "signal_id", ""):
+                        signal.signal_id = self._make_signal_id(signal.exchange_ts or ts)
+                    if signal.audit is not None and not getattr(signal.audit, "signal_id", ""):
+                        signal.audit.signal_id = signal.signal_id
                     self._arm_pending(signal)
                     self._log_signal_audit(signal)
 
@@ -433,6 +439,22 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         if self._last_tick_exchange_dt is not None:
             return self._last_tick_exchange_dt.date()
         return datetime.date.today()
+
+    def _make_signal_id(self, ts: int) -> str:
+        """Generate per-day signal_id like 20260617-sig-007. Used for every OrderSignal (Phase 2)."""
+        try:
+            from trading_engine.calendar.taifex import TAIWAN_TZ
+
+            dt = datetime.datetime.fromtimestamp(ts, tz=TAIWAN_TZ)
+            date_str = dt.strftime("%Y%m%d")
+        except Exception:
+            dt = datetime.datetime.fromtimestamp(ts, tz=datetime.timezone.utc)
+            date_str = dt.strftime("%Y%m%d")
+        if date_str != self._current_signal_date:
+            self._current_signal_date = date_str
+            self._next_signal_seq = 0
+        self._next_signal_seq += 1
+        return f"{date_str}-sig-{self._next_signal_seq:03d}"
 
     def refresh_atr(self):
         try:

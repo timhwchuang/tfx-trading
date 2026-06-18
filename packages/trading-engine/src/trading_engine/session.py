@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import datetime
 import os
+import time
 
+from trading_engine.core.audit.exec_audit import ExecAudit, format_exec_audit
 from trading_engine.logging_setup import get_logger
 
 logger = get_logger()
@@ -153,8 +155,23 @@ class SessionMixin:
             same_direction = had_position and self.position_dir == new_dir
             preserve_peak = had_position and same_direction and not force_resync
 
+            qty_before = self.position_qty
             self.position_qty = int(matched.quantity)
+            qty_after = self.position_qty
             self.position_dir = new_dir
+
+            if qty_before != qty_after:
+                try:
+                    exec_audit = ExecAudit(
+                        event_type="position_sync",
+                        ts=int(time.time()),
+                        qty_before=qty_before,
+                        qty_after=qty_after,
+                        position_dir=new_dir,
+                    )
+                    logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
+                except Exception:
+                    pass
             self.entry_price = float(matched.price)
             if preserve_peak:
                 logger.info(

@@ -17,6 +17,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 - **FT-001 Phase 1** `DecisionAudit` + emitter in strategy; `episode_id` generation (date-seq); enriched `SignalAudit` (entry/exit fields); `EXEC` prep (pending ids stored in kernel).
 - Audit fields are optional; old logs/parsers/determinism unaffected.
 
+- **FT-001 Phase 2** Kernel `signal_id` assigned to every `OrderSignal`; `ExecAudit` + `EXEC_AUDIT` emissions for `pending_armed` / `pending_cancelled` / `pending_timeout` / `position_sync`.
+
 ### [0.2.2] - 2026-06-17
 
 #### Added

@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime
 import threading
 
+from trading_engine.core.audit.exec_audit import ExecAudit, format_exec_audit
 from trading_engine.core.audit.signal_audit import format_signal_audit
 from trading_engine.core.order_events import is_futures_deal, is_futures_order
 from trading_engine.core.trading_state import PendingIntent
@@ -74,11 +75,28 @@ class OrderExecutorMixin:
         )
         self.pending_episode_id = ""
         self.pending_signal_id = ""
+        if signal.signal_id:
+            self.pending_signal_id = signal.signal_id
         if signal.audit is not None:
             self.pending_episode_id = getattr(signal.audit, "episode_id", "") or ""
-            self.pending_signal_id = getattr(signal.audit, "signal_id", "") or ""
+            if not self.pending_signal_id:
+                self.pending_signal_id = getattr(signal.audit, "signal_id", "") or ""
         if signal.intent == PendingIntent.EXIT:
             self.exit_pending = True
+
+        # Emit EXEC_AUDIT for the armed pending (Phase 2)
+        try:
+            exec_audit = ExecAudit(
+                event_type="pending_armed",
+                ts=signal.exchange_ts or 0,
+                signal_id=signal.signal_id or self.pending_signal_id,
+                order_id=self.pending_order_id or "",
+                limit_price=self.pending_limit_price,
+                direction=signal.action,
+            )
+            logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
+        except Exception:
+            pass  # never break hot path
 
         # Defensive guard (logs only). Permanent invariant check.
         try:
@@ -470,6 +488,18 @@ class OrderExecutorMixin:
                     )
                 else:
                     logger.info("委託未成交/已取消，重置 pending")
+                # Emit EXEC cancel (Phase 2)
+                try:
+                    exec_audit = ExecAudit(
+                        event_type="pending_cancelled",
+                        ts=int(self.pending_exchange_ts or 0),
+                        signal_id=self.pending_signal_id,
+                        tag=tag if 'tag' in dir() else "",
+                        order_id=self.pending_order_id or "",
+                    )
+                    logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
+                except Exception:
+                    pass
                 self._clear_pending()
 
     def _handle_futures_deal(self, msg) -> bool:
@@ -745,6 +775,17 @@ class OrderExecutorMixin:
                 "Pending 超時 %.0fs 且補查無結果，重置 pending",
                 self._cfg.pending_timeout_sec,
             )
+            # Emit EXEC timeout (Phase 2)
+            try:
+                exec_audit = ExecAudit(
+                    event_type="pending_timeout",
+                    ts=int(self.pending_exchange_ts or 0),
+                    signal_id=self.pending_signal_id,
+                    pending_sec=self._cfg.pending_timeout_sec,
+                )
+                logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
+            except Exception:
+                pass
             intent = self.pending_intent
             self._clear_pending()
         self._alerts.send(
