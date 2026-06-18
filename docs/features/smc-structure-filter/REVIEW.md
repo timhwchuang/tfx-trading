@@ -1,0 +1,116 @@
+---
+id: FT-002
+slug: smc-structure-filter
+reviewer: senior-trading-professional
+reviewed: 2026-06-18
+spec_version: 2
+verdict: PASS_WITH_NOTES
+---
+
+# FT-002 SMC Structure Filter — 資深交易人員 Re-Review
+
+> 審閱對象：[`SPEC.md`](SPEC.md) v2（精煉後）、[`PLAN.md`](PLAN.md) v2。  
+> 角色：[`prompts/roles/senior-trading-professional.md`](../../../prompts/roles/senior-trading-professional.md)  
+> Gate 參照：[`txf-gates.md`](../../../prompts/roles/references/txf-gates.md)、[`uat/APP.md`](../../uat/APP.md) Phase 5
+
+**情境**：策略研究 / ft 設計審閱（非 Pilot Go/No-Go、非 Live）。
+
+---
+
+## 1. 關鍵分析
+
+### 對前一版 review 的回應 — 是否到位？
+
+| 前一版疑慮 | v2 狀態 | 判定 |
+|------------|---------|------|
+| FVG「完全回填」未定義 | §4.7 寫死 `low<=fvg_low AND high>=fvg_high`；partial touch 明確排除 | **PASS** |
+| swing pivot lag | §4.5 確認 lag = L 根 5m | **PASS** |
+| active_fvg 多個取誰 | §4.7 同向 + 最新未 mitigated | **PASS** |
+| range session 邊界 | §4.3 08:45 起算 + 夜盤排除 + `used_long_lookback` 剝離 | **PASS** |
+| structure_stale 未規範 | §6.3 RiskGate + 策略對稱 atr_stale | **PASS** |
+| no-lookahead | §4.2 1m/5m 雙層已收盤 | **PASS** |
+| sweep 互斥只寫 app | §5.2 三處 + §5.3 SWEEP 映射 | **PASS** |
+| Land 文件漂移 | §9 強制三份 package SPEC | **PASS** |
+| UAT vs Pilot 混淆 | §8.2 兩層 gate 表 | **PASS** |
+| harness armed 重算 | PLAN Phase 2 `as_of_ts` 重算 | **PASS** |
+| min_strength 誤解 | §1 + §4.10 雙重警告 | **PASS** |
+
+### 交易視角總評
+
+v2 把「discretionary SMC 畫線」壓成 **可測、可版本化的 v0.1**，方向正確。仍須記住：
+
+- 這仍是 **日內 5m 結構 proxy**，不是 order-flow 聖杯
+- swing 確認 lag（預設 2 根 5m = 10 分鐘）會讓濾網 **慢於** tick 爆量；這是設計取捨，不是 bug — harness 要看 veto 是否擋掉「慢半拍仍賺」的單
+- `bias==Neutral` 放行（permissive）保留微結構哲學，但代表 **結構濾網在 choppy 日可能幾乎不 veto** — CAL-8 要看 veto_rate 是否過低而無統計力
+
+**結論**：文件已達 **可開 Phase 1 實作** 水準。
+
+---
+
+## 2. 風險評估（含模型、執行、制度）
+
+### 模型風險（仍須 harness 驗證）
+
+- **Regime-specific**：低波日 `eff = |px-range_mid|/atr` 可能長期 Neutral → 濾網形同虛設；高波日 veto 可能過猛。三組 counterfactual 必做。
+- **FVG 在 TXF 假突破日**：mitigation 定義清楚，但 **假 FVG** 仍會產生；near-miss 審閱不可省。
+- **與 trend 重疊**：structure 與 trend 可能高度相關；若 delta 只比 trend 好 0.05 expectancy，**不值得**多一層複雜度 — CAL-8 要寫明「相對 trend 的增量」。
+
+### 執行風險
+
+- `structure_stale` 與 `atr_stale` 共用 refresh 週期 — kbars 掛了兩個都算不出，會 **雙重擋 entry**；合理，但 Ops 要認得 log 裡兩種 `risk_blocked`。
+- backtest 無 order book：harness 的 friction-adjusted 報表 **不能**當 Pilot 唯一依據。
+
+### 制度風險
+
+- §8.2 寫對了：**CAL-8 Go ≠ Pilot Ready**。勿在週報寫「SMC 過了可以 Pilot」。
+- 互斥 fail-fast 正確；sweep grid 若有人手改 jsonl 繞過，仍是人為風險 — 接受。
+
+---
+
+## 3. 建議行動或設計考量
+
+### Phase 1 前 — 無需再改 SPEC（可選小補）
+
+1. **實作時**在 `structure_veto` audit 加 `structure_as_of_bar_ts`（SPEC SHOULD 已涵蓋概念）— 方便 near-miss 對照「濾網用的是哪根 5m」。
+2. harness 報表固定輸出一列：**structure veto_rate vs trend veto_rate** 同區間對照。
+3. Phase 2 決策閘維持：**無正 delta → 不進 Phase 3** — 不要因工程動能硬推。
+
+### 交易校準（CAL-8 時我會看）
+
+- 三組 friction-adjusted expectancy 表
+- structure only 相對 trend only 的 **增量** Δexpectancy（多日穩定）
+- veto_rate 落在 15–45% 較健康；<5% 或 >70% 直接 No-Go
+- ≥3 near-miss：veto 後 30m 價格走勢（是否真擋掉好單）
+
+---
+
+## 4. 協作備註
+
+| 角色 | Re-review 後動作 |
+|------|------------------|
+| **Daily Reviewer** | Phase 2 報表模板進 WeeklyStatus；CAL-8 簽名欄 |
+| **永豐 API Specialist** | 驗證 §4.2 closed bar 與 API ts 對齊；模擬 vs 實盤 kbar 差異清單 |
+| **Ops** | UAT 強制 `KBARS_ARCHIVE=1`；structure_stale 演練腳本併入 Phase 4 UAT |
+| **工程** | Phase 3 完成時 **同 PR** 更新 engine SPEC，避免漂移 |
+
+---
+
+## 5. 免責與人類決策權
+
+本審閱為 **ft 設計 PASS（附註）**，不代表 SMC 有統計優勢、不代表可開 `structure_filter_enabled`、不代表 Pilot/Live 核准。
+
+**Verdict：`PASS_WITH_NOTES`** — 可進入 Phase 1 實作；統計優勢須等 Phase 2 harness + CAL-8。
+
+---
+
+## Phase 5 對照（交易視角 — 若日後 structure 參與 Pilot）
+
+> 僅在 CAL-8 Go **且** 人類決定將 structure 納入 Pilot 策略時適用；**現階段不適用**。
+
+- [ ] 樣本量（20 日 + 80 筆 + 最近 10 日 35 筆）
+- [ ] Expectancy gross + net / Sharpe / MDD
+- [ ] Tick 分層（type0_pct × conversion）
+- [ ] structure_veto near-miss ≥3 + 前 5 大虧損日親閱
+- [ ] 零 Critical（10 日）
+- [ ] determinism + 真實 tick/kbar audit 比對
+→ 結論：屆時另開 Pilot 審查，**不與 CAL-8 混為一談**

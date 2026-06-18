@@ -62,7 +62,8 @@
 
 | ID | Slug | Status | 文件 |
 | ---- | ---- | ------ | ---- |
-| FT-001 | audit-event-replay | Draft | [SPEC](features/audit-event-replay/SPEC.md) · [PLAN](features/audit-event-replay/PLAN.md) · [REVIEW](features/audit-event-replay/REVIEW.md) |
+| FT-001 | audit-event-replay | Landed | [SPEC](features/audit-event-replay/SPEC.md) · [PLAN](features/audit-event-replay/PLAN.md) · [REVIEW](features/audit-event-replay/REVIEW.md) |
+| FT-002 | smc-structure-filter | Draft | [SPEC](features/smc-structure-filter/SPEC.md) · [PLAN](features/smc-structure-filter/PLAN.md) · [REVIEW](features/smc-structure-filter/REVIEW.md) |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 
@@ -90,3 +91,4 @@
 | 交易視角 / Pilot gate？ | **`/senior-trading-professional`** → [`prompts/roles/`](../prompts/roles/) |
 | 規劃中能力 / 開 ft？ | [`features/README.md`](features/README.md) |
 | Audit 事件回放？ | **FT-001** → [`features/audit-event-replay/`](features/audit-event-replay/) |
+| SMC 結構濾網？ | **FT-002** → [`features/smc-structure-filter/`](features/smc-structure-filter/) |

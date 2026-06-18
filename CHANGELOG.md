@@ -8,6 +8,16 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 ---
 
+## Docs
+
+### [Unreleased]
+
+#### Added
+
+- **FT-002** SMC structure filter: [`docs/features/smc-structure-filter/`](docs/features/smc-structure-filter/) SPEC v2（frozen §4 FVG/BOS/swing lag/session slice）、PLAN v2、`REVIEW.md` 資深交易人員 re-review（PASS_WITH_NOTES）；[`docs/TODO.md`](docs/TODO.md) §P6-SMC-CAL
+
+---
+
 ## trading-engine
 
 ### [Unreleased]

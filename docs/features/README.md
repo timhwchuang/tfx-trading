@@ -8,6 +8,7 @@
 | ID | Slug | Status | Opened | Target | 文件 |
 |----|------|--------|--------|--------|------|
 | FT-001 | [audit-event-replay](audit-event-replay/SPEC.md) | **Landed** | 2026-06-17 | UAT→Pilot | [SPEC](audit-event-replay/SPEC.md) · [PLAN](audit-event-replay/PLAN.md) · [REVIEW](audit-event-replay/REVIEW.md) · **`/audit-event-replay`** |
+| FT-002 | [smc-structure-filter](smc-structure-filter/SPEC.md) | **Draft** | 2026-06-18 | UAT | [SPEC](smc-structure-filter/SPEC.md) · [PLAN](smc-structure-filter/PLAN.md) · [REVIEW](smc-structure-filter/REVIEW.md) |
 
 ## 狀態定義
 
