@@ -177,16 +177,20 @@ class TestParamSweep(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             cache_dir = Path(tmp)
             with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
-                results = sweep(
-                    grid,
-                    dates_train=[datetime.date(2026, 6, 12)],
-                    dates_valid=[datetime.date(2026, 6, 13)],
-                    code="TXFR1",
-                    cache_dir=cache_dir,
-                )
+                with self.assertLogs("sweep.param_sweep", level="WARNING") as cap:
+                    results = sweep(
+                        grid,
+                        dates_train=[datetime.date(2026, 6, 12)],
+                        dates_valid=[datetime.date(2026, 6, 13)],
+                        code="TXFR1",
+                        cache_dir=cache_dir,
+                    )
         self.assertEqual(len(results), 0)
+        self.assertTrue(
+            any("skip mutually exclusive regime combo" in line for line in cap.output)
+        )
 
-    def test_sweep_with_structure_params_attaches_veto_metrics(self):
+    def test_sweep_with_structure_params_attaches_structure_veto_metrics(self):
         ticks = [make_replay_tick(datetime.datetime(2026, 6, 12, 9, 0, 0))]
 
         def fake_replay(_code, _dates, cache_dir=None):
@@ -207,7 +211,8 @@ class TestParamSweep(unittest.TestCase):
                 )
         self.assertEqual(len(results), 2)
         for row in results:
-            self.assertIn("veto_metrics", row)
+            self.assertIn("structure_veto_metrics", row)
+            self.assertNotIn("veto_metrics", row)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ import datetime
 from typing import Any, Optional
 
 from core.runtime_config import RuntimeConfig
-from storage.kbar_loader import KBarRecord, _kbars_raw_to_records
+from storage.kbar_loader import KBarRecord, kbars_raw_to_records
 from strategy_vwap_momentum.structure import StructureParams, StructureState, compute_structure
 
 
@@ -24,7 +24,13 @@ class TradingAppStructureRefresh:
         if isinstance(kbars, list) and kbars and isinstance(kbars[0], KBarRecord):
             bars = list(kbars)
         else:
-            bars = _kbars_raw_to_records(kbars)
+            bars = kbars_raw_to_records(kbars)
+
+        anchor = exchange_dt
+        if anchor is None and bars:
+            anchor = bars[-1].ts + datetime.timedelta(minutes=1)
+        if anchor is None:
+            anchor = datetime.datetime.now()
 
         params = StructureParams(
             structure_filter_enabled=True,
@@ -39,7 +45,6 @@ class TradingAppStructureRefresh:
                 cfg.live_get("STRUCTURE_MIN_STRENGTH", cfg.structure_min_strength)
             ),
         )
-        anchor = exchange_dt or datetime.datetime.now()
         return compute_structure(
             bars,
             atr=atr,

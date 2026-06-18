@@ -74,7 +74,7 @@ def load_kbars_csv(path: Path) -> List[KBarRecord]:
     return bars
 
 
-def _kbars_raw_to_records(raw: Any) -> List[KBarRecord]:
+def kbars_raw_to_records(raw: Any) -> List[KBarRecord]:
     ts_list = list(raw.ts)
     opens = list(raw.Open)
     highs = list(raw.High)
@@ -106,7 +106,7 @@ def fetch_kbars_for_date(
         start=date.isoformat(),
         end=date.isoformat(),
     )
-    return _kbars_raw_to_records(raw)
+    return kbars_raw_to_records(raw)
 
 
 def download_and_cache_kbars(

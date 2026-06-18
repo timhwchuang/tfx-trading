@@ -9,8 +9,8 @@ from typing import Any
 from storage.kbar_loader import (
     DEFAULT_CACHE_DIR,
     KBarRecord,
-    _kbars_raw_to_records,
     kbars_cache_path,
+    kbars_raw_to_records,
     save_kbars_csv,
 )
 
@@ -25,7 +25,7 @@ def archive_kbars_snapshot(
     cache_dir: Path = DEFAULT_CACHE_DIR,
 ) -> int:
     """Write today's kbars API response to ``{code}_kbars_{date}.csv``."""
-    bars = _kbars_raw_to_records(raw_kbars)
+    bars = kbars_raw_to_records(raw_kbars)
     if trade_date is not None:
         bars = [b for b in bars if b.ts.date() == trade_date]
     if not bars:

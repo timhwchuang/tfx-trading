@@ -332,6 +332,31 @@ class TestEvaluatePure(unittest.TestCase):
         )
         self.assertIsNone(sig)
 
+    def test_structure_stale_allows_exit_when_position_open(self) -> None:
+        """FT-002 §6.3: structure_stale blocks entry only; open positions may still exit."""
+        self.strategy.params._cfg._overlay["STRUCTURE_FILTER_ENABLED"] = True
+        risk = _make_risk(structure_stale=True)
+        mkt = _make_market(price=18010.0 + 25, vwap=18020.0, current_atr=10.0, ts=1_700_000_500)
+        pos = PositionSnapshot(
+            has_position=True,
+            position_dir="Long",
+            entry_price=18010.0,
+            trailing_peak=18035.0,
+            entry_exchange_ts=1_700_000_100,
+            ticks_since_entry=300,
+            qty=1,
+        )
+        sig, _ = self.strategy.evaluate(
+            mkt,
+            pos,
+            risk,
+            self.vol_threshold,
+            session_force_flatten_time=datetime.time(13, 45),
+            max_daily_loss_points=150.0,
+        )
+        self.assertIsNotNone(sig)
+        self.assertEqual(sig.intent, "exit")
+
     def test_reconnect_warmup_blocks_flat_entry(self) -> None:
         risk = _make_risk(reconnect_warmup_active=True)
         sig, _ = self.strategy.evaluate(

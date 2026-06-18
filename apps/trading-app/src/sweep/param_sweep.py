@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,7 @@ from strategy_vwap_momentum import apply_strategy_params, restore_strategy_param
 from sweep.determinism_check import _run_with_audit_capture
 
 DEFAULT_PENALTY = 50.0
+logger = logging.getLogger(__name__)
 
 # Backward-compatible aliases for tests
 _apply_params = apply_strategy_params
@@ -160,6 +162,9 @@ def sweep(
     for combo in combos:
         params = dict(zip(keys, combo))
         if _regime_params_conflict(params):
+            logger.warning(
+                "param_sweep: skip mutually exclusive regime combo %s", params
+            )
             continue
         cfg = default_runtime_config()
         saved = apply_strategy_params(params, cfg)
@@ -177,7 +182,8 @@ def sweep(
             # This makes veto_metrics a real (if still synthetic-toy fwd for A-class) conditional
             # expectation instead of an empty-shell always-0 structure.
             # B-class will supply better get_forward_pnl from replay + real UAT logs.
-            veto_metrics = None
+            veto_metrics: dict[str, Any] | None = None
+            structure_veto_metrics: dict[str, Any] | None = None
             if any(
                 str(k).startswith("trend_")
                 or str(k).upper().startswith("TREND_")
@@ -229,7 +235,7 @@ def sweep(
                     else:
                         bars_1m = []
                     if candidates and bars_1m:
-                        veto_metrics = compute_regime_veto_calibration(
+                        structure_veto_metrics = compute_regime_veto_calibration(
                             candidates,
                             scenario="structure_only",
                             bars_1m=bars_1m,
@@ -239,11 +245,11 @@ def sweep(
                             b_class=replay_fwd is not None,
                         )
                     else:
-                        veto_metrics = {
+                        structure_veto_metrics = {
                             "note": "structure harness skipped (no armed or kbars)"
                         }
                 except Exception:
-                    veto_metrics = {"note": "structure harness call failed"}
+                    structure_veto_metrics = {"note": "structure harness call failed"}
             row = {
                 "params": params,
                 "train_kpi": train_kpi,
@@ -252,6 +258,8 @@ def sweep(
             }
             if veto_metrics is not None:
                 row["veto_metrics"] = veto_metrics
+            if structure_veto_metrics is not None:
+                row["structure_veto_metrics"] = structure_veto_metrics
             results.append(row)
         finally:
             restore_strategy_params(saved, cfg)
