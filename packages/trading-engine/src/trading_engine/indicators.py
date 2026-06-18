@@ -34,6 +34,14 @@ class IndicatorState:
         self._atr_long_lookback_date: datetime.date | None = None
         self.trend_dir = "Flat"
         self.trend_strength = 0.0
+        self.structure_bias = "Neutral"
+        self.structure_strength = 0.0
+        self.structure_in_discount = False
+        self.structure_in_premium = False
+        self.structure_fvg_low: float | None = None
+        self.structure_fvg_high: float | None = None
+        self.structure_sweep_reclaim = False
+        self.last_structure_refresh = 0.0
 
     def update_vwap(self, ts: int, price: float, volume: int) -> None:
         self.vwap_window.append((ts, price, volume))
@@ -78,6 +86,13 @@ class IndicatorState:
             current_atr=self.current_atr,
             trend_dir=self.trend_dir,
             trend_strength=self.trend_strength,
+            structure_bias=self.structure_bias,
+            structure_strength=self.structure_strength,
+            structure_in_discount=self.structure_in_discount,
+            structure_in_premium=self.structure_in_premium,
+            structure_fvg_low=self.structure_fvg_low,
+            structure_fvg_high=self.structure_fvg_high,
+            structure_sweep_reclaim=self.structure_sweep_reclaim,
         )
 
     @classmethod

@@ -34,6 +34,13 @@ class MarketSnapshot:
     current_atr: float
     trend_dir: str
     trend_strength: float
+    structure_bias: str = "Neutral"
+    structure_strength: float = 0.0
+    structure_in_discount: bool = False
+    structure_in_premium: bool = False
+    structure_fvg_low: float | None = None
+    structure_fvg_high: float | None = None
+    structure_sweep_reclaim: bool = False
 
 
 @dataclass
@@ -70,6 +77,7 @@ class RiskGate:
     after_flatten_time: bool
     force_flatten: bool
     atr_stale: bool = False
+    structure_stale: bool = False
     reconnect_warmup_active: bool = False
 
 

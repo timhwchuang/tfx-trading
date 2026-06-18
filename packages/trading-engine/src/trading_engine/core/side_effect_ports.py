@@ -72,6 +72,41 @@ class NullTrendRefreshPort:
         return "Flat", 0.0
 
 
+class StructureRefreshPort(Protocol):
+    def refresh_structure(
+        self,
+        kbars: Any,
+        *,
+        exchange_dt: datetime.datetime | None,
+        used_long_lookback: bool,
+        atr: float,
+        cfg: RuntimeConfig,
+    ) -> Any: ...
+
+
+class NullStructureRefreshPort:
+    def refresh_structure(
+        self,
+        kbars: Any,
+        *,
+        exchange_dt: datetime.datetime | None,
+        used_long_lookback: bool,
+        atr: float,
+        cfg: RuntimeConfig,
+    ) -> Any:
+        from types import SimpleNamespace
+
+        return SimpleNamespace(
+            bias="Neutral",
+            strength=0.0,
+            in_discount=False,
+            in_premium=False,
+            active_fvg_low=None,
+            active_fvg_high=None,
+            sweep_reclaim=False,
+        )
+
+
 class NullTelemetryPort:
     """Minimal telemetry for tests / backtest without app-layer observability."""
 
@@ -170,8 +205,10 @@ __all__ = [
     "ArchivePort",
     "NullAlertPort",
     "NullArchivePort",
+    "NullStructureRefreshPort",
     "NullTelemetryPort",
     "NullTrendRefreshPort",
+    "StructureRefreshPort",
     "TelemetryPort",
     "TrendRefreshPort",
 ]

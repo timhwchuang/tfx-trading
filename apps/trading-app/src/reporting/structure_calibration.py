@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import csv
 import datetime
+import json
 import statistics
 from dataclasses import dataclass
 from pathlib import Path
@@ -668,6 +669,78 @@ def run_b_class_structure_calibration(
         4,
     ) if candidates else 0.0
     return base
+
+
+def armed_candidates_from_decision_dicts(
+    decisions: Iterable[Mapping[str, Any]],
+) -> list[ArmedCandidate]:
+    """Build armed candidates from parsed DECISION_AUDIT JSON dicts."""
+    audits = [
+        DecisionAudit(
+            event_type=str(d.get("event_type", "")),
+            ts=int(d.get("ts", 0)),
+            episode_id=str(d.get("episode_id", "")),
+            direction=str(d.get("direction", "Long")),
+            trigger_price=float(d.get("trigger_price", d.get("price", 0.0))),
+            atr=float(d.get("atr", 0.0)),
+            vwap=float(d.get("vwap", 0.0)),
+        )
+        for d in decisions
+        if d.get("event_type") == "momentum_armed"
+    ]
+    return parse_momentum_armed(audits)
+
+
+def run_structure_sensitivity_sweep(
+    *,
+    log_lines: list[str] | None = None,
+    log_paths: list[Path] | None = None,
+    code: str,
+    dates: list[datetime.date],
+    kbar_cache_dir: Path | str = DEFAULT_KBAR_CACHE_DIR,
+    tick_cache_dir: Path | str = DEFAULT_CACHE_DIR,
+    forward_policy: ForwardPnlPolicy | None = None,
+    friction: FrictionSettings | None = None,
+    min_strength_grid: list[float] | None = None,
+    output_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """CAL grid: walk structure_min_strength on fixed log + kbar + tick replay."""
+    grid = min_strength_grid or DEFAULT_STRUCTURE_MIN_STRENGTH_GRID
+    rows: list[dict[str, Any]] = []
+    for ms in grid:
+        sp = StructureParams(structure_min_strength=float(ms))
+        result = run_b_class_structure_calibration(
+            log_lines=log_lines,
+            log_paths=log_paths,
+            code=code,
+            dates=dates,
+            kbar_cache_dir=kbar_cache_dir,
+            tick_cache_dir=tick_cache_dir,
+            forward_policy=forward_policy,
+            structure_params=sp,
+            friction=friction,
+        )
+        cf = result.get("counterfactuals") or {}
+        struct_only = cf.get("structure_only") or {}
+        comp = cf.get("comparison") or {}
+        rows.append(
+            {
+                "params": {"structure_min_strength": ms},
+                "status": result.get("status"),
+                "veto_metrics": struct_only,
+                "comparison": comp,
+                "delta_structure_vs_trend": comp.get("delta_structure_vs_trend"),
+            }
+        )
+
+    if output_path is not None:
+        out = Path(output_path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with out.open("w", encoding="utf-8") as f:
+            for row in rows:
+                f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+    return rows
 
 
 def make_synthetic_armed_scenario(

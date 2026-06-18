@@ -60,6 +60,10 @@ class Settings:
     trend_ema_period: int
     trend_slope_min: float
     trend_min_strength: float
+    structure_filter_enabled: bool
+    structure_timeframe_min: int
+    structure_swing_lookback: int
+    structure_min_strength: float
     trail_atr_k: float
     trail_points_floor: float
     vwap_stop_atr_k: float
@@ -121,6 +125,13 @@ def load_config(path: str | Path | None = None) -> Settings:
         raw = yaml.safe_load(f) or {}
 
     strategy = _section(raw, "strategy")
+    if bool(strategy.get("structure_filter_enabled", False)) and bool(
+        strategy.get("trend_filter_enabled", False)
+    ):
+        raise ValueError(
+            "config strategy: structure_filter_enabled and trend_filter_enabled "
+            "are mutually exclusive"
+        )
     session = _section(raw, "session")
     opening = _section(raw, "opening_volume")
     logging_cfg = _section(raw, "logging")
@@ -164,6 +175,10 @@ def load_config(path: str | Path | None = None) -> Settings:
         trend_ema_period=int(strategy.get("trend_ema_period", 20)),
         trend_slope_min=float(strategy.get("trend_slope_min", 0.0)),
         trend_min_strength=float(strategy.get("trend_min_strength", 0.0)),
+        structure_filter_enabled=bool(strategy.get("structure_filter_enabled", False)),
+        structure_timeframe_min=int(strategy.get("structure_timeframe_min", 5)),
+        structure_swing_lookback=int(strategy.get("structure_swing_lookback", 2)),
+        structure_min_strength=float(strategy.get("structure_min_strength", 0.0)),
         trail_atr_k=float(strategy.get("trail_atr_k", 0.25)),
         trail_points_floor=float(
             strategy.get("trail_points_floor", strategy.get("trail_points", 8))
@@ -265,6 +280,10 @@ TREND_MODE = settings.trend_mode
 TREND_EMA_PERIOD = settings.trend_ema_period
 TREND_SLOPE_MIN = settings.trend_slope_min
 TREND_MIN_STRENGTH = settings.trend_min_strength
+STRUCTURE_FILTER_ENABLED = settings.structure_filter_enabled
+STRUCTURE_TIMEFRAME_MIN = settings.structure_timeframe_min
+STRUCTURE_SWING_LOOKBACK = settings.structure_swing_lookback
+STRUCTURE_MIN_STRENGTH = settings.structure_min_strength
 TRAIL_ATR_K = settings.trail_atr_k
 TRAIL_POINTS_FLOOR = settings.trail_points_floor
 VWAP_STOP_ATR_K = settings.vwap_stop_atr_k

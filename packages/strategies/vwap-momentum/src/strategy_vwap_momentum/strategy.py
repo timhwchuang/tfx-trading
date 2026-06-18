@@ -154,7 +154,10 @@ class VWAPMomentumStrategy(BaseStrategy):
                 return self.manage_exit(market, position)
             return None, effects
 
-        if risk.reconnect_warmup_active or risk.atr_stale:
+        structure_stale_block = (
+            self.params.structure_filter_enabled and risk.structure_stale
+        )
+        if risk.reconnect_warmup_active or risk.atr_stale or structure_stale_block:
             if position.has_position:
                 if risk.force_flatten:
                     return self.session_force_flatten_signal(

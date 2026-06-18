@@ -12,6 +12,7 @@ from trading_engine.core.side_effect_ports import (
     NullAlertPort,
     NullArchivePort,
     NullTelemetryPort,
+    NullStructureRefreshPort,
     NullTrendRefreshPort,
 )
 from trading_engine.core.strategy import Strategy
@@ -55,6 +56,7 @@ class BacktestEngine:
         clock: VirtualClock | None = None,
         telemetry: Any | None = None,
         trend_refresh: Any | None = None,
+        structure_refresh: Any | None = None,
         alerts: Any | None = None,
         archive: Any | None = None,
         order_adapter: Any | None = None,
@@ -76,6 +78,7 @@ class BacktestEngine:
             order_adapter=adapter,
             telemetry=telemetry or NullTelemetryPort(),
             trend_refresh=trend_refresh or NullTrendRefreshPort(),
+            structure_refresh=structure_refresh or NullStructureRefreshPort(),
             alerts=alerts or NullAlertPort(),
             archive=archive or NullArchivePort(),
         )

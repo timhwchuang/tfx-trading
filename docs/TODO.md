@@ -103,16 +103,16 @@
 > **前提**：`structure_filter_enabled` 預設 **false**；與 `trend_filter_enabled` **互斥**（config fail-fast）。開啟前必過 **CAL-8** 人類簽核。  
 > **設計真相**：[`docs/features/smc-structure-filter/SPEC.md`](features/smc-structure-filter/SPEC.md) · 實作計劃 [`PLAN.md`](features/smc-structure-filter/PLAN.md)
 
-**A 類（合成，待 Phase 1）**
+**A 類（合成）**
 
-- [ ] CAL-SMC-1：`structure.py` + `test_structure.py`（FVG/BOS/sweep、gap guard）
-- [ ] CAL-SMC-2：`regime_allows_entry` 互斥單元測試
+- [x] CAL-SMC-1：`structure.py` + `test_structure.py`（FVG/BOS/sweep、gap guard）
+- [x] CAL-SMC-2：`regime_allows_entry` 互斥單元測試
 
 **B 類（真實 UAT 資料）**
 
 - [ ] **1. 累積**：UAT 連續 **≥5 交易日**；`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`；log 含 `structure_veto`
 - [x] **2. Harness**：`structure_calibration_cli`（見 ft PLAN Phase 2）
-- [ ] **3. Sweep**：`structure_min_strength` grid（見 ft SPEC §8）
+- [x] **3. Sweep**：`structure_min_strength` grid（`structure_calibration_cli --sweep` + `param_sweep`）
 - [x] **4. Counterfactual**：分開跑 — 無濾網 / structure only / trend only（harness 內建；互斥，不得同時開）
 - [ ] **5. CAL-8 Go/No-Go**：人類簽核 → [`WeeklyStatus.md`](WeeklyStatus.md)；**No-Go** 則維持 `structure_filter_enabled=false`
 

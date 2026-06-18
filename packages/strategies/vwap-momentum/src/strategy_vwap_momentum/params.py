@@ -19,7 +19,7 @@ class StrategyParams:
     _cfg: RuntimeConfig
 
     def _live(self, const: str, snake: str) -> Any:
-        return self._cfg.live_get(const, getattr(self._cfg, snake))
+        return self._cfg.live_get(const, getattr(self._cfg, snake, None))
 
     @property
     def entry_band_points(self) -> float:
@@ -96,6 +96,22 @@ class StrategyParams:
     @property
     def trend_filter_enabled(self) -> bool:
         return bool(self._live("TREND_FILTER_ENABLED", "trend_filter_enabled"))
+
+    @property
+    def structure_filter_enabled(self) -> bool:
+        return bool(self._live("STRUCTURE_FILTER_ENABLED", "structure_filter_enabled"))
+
+    @property
+    def structure_timeframe_min(self) -> int:
+        return int(self._live("STRUCTURE_TIMEFRAME_MIN", "structure_timeframe_min"))
+
+    @property
+    def structure_swing_lookback(self) -> int:
+        return int(self._live("STRUCTURE_SWING_LOOKBACK", "structure_swing_lookback"))
+
+    @property
+    def structure_min_strength(self) -> float:
+        return float(self._live("STRUCTURE_MIN_STRENGTH", "structure_min_strength"))
 
     @property
     def momentum_timeout_sec(self) -> int:

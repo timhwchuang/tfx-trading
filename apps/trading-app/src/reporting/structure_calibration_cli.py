@@ -14,6 +14,7 @@ from reporting.structure_calibration import (
     COUNTERFACTUAL_SCENARIOS,
     TrendHarnessConfig,
     run_b_class_structure_calibration,
+    run_structure_sensitivity_sweep,
 )
 from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR
 from storage.tick_loader import DEFAULT_CACHE_DIR
@@ -159,6 +160,16 @@ def main(argv: list[str] | None = None) -> int:
         default=2.0,
         help="Round-trip friction points when --friction-enabled",
     )
+    parser.add_argument(
+        "--sweep",
+        action="store_true",
+        help="Run structure_min_strength sensitivity grid on log + kbar + tick replay",
+    )
+    parser.add_argument(
+        "--sweep-output",
+        type=Path,
+        help="Write sweep_result.jsonl when --sweep",
+    )
     parser.add_argument("--json", action="store_true", help="JSON output")
     args = parser.parse_args(argv)
 
@@ -192,10 +203,34 @@ def main(argv: list[str] | None = None) -> int:
         output_dir=args.output_dir,
     )
 
+    if args.sweep:
+        sweep_rows = run_structure_sensitivity_sweep(
+            log_paths=args.log_files,
+            code=args.code,
+            dates=dates,
+            kbar_cache_dir=args.kbar_cache_dir,
+            tick_cache_dir=args.cache_dir,
+            forward_policy=policy,
+            friction=friction,
+            output_path=args.sweep_output,
+        )
+        result["sensitivity_sweep"] = sweep_rows
+
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         print(format_structure_calibration_report(result))
+        if args.sweep and result.get("sensitivity_sweep"):
+            print()
+            print("=== structure_min_strength sensitivity ===")
+            for row in result["sensitivity_sweep"]:
+                vm = row.get("veto_metrics") or {}
+                print(
+                    f"min_strength={row['params'].get('structure_min_strength')} "
+                    f"delta_net={vm.get('delta_expectancy_net')} "
+                    f"veto_rate={vm.get('veto_rate')} "
+                    f"vs_trend={row.get('delta_structure_vs_trend')}"
+                )
 
     status = result.get("status", "")
     if status in ("ok", "ok_no_ticks"):

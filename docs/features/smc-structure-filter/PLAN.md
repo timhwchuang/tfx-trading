@@ -85,7 +85,7 @@ blockers: []
 
 - [x] `bash scripts/run-all-tests.sh` 全綠
 - [x] **無** engine / app runtime 改動
-- [ ] 文件：Phase 1 僅驗演算法；**不**構成 CAL-8 依據（SPEC §1）
+- [x] 文件：Phase 1 僅驗演算法；**不**構成 CAL-8 依據（SPEC §1）
 
 ### Phase 2 — Offline harness
 
@@ -114,27 +114,28 @@ blockers: []
 
 | 檔案 | 變更 |
 |------|------|
-| [`side_effect_ports.py`](../../../packages/trading-engine/src/trading_engine/core/side_effect_ports.py) | `StructureRefreshPort`, `NullStructureRefreshPort` |
-| [`types.py`](../../../packages/trading-engine/src/trading_engine/core/types.py) | `MarketSnapshot` + `RiskGate.structure_stale` |
-| [`settings.py`](../../../packages/trading-engine/src/trading_engine/settings.py) | `structure_*` 欄位 |
-| [`runtime_config.py`](../../../packages/trading-engine/src/trading_engine/core/runtime_config.py) | `SWEEP_FIELD_TO_CONST` + `_CONST_TO_SNAKE` + 互斥 in `apply_strategy_params` |
-| [`indicators.py`](../../../packages/trading-engine/src/trading_engine/indicators.py) | structure 快取 + `last_structure_refresh` |
-| [`engine.py`](../../../packages/trading-engine/src/trading_engine/engine.py) | `_is_structure_stale`, `_risk_gate`, `refresh_atr` 掛載 |
-| [`structure_refresh.py`](../../../apps/trading-app/src/integrations/structure_refresh.py) | `used_long_lookback` 剝離（SPEC §4.3） |
-| [`config.yaml`](../../../apps/trading-app/config/config.yaml) | 新欄位預設 false |
-| [`config.py`](../../../apps/trading-app/src/config.py) | Settings + load 互斥 fail-fast |
-| [`params.py`](../../../packages/strategies/vwap-momentum/src/strategy_vwap_momentum/params.py) | `structure_*` |
-| backtest bootstrap / [`engine.py`](../../../packages/trading-backtest/src/trading_backtest/engine.py) | 注入 `StructureRefreshPort` |
+| [x] [`side_effect_ports.py`](../../../packages/trading-engine/src/trading_engine/core/side_effect_ports.py) | `StructureRefreshPort`, `NullStructureRefreshPort` |
+| [x] [`types.py`](../../../packages/trading-engine/src/trading_engine/core/types.py) | `MarketSnapshot` + `RiskGate.structure_stale` |
+| [x] [`settings.py`](../../../packages/trading-engine/src/trading_engine/settings.py) | `structure_*` 欄位 |
+| [x] [`runtime_config.py`](../../../packages/trading-engine/src/trading_engine/core/runtime_config.py) | `SWEEP_FIELD_TO_CONST` + `_CONST_TO_SNAKE` + 互斥 in `apply_overlay` |
+| [x] [`indicators.py`](../../../packages/trading-engine/src/trading_engine/indicators.py) | structure 快取 + `last_structure_refresh` |
+| [x] [`engine.py`](../../../packages/trading-engine/src/trading_engine/engine.py) | `_is_structure_stale`, `_risk_gate`, `refresh_atr` 掛載 |
+| [x] [`structure_refresh.py`](../../../apps/trading-app/src/integrations/structure_refresh.py) | `used_long_lookback` 剝離（SPEC §4.3） |
+| [x] [`config.yaml`](../../../apps/trading-app/config/config.yaml) | 新欄位預設 false |
+| [x] [`config.py`](../../../apps/trading-app/src/config.py) | Settings + load 互斥 fail-fast |
+| [x] [`params.py`](../../../packages/strategies/vwap-momentum/src/strategy_vwap_momentum/params.py) | `structure_*` |
+| [x] backtest bootstrap / [`engine.py`](../../../packages/trading-backtest/src/trading_backtest/engine.py) | 注入 `StructureRefreshPort` |
+| [x] [`param_sweep.py`](../../../apps/trading-app/src/sweep/param_sweep.py) + harness `--sweep` | `structure_min_strength` grid + 互斥跳過 |
 
 **測試**
 
-- [ ] `test_structure_stale_blocks_entry_allows_exit`（對照 `test_atr_stale_and_reconnect_guards.py`）
-- [ ] filter off：現有 strategy / determinism 測試 **無差異**
+- [x] `test_structure_stale_guards` + strategy `structure_stale` entry block（filter on）
+- [x] filter off：現有 strategy / determinism 測試 **無差異**
 
 **驗收**
 
-- [ ] backtest smoke 通過
-- [ ] `structure_filter_enabled=false` → 與 main 行為等價
+- [x] backtest smoke 通過
+- [x] `structure_filter_enabled=false` → 與 main 行為等價
 
 ### Phase 4 — Strategy + audit + sweep
 

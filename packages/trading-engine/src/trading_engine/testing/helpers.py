@@ -10,6 +10,7 @@ from trading_engine.core.side_effect_ports import (
     NullAlertPort,
     NullArchivePort,
     NullTelemetryPort,
+    NullStructureRefreshPort,
     NullTrendRefreshPort,
 )
 from trading_engine.core.strategy import BaseStrategy, Strategy, StrategySideEffects
@@ -42,6 +43,7 @@ def make_host(
         order_adapter=MockOrderAdapter(broker),
         telemetry=NullTelemetryPort(),
         trend_refresh=NullTrendRefreshPort(),
+        structure_refresh=NullStructureRefreshPort(),
         alerts=NullAlertPort(),
         archive=NullArchivePort(),
     )

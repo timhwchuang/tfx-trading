@@ -22,6 +22,22 @@
 
 Phase 5 審核前另附：**前 5 大虧損日**表（日期、round-trip、當日 net、備註）。
 
+## P6-SMC-CAL 報表模板（CAL-8 用）
+
+跑完 harness 後填（`structure_calibration_cli` + `--friction-enabled`）：
+
+| 欄位 | 來源 |
+|------|------|
+| 三組 counterfactual `delta_expectancy_net` | CLI 輸出 `no_filter` / `structure_only` / `trend_only` |
+| `delta_structure_vs_trend` | CLI `comparison` 區塊 |
+| `structure_veto_rate` vs `trend_veto_rate` | 同上 |
+| `conversion_30s_rate` | armed → entry 30s |
+| `phase3_gate` | 工具提示（人類仍須簽 CAL-8） |
+| sweep 最佳 `structure_min_strength` | `--sweep --sweep-output sweep.jsonl` |
+| near-miss ≥3（Phase 4+ live `structure_veto`） | 人工審閱摘要 |
+
+**CAL-8 結論**：Go / No-Go + 簽名欄（UAT Ready ≠ Pilot Ready，見 ft SPEC §8.2）
+
 ## 範本（複製用）
 
 ```markdown

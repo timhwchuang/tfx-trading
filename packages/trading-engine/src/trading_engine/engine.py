@@ -17,7 +17,9 @@ from trading_engine.core.side_effect_ports import (
     NullAlertPort,
     NullArchivePort,
     NullTelemetryPort,
+    NullStructureRefreshPort,
     NullTrendRefreshPort,
+    StructureRefreshPort,
     TelemetryPort,
     TrendRefreshPort,
 )
@@ -49,6 +51,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         alerts: AlertPort | None = None,
         archive: ArchivePort | None = None,
         trend_refresh: TrendRefreshPort | None = None,
+        structure_refresh: StructureRefreshPort | None = None,
         calendar: MarketCalendarPort | None = None,
     ):
         if runtime_config is None:
@@ -60,6 +63,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._alerts = alerts or NullAlertPort()
         self._archive = archive or NullArchivePort()
         self._trend_refresh = trend_refresh or NullTrendRefreshPort()
+        self._structure_refresh = structure_refresh or NullStructureRefreshPort()
         self._calendar = calendar or TaifexMarketCalendar()
         if api is None:
             raise TypeError("api is required; inject a BrokerPort at the app layer")
@@ -283,6 +287,17 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         stale_after = int(self._cfg.atr_refresh_sec * self._cfg.atr_stale_multiplier)
         return ts - success_ts > stale_after
 
+    def _is_structure_stale(self, ts: int) -> bool:
+        if not self._cfg.live_get(
+            "STRUCTURE_FILTER_ENABLED", self._cfg.structure_filter_enabled
+        ):
+            return False
+        success_ts = int(self.indicators.last_structure_refresh)
+        if success_ts <= 0:
+            return True
+        stale_after = int(self._cfg.atr_refresh_sec * self._cfg.atr_stale_multiplier)
+        return ts - success_ts > stale_after
+
     def _is_reconnect_warmup_active(self, ts: int) -> bool:
         return self._reconnect_warmup_until_ts > 0 and ts < self._reconnect_warmup_until_ts
 
@@ -311,6 +326,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             after_flatten_time=self._calendar.is_at_or_after(dt, self._cfg.session_flatten_time),
             force_flatten=self._calendar.is_at_or_after(dt, self._cfg.session_force_flatten_time),
             atr_stale=self._is_atr_stale(ts),
+            structure_stale=self._is_structure_stale(ts),
             reconnect_warmup_active=self._is_reconnect_warmup_active(ts),
         )
 
@@ -490,11 +506,48 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 with self.lock:
                     trend_dir = self.indicators.trend_dir
                     trend_strength = self.indicators.trend_strength
+            _live_structure_enabled = self._cfg.live_get(
+                "STRUCTURE_FILTER_ENABLED", self._cfg.structure_filter_enabled
+            )
+            if _live_structure_enabled:
+                structure_state = self._structure_refresh.refresh_structure(
+                    kbars,
+                    exchange_dt=self._last_tick_exchange_dt,
+                    used_long_lookback=used_long,
+                    atr=atr,
+                    cfg=self._cfg,
+                )
+            else:
+                structure_state = None
             refresh_ts = float(self.last_tick_exchange_ts or 0)
             with self.lock:
                 self.indicators.current_atr = atr
                 self.indicators.trend_dir = trend_dir
                 self.indicators.trend_strength = trend_strength
+                if structure_state is not None:
+                    self.indicators.structure_bias = str(
+                        getattr(structure_state, "bias", "Neutral")
+                    )
+                    self.indicators.structure_strength = float(
+                        getattr(structure_state, "strength", 0.0)
+                    )
+                    self.indicators.structure_in_discount = bool(
+                        getattr(structure_state, "in_discount", False)
+                    )
+                    self.indicators.structure_in_premium = bool(
+                        getattr(structure_state, "in_premium", False)
+                    )
+                    self.indicators.structure_fvg_low = getattr(
+                        structure_state, "active_fvg_low", None
+                    )
+                    self.indicators.structure_fvg_high = getattr(
+                        structure_state, "active_fvg_high", None
+                    )
+                    self.indicators.structure_sweep_reclaim = bool(
+                        getattr(structure_state, "sweep_reclaim", False)
+                    )
+                    if refresh_ts > 0:
+                        self.indicators.last_structure_refresh = refresh_ts
                 if refresh_ts > 0:
                     self.indicators.last_atr_refresh = refresh_ts
                 if used_long:

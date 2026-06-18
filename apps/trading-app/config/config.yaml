@@ -100,6 +100,12 @@ strategy:
   # This is a short-window intraday HTF bias proxy (resample stride + displacement/slope vs window),
   # not a true macro or multi-day bias. Calibrate via harness (veto_rate + delta) on real UAT data.
   trend_min_strength: 0.0
+  # --- FT-002 SMC structure filter（預設關閉；與 trend_filter_enabled 互斥）---
+  structure_filter_enabled: false
+  structure_timeframe_min: 5
+  structure_swing_lookback: 2
+  # 0.0 = 最嚴格（最多 veto）；校準見 P6-SMC-CAL harness
+  structure_min_strength: 0.0
   atr_trailing_enabled: false
   trail_atr_k: 0.25
   trail_points_floor: 8

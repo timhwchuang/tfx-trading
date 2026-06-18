@@ -9,6 +9,7 @@ from core.runtime_config import RuntimeConfig, default_runtime_config
 from integrations.alerts_port import TradingAppAlertPort
 from integrations.archive_port import TradingAppArchivePort
 from integrations.telemetry_port import TradingAppTelemetryPort
+from integrations.structure_refresh import TradingAppStructureRefresh
 from integrations.trend_refresh import TradingAppTrendRefresh
 from observability import DailyObservability
 from strategy_vwap_momentum import StrategyParams, VWAPMomentumStrategy
@@ -76,6 +77,7 @@ def trading_app_engine_ports(
         "order_adapter": order_adapter_for(api, use_mock=use_mock_adapter),
         "telemetry": TradingAppTelemetryPort(obs=obs, runtime_config=cfg),
         "trend_refresh": TradingAppTrendRefresh(),
+        "structure_refresh": TradingAppStructureRefresh(),
         "obs": obs,
     }
     if with_alerts:

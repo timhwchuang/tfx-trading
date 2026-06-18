@@ -25,6 +25,10 @@ SWEEP_FIELD_TO_CONST: dict[str, str] = {
     "trend_mode": "TREND_MODE",
     "trend_ema_period": "TREND_EMA_PERIOD",
     "trend_slope_min": "TREND_SLOPE_MIN",
+    "structure_filter_enabled": "STRUCTURE_FILTER_ENABLED",
+    "structure_timeframe_min": "STRUCTURE_TIMEFRAME_MIN",
+    "structure_swing_lookback": "STRUCTURE_SWING_LOOKBACK",
+    "structure_min_strength": "STRUCTURE_MIN_STRENGTH",
 }
 
 _CONST_TO_SNAKE = {
@@ -41,6 +45,10 @@ _CONST_TO_SNAKE = {
     "TREND_MODE": "trend_mode",
     "TREND_EMA_PERIOD": "trend_ema_period",
     "TREND_SLOPE_MIN": "trend_slope_min",
+    "STRUCTURE_FILTER_ENABLED": "structure_filter_enabled",
+    "STRUCTURE_TIMEFRAME_MIN": "structure_timeframe_min",
+    "STRUCTURE_SWING_LOOKBACK": "structure_swing_lookback",
+    "STRUCTURE_MIN_STRENGTH": "structure_min_strength",
     "MOMENTUM_BUY_RATIO": "momentum_buy_ratio",
     "MOMENTUM_SELL_RATIO": "momentum_sell_ratio",
     "MOMENTUM_TIMEOUT_SEC": "momentum_timeout_sec",
@@ -90,7 +98,18 @@ class RuntimeConfig:
             real_key = normalize_overlay_key(key)
             saved[real_key] = self._overlay.get(real_key, _MISSING)
             self._overlay[real_key] = value
+        self._validate_regime_mutual_exclusion()
         return saved
+
+    def _validate_regime_mutual_exclusion(self) -> None:
+        structure_on = bool(
+            self.live_get("STRUCTURE_FILTER_ENABLED", self.structure_filter_enabled)
+        )
+        trend_on = bool(self.live_get("TREND_FILTER_ENABLED", self.trend_filter_enabled))
+        if structure_on and trend_on:
+            raise ValueError(
+                "structure_filter_enabled and trend_filter_enabled are mutually exclusive"
+            )
 
     def restore_overlay(self, saved: dict[str, Any]) -> None:
         for key, old in saved.items():

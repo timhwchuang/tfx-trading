@@ -12,8 +12,16 @@ from config import SWEEP_DD_PENALTY, SWEEP_SCORE_METRIC, SWEEP_SL_PENALTY
 from core.runtime_config import default_runtime_config
 from reporting.performance_metrics import aggregate_daily_performance, sweep_score_from_kpi
 from reporting.forward_pnl import ForwardPnlPolicy, load_tick_series, make_replay_forward_pnl
+from reporting.structure_calibration import (
+    armed_candidates_from_decision_dicts,
+    compute_regime_veto_calibration,
+)
 from reporting.trend_calibration import compute_trend_veto_calibration
+from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR
+from storage.kbar_loader import iter_kbars_in_range
 from storage.tick_loader import DEFAULT_CACHE_DIR
+from strategy_vwap_momentum.structure import StructureParams
+from trading_engine.core.runtime_config import normalize_overlay_key
 from strategy_vwap_momentum import apply_strategy_params, restore_strategy_params
 from sweep.determinism_check import _run_with_audit_capture
 
@@ -24,16 +32,23 @@ _apply_params = apply_strategy_params
 _restore_params = restore_strategy_params
 
 
+def _regime_params_conflict(params: dict[str, Any]) -> bool:
+    normalized: dict[str, Any] = {}
+    for key, value in params.items():
+        normalized[normalize_overlay_key(key)] = value
+    return bool(normalized.get("STRUCTURE_FILTER_ENABLED")) and bool(
+        normalized.get("TREND_FILTER_ENABLED")
+    )
+
+
 def _run_backtest_summaries(
     code: str,
     dates: list,
     cache_dir: Path,
     runtime_config=None,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     """Run backtest under capture handler.
-    Returns (daily_summaries, signal_audits) so CAL-3 can feed real SIGNAL_AUDIT
-    (incl. reason=trend_veto) into compute_trend_veto_calibration instead of always-empty.
-    _AuditCaptureHandler already matches "SIGNAL_AUDIT " prefix (P1-6 fix).
+    Returns (daily_summaries, signal_audits, decision_audits).
     """
     def _run() -> None:
         engine = BacktestEngine(
@@ -44,6 +59,7 @@ def _run_backtest_summaries(
     records = _run_with_audit_capture(_run)
     summaries: list[dict[str, Any]] = []
     signals: list[dict[str, Any]] = []
+    decisions: list[dict[str, Any]] = []
     for label, payload in records:
         if label == "DAILY_SUMMARY":
             try:
@@ -55,7 +71,12 @@ def _run_backtest_summaries(
                 signals.append(json.loads(payload))
             except Exception:
                 pass
-    return summaries, signals
+        elif label == "DECISION_AUDIT":
+            try:
+                decisions.append(json.loads(payload))
+            except Exception:
+                pass
+    return summaries, signals, decisions
 
 
 def _aggregate_kpi(summaries: list[dict[str, Any]]) -> dict[str, Any]:
@@ -127,22 +148,26 @@ def sweep(
     penalty: float = DEFAULT_PENALTY,
     output_path: Path | None = None,
     forward_policy: ForwardPnlPolicy | None = None,
+    kbar_cache_dir: Path | str = DEFAULT_KBAR_CACHE_DIR,
 ) -> list[dict[str, Any]]:
     """Cartesian grid sweep; ranking uses valid (out-of-sample) KPI only."""
     cache_path = Path(cache_dir)
+    kbar_path = Path(kbar_cache_dir)
     replay_fwd = _resolve_forward_pnl(code, dates_valid, cache_path, forward_policy)
     keys = list(grid.keys())
     combos = itertools.product(*(grid[k] for k in keys))
     results: list[dict[str, Any]] = []
     for combo in combos:
         params = dict(zip(keys, combo))
+        if _regime_params_conflict(params):
+            continue
         cfg = default_runtime_config()
         saved = apply_strategy_params(params, cfg)
         try:
-            train_summaries, _train_signals = _run_backtest_summaries(
+            train_summaries, _train_signals, _train_decisions = _run_backtest_summaries(
                 code, dates_train, cache_path, runtime_config=cfg
             )
-            valid_summaries, valid_signals = _run_backtest_summaries(
+            valid_summaries, valid_signals, valid_decisions = _run_backtest_summaries(
                 code, dates_valid, cache_path, runtime_config=cfg
             )
             train_kpi = _aggregate_kpi(train_summaries)
@@ -181,6 +206,44 @@ def sweep(
                     )
                 except Exception:
                     veto_metrics = {"note": "harness call failed (synthetic path)"}
+            if any(
+                str(k).startswith("structure_")
+                or str(k).upper().startswith("STRUCTURE_")
+                for k in params.keys()
+            ):
+                try:
+                    ms = float(
+                        params.get("structure_min_strength")
+                        or params.get("STRUCTURE_MIN_STRENGTH")
+                        or cfg.structure_min_strength
+                    )
+                    sp = StructureParams(structure_min_strength=ms)
+                    candidates = armed_candidates_from_decision_dicts(valid_decisions)
+                    if dates_valid:
+                        bars_1m = iter_kbars_in_range(
+                            code,
+                            min(dates_valid),
+                            max(dates_valid),
+                            cache_dir=kbar_path,
+                        )
+                    else:
+                        bars_1m = []
+                    if candidates and bars_1m:
+                        veto_metrics = compute_regime_veto_calibration(
+                            candidates,
+                            scenario="structure_only",
+                            bars_1m=bars_1m,
+                            structure_params=sp,
+                            get_forward_pnl=replay_fwd,
+                            forward_policy=forward_policy,
+                            b_class=replay_fwd is not None,
+                        )
+                    else:
+                        veto_metrics = {
+                            "note": "structure harness skipped (no armed or kbars)"
+                        }
+                except Exception:
+                    veto_metrics = {"note": "structure harness call failed"}
             row = {
                 "params": params,
                 "train_kpi": train_kpi,

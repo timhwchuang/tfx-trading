@@ -43,6 +43,10 @@ class Settings:
     trend_ema_period: int
     trend_slope_min: float
     trend_min_strength: float
+    structure_filter_enabled: bool
+    structure_timeframe_min: int
+    structure_swing_lookback: int
+    structure_min_strength: float
     trail_atr_k: float
     trail_points_floor: float
     vwap_stop_atr_k: float

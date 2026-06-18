@@ -30,6 +30,7 @@ def _make_risk(
     force_flatten: bool = False,
     api_connected: bool = True,
     atr_stale: bool = False,
+    structure_stale: bool = False,
     reconnect_warmup_active: bool = False,
     daily_pnl: float = 0.0,
     consecutive_loss: int = 0,
@@ -44,6 +45,7 @@ def _make_risk(
         force_flatten=force_flatten,
         api_connected=api_connected,
         atr_stale=atr_stale,
+        structure_stale=structure_stale,
         reconnect_warmup_active=reconnect_warmup_active,
         daily_pnl=daily_pnl,
         consecutive_loss=consecutive_loss,
@@ -307,6 +309,19 @@ class TestEvaluatePure(unittest.TestCase):
 
     def test_atr_stale_blocks_flat_entry(self) -> None:
         risk = _make_risk(atr_stale=True)
+        sig, _ = self.strategy.evaluate(
+            _make_market(),
+            _make_flat_position(),
+            risk,
+            self.vol_threshold,
+            session_force_flatten_time=datetime.time(13, 45),
+            max_daily_loss_points=150.0,
+        )
+        self.assertIsNone(sig)
+
+    def test_structure_stale_blocks_flat_entry_when_filter_on(self) -> None:
+        self.strategy.params._cfg._overlay["STRUCTURE_FILTER_ENABLED"] = True
+        risk = _make_risk(structure_stale=True)
         sig, _ = self.strategy.evaluate(
             _make_market(),
             _make_flat_position(),

@@ -104,7 +104,7 @@ class TestParamSweep(unittest.TestCase):
             with tempfile.TemporaryDirectory() as tmp:
                 cache_dir = Path(tmp)
                 with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
-                    summaries, _signals = _run_backtest_summaries(
+                    summaries, _signals, _decisions = _run_backtest_summaries(
                         "TXFR1",
                         [datetime.date(2026, 6, 12)],
                         cache_dir,
@@ -161,6 +161,53 @@ class TestParamSweep(unittest.TestCase):
             cfg.live_get("ENTRY_BAND_POINTS", cfg.entry_band_points),
             original,
         )
+
+
+    def test_sweep_skips_mutually_exclusive_regime_combo(self):
+        ticks = [make_replay_tick(datetime.datetime(2026, 6, 12, 9, 0, 0))]
+
+        def fake_replay(_code, _dates, cache_dir=None):
+            yield from ticks
+
+        grid = {
+            "structure_filter_enabled": [True],
+            "trend_filter_enabled": [True],
+            "entry_band_points": [2.0],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp)
+            with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
+                results = sweep(
+                    grid,
+                    dates_train=[datetime.date(2026, 6, 12)],
+                    dates_valid=[datetime.date(2026, 6, 13)],
+                    code="TXFR1",
+                    cache_dir=cache_dir,
+                )
+        self.assertEqual(len(results), 0)
+
+    def test_sweep_with_structure_params_attaches_veto_metrics(self):
+        ticks = [make_replay_tick(datetime.datetime(2026, 6, 12, 9, 0, 0))]
+
+        def fake_replay(_code, _dates, cache_dir=None):
+            yield from ticks
+
+        grid = {
+            "structure_min_strength": [0.0, 0.5],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp)
+            with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
+                results = sweep(
+                    grid,
+                    dates_train=[datetime.date(2026, 6, 12)],
+                    dates_valid=[datetime.date(2026, 6, 13)],
+                    code="TXFR1",
+                    cache_dir=cache_dir,
+                )
+        self.assertEqual(len(results), 2)
+        for row in results:
+            self.assertIn("veto_metrics", row)
 
 
 if __name__ == "__main__":

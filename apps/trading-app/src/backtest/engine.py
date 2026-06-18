@@ -50,6 +50,7 @@ class BacktestEngine:
             clock=self.clock,
             telemetry=ports["telemetry"],
             trend_refresh=ports["trend_refresh"],
+            structure_refresh=ports["structure_refresh"],
             order_adapter=ports["order_adapter"],
         )
         self.host = self._core.host
