@@ -10,9 +10,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from backtest.engine import BacktestEngine
 from config import MIN_ATR_THRESHOLD
+from core.runtime_config import default_runtime_config
 from storage.kbar_loader import KBarRecord, kbars_cache_path, save_kbars_csv
 from sweep.determinism_check import (
+    _run_with_audit_capture,
     canonical_audit_json,
     capture_backtest_log_lines,
     hash_audit_lines,
@@ -237,6 +240,38 @@ class TestDeterminism(unittest.TestCase):
                     ]
         self.assertEqual(hashes[0], hashes[1])
         self.assertEqual(hashes[1], hashes[2])
+
+    def test_three_runs_same_hash_with_structure_filter_on(self):
+        """FT-002 Phase 4: filter on 3-run determinism hash must match."""
+        ticks = _session_ticks()
+        date = datetime.date(2026, 6, 12)
+        cfg = default_runtime_config()
+        cfg._overlay["STRUCTURE_FILTER_ENABLED"] = True
+
+        def fake_replay(_code, _dates, cache_dir=None):
+            yield from ticks
+
+        def run_once(cache_dir: Path) -> str:
+            def _run() -> None:
+                engine = BacktestEngine(
+                    "TXFR1",
+                    [date],
+                    cache_dir=cache_dir,
+                    runtime_config=cfg,
+                )
+                engine.run()
+
+            records = _run_with_audit_capture(_run)
+            return hash_audit_records(records)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp)
+            _seed_kbars_cache(cache_dir)
+            with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
+                hashes = [run_once(cache_dir) for _ in range(3)]
+        self.assertEqual(hashes[0], hashes[1])
+        self.assertEqual(hashes[1], hashes[2])
+        self.assertTrue(hashes[0])
 
 
 if __name__ == "__main__":

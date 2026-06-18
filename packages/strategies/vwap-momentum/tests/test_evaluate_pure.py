@@ -74,6 +74,13 @@ def _make_market(
     current_atr: float = 9.0,
     trend_dir: str = "Long",
     trend_strength: float = 1.8,
+    structure_bias: str = "Neutral",
+    structure_strength: float = 0.0,
+    structure_in_discount: bool = False,
+    structure_in_premium: bool = False,
+    structure_fvg_low: float | None = None,
+    structure_fvg_high: float | None = None,
+    structure_sweep_reclaim: bool = False,
     ts: int = 1_700_000_200,
 ) -> MarketSnapshot:
     return MarketSnapshot(
@@ -87,6 +94,13 @@ def _make_market(
         current_atr=current_atr,
         trend_dir=trend_dir,
         trend_strength=trend_strength,
+        structure_bias=structure_bias,
+        structure_strength=structure_strength,
+        structure_in_discount=structure_in_discount,
+        structure_in_premium=structure_in_premium,
+        structure_fvg_low=structure_fvg_low,
+        structure_fvg_high=structure_fvg_high,
+        structure_sweep_reclaim=structure_sweep_reclaim,
     )
 
 
@@ -162,6 +176,10 @@ class TestEvaluatePure(unittest.TestCase):
             exit_grace_sec = 30
             momentum_buy_ratio = 0.8
             momentum_sell_ratio = 0.8
+            structure_filter_enabled = False
+            structure_timeframe_min = 5
+            structure_swing_lookback = 2
+            structure_min_strength = 0.0
 
         obs = MagicMock()
         params = StrategyParams(_cfg=_TrendOn())  # type: ignore[arg-type]
@@ -205,6 +223,135 @@ class TestEvaluatePure(unittest.TestCase):
         self.assertEqual(payload["direction"], "Buy")
         self.assertEqual(payload["trend_dir"], "Short")
         self.assertGreater(payload["trend_strength"], 0.0)
+
+    def test_structure_veto_emits_decision_audit_when_filter_blocks_pullback(self) -> None:
+        """FT-002 Phase 4: regime_allows_entry structure path → structure_veto audit."""
+
+        class _StructureOn:
+            def live_get(self, name: str, default: Any = None) -> Any:
+                if name == "STRUCTURE_FILTER_ENABLED":
+                    return True
+                if name == "ENTRY_BAND_POINTS":
+                    return 2.0
+                if name == "EXHAUSTION_VOL":
+                    return 15
+                if name == "MOMENTUM_TIMEOUT_SEC":
+                    return 180
+                return default
+
+            entry_band_points = 2.0
+            exhaustion_vol = 15
+            structure_filter_enabled = True
+            trend_filter_enabled = False
+            max_consecutive_loss = 10
+            min_atr_threshold = 0.0
+            momentum_timeout_sec = 180
+            atr_trailing_enabled = False
+            atr_vwap_stop_enabled = False
+            trail_points_floor = 0.0
+            trail_atr_k = 0.0
+            vwap_stop_points_floor = 0.0
+            vwap_stop_atr_k = 0.0
+            flatten_slippage_points = 0
+            hard_stop_points = 10.0
+            fixed_tp_points = 20.0
+            trail_points = 8.0
+            vwap_stop_points = 3.0
+            exit_grace_ticks = 60
+            exit_grace_sec = 30
+            momentum_buy_ratio = 0.8
+            momentum_sell_ratio = 0.8
+            structure_timeframe_min = 5
+            structure_swing_lookback = 2
+            structure_min_strength = 0.0
+
+        obs = MagicMock()
+        params = StrategyParams(_cfg=_StructureOn())  # type: ignore[arg-type]
+        strategy = VWAPMomentumStrategy(params=params, obs=obs)
+        risk = _make_risk()
+        pos = _make_flat_position()
+
+        activate_ts = 1_700_000_100
+        strategy.activate_momentum("Long", 18010.0, activate_ts, episode_id="20260618-001")
+        pullback_mkt = _make_market(
+            ts=activate_ts + 2,
+            price=18005.5,
+            vwap=18005.0,
+            vol_1s=5,
+            buy_vol_1s=3,
+            sell_vol_1s=2,
+            structure_bias="Short",
+            structure_in_premium=True,
+            structure_strength=1.2,
+            current_atr=9.0,
+        )
+
+        with self.assertLogs("strategy_vwap_momentum.strategy", level=logging.INFO) as cap:
+            sig, _ = strategy.evaluate(
+                pullback_mkt,
+                pos,
+                risk,
+                self.vol_threshold,
+                session_force_flatten_time=datetime.time(13, 45),
+                max_daily_loss_points=150.0,
+            )
+
+        self.assertIsNone(sig)
+        obs.record_structure_veto.assert_called_once()
+        payload = json.loads(
+            [line for line in cap.output if "DECISION_AUDIT" in line][0].split(
+                "DECISION_AUDIT ", 1
+            )[1]
+        )
+        self.assertEqual(payload["event_type"], "structure_veto")
+        self.assertEqual(payload["reason"], "structure_veto")
+        self.assertEqual(payload["momentum_dir"], "Long")
+        self.assertEqual(payload["structure_bias"], "Short")
+        self.assertEqual(payload["structure_algo_version"], 1)
+
+    def test_momentum_armed_includes_structure_fields_when_filter_on(self) -> None:
+        self.strategy.params._cfg._overlay["STRUCTURE_FILTER_ENABLED"] = True
+        mkt = _make_market(
+            vol_1s=200,
+            buy_vol_1s=180,
+            sell_vol_1s=20,
+            structure_bias="Long",
+            structure_in_discount=True,
+            structure_strength=0.8,
+        )
+        with self.assertLogs("strategy_vwap_momentum.strategy", level=logging.INFO) as cap:
+            self.strategy._try_activate_momentum(mkt, self.vol_threshold)
+        payload = json.loads(
+            [line for line in cap.output if "momentum_armed" in line][0].split(
+                "DECISION_AUDIT ", 1
+            )[1]
+        )
+        self.assertEqual(payload["structure_bias"], "Long")
+        self.assertEqual(payload["structure_algo_version"], 1)
+        self.assertTrue(payload["structure_in_discount"])
+
+    def test_structure_stale_emits_risk_blocked_audit(self) -> None:
+        self.strategy.params._cfg._overlay["STRUCTURE_FILTER_ENABLED"] = True
+        obs = MagicMock()
+        strategy = VWAPMomentumStrategy(params=self.params, obs=obs)
+        risk = _make_risk(structure_stale=True)
+        with self.assertLogs("strategy_vwap_momentum.strategy", level=logging.INFO) as cap:
+            sig, _ = strategy.evaluate(
+                _make_market(),
+                _make_flat_position(),
+                risk,
+                self.vol_threshold,
+                session_force_flatten_time=datetime.time(13, 45),
+                max_daily_loss_points=150.0,
+            )
+        self.assertIsNone(sig)
+        obs.record_risk_blocked.assert_called_once_with("structure_stale", ts=1_700_000_200)
+        payload = json.loads(
+            [line for line in cap.output if "risk_blocked" in line][0].split(
+                "DECISION_AUDIT ", 1
+            )[1]
+        )
+        self.assertEqual(payload["block_reason"], "structure_stale")
 
     def test_block_new_entry_and_pending_gates_return_none(self) -> None:
         mkt = _make_market()

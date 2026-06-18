@@ -139,16 +139,16 @@ blockers: []
 
 ### Phase 4 — Strategy + audit + sweep
 
-- [ ] [`strategy.py`](../../../packages/strategies/vwap-momentum/src/strategy_vwap_momentum/strategy.py) — `regime_allows_entry`；`risk.structure_stale` 檢查；`structure_veto` audit；armed enrichment
-- [ ] [`observability.py`](../../../apps/trading-app/src/observability.py) — `record_structure_veto`
-- [ ] `uat_report` / reporting parse `structure_veto`
-- [ ] [`param_sweep.py`](../../../apps/trading-app/src/sweep/param_sweep.py) — grid 互斥跳過
-- [ ] determinism：filter on 3-run hash
+- [x] [`strategy.py`](../../../packages/strategies/vwap-momentum/src/strategy_vwap_momentum/strategy.py) — `regime_allows_entry`；`risk.structure_stale` 檢查；`structure_veto` audit；armed enrichment
+- [x] [`observability.py`](../../../apps/trading-app/src/observability.py) — `record_structure_veto`
+- [x] `uat_report` / reporting parse `structure_veto`
+- [x] [`param_sweep.py`](../../../apps/trading-app/src/sweep/param_sweep.py) — grid 互斥跳過（Phase 3）
+- [x] determinism：filter on 3-run hash
 
 **驗收**
 
-- [ ] log 含 `structure_veto` + `structure_algo_version`
-- [ ] 3-run determinism 通過
+- [x] log 含 `structure_veto` + `structure_algo_version`
+- [x] 3-run determinism 通過
 
 ### Phase 5 — UAT + CAL-8 + Land
 

@@ -465,7 +465,9 @@ def build_episode_timeline(
         has_timeout = any(
             ev.get("event_type") == "momentum_timeout" for ev in ep.events
         )
-        has_veto = any(ev.get("event_type") == "trend_veto" for ev in ep.events)
+        has_veto = any(
+            ev.get("event_type") in ("trend_veto", "structure_veto") for ev in ep.events
+        )
         has_pending_timeout = any(
             ev.get("source") == "exec" and ev.get("event_type") == "pending_timeout"
             for ev in ep.events

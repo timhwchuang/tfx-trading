@@ -54,6 +54,18 @@ class DecisionAudit:
     # linking
     parent_id: str = ""
 
+    # FT-002 structure filter (Phase 4)
+    momentum_dir: str = ""
+    structure_algo_version: int = 0
+    structure_bias: str = ""
+    structure_strength: float = 0.0
+    structure_in_discount: bool = False
+    structure_in_premium: bool = False
+    structure_fvg_low: float | None = None
+    structure_fvg_high: float | None = None
+    active_fvg_side: str = ""
+    structure_sweep_reclaim: bool = False
+
 
 def format_decision_audit(audit: DecisionAudit) -> str:
     """Serialize matching {prefix} {compact-json} contract.
@@ -70,12 +82,47 @@ def format_decision_audit(audit: DecisionAudit) -> str:
         if k in raw:
             payload[k] = raw[k]
 
+    structure_keys = (
+        "structure_algo_version",
+        "structure_bias",
+        "structure_strength",
+        "structure_in_discount",
+        "structure_in_premium",
+        "structure_fvg_low",
+        "structure_fvg_high",
+        "active_fvg_side",
+        "structure_sweep_reclaim",
+    )
+
     if et == "momentum_armed":
         armed_must = {"direction", "trigger_price", "vol_1s", "buy_ratio", "sell_ratio", "vol_threshold", "multiplier", "vwap", "atr"}
         for k in armed_must:
             if k in raw:
                 payload[k] = raw[k]
+        for k in structure_keys:
+            if k in raw and raw[k] not in (None, "", 0, 0.0, False):
+                payload[k] = raw[k]
         # explicitly do not add 0-value fields like price, consecutive_*=0 etc for armed (clean per SPEC examples)
+    elif et == "structure_veto":
+        for k in (
+            "direction",
+            "price",
+            "vol_1s",
+            "reason",
+            "vwap",
+            "momentum_dir",
+            "structure_algo_version",
+            "structure_bias",
+            "structure_strength",
+            "structure_in_discount",
+            "structure_in_premium",
+            "structure_fvg_low",
+            "structure_fvg_high",
+            "active_fvg_side",
+            "structure_sweep_reclaim",
+        ):
+            if k in raw and raw[k] not in (None, ""):
+                payload[k] = raw[k]
     else:
         # for timeout/veto/risk keep price etc if set
         for k in ("direction", "trigger_price", "price", "vol_1s", "buy_ratio", "sell_ratio", "elapsed_sec", "reason", "trend_dir", "trend_strength", "block_reason", "atr", "consecutive_loss"):
@@ -91,10 +138,11 @@ def format_decision_audit(audit: DecisionAudit) -> str:
                 continue
             payload[k] = v
 
-    # other non-empty
-    for k, v in raw.items():
-        if k in payload:
-            continue
-        if v not in ("", None):
-            payload[k] = v
+    # other non-empty (armed stays clean — no stray zero defaults)
+    if et != "momentum_armed":
+        for k, v in raw.items():
+            if k in payload:
+                continue
+            if v not in ("", None):
+                payload[k] = v
     return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))

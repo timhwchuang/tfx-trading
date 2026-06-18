@@ -14,6 +14,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-002 Phase 4**：`regime_allows_entry` 接線；`structure_veto` / armed structure enrichment DECISION_AUDIT；`structure_stale` → `risk_blocked` audit；`record_structure_veto`；filter-on 3-run determinism。
 - **FT-002 Phase 3 + sweep（A1–A8）**：`StructureRefreshPort` / `structure_stale` / `refresh_atr` 掛載；`structure_refresh.py`；config + runtime 互斥；`structure_calibration_cli --sweep`；`param_sweep` structure grid；`test_structure_stale_guards`。
 - **FT-002 Phase 2** P6-SMC-CAL offline harness: `structure_calibration.py` + `structure_calibration_cli.py` —三組 counterfactual（no_filter / structure_only / trend_only）、friction-adjusted expectancy、`structure_events.csv` + `structure_armed_join.csv`、30s armed conversion；A/B-class tests + kbar fixture。
 - **FT-002** SMC structure filter: SPEC v2 + PLAN Phase 1 complete + `REVIEW.md` Phase 1 re-review（PASS）；[`docs/TODO.md`](docs/TODO.md) §P6-SMC-CAL
@@ -25,6 +26,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 ### [Unreleased]
 
 #### Added
+
+- **FT-002 Phase 4** `DecisionAudit` structure fields + `format_decision_audit` for `structure_veto` / armed enrichment。
 
 - **KERNEL UAT regression** `tests/runtime/test_kernel_uat_regression.py`: B3 `event_code` 12/13 reconnect, B4 pending-timeout CRITICAL + `sync_positions` + `EXEC_AUDIT`, B6 `sync_positions` → `get_state_snapshot` chain (85 kernel tests).
 
@@ -134,6 +137,8 @@ Initial public release of the deterministic tick replay driver for `trading-engi
 ### [Unreleased]
 
 #### Added
+
+- **FT-002 Phase 4** `_try_pullback_entry` 改用 `regime_allows_entry`；`structure_veto` DECISION_AUDIT；`momentum_armed` structure 戰場快照；`structure_stale` → `risk_blocked`。
 
 - **FT-002 Phase 1** `strategy_vwap_momentum.structure`: frozen SMC v0.1 (`compute_structure`, `regime_allows_entry`, `structure_allows_entry`); 15+ unit tests (`test_structure.py`). No engine wiring yet (`structure_filter_enabled` not in runtime).
 

@@ -94,6 +94,15 @@ class TestEpisodeReplay(unittest.TestCase):
             if e.outcome in ("timeout", "veto"):
                 self.assertIn("consecutive_timeout_streak", e.pressure_context or {})
 
+    def test_structure_veto_episode_outcome(self):
+        lines = [
+            'DECISION_AUDIT {"audit_schema_version":1,"event_type":"momentum_armed","ts":100,"episode_id":"20260618-001","direction":"Long"}',
+            'DECISION_AUDIT {"audit_schema_version":1,"event_type":"structure_veto","ts":150,"episode_id":"20260618-001","direction":"Buy","momentum_dir":"Long","structure_bias":"Short","structure_algo_version":1}',
+        ]
+        eps = compute_episodes(lines)
+        self.assertEqual(len(eps), 1)
+        self.assertEqual(eps[0].outcome, "veto")
+
     def test_build_tuning_hints_with_episodes(self):
         # 5 timeout + 1 entered ; use events for armed count
         eps = []

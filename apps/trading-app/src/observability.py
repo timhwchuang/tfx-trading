@@ -147,6 +147,7 @@ class DailyObservability:
     daily_pnl: float = 0.0
     consecutive_loss: int = 0
     trend_vetoes: int = 0
+    structure_vetoes: int = 0
     momentum_timeouts: int = 0
     consecutive_veto_streak: int = 0
     consecutive_timeout_streak: int = 0
@@ -191,6 +192,13 @@ class DailyObservability:
         self.consecutive_timeout_streak = 0
         self.max_consecutive_veto = max(self.max_consecutive_veto, self.consecutive_veto_streak)
         # episodes_since_last_entry already +1 on trigger (armed)
+
+    def record_structure_veto(self) -> None:
+        """Count a pullback blocked by SMC structure filter (FT-002 Phase 4)."""
+        self.structure_vetoes += 1
+        self.consecutive_veto_streak += 1
+        self.consecutive_timeout_streak = 0
+        self.max_consecutive_veto = max(self.max_consecutive_veto, self.consecutive_veto_streak)
 
     def record_pullback_tick(
         self,
@@ -405,7 +413,9 @@ class DailyObservability:
                 "armed": self.momentum_triggers,
                 "entered": self.entry_signals,
                 "timeout": self.momentum_timeouts,
-                "veto": self.trend_vetoes,
+                "veto": self.trend_vetoes + self.structure_vetoes,
+                "trend_veto": self.trend_vetoes,
+                "structure_veto": self.structure_vetoes,
             },
             "pressure": {
                 "max_consecutive_veto": self.max_consecutive_veto,
@@ -462,6 +472,7 @@ class DailyObservability:
         self.consecutive_loss = 0
         self.momentum_timeouts = 0
         self.trend_vetoes = 0
+        self.structure_vetoes = 0
         self.consecutive_veto_streak = 0
         self.consecutive_timeout_streak = 0
         self.episodes_since_last_entry = 0

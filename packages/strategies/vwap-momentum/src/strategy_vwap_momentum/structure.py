@@ -472,6 +472,28 @@ def regime_allows_entry(
     return True, ""
 
 
+def structure_state_from_market_fields(
+    *,
+    bias: str,
+    strength: float,
+    in_discount: bool,
+    in_premium: bool,
+    fvg_low: float | None,
+    fvg_high: float | None,
+    sweep_reclaim: bool = False,
+) -> StructureState:
+    """Rebuild StructureState from MarketSnapshot fields (live refresh cache)."""
+    return StructureState(
+        bias=bias,
+        strength=strength,
+        in_discount=in_discount,
+        in_premium=in_premium,
+        active_fvg_low=fvg_low,
+        active_fvg_high=fvg_high,
+        sweep_reclaim=sweep_reclaim,
+    )
+
+
 def structure_params_from_strategy(params: Any) -> StructureParams:
     """Build StructureParams from StrategyParams-like object (optional attrs)."""
     return StructureParams(

@@ -21,10 +21,16 @@ from trading_engine.core.types import (
 from trading_engine.calendar.taifex import TAIWAN_TZ
 
 from strategy_vwap_momentum.params import StrategyParams
+from strategy_vwap_momentum.structure import (
+    STRUCTURE_ALGO_VERSION,
+    StructureState,
+    regime_allows_entry,
+    structure_params_from_strategy,
+    structure_state_from_market_fields,
+)
 from strategy_vwap_momentum.trend import (
     dynamic_trail_points,
     dynamic_vwap_stop_distance,
-    trend_allows_entry,
 )
 
 logger = logging.getLogger(__name__)
@@ -89,6 +95,21 @@ class VWAPMomentumStrategy(BaseStrategy):
         self._episode_seq += 1
         return f"{trade_date}-{self._episode_seq:03d}"
 
+    def _structure_audit_fields(self, market: MarketSnapshot) -> dict[str, Any]:
+        """Structure battlefield snapshot for armed / structure_veto audits (filter on only)."""
+        if not self.params.structure_filter_enabled:
+            return {}
+        return {
+            "structure_algo_version": STRUCTURE_ALGO_VERSION,
+            "structure_bias": market.structure_bias,
+            "structure_strength": round(market.structure_strength, 4),
+            "structure_in_discount": market.structure_in_discount,
+            "structure_in_premium": market.structure_in_premium,
+            "structure_fvg_low": market.structure_fvg_low,
+            "structure_fvg_high": market.structure_fvg_high,
+            "structure_sweep_reclaim": market.structure_sweep_reclaim,
+        }
+
     def _emit_momentum_armed(
         self,
         direction: str,
@@ -116,6 +137,8 @@ class VWAPMomentumStrategy(BaseStrategy):
             vwap=round(market.vwap, 1),
             atr=round(market.current_atr, 2),
         )
+        for k, v in self._structure_audit_fields(market).items():
+            setattr(decision, k, v)
         logger.info("DECISION_AUDIT %s", format_decision_audit(decision))
 
     def activate_momentum(self, direction: str, price: float, ts: int, episode_id: str = "") -> None:
@@ -164,6 +187,18 @@ class VWAPMomentumStrategy(BaseStrategy):
                         market, position, session_force_flatten_time
                     )
                 return self.manage_exit(market, position)
+            if structure_stale_block and self.obs is not None:
+                self.obs.record_risk_blocked("structure_stale", ts=market.ts)
+                ctx = self.obs.get_pressure_context()
+                risk_dec = DecisionAudit(
+                    event_type="risk_blocked",
+                    ts=market.ts,
+                    price=market.price,
+                    block_reason="structure_stale",
+                )
+                for k, v in ctx.items():
+                    setattr(risk_dec, k, v)
+                logger.info("DECISION_AUDIT %s", format_decision_audit(risk_dec))
             return None, effects
 
         if risk.is_pending or risk.exit_pending:
@@ -367,28 +402,50 @@ class VWAPMomentumStrategy(BaseStrategy):
             if market.trend_dir in ("Long", "Short", "Flat")
             else "Flat"
         )
-        if not trend_allows_entry(
-            enabled=self.params.trend_filter_enabled,
+        if self.params.structure_filter_enabled:
+            structure_state = structure_state_from_market_fields(
+                bias=market.structure_bias,
+                strength=market.structure_strength,
+                in_discount=market.structure_in_discount,
+                in_premium=market.structure_in_premium,
+                fvg_low=market.structure_fvg_low,
+                fvg_high=market.structure_fvg_high,
+                sweep_reclaim=market.structure_sweep_reclaim,
+            )
+        else:
+            structure_state = StructureState()
+        allowed, veto_reason = regime_allows_entry(
+            params=structure_params_from_strategy(self.params),
             trend_dir=trend_dir,
+            state=structure_state,
             momentum_dir=self.momentum.direction,
-        ):
-            # Vetoed by HTF trend filter. Record for calibration.
-            # Critical: we emit a SIGNAL_AUDIT with reason="trend_veto" so that
-            # uat_report / performance analysis can see the blocked candidates
-            # and (by looking at subsequent price action) judge if the filter
-            # actually improved expectancy. Without this, min_strength cannot
-            # be honestly tuned.
-            if self.obs is not None:
-                self.obs.record_trend_veto()
-
+            price=market.price,
+        )
+        if not allowed:
             direction = self.momentum.direction
             audit_dir = "Buy" if direction == "Long" else "Sell"
-            buy_ratio = market.buy_vol_1s / market.vol_1s if market.vol_1s > 0 else 0.0
-            sell_ratio = market.sell_vol_1s / market.vol_1s if market.vol_1s > 0 else 0.0
-
-            # Phase 4 migration: emit only DECISION_AUDIT (legacy SIGNAL removed)
             if self.obs is not None:
-                ctx = self.obs.get_pressure_context()
+                if veto_reason == "structure_veto":
+                    self.obs.record_structure_veto()
+                elif veto_reason == "trend_veto":
+                    self.obs.record_trend_veto()
+            ctx = self.obs.get_pressure_context() if self.obs is not None else {}
+            if veto_reason == "structure_veto":
+                veto_dec = DecisionAudit(
+                    event_type="structure_veto",
+                    ts=market.ts,
+                    episode_id=self.momentum.episode_id,
+                    direction=audit_dir,
+                    price=market.price,
+                    vol_1s=market.vol_1s,
+                    reason="structure_veto",
+                    vwap=round(market.vwap, 1),
+                    momentum_dir=direction,
+                    **ctx,
+                )
+                for k, v in self._structure_audit_fields(market).items():
+                    setattr(veto_dec, k, v)
+            else:
                 veto_dec = DecisionAudit(
                     event_type="trend_veto",
                     ts=market.ts,
@@ -401,7 +458,7 @@ class VWAPMomentumStrategy(BaseStrategy):
                     trend_strength=market.trend_strength,
                     **ctx,
                 )
-                logger.info("DECISION_AUDIT %s", format_decision_audit(veto_dec))
+            logger.info("DECISION_AUDIT %s", format_decision_audit(veto_dec))
             return None
 
         if self.obs is not None:
