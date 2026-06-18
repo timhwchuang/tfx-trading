@@ -1,6 +1,6 @@
 # trading-app — Roadmap
 
-> **執行環境：Windows**。原則：**UAT 驗狀態機與對帳，不驗獲利**。
+> **執行環境：地雲雙管** — Live 建議 **GCP GCE（asia-east1）** 或 **Windows**；回測/CAL 放 **地端 Linux/macOS**（見 [`ops/HYBRID_DEPLOY.md`](ops/HYBRID_DEPLOY.md)）。原則：**UAT 驗狀態機與對帳，不驗獲利**。
 > 文件職責見 [`DOC_MAP.md`](DOC_MAP.md)。Monorepo：[`tfx-trading`](https://github.com/timhwchuang/tfx-trading)。
 
 ## 目前狀態（2026-06-18）
@@ -18,7 +18,7 @@
 
 > **UAT Ready ≠ Live Ready**。Phase 6 CAL-8 / trend filter 是 Live gate，不是 UAT gate。
 
-**測試基線**：`bash scripts/run-all-tests.sh` — 以實際 `Ran N tests` 輸出為準（2026-06-18：app **82**、engine **80**、strategy **33** 全綠）。
+**測試基線**：`bash scripts/run-all-tests.sh` — 以實際 `Ran N tests` 輸出為準（2026-06-18：engine **85**、backtest **27**、strategy **36**、app **121**，合計 **269** 全綠）。
 
 ### Phase 編號對照（避免混淆）
 
@@ -56,7 +56,7 @@
 | Determinism | `python -m sweep.determinism_check --date …` | Phase 5 可重現性 |
 | 證據 CSV | `python -m reporting.uat_evidence_export both reports\day*.json` | broker 對帳 + tick 分層 |
 | Pilot gate | `python -m sweep.pilot_gate_check reports\day*.json` | Phase 5 量化預檢 |
-| Tick 壓縮 | `python -m storage.compress` | 收盤後維護 |
+| Tick 壓縮 | `python -m storage`（`storage.compress` alias） | 收盤後維護 |
 | 回測重跑 | `python -m backtest --code TXFR1 --dates …` | UAT tick 驗證 |
 | P4-13 護欄 | `config.yaml` `operations.*` | 暖機、斷線上限、有倉 CRITICAL |
 | Near-miss 漏斗 | `DAILY_SUMMARY.near_miss` | pullback / timeout 診斷 |
@@ -69,7 +69,7 @@
 ### UAT 執行 — 人類（API 已就緒）
 
 - [x] 申請永豐**模擬** API（行情 + 帳務 + 交易；UAT 不需 CA）
-- [ ] Windows UAT 機：clone + `setup-dev.sh` + 環境變數（見 [`ops/WindowsOps.md`](ops/WindowsOps.md)）
+- [ ] Live 節點：Windows UAT 機 **或** GCE（見 [`ops/HYBRID_DEPLOY.md`](ops/HYBRID_DEPLOY.md)、[`ops/LinuxOps.md`](ops/LinuxOps.md)、[`ops/WindowsOps.md`](ops/WindowsOps.md)）— clone + `setup-dev.sh` + 環境變數
 - [ ] [`uat/APP.md`](uat/APP.md) **Phase 0** 完成 + 證據 commit
 - [ ] **Phase 1** 首個完整模擬交易日 + `reports/day*.json`
 - [ ] Phase 3 起：每週 [`WeeklyStatus.md`](WeeklyStatus.md) + `uat_evidence/templates/*`
@@ -146,6 +146,8 @@
 | 證據範本 / 歸檔 | [`uat_evidence/README.md`](../uat_evidence/README.md) |
 | Kernel scenario | [`uat/KERNEL.md`](uat/KERNEL.md) |
 | 週報 / 人類 follow-up | [`WeeklyStatus.md`](WeeklyStatus.md) |
+| 地雲部署 / GCE 規格 | [`ops/HYBRID_DEPLOY.md`](ops/HYBRID_DEPLOY.md) |
+| Linux 運維（GCE / 地端） | [`ops/LinuxOps.md`](ops/LinuxOps.md) |
 | Windows 運維 | [`ops/WindowsOps.md`](ops/WindowsOps.md) |
 | 架構邊界 | 根 [`SPEC.md`](../SPEC.md) §7 |
 | 回測 / sweep 規格 | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |

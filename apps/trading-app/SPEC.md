@@ -1,6 +1,6 @@
 # trading-app — Reference Integrator App
 
-> **Role**: compose `trading-engine` + `trading-backtest` + strategy plugins into a runnable Windows deployment with config, storage, reporting, and UAT tooling.  
+> **Role**: compose `trading-engine` + `trading-backtest` + strategy plugins into a runnable deployment (GCE/Windows live + on-prem backtest) with config, storage, reporting, and UAT tooling.  
 > **Not** a fourth core library — kernel and strategy alpha live in `packages/` (monorepo).
 
 ## Dependency direction

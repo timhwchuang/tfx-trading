@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 _SRC_DIR = Path(__file__).resolve().parent
+_APP_SPEC_PATH = _SRC_DIR.parent / "SPEC.md"
 _MONOREPO_ROOT = _SRC_DIR.parent.parent.parent
 _SIBLING_SRC_DIRS = (
     _MONOREPO_ROOT / "packages/trading-engine/src",
@@ -56,6 +58,18 @@ CATALOG: tuple[CliEntry, ...] = (
         "python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log --dates 2026-06-12",
     ),
 )
+
+
+def parse_spec_cli_modules(spec_path: Path | None = None) -> frozenset[str]:
+    """Parse module names from apps/trading-app/SPEC.md CLI table (excludes cli_help meta)."""
+    path = spec_path or _APP_SPEC_PATH
+    modules: set[str] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        for match in re.finditer(r"`python -m ([\w.]+)", line):
+            mod = match.group(1)
+            if mod != "cli_help":
+                modules.add(mod)
+    return frozenset(modules)
 
 
 def format_catalog() -> str:

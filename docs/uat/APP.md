@@ -95,7 +95,7 @@
    ```powershell
    cd C:\tfx-trading
    $env:PYTHONPATH="apps\trading-app\src"
-   python -m storage.compress
+   python -m storage
    python -m reporting $env:LOG_FILE --json > reports\day$(Get-Date -Format yyyyMMdd).json
    ```
 
@@ -322,7 +322,7 @@ python -m reporting $env:LOG_FILE --episodes
 
 | 角色 | 必做 | 文件錨點 |
 |------|------|----------|
-| **Ops** | Phase 6 告警實機驗證、Windows 排程、斷線演練證據歸檔 | [`WindowsOps.md`](../ops/WindowsOps.md) |
+| **Ops** | Phase 6 告警實機驗證、Live 排程（Windows 或 GCE systemd）、斷線演練證據 | [`HYBRID_DEPLOY.md`](../ops/HYBRID_DEPLOY.md)、[`LinuxOps.md`](../ops/LinuxOps.md)、[`WindowsOps.md`](../ops/WindowsOps.md) |
 | **永豐 API / Kernel** | B3–B6 regression；重連後 `sync_positions` + 首 tick 暖機對帳 | [`KERNEL.md`](KERNEL.md)、[`LIVE_SAFETY.md`](../ops/LIVE_SAFETY.md) |
 | **Daily Reviewer** | 每週三指標 + gross/net + 摩擦差異 + near-miss；Phase 5 前整理前 5 大虧損日 | [`WeeklyStatus.md`](../WeeklyStatus.md) |
 

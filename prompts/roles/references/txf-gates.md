@@ -32,7 +32,7 @@
 
 | 角色 | 對應 |
 |------|------|
-| **Ops** | [`docs/ops/WindowsOps.md`](../../../docs/ops/WindowsOps.md)、P4-13 斷線護欄、Telegram 實機驗收 |
+| **Ops** | [`docs/ops/HYBRID_DEPLOY.md`](../../../docs/ops/HYBRID_DEPLOY.md)、[`LinuxOps.md`](../../../docs/ops/LinuxOps.md)、P4-13 斷線護欄、Telegram 實機驗收 |
 | **永豐 API Specialist** | [`docs/uat/KERNEL.md`](../../../docs/uat/KERNEL.md)、[`docs/ops/LIVE_SAFETY.md`](../../../docs/ops/LIVE_SAFETY.md)、pending/order callback |
 | **Daily Reviewer** | [`docs/WeeklyStatus.md`](../../../docs/WeeklyStatus.md)、`python -m reporting <log>`、`uat_report` KPI |
 

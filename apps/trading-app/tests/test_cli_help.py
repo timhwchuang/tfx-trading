@@ -8,20 +8,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from cli_help import CATALOG, _SRC_DIR, _subprocess_env, format_catalog, main, run_module_help
-
-# SPEC.md CLI table modules (excluding cli_help itself) — keep in sync with apps/trading-app/SPEC.md
-SPEC_CLI_MODULES = frozenset(
-    {
-        "live",
-        "backtest",
-        "reporting",
-        "reporting.uat_evidence_export",
-        "reporting.calibration_cli",
-        "sweep.pilot_gate_check",
-        "sweep.determinism_check",
-        "storage",
-    }
+from cli_help import (
+    CATALOG,
+    _SRC_DIR,
+    _subprocess_env,
+    format_catalog,
+    main,
+    parse_spec_cli_modules,
+    run_module_help,
 )
 
 
@@ -34,7 +28,7 @@ class TestCliHelp(unittest.TestCase):
 
     def test_catalog_matches_spec_cli_table(self):
         catalog_modules = {e.module for e in CATALOG}
-        self.assertEqual(catalog_modules, SPEC_CLI_MODULES)
+        self.assertEqual(catalog_modules, parse_spec_cli_modules())
 
     def test_format_catalog_mentions_help(self):
         text = format_catalog()

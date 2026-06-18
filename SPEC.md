@@ -17,14 +17,14 @@
 
 ## 1. 定位
 
-台指期（TXF）個人研究用 **monorepo**：kernel、回測、可插拔策略、Windows UAT 整合，單一 `git clone` 即可開發。
+台指期（TXF）個人研究用 **monorepo**：kernel、回測、可插拔策略、Live 整合（**GCE / Windows**）+ 地端回測，單一 `git clone` 即可開發。
 
 | 路徑 | pip 名稱 | import | 職責 |
 |------|----------|--------|------|
 | [`packages/trading-engine`](packages/trading-engine/SPEC.md) | `trading-engine` | `trading_engine` | 狀態機、risk、broker adapters、Strategy Protocol |
 | [`packages/trading-backtest`](packages/trading-backtest/SPEC.md) | `trading-backtest` | `trading_backtest` | Tick replay、MockBroker |
 | [`packages/strategies/vwap-momentum`](packages/strategies/vwap-momentum/SPEC.md) | `strategy-vwap-momentum` | `strategy_vwap_momentum` | VWAP momentum plugin（entry point `vwap_momentum`） |
-| [`apps/trading-app`](apps/trading-app/SPEC.md) | — | `src/` on path | Config、落盤、reporting、sweep、Windows 執行 |
+| [`apps/trading-app`](apps/trading-app/SPEC.md) | — | `src/` on path | Config、落盤、reporting、sweep、Live 執行（GCE/Windows） |
 
 **App 子模組**（`apps/trading-app/src/`）：
 
@@ -54,9 +54,9 @@ bash scripts/setup-dev.sh
 bash scripts/run-all-tests.sh
 ```
 
-Windows 執行與 UAT：[`apps/trading-app/README.md`](apps/trading-app/README.md)
+執行與 UAT：[`apps/trading-app/README.md`](apps/trading-app/README.md) · 地雲部署：[`docs/ops/HYBRID_DEPLOY.md`](docs/ops/HYBRID_DEPLOY.md)
 
-**測試基線**（`bash scripts/run-all-tests.sh`）：engine ~80、strategy ~33、app ~81、backtest 全綠。
+**測試基線**（`bash scripts/run-all-tests.sh`）：engine **85**、backtest **27**、strategy **36**、app **121**（合計 **269**，以 `Ran N tests` 為準）。
 
 **Live 入口**：`cd apps/trading-app/src && python -m live`（行為不變）。
 

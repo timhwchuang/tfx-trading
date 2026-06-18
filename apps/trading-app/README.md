@@ -1,14 +1,17 @@
 # trading-app
 
-> **Reference integrator app** for TXF VWAP momentum on Windows — part of the [**tfx-trading**](https://github.com/timhwchuang/tfx-trading) monorepo.
+> **Reference integrator app** for TXF VWAP momentum — part of the [**tfx-trading**](https://github.com/timhwchuang/tfx-trading) monorepo.
 
-> **目標執行環境：Windows**（開發、UAT、Pilot 皆以 Windows 為準。）
+> **建議部署：地雲雙管** — Live 放 **GCP GCE asia-east1** 或 **Windows**；回測 / CAL 放地端 Linux/macOS。見 [`docs/ops/HYBRID_DEPLOY.md`](../../docs/ops/HYBRID_DEPLOY.md)。
 
 | 文件 | 用途 |
 |------|------|
 | [SPEC.md](SPEC.md) | App 層邊界、依賴方向、架構與資料流、公開 wiring API |
 | [../../docs/uat/APP.md](../../docs/uat/APP.md) | App 層 UAT→Pilot 執行清單 |
 | [../../docs/DOC_MAP.md](../../docs/DOC_MAP.md) | 全 monorepo 文件索引（高階導航） |
+| [../../docs/ops/HYBRID_DEPLOY.md](../../docs/ops/HYBRID_DEPLOY.md) | GCE Live + 地端回測 |
+| [../../docs/ops/LinuxOps.md](../../docs/ops/LinuxOps.md) | Linux / GCE systemd |
+| [../../docs/ops/WindowsOps.md](../../docs/ops/WindowsOps.md) | Windows 排程 |
 | [../../docs/AGENTS.md](../../docs/AGENTS.md) | AI / 開發安全護欄 |
 | [../../CHANGELOG.md](../../CHANGELOG.md#trading-app) | 版本變更 |
 
@@ -22,10 +25,11 @@
 
 ## 系統需求
 
-- **Windows 10 / 11** 或 Windows Server
-- **Python 3.11+**、Git Bash（執行 `setup-dev.sh`）
-- 永豐金 [Shioaji](https://sinotrade.github.io/) API 金鑰
-- 系統時區 **(UTC+08:00) 台北**
+| 角色 | 環境 |
+|------|------|
+| **Live（連線）** | Windows 10/11 **或** GCP GCE Ubuntu 24.04（[`HYBRID_DEPLOY.md`](../../docs/ops/HYBRID_DEPLOY.md)） |
+| **回測 / 研究** | Linux / macOS 地端機 |
+| 共通 | Python 3.11+、永豐 [Shioaji](https://sinotrade.github.io/) API 金鑰、時區 **Asia/Taipei** |
 
 ---
 

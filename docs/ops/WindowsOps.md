@@ -8,7 +8,7 @@
 - [ ] Python 3.11+ 已安裝
 - [ ] 已 clone `git@github.com:timhwchuang/tfx-trading.git` 至 `C:\tfx-trading`
 - [ ] 在 **monorepo 根** 執行 `bash scripts/setup-dev.sh`（或 Git Bash）建立 `C:\tfx-trading\.venv`
-- [ ] `C:\tfx-trading\.venv\Scripts\python.exe apps\trading-app\run_tests.py` 全綠（81 項）
+- [ ] `C:\tfx-trading\.venv\Scripts\python.exe apps\trading-app\run_tests.py` 全綠（121 項）；或 monorepo 根 `bash scripts/run-all-tests.sh`（269 項）
 - [ ] 系統時區 **台北 (UTC+8)**；自動對時已開啟（`w32tm /query /status`）
 - [ ] 環境變數已設定（User 或 System）：
   - `SJ_API_KEY` / `SJ_SEC_KEY`
@@ -64,14 +64,18 @@ cd C:\tfx-trading\apps\trading-app
 ## 收盤後維護
 
 ```powershell
-cd C:\tfx-trading\apps\trading-app\src
-C:\tfx-trading\.venv\Scripts\python.exe -m storage.compress
+cd C:\tfx-trading
+$env:PYTHONPATH="apps\trading-app\src"
+C:\tfx-trading\.venv\Scripts\python.exe -m storage
+# 相容 alias：python -m storage.compress
 ```
 
 建議工作排程器每日 **15:30** 執行。
 
 ## 相關文件
 
+- [`HYBRID_DEPLOY.md`](HYBRID_DEPLOY.md) — 地雲雙管（GCE Live + 地端回測）
+- [`LinuxOps.md`](LinuxOps.md) — GCE / Linux systemd
 - [`docs/uat/APP.md`](../uat/APP.md)
 - [`TODO.md`](../TODO.md) Phase 4
-- 根 [`SPEC.md`](../../SPEC.md) §7
+- 根 [`SPEC.md`](../../SPEC.md) §2、§7

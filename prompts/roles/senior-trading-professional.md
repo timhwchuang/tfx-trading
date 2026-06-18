@@ -87,7 +87,7 @@ argument-hint: "[scenario or question]"
 
 | 角色 | 你需要的輸入 / 他們該做的事 |
 |------|---------------------------|
-| **Ops** | 告警實機、Windows 排程、斷線演練紀錄 → `docs/ops/WindowsOps.md` |
+| **Ops** | 告警實機、Live 排程（GCE/Windows）、斷線演練 → `docs/ops/HYBRID_DEPLOY.md` |
 | **永豐 API Specialist** | callback 對帳、pending 超時、重連後暖機 → `docs/uat/KERNEL.md`、`docs/ops/LIVE_SAFETY.md` |
 | **Daily Reviewer** | 週報 Follow-up、near-miss 審閱、CAL-8 決策 → `docs/WeeklyStatus.md`、`uat_report` |
 

@@ -198,6 +198,13 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - **Doc SSOT**: [`SPEC.md`](apps/trading-app/SPEC.md) + root [`README.md`](README.md) aligned with `CATALOG` (`storage`, `determinism_check`, `calibration_cli`); `storage.compress` documented as alias.
 - **Tests**: +5 (`test_cli_help`: SPEC↔catalog drift guard, delegate mock/integration, `live --help` without `shioaji` import); **121** app tests green.
 
+#### Hybrid ops (on-prem research + GCE live)
+
+- **[`docs/ops/HYBRID_DEPLOY.md`](docs/ops/HYBRID_DEPLOY.md)**: 地雲雙管架構、GCE `asia-east1` 規格（`e2-standard-2` UAT/Pilot）、tick_cache rsync 流程。
+- **[`docs/ops/LinuxOps.md`](docs/ops/LinuxOps.md)**: systemd、cron、`post-session.sh`；[`scripts/linux/`](scripts/linux/)（`start-trading-app.sh`, `install-systemd.sh`, `sync-from-gce.sh`）。
+- **Doc sweep**: `python -m storage` 為主、`storage.compress` alias — [`TODO.md`](docs/TODO.md), [`AGENTS.md`](docs/AGENTS.md), [`uat/APP.md`](docs/uat/APP.md), [`WindowsOps.md`](docs/ops/WindowsOps.md)；測試基線 **269**（85+27+36+121）。
+- **`calibration_cli`**: `--help` epilog examples；`cli_help.parse_spec_cli_modules()` 從 SPEC 解析防 catalog drift。
+
 #### UAT tooling (Phase 3–5 automation)
 
 - **`reporting.uat_evidence_export`**: broker reconciliation + tick stratification CSV from `reports/day*.json`; merge-by-date; `--broker-data` import; invalid PnL safe-parse.

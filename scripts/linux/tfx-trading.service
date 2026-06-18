@@ -1,0 +1,21 @@
+[Unit]
+Description=tfx-trading VWAP momentum live session (Shioaji)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=tfx
+Group=tfx
+WorkingDirectory=/opt/tfx-trading/apps/trading-app/src
+EnvironmentFile=-/etc/tfx-trading/env
+ExecStart=/opt/tfx-trading/.venv/bin/python -m live
+Restart=on-failure
+RestartSec=60
+# Live session should not be killed by default timeout
+TimeoutStopSec=300
+
+[Install]
+WantedBy=multi-user.target

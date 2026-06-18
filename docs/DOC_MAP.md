@@ -35,6 +35,8 @@
 | [`../uat_evidence/README.md`](../uat_evidence/README.md) | UAT 證據歸檔 SOP + 範本 |
 | [`uat/KERNEL.md`](uat/KERNEL.md) | Engine 整合 UAT 驗收 |
 | [`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md) | 實盤失敗情境與 kernel 行為 |
+| [`ops/HYBRID_DEPLOY.md`](ops/HYBRID_DEPLOY.md) | 地雲雙管：GCE Live + 地端回測、GCE 規格 |
+| [`ops/LinuxOps.md`](ops/LinuxOps.md) | Linux/GCE systemd、cron、地端研究 |
 | [`ops/WindowsOps.md`](ops/WindowsOps.md) | Windows 排程、告警、路徑 |
 | [`AGENTS.md`](AGENTS.md) | AI 安全護欄、Callback MUST NOT、Production Gate |
 

@@ -1,6 +1,6 @@
 # tfx-trading
 
-Monorepo for Taiwan TXF futures research: **trading-engine** kernel, **trading-backtest** replay, pluggable **strategies**, and **trading-app** Windows UAT integrator.
+Monorepo for Taiwan TXF futures research: **trading-engine** kernel, **trading-backtest** replay, pluggable **strategies**, and **trading-app** live integrator (hybrid: **GCE Live** + on-prem backtest).
 
 > Personal research / simulation — not investment advice. UAT-ready ≠ live-ready.
 
@@ -13,7 +13,9 @@ Monorepo for Taiwan TXF futures research: **trading-engine** kernel, **trading-b
 | [SPEC.md](SPEC.md) | Monorepo 整合規格（高階；含 §7 架構與資料流） |
 | [docs/AGENTS.md](docs/AGENTS.md) | AI / 開發安全護欄 |
 | [prompts/roles/senior-trading-professional.md](prompts/roles/senior-trading-professional.md) | 資深交易人員 role（Grok **`/senior-trading-professional`**） |
-| [apps/trading-app/README.md](apps/trading-app/README.md) | Windows 安裝、執行、UAT |
+| [apps/trading-app/README.md](apps/trading-app/README.md) | 安裝、執行、UAT |
+| [docs/ops/HYBRID_DEPLOY.md](docs/ops/HYBRID_DEPLOY.md) | 地雲雙管（GCE Live + 地端回測） |
+| [docs/ops/LinuxOps.md](docs/ops/LinuxOps.md) | Linux / GCE 運維 |
 
 ## Quick start
 
@@ -62,7 +64,7 @@ python -m backtest --code TXFR1 --dates 2026-06-12
 | `reporting.calibration_cli` | Trend filter 校準（CAL-8） | `python -m reporting.calibration_cli --help` |
 | `storage` | 壓縮 tick_cache | `python -m storage --help` |
 
-UAT 流程逐步 SOP：[`docs/uat/APP.md`](docs/uat/APP.md) · Windows 細節：[`apps/trading-app/README.md`](apps/trading-app/README.md)
+UAT 流程逐步 SOP：[`docs/uat/APP.md`](docs/uat/APP.md) · 部署：[`docs/ops/HYBRID_DEPLOY.md`](docs/ops/HYBRID_DEPLOY.md) · Windows：[`docs/ops/WindowsOps.md`](docs/ops/WindowsOps.md)
 
 ## Migrated from
 

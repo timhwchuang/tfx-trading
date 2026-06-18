@@ -81,7 +81,16 @@ def run_trend_sensitivity_sweep(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="P6-1-CAL B-class: trend veto harness from log + tick_cache replay."
+        description="P6-1-CAL B-class: trend veto harness from log + tick_cache replay.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples (from apps/trading-app/src):\n"
+            "  python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log --dates 2026-06-12\n"
+            "  python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log "
+            "--dates 2026-06-10,2026-06-11,2026-06-12 --forward-seconds 1800\n"
+            "  python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log "
+            "--dates 2026-06-10,2026-06-11,2026-06-12 --sweep --sweep-output sweep_result.jsonl\n"
+        ),
     )
     parser.add_argument(
         "log_files",
