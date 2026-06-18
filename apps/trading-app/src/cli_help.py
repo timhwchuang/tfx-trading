@@ -3,9 +3,19 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
+from pathlib import Path
+
+_SRC_DIR = Path(__file__).resolve().parent
+_MONOREPO_ROOT = _SRC_DIR.parent.parent.parent
+_SIBLING_SRC_DIRS = (
+    _MONOREPO_ROOT / "packages/trading-engine/src",
+    _MONOREPO_ROOT / "packages/trading-backtest/src",
+    _MONOREPO_ROOT / "packages/strategies/vwap-momentum/src",
+)
 
 
 @dataclass(frozen=True)
@@ -43,7 +53,7 @@ CATALOG: tuple[CliEntry, ...] = (
     CliEntry(
         "reporting.calibration_cli",
         "Trend filter 校準（CAL-8 研究）",
-        "python -m reporting.calibration_cli --help",
+        "python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log --dates 2026-06-12",
     ),
 )
 
@@ -76,10 +86,30 @@ def format_catalog() -> str:
     return "\n".join(lines)
 
 
+def _pythonpath_entries() -> list[str]:
+    entries = [str(_SRC_DIR)]
+    for path in _SIBLING_SRC_DIRS:
+        if path.is_dir():
+            entries.append(str(path))
+    return entries
+
+
+def _subprocess_env() -> dict[str, str]:
+    env = os.environ.copy()
+    parts = [p for p in env.get("PYTHONPATH", "").split(os.pathsep) if p]
+    for entry in reversed(_pythonpath_entries()):
+        if entry not in parts:
+            parts.insert(0, entry)
+    env["PYTHONPATH"] = os.pathsep.join(parts)
+    return env
+
+
 def run_module_help(module: str) -> int:
     result = subprocess.run(
         [sys.executable, "-m", module, "--help"],
         check=False,
+        cwd=_SRC_DIR,
+        env=_subprocess_env(),
     )
     return int(result.returncode)
 
@@ -99,11 +129,6 @@ def main(argv: list[str] | None = None) -> int:
         "module",
         nargs="?",
         help="Optional module name from catalog (runs MODULE --help)",
-    )
-    parser.add_argument(
-        "--list",
-        action="store_true",
-        help="Print catalog only (default when module omitted)",
     )
     args = parser.parse_args(argv)
 

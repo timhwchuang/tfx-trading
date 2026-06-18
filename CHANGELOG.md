@@ -191,6 +191,13 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - Richer `--help` epilog examples on `live`, `reporting`, `uat_evidence_export`, `pilot_gate_check`, `determinism_check`, `storage`, `backtest`.
 - Root [`README.md`](README.md) + [`apps/trading-app/README.md`](apps/trading-app/README.md) CLI index tables.
 
+#### Fixed (CLI discoverability follow-up)
+
+- **`live --help`**: lazy-import Shioaji/engine after `argparse`; `raise SystemExit` exit semantics aligned with other CLIs.
+- **`cli_help` delegate**: subprocess sets `cwd=src` and `PYTHONPATH` (app `src/` + monorepo sibling packages); removed dead `--list` flag.
+- **Doc SSOT**: [`SPEC.md`](apps/trading-app/SPEC.md) + root [`README.md`](README.md) aligned with `CATALOG` (`storage`, `determinism_check`, `calibration_cli`); `storage.compress` documented as alias.
+- **Tests**: +5 (`test_cli_help`: SPEC↔catalog drift guard, delegate mock/integration, `live --help` without `shioaji` import); **121** app tests green.
+
 #### UAT tooling (Phase 3–5 automation)
 
 - **`reporting.uat_evidence_export`**: broker reconciliation + tick stratification CSV from `reports/day*.json`; merge-by-date; `--broker-data` import; invalid PnL safe-parse.

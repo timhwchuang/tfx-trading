@@ -59,6 +59,7 @@ python -m backtest --code TXFR1 --dates 2026-06-12
 | `reporting.uat_evidence_export` | 券商對帳 + tick CSV | `python -m reporting.uat_evidence_export --help` |
 | `sweep.pilot_gate_check` | Phase 5 Pilot 預檢 | `python -m sweep.pilot_gate_check --help` |
 | `sweep.determinism_check` | 可重現性 hash | `python -m sweep.determinism_check --help` |
+| `reporting.calibration_cli` | Trend filter 校準（CAL-8） | `python -m reporting.calibration_cli --help` |
 | `storage` | 壓縮 tick_cache | `python -m storage --help` |
 
 UAT 流程逐步 SOP：[`docs/uat/APP.md`](docs/uat/APP.md) · Windows 細節：[`apps/trading-app/README.md`](apps/trading-app/README.md)

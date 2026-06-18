@@ -68,11 +68,13 @@ TradingEngine(
 |---------|---------|
 | `python -m cli_help` | CLI catalog; `python -m cli_help <module>` → module `--help` |
 | `python -m live` | Simulation or live session |
+| `python -m backtest` | App-wired backtest |
 | `python -m reporting <log>` | UAT metrics; `--json` / `--trend` / `--episodes` |
 | `python -m reporting.uat_evidence_export <broker\|tick\|both> reports/day*.json` | Broker reconciliation + tick stratification CSV |
+| `python -m reporting.calibration_cli <log> --dates YYYY-MM-DD` | P6-1 trend filter calibration (CAL-8) |
 | `python -m sweep.pilot_gate_check reports/day*.json` | APP.md Phase 5 Pilot Readiness Gate |
-| `python -m storage.compress` | Post-session tick gzip |
-| `python -m backtest` | App-wired backtest |
+| `python -m sweep.determinism_check --date YYYY-MM-DD --mode hash` | Backtest audit hash / reproducibility |
+| `python -m storage` | Post-session tick gzip (`storage.compress` alias) |
 
 ## Integration contracts
 

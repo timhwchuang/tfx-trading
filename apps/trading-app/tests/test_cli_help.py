@@ -2,9 +2,27 @@
 
 from __future__ import annotations
 
+import os
+import sys
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
-from cli_help import CATALOG, format_catalog, main
+from cli_help import CATALOG, _SRC_DIR, _subprocess_env, format_catalog, main, run_module_help
+
+# SPEC.md CLI table modules (excluding cli_help itself) — keep in sync with apps/trading-app/SPEC.md
+SPEC_CLI_MODULES = frozenset(
+    {
+        "live",
+        "backtest",
+        "reporting",
+        "reporting.uat_evidence_export",
+        "reporting.calibration_cli",
+        "sweep.pilot_gate_check",
+        "sweep.determinism_check",
+        "storage",
+    }
+)
 
 
 class TestCliHelp(unittest.TestCase):
@@ -13,6 +31,10 @@ class TestCliHelp(unittest.TestCase):
         self.assertIn("reporting", modules)
         self.assertIn("sweep.pilot_gate_check", modules)
         self.assertIn("reporting.uat_evidence_export", modules)
+
+    def test_catalog_matches_spec_cli_table(self):
+        catalog_modules = {e.module for e in CATALOG}
+        self.assertEqual(catalog_modules, SPEC_CLI_MODULES)
 
     def test_format_catalog_mentions_help(self):
         text = format_catalog()
@@ -24,6 +46,39 @@ class TestCliHelp(unittest.TestCase):
 
     def test_main_prints_catalog(self):
         self.assertEqual(main([]), 0)
+
+    def test_subprocess_env_includes_src_and_siblings(self):
+        env = _subprocess_env()
+        parts = env["PYTHONPATH"].split(os.pathsep)
+        self.assertIn(str(_SRC_DIR), parts)
+        monorepo = _SRC_DIR.parent.parent.parent
+        engine_src = monorepo / "packages/trading-engine/src"
+        if engine_src.is_dir():
+            self.assertIn(str(engine_src), parts)
+
+    @patch("cli_help.subprocess.run")
+    def test_delegate_calls_subprocess_with_cwd_and_env(self, mock_run):
+        mock_run.return_value.returncode = 0
+        self.assertEqual(run_module_help("reporting"), 0)
+        mock_run.assert_called_once()
+        _args, kwargs = mock_run.call_args
+        self.assertEqual(kwargs["cwd"], _SRC_DIR)
+        env = kwargs["env"]
+        self.assertIn(str(_SRC_DIR), env["PYTHONPATH"].split(os.pathsep))
+
+    def test_main_reporting_delegate(self):
+        self.assertEqual(main(["reporting"]), 0)
+
+    def test_live_help_without_shioaji_import(self):
+        sys.modules.pop("live.__main__", None)
+        mods_before = set(sys.modules)
+        from live.__main__ import main as live_main
+
+        self.assertNotIn("shioaji", set(sys.modules) - mods_before)
+        with self.assertRaises(SystemExit) as ctx:
+            live_main(["--help"])
+        self.assertEqual(ctx.exception.code, 0)
+        self.assertNotIn("shioaji", set(sys.modules) - mods_before)
 
 
 if __name__ == "__main__":

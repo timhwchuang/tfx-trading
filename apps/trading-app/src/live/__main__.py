@@ -5,12 +5,6 @@ from __future__ import annotations
 import argparse
 import sys
 
-import shioaji as sj
-
-from config import SIMULATION
-from integrations.engine_wiring import default_strategy, trading_app_engine_ports
-from trading_engine.engine import TradingEngine
-
 _LIVE_EPILOG = """\
 Examples:
   python -m live
@@ -26,13 +20,19 @@ Config: config/config.yaml — simulation: true for UAT (default).
 """
 
 
-def main(argv: list[str] | None = None) -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Start VWAP momentum live/simulation session (Shioaji + TradingEngine).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=_LIVE_EPILOG,
     )
     parser.parse_args(argv)
+
+    import shioaji as sj
+
+    from config import SIMULATION
+    from integrations.engine_wiring import default_strategy, trading_app_engine_ports
+    from trading_engine.engine import TradingEngine
 
     api = sj.Shioaji(simulation=SIMULATION)
     ports = trading_app_engine_ports(
@@ -46,7 +46,8 @@ def main(argv: list[str] | None = None) -> None:
         strategy=default_strategy(ports["runtime_config"], ports["obs"]),
         **{k: v for k, v in ports.items() if k != "obs"},
     ).start()
+    return 0
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    raise SystemExit(main(sys.argv[1:]))

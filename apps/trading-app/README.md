@@ -81,6 +81,7 @@ C:\tfx-trading\apps\trading-app\scripts\windows\start-trading-app.ps1 -MonorepoR
 | 證據 CSV | `python -m reporting.uat_evidence_export both ..\..\..\reports\day*.json` | `python -m reporting.uat_evidence_export --help` |
 | Pilot 預檢 | `python -m sweep.pilot_gate_check ..\..\..\reports\day*.json` | `python -m sweep.pilot_gate_check --help` |
 | Determinism | `python -m sweep.determinism_check --date YYYY-MM-DD --mode hash` | `python -m sweep.determinism_check --help` |
+| Trend 校準 | `python -m reporting.calibration_cli %LOG_FILE% --dates 2026-06-12` | `python -m reporting.calibration_cli --help` |
 | 壓縮 tick | `python -m storage` | `python -m storage --help` |
 
 首次請確認 `config/config.yaml` 中 **`simulation: true`**。
@@ -98,7 +99,7 @@ tfx-trading/
     ├── config/config.yaml
     ├── src/                   # live, backtest, integrations, storage, reporting, sweep
     ├── scripts/windows/       # -MonorepoRoot C:\tfx-trading
-    ├── tests/                   # 116+ 項整合測試
+    ├── tests/                   # 121 項整合測試（`run_tests.py`）
     └── run_tests.py
 ```
 
