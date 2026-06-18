@@ -117,7 +117,7 @@ python -m sweep.determinism_check --date 2026-06-17 --mode hash --output snapsho
 **Day 1 完成 Check**（全部 ☐）：
 - [ ] 完整 log + `tick_cache\TXFR1_*.csv`（monorepo 根）>1MB + 壓縮 `.gz`
 - [ ] `reports\day*.json` 存在且含 KPI 欄位：`performance.expectancy.expectancy_per_trade_gross`、`performance.expectancy.expectancy_per_trade_net`、`performance.risk_adjusted.sharpe`、`cumulative_risk.budget_used_pct`
-- [ ] 至少一筆 SIGNAL_AUDIT + FILL_AUDIT
+- [ ] 至少一筆 `DECISION_AUDIT`（`momentum_armed`）+ `SIGNAL_AUDIT` + `FILL_AUDIT`
 - [ ] git commit + determinism hash + config snapshot 完成
 - [ ] 無明顯錯誤
 
@@ -138,7 +138,8 @@ python -m sweep.determinism_check --date 2026-06-17 --mode hash --output snapsho
 
 **Phase 2 完成條件**（全部 ☐）：
 - [ ] 連續 5 日都有完整 tick_cache + reports\*.json
-- [ ] 至少 3 日有實際進場意圖（SIGNAL_AUDIT）
+- [ ] 連續 5 日 `kbar_cache\TXFR1_kbars_*.csv` 有落盤（`KBARS_ARCHIVE=1`；供 ATR + **P6-SMC-CAL** harness）
+- [ ] 至少 3 日有實際進場意圖（`SIGNAL_AUDIT` 或 `DECISION_AUDIT` entry path）
 - [ ] 無雙 entry / pending 問題
 - [ ] 每日都有 git commit + snapshot
 
@@ -171,7 +172,7 @@ python -m reporting $env:LOG_FILE --trend
 | 績效 | Sharpe | 依 config `sharpe_period` |
 | 風控 | Max DD 使用率 | % of `max_acceptable_mdd_points` |
 | 對帳 | **券商日損益 vs log 日損益** | 券商帳務（點）對照 JSON `daily_summaries[-1].pnl.daily_pnl_points`；差異 > 0.5 點須在週報註記 |
-| 事件 | near-miss 摘要 | timeout / veto / 差價未成交等；每週至少一筆或標「本週無」 |
+| 事件 | near-miss 摘要 | timeout / `trend_veto` / `structure_veto`（僅 filter on）/ 差價未成交；每週至少一筆或標「本週無」 |
 
 **摩擦成本 SOP**（Phase 3 起，非等到 Phase 7）：
 1. 每日收盤：`python -m reporting $env:LOG_FILE --json > reports\dayYYYYMMDD.json`
@@ -199,6 +200,9 @@ python -m reporting $env:LOG_FILE --trend
 | No-tick 看門狗 | 長時間無 tick | 正確重訂閱 | log |
 | 完整對帳 | 收盤比對 | `daily_summaries[-1].pnl.daily_pnl_points` 與券商一致或可解釋 | `uat_evidence/phase3_weekly/broker_reconciliation.csv` |
 | tick_type 品質 | 看 `type0_pct` | <40% 或有書面解釋 | 日報 JSON |
+| structure_stale（可選） | CAL-8 前 filter-on 演練 | kbars 中斷後擋 entry、允許 exit；log 含 `risk_blocked` `block_reason=structure_stale` | log 片段 |
+
+> **P6-SMC-CAL（Live gate，非 UAT gate）**：工程 Phase 1–4 已落地；UAT 期間 **`structure_filter_enabled` 預設 false**，照常累積 tick/kbar 即可。≥5 交易日後跑 `python -m reporting.structure_calibration_cli`（見 [`TODO.md`](../TODO.md) §P6-SMC-CAL、[`WeeklyStatus.md`](../WeeklyStatus.md) P6-SMC-CAL 模板）。**CAL-8 Go ≠ Pilot Ready**。
 
 **Tick 品質 × 訊號品質觀測**（Phase 4 起累積，Phase 5 審核必附）：
 
@@ -324,7 +328,7 @@ python -m reporting $env:LOG_FILE --episodes
 |------|------|----------|
 | **Ops** | Phase 6 告警實機驗證、Live 排程（Windows 或 GCE systemd）、斷線演練證據 | [`HYBRID_DEPLOY.md`](../ops/HYBRID_DEPLOY.md)、[`LinuxOps.md`](../ops/LinuxOps.md)、[`WindowsOps.md`](../ops/WindowsOps.md) |
 | **永豐 API / Kernel** | B3–B6 regression；重連後 `sync_positions` + 首 tick 暖機對帳 | [`KERNEL.md`](KERNEL.md)、[`LIVE_SAFETY.md`](../ops/LIVE_SAFETY.md) |
-| **Daily Reviewer** | 每週三指標 + gross/net + 摩擦差異 + near-miss；Phase 5 前整理前 5 大虧損日 | [`WeeklyStatus.md`](../WeeklyStatus.md) |
+| **Daily Reviewer** | 每週三指標 + gross/net + 摩擦差異 + near-miss；Phase 5 前整理前 5 大虧損日；CAL-8 時填 P6-SMC-CAL 模板 | [`WeeklyStatus.md`](../WeeklyStatus.md) |
 
 ---
 
@@ -381,7 +385,8 @@ python -m reporting $env:LOG_FILE --episodes
 
 **文件修訂紀錄（資深交易人員 review 納入）**：
 - Phase 3：gross/net 並列 + 券商對帳摩擦追蹤（自 Phase 3 起，非 Phase 7 才開始）
-- Phase 4：tick 品質分層觀測 + 壓力情境 audit timeline 累積
+- Phase 4：tick 品質分層觀測 + 壓力情境 audit timeline 累積；**FT-002** `structure_veto` / `structure_stale` 演練（CAL-8 前置，預設 filter 關）
+- Phase 2：`kbar_cache` 累積列為 SMC harness 前置
 - Phase 5：樣本/密度/0 成交日定義、fidelity gap、≥3 壓力情境人類審閱（含 near-miss）
 - Phase 6：Ops 告警實機證據格式 + 角色協作表
 - determinism_check CLI、執行環境、rollback 清單（沿用）

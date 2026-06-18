@@ -14,7 +14,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
-- **FT-002 Phase 4**：`regime_allows_entry` 接線；`structure_veto` / armed structure enrichment DECISION_AUDIT；`structure_stale` → `risk_blocked` audit；`record_structure_veto`；filter-on 3-run determinism。
+- **FT-002 Phase 4**：`regime_allows_entry` 接線；`structure_veto` / armed structure enrichment DECISION_AUDIT；`structure_stale` → `risk_blocked` audit；`record_structure_veto`；filter-on 3-run determinism；[`TODO.md`](docs/TODO.md) / [`WeeklyStatus.md`](docs/WeeklyStatus.md) / [`uat/APP.md`](docs/uat/APP.md) 同步 P6-SMC-CAL 指引。
 - **FT-002 Phase 3 + sweep（A1–A8）**：`StructureRefreshPort` / `structure_stale` / `refresh_atr` 掛載；`structure_refresh.py`；config + runtime 互斥；`structure_calibration_cli --sweep`；`param_sweep` structure grid；`test_structure_stale_guards`。
 - **FT-002 Phase 2** P6-SMC-CAL offline harness: `structure_calibration.py` + `structure_calibration_cli.py` —三組 counterfactual（no_filter / structure_only / trend_only）、friction-adjusted expectancy、`structure_events.csv` + `structure_armed_join.csv`、30s armed conversion；A/B-class tests + kbar fixture。
 - **FT-002** SMC structure filter: SPEC v2 + PLAN Phase 1 complete + `REVIEW.md` Phase 1 re-review（PASS）；[`docs/TODO.md`](docs/TODO.md) §P6-SMC-CAL
@@ -186,6 +186,8 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 ### [Unreleased]
 
 #### Added
+
+- **FT-002 Phase 4** `observability.record_structure_veto` + `episode_funnel.structure_veto`；`uat_report` 將 `structure_veto` 計入 episode outcome `veto`。
 
 - **FT-001 Phase 1**: `DECISION_AUDIT` + `DecisionAudit` dataclass + `format_decision_audit`; `momentum_armed` emission from `vwap-momentum` with `episode_id`; `SignalAudit`/`FillAudit` enriched with optional `episode_id`/`signal_id`/exit fields; `episode_id` propagated through pending to entry FILL.
 - `build_exit_audit` now carries `entry_price`, `hold_ticks`, `in_grace`, stop levels, `trailing_peak`.

@@ -11,14 +11,15 @@
 | **Phase 3 UAT** | **🟢 API 金鑰就緒** — 執行 [`uat/APP.md`](uat/APP.md) Phase 0→1 |
 | Phase 4 運維骨架 | ✅ P4-1～12 已落地；**P4-13-F 斷網實機**、Telegram 實機待 UAT 演練 |
 | Phase 5 Pilot | 見 [`uat/APP.md`](uat/APP.md) Phase 5（量化 gate + 摩擦對帳 + 壓力情境審閱） |
-| Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（待 UAT tick 跑 CAL-8）；P6-4/5 待做 |
+| Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（P6-1 + **P6-SMC-CAL** harness/sweep）；待 UAT tick 跑 CAL-8；P6-4/5 待做 |
+| **FT-002 SMC（工程）** | Phase 1–4 ✅（`REVIEW.md` PASS）；**Phase 5 Land + CAL-8** 待 ≥5 日 UAT |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
 | **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
 
-> **UAT Ready ≠ Live Ready**。Phase 6 CAL-8 / trend filter 是 Live gate，不是 UAT gate。
+> **UAT Ready ≠ Live Ready**。Phase 6 **P6-1-CAL** / **P6-SMC-CAL**（trend / structure filter）是 Live gate，不是 UAT gate。
 
-**測試基線**：`bash scripts/run-all-tests.sh` — 以實際 `Ran N tests` 輸出為準（2026-06-18：engine **85**、backtest **27**、strategy **36**、app **121**，合計 **269** 全綠）。
+**測試基線**：`bash scripts/run-all-tests.sh` — 以實際 `Ran N tests` 輸出為準（2026-06-18：engine **90**、backtest **27**、strategy **60**、app **136**，合計 **313** 全綠）。
 
 ### Phase 編號對照（避免混淆）
 
@@ -60,7 +61,8 @@
 | 回測重跑 | `python -m backtest --code TXFR1 --dates …` | UAT tick 驗證 |
 | P4-13 護欄 | `config.yaml` `operations.*` | 暖機、斷線上限、有倉 CRITICAL |
 | Near-miss 漏斗 | `DAILY_SUMMARY.near_miss` | pullback / timeout 診斷 |
-| Trend CAL tooling | `python -m reporting.calibration_cli` | Live gate 前校準（預設 filter 關） |
+| Trend CAL tooling | `python -m reporting.calibration_cli` | P6-1 Live gate 前校準（預設 filter 關） |
+| SMC CAL tooling | `python -m reporting.structure_calibration_cli` | P6-SMC-CAL（預設 `structure_filter_enabled: false`） |
 
 ---
 
@@ -103,14 +105,16 @@
 > **前提**：`structure_filter_enabled` 預設 **false**；與 `trend_filter_enabled` **互斥**（config fail-fast）。開啟前必過 **CAL-8** 人類簽核。  
 > **設計真相**：[`docs/features/smc-structure-filter/SPEC.md`](features/smc-structure-filter/SPEC.md) · 實作計劃 [`PLAN.md`](features/smc-structure-filter/PLAN.md)
 
-**A 類（合成）**
+**A 類（合成，已完成）**
 
 - [x] CAL-SMC-1：`structure.py` + `test_structure.py`（FVG/BOS/sweep、gap guard）
 - [x] CAL-SMC-2：`regime_allows_entry` 互斥單元測試
+- [x] CAL-SMC-3：Phase 3 engine 接線 + `param_sweep` structure grid + stale guards
+- [x] CAL-SMC-4：Phase 4 `structure_veto` audit、armed enrichment、`record_structure_veto`、filter-on determinism
 
 **B 類（真實 UAT 資料）**
 
-- [ ] **1. 累積**：UAT 連續 **≥5 交易日**；`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`；log 含 `structure_veto`
+- [ ] **1. 累積**：UAT 連續 **≥5 交易日**；`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`；`kbar_cache/` 可餵 harness；**開 filter 測試時** log 須含 `structure_veto`（預設 filter 關則無）
 - [x] **2. Harness**：`structure_calibration_cli`（見 ft PLAN Phase 2）
 - [x] **3. Sweep**：`structure_min_strength` grid（`structure_calibration_cli --sweep` + `param_sweep`）
 - [x] **4. Counterfactual**：分開跑 — 無濾網 / structure only / trend only（harness 內建；互斥，不得同時開）
