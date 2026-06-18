@@ -90,7 +90,15 @@
 - VWAP stop / ATR dynamic stop：以當前 `market.vwap` 為基準（mean-reversion 觀點）。
 - 這兩個 stop 的參考價格故意不同，grace period 也只保護 hard stop。文件與 UAT 應明確區分這兩種意義。
 
-## 6. Trend Filter（P6-1）重要語意警告（務必閱讀）
+## 6. SMC Structure Filter（FT-002，Phase 1 離線模組）
+
+> **設計真相**：[`docs/features/smc-structure-filter/SPEC.md`](../../../docs/features/smc-structure-filter/SPEC.md)  
+> **狀態**：`structure.py` + 單元測試已落地；engine 接線與 `structure_filter_enabled` 見 ft PLAN Phase 3+。  
+> **預設**：濾網關閉；與 `trend_filter_enabled` **互斥**；開啟須 P6-SMC-CAL + CAL-8。
+
+實作入口：`strategy_vwap_momentum.structure`（`compute_structure`, `regime_allows_entry`, `structure_algo_version=1`）。
+
+## 7. Trend Filter（P6-1）重要語意警告（務必閱讀）
 
 `compute_trend(..., min_strength=..., atr=...)` 實作 **Level-2 gating**：
 
@@ -103,7 +111,7 @@
 
 這些設計讓 trend_veto 真正有統計意義，而不是對微弱雜訊的過度反應。
 
-### 6.1 Trend Filter 校準（Live gate）
+### 7.1 Trend Filter 校準（Live gate）
 
 **Iron rules**
 
@@ -144,7 +152,7 @@ Sweep grid（`trend_min_strength` 預設）：0.0, 0.3, 0.5, 0.8, 1.0, 1.5（ATR
 | B 類 harness / CLI | `apps/trading-app/src/reporting/` |
 | Sweep 接線 | [`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) §Integration contracts |
 
-## 7. Audit 與可觀測性
+## 8. Audit 與可觀測性
 
 FT-001 後，plugin 在關鍵決策點產生結構化 audit：
 
@@ -164,7 +172,7 @@ DECISION 事件：`momentum_armed`, `momentum_timeout`, `trend_veto`, `risk_bloc
 
 Phase 4 後移除 legacy dual。
 
-## 8. In Scope / Out of Scope
+## 9. In Scope / Out of Scope
 
 **In Scope（本 plugin 負責）**
 - 所有 momentum / pullback / exit 決策規則
@@ -180,7 +188,7 @@ Phase 4 後移除 legacy dual。
 - Telegram、報表、儲存、參數 sweep 執行器（`trading-app`）
 - 多商品、scale-in、部分出場（kernel position model 限制）
 
-## 9. 依賴與版本策略
+## 10. 依賴與版本策略
 
 ```toml
 dependencies = ["trading-engine>=0.2.2,<1.0"]
@@ -190,7 +198,7 @@ dependencies = ["trading-engine>=0.2.2,<1.0"]
 - Plugin 內部改動（參數預設、校準值、細微規則調整）→ 只 bump plugin patch/minor
 - 建議 consuming app 從 monorepo 安裝：`pip install -e packages/strategies/vwap-momentum`（或參考 root `scripts/setup-dev.sh`）。歷史 standalone pin 見 ARCHIVE/releases/。
 
-## 10. 測試
+## 11. 測試
 
 - `python run_tests.py`（本 repo 內）
 - 強項：trend 數學 + Level-2 + 邊界（gap、resample 最新 bar、min_strength 門檻、ATR norm、SMA seed）
@@ -198,7 +206,7 @@ dependencies = ["trading-engine>=0.2.2,<1.0"]
 - 風格：部分用 `make_vwap_host`（trading_engine.testing）做整合式驗證；純 Protocol 測試建議未來補強
 - CI 會在無 shioaji、無 trading-backtest 的環境下至少跑核心邏輯（dev 依賴只裝 ruff/mypy）
 
-## 11. 非目標 / 限制
+## 12. 非目標 / 限制
 
 - 本策略**不是**「拿去實盤就發財」的黑箱產品。它是研究參考實作。
 - 不支援 scale-in、減碼、反向同時持倉、多商品。

@@ -14,7 +14,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
-- **FT-002** SMC structure filter: [`docs/features/smc-structure-filter/`](docs/features/smc-structure-filter/) SPEC v2（frozen §4 FVG/BOS/swing lag/session slice）、PLAN v2、`REVIEW.md` 資深交易人員 re-review（PASS_WITH_NOTES）；[`docs/TODO.md`](docs/TODO.md) §P6-SMC-CAL
+- **FT-002** SMC structure filter: SPEC v2 + PLAN Phase 1 complete + `REVIEW.md` Phase 1 re-review（PASS）；[`docs/TODO.md`](docs/TODO.md) §P6-SMC-CAL
 
 ---
 
@@ -128,6 +128,14 @@ Initial public release of the deterministic tick replay driver for `trading-engi
 ---
 
 ## strategy-vwap-momentum
+
+### [Unreleased]
+
+#### Added
+
+- **FT-002 Phase 1** `strategy_vwap_momentum.structure`: frozen SMC v0.1 (`compute_structure`, `regime_allows_entry`, `structure_allows_entry`); 15+ unit tests (`test_structure.py`). No engine wiring yet (`structure_filter_enabled` not in runtime).
+
+---
 
 ### [0.1.2] - 2026-06-17
 

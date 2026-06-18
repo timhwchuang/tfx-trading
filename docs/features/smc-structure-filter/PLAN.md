@@ -56,14 +56,14 @@ blockers: []
 
 **實作**
 
-- [ ] [`structure.py`](../../../packages/strategies/vwap-momentum/src/strategy_vwap_momentum/structure.py)
+- [x] [`structure.py`](../../../packages/strategies/vwap-momentum/src/strategy_vwap_momentum/structure.py)
   - `filter_closed_bars_1m` / `resample_time_buckets`
   - `session_slice_bars`（§4.3）
   - `detect_swings_confirmed`（§4.5 lag）
   - `detect_fvg` + `mitigate_fvgs`（§4.7）
   - `detect_bos` / `detect_sweep`（§4.6 / §4.8）
   - `compute_structure` / `structure_allows_entry` / `regime_allows_entry`
-- [ ] [`test_structure.py`](../../../packages/strategies/vwap-momentum/tests/test_structure.py) — **強制 edge cases**：
+- [x] [`test_structure.py`](../../../packages/strategies/vwap-momentum/tests/test_structure.py) — **強制 edge cases**：
 
 | 案例 | 驗證 |
 |------|------|
@@ -78,13 +78,13 @@ blockers: []
 | `test_level2_min_strength_zero_strictest` | 0.0 語意 |
 | `test_regime_mutual_exclusion` | 兩 filter 同開 → 拒絕 |
 
-- [ ] `__init__.py` export
-- [ ] [`strategy-vwap-momentum/SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) — §SMC stub 連結本 ft
+- [x] `__init__.py` export
+- [x] [`strategy-vwap-momentum/SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) — §SMC stub 連結本 ft
 
 **驗收（Phase 1 閘門）**
 
-- [ ] `bash scripts/run-all-tests.sh` 全綠
-- [ ] **無** engine / app runtime 改動
+- [x] `bash scripts/run-all-tests.sh` 全綠
+- [x] **無** engine / app runtime 改動
 - [ ] 文件：Phase 1 僅驗演算法；**不**構成 CAL-8 依據（SPEC §1）
 
 ### Phase 2 — Offline harness
