@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Sequence
 
 from reporting.forward_pnl import ForwardPnlPolicy, load_tick_series, make_replay_forward_pnl, policy_summary
-from reporting.uat_report import parse_log_audits_and_fills, read_log_lines
+from reporting.uat_report import parse_decision_audits, parse_log_audits_and_fills, read_log_lines
 from storage.tick_loader import DEFAULT_CACHE_DIR
 from trading_engine.core.audit.signal_audit import SignalAudit
 
@@ -168,7 +168,12 @@ def run_b_class_calibration(
         log_lines = read_log_lines([Path(p) for p in log_paths])
 
     audits, _fills = parse_log_audits_and_fills(log_lines)
+    decisions = parse_decision_audits(log_lines)
+    # Phase 4: prefer DECISION for trend_veto (legacy SIGNAL removed)
+    veto_from_dec = [d for d in decisions if d.event_type == "trend_veto"]
     veto_audits, allowed_audits = partition_trend_entry_audits(audits)
+    # merge veto from decisions (with episode etc)
+    veto_audits.extend([audit_to_dict(d) for d in veto_from_dec])  # type: ignore[arg-type]
 
     pol = forward_policy or ForwardPnlPolicy()
     series = load_tick_series(code, dates, cache_dir=cache_dir)

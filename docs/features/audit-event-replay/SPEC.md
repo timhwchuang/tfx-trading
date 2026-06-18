@@ -1,7 +1,7 @@
 ---
 id: FT-001
 slug: audit-event-replay
-status: InProgress
+status: Landed
 opened: 2026-06-17
 owner: human+agent
 target: UAT-Pilot

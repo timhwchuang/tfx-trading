@@ -146,14 +146,23 @@ Sweep grid（`trend_min_strength` 預設）：0.0, 0.3, 0.5, 0.8, 1.0, 1.5（ATR
 
 ## 7. Audit 與可觀測性
 
-plugin 盡可能在關鍵決策點產生 `SignalAudit` 並經由 kernel 記錄為 `SIGNAL_AUDIT` log。
+FT-001 後，plugin 在關鍵決策點產生結構化 audit：
 
-常見 reason：
+- 伴隨 `OrderSignal`：`SIGNAL_AUDIT`（legacy + Phase 1+ enrich）
+- 非 OrderSignal 決策（armed / timeout / veto / risk_blocked）：`DECISION_AUDIT`（Phase 1+3）
+- Kernel pending：`EXEC_AUDIT`（Phase 2）
+
+詳細契約見 [`apps/trading-app/SPEC.md` §Integration contracts](../../../apps/trading-app/SPEC.md) 與 FT-001 SPEC。
+
+常見 reason（SIGNAL）：
 - entry: "pullback"
 - exit: "stop_loss", "stop_loss_vwap", "take_profit", "trailing_stop", "session_force_flatten"
-- 特殊： "trend_veto"（帶完整 trend_dir / strength / 量比 / ATR / VWAP）
 
-這些 audit 是後續 UAT report、delta expectancy 分析、min_strength 校準的**唯一可靠來源**。缺少 trend_veto audit 就無法誠實評估濾網是否改善了期望值。
+DECISION 事件：`momentum_armed`, `momentum_timeout`, `trend_veto`, `risk_blocked`（帶 streak ctx 等）。
+
+這些是後續 UAT report、episode replay、壓力指標、delta expectancy 分析的**唯一可靠來源**。FT-001 後，`python -m reporting --episodes` 提供完整 timeline。
+
+Phase 4 後移除 legacy dual。
 
 ## 8. In Scope / Out of Scope
 

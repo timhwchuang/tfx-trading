@@ -11,9 +11,8 @@ from typing import Iterable, List
 from backtest.engine import BacktestEngine
 from storage.tick_loader import DEFAULT_CACHE_DIR
 
-_AUDIT_PREFIXES = ("SIGNAL_AUDIT ", "FILL_AUDIT ", "DAILY_SUMMARY ")
-# NOTE (FT-001 Phase 4): DECISION_AUDIT and EXEC_AUDIT will be added here once
-# the stable contract is merged into app SPEC (see PLAN Phase 4 and SPEC §7).
+_AUDIT_PREFIXES = ("SIGNAL_AUDIT ", "FILL_AUDIT ", "DAILY_SUMMARY ", "DECISION_AUDIT ", "EXEC_AUDIT ")
+# FT-001 Phase 4: DECISION_AUDIT and EXEC_AUDIT included for full audit contract determinism.
 _NON_DETERMINISTIC_OPERATIONAL_KEYS = frozenset(
     {
         "lock_wait_max_ms",

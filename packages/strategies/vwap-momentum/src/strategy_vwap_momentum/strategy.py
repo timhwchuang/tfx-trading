@@ -264,20 +264,8 @@ class VWAPMomentumStrategy(BaseStrategy):
 
             direction = self.momentum.direction
             audit_dir = "Buy" if direction == "Long" else "Sell"
-            timeout_audit = SignalAudit(
-                intent="entry",
-                direction=audit_dir,
-                price=market.price,
-                ts=market.ts,
-                reason="momentum_timeout",
-                trend_dir=trend_dir,
-                trend_strength=market.trend_strength,
-            )
-            logger.info(
-                "SIGNAL_AUDIT %s", format_signal_audit(timeout_audit)
-            )
 
-            # Phase 3: also emit DECISION_AUDIT with streak context
+            # Phase 4 migration: emit only DECISION_AUDIT (legacy SIGNAL removed)
             if self.obs is not None:
                 ctx = self.obs.get_pressure_context()
                 timeout_dec = DecisionAudit(
@@ -394,23 +382,8 @@ class VWAPMomentumStrategy(BaseStrategy):
             audit_dir = "Buy" if direction == "Long" else "Sell"
             buy_ratio = market.buy_vol_1s / market.vol_1s if market.vol_1s > 0 else 0.0
             sell_ratio = market.sell_vol_1s / market.vol_1s if market.vol_1s > 0 else 0.0
-            veto_audit = SignalAudit(
-                intent="entry",
-                direction=audit_dir,
-                price=market.price,
-                ts=market.ts,
-                vol_1s=market.vol_1s,
-                buy_ratio=round(buy_ratio, 4),
-                sell_ratio=round(sell_ratio, 4),
-                atr=round(market.current_atr, 2),
-                vwap=round(market.vwap, 1),
-                reason="trend_veto",
-                trend_dir=trend_dir,
-                trend_strength=market.trend_strength,
-            )
-            logger.info("SIGNAL_AUDIT %s", format_signal_audit(veto_audit))
 
-            # Phase 3: also emit DECISION_AUDIT with streak
+            # Phase 4 migration: emit only DECISION_AUDIT (legacy SIGNAL removed)
             if self.obs is not None:
                 ctx = self.obs.get_pressure_context()
                 veto_dec = DecisionAudit(

@@ -79,9 +79,31 @@ Stable interfaces between runtime, reporting, and research tooling. **Do not** c
 
 | Prefix | Emitter | Consumer |
 |--------|---------|----------|
+| `DECISION_AUDIT {json}` | strategy (non-OrderSignal decisions: armed, timeout, veto, risk_blocked) | `uat_report` (Phase 3+ --episodes, pressure) |
 | `SIGNAL_AUDIT {json}` | runtime on each `OrderSignal` | `uat_report.parse_log_audits_and_fills` |
+| `EXEC_AUDIT {json}` | kernel (pending_armed, cancelled, timeout, position_sync) | `uat_report` (timeline) |
 | `FILL_AUDIT {json}` | runtime on each fill | `uat_report.parse_log_audits_and_fills` |
 | `DAILY_SUMMARY {json}` | trading-day rollover / shutdown | `uat_report`, `param_sweep` |
+
+**DECISION_AUDIT** — `trading-engine/core/audit/decision_audit.py` (`DecisionAudit`, Phase 3+):
+
+- `audit_schema_version`: 1
+- `event_type`: `momentum_armed` | `momentum_timeout` | `trend_veto` | `risk_blocked` | ...
+- `ts`, `episode_id`
+- For `momentum_armed`: `direction`, `trigger_price`, `vol_1s`, `buy_ratio`, `sell_ratio`, `vol_threshold`, `multiplier`, (optional: `vwap`, `atr`, streaks)
+- For others: `price`, `block_reason`, `elapsed_sec`, `reason`, `consecutive_*_streak`, `episodes_since_last_entry`, etc.
+
+Serialization: `json.dumps(..., ensure_ascii=False, separators=(",", ":"))`
+
+**EXEC_AUDIT** — `trading-engine/core/audit/exec_audit.py` (`ExecAudit`, Phase 2+):
+
+- `audit_schema_version`: 1
+- `event_type`: `pending_armed` | `pending_cancelled` | `pending_timeout` | `position_sync`
+- `ts`, `signal_id`
+- `pending_armed`: `order_id`, `limit_price`, `direction`
+- `pending_cancelled`: `tag`, `order_id` (if any)
+- `pending_timeout`: `pending_sec`
+- `position_sync`: `qty_before`, `qty_after`, `position_dir`
 
 **SIGNAL_AUDIT** — `core/audit/signal_audit.py` (`SignalAudit`):
 
@@ -91,6 +113,7 @@ Stable interfaces between runtime, reporting, and research tooling. **Do not** c
 - `vol_1s`, `buy_ratio`, `sell_ratio`
 - `atr`, `multiplier`, `vol_threshold`, `vwap`
 - `reason`, `trend_dir`, `trend_strength`, `trail_points_used`
+- (optional Phase 1+: `episode_id`, `signal_id`, `elapsed_since_arm_sec`, `dist_vwap`, exit enrich fields)
 
 Serialization: `json.dumps(asdict(audit), ensure_ascii=False, separators=(",", ":"))`
 
@@ -104,16 +127,19 @@ Serialization: `json.dumps(asdict(audit), ensure_ascii=False, separators=(",", "
 
 **Auxiliary UAT lines** (regex-parsed): `MOMENTUM Long|Short 突破`, `tick_type 分布 | ...`, `委託未成交/已取消`.
 
+**emit_policy** (future FT-002): per-event `required` | `optional` | `toggleable` (documented in FT-001 SPEC; toggle not yet implemented).
+
 ### Sweep & determinism (research — not a UAT gate)
 
 App-layer tooling: determinism hash gate + walk-forward param sweep (`src/sweep/`, `src/reporting/`). Strategy trend calibration semantics: [`packages/strategies/vwap-momentum/SPEC.md`](../../packages/strategies/vwap-momentum/SPEC.md) §6.1 · progress [`docs/TODO.md`](../../docs/TODO.md) §P6-1-CAL.
 
 **Determinism** (`sweep/determinism_check.py`) — `run_hash(code, dates, cache_dir) -> str`:
 
-- Collect `SIGNAL_AUDIT`, `FILL_AUDIT`, `DAILY_SUMMARY` JSON; normalize; SHA-256
+- Collect `SIGNAL_AUDIT`, `FILL_AUDIT`, `DAILY_SUMMARY`, `DECISION_AUDIT`, `EXEC_AUDIT` JSON; normalize; SHA-256
 - Hash JSON body only (no log timestamps); `sort_keys=True, separators=(",", ":")`
 - Strip `DAILY_SUMMARY.operational` wall-clock fields: `lock_wait_max_ms`, `lock_wait_over_50ms`, `no_tick_resubscribe`, `atr_min`, `atr_max`
 - Include `DAILY_SUMMARY` decision fields
+- DECISION/EXEC: full decision body (no wall-clock)
 
 Tests: `tests/sweep/test_determinism.py` (`test_three_runs_same_hash`, `test_three_runs_same_hash_with_kbars_and_fills`, `test_daily_summary_in_hash`, `test_hash_robust_to_key_order`, `test_hash_ignores_operational_wall_clock`, `test_uat_report_parses_backtest_log`).
 
@@ -137,7 +163,7 @@ Tests (`tests/sweep/test_param_sweep.py`): `test_sweep_small_grid`, `test_config
 | Forward PnL replay | `src/reporting/forward_pnl.py` |
 | B-class CLI | `src/reporting/calibration_cli.py` |
 
-**Done**: same inputs → same hash (with fills); sweep restores config; `uat_report` parses backtest logs; app **81** tests green (`bash scripts/run-all-tests.sh`).
+**Done**: same inputs → same hash (with fills); sweep restores config; `uat_report` parses backtest logs; app **89** tests green (`bash scripts/run-all-tests.sh`); FT-001 Phase 4 landed (DEC/EXEC in contracts + determinism).
 
 ### UAT execution
 

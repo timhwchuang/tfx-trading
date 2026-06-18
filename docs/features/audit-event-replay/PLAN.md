@@ -1,7 +1,7 @@
 ---
 id: FT-001
 slug: audit-event-replay
-status: InProgress
+status: Landed
 opened: 2026-06-17
 owner: human+agent
 target: UAT-Pilot
@@ -107,14 +107,14 @@ blockers: []
 
 **目標**：雙真相消除；ft → **Landed**。
 
-- [ ] `trend_veto` / `momentum_timeout` 遷至 `DECISION_AUDIT`
-- [ ] `uat_report` / `trend_calibration` dual-parse 一版後移除 legacy 路徑
-- [ ] `determinism_check` 納入 DECISION/EXEC
-- [ ] 併入 [`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) §Integration contracts
-- [ ] 更新 [`packages/strategies/vwap-momentum/SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) §7 指向新契約
-- [ ] `CHANGELOG.md` 行為變更條目
-- [ ] SPEC 事件目錄註記 `emit_policy`（`toggleable` 實作留 **FT-002**）
-- [ ] 執行 **Land checklist**（下節）
+- [x] `trend_veto` / `momentum_timeout` 遷至 `DECISION_AUDIT`
+- [x] `uat_report` / `trend_calibration` dual-parse 一版後移除 legacy 路徑
+- [x] `determinism_check` 納入 DECISION/EXEC
+- [x] 併入 [`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) §Integration contracts
+- [x] 更新 [`packages/strategies/vwap-momentum/SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) §7 指向新契約
+- [x] `CHANGELOG.md` 行為變更條目
+- [x] SPEC 事件目錄註記 `emit_policy`（`toggleable` 實作留 **FT-002**）
+- [x] 執行 **Land checklist**（下節）
 
 **後續 ft（本 PLAN 不實作）**：
 
@@ -138,11 +138,11 @@ blockers: []
 
 ## Land checklist（併入 app SPEC 前必勾）
 
-- [ ] [`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) §Integration contracts 已含 DECISION/EXEC 與新欄位表
-- [ ] [`CHANGELOG.md`](../../../CHANGELOG.md) `trading-app` 已記 audit 契約變更
-- [ ] [`docs/features/README.md`](../README.md) FT-001 Status → **Landed**
-- [ ] 本檔 + SPEC frontmatter `status: Landed`
-- [ ] 上方 Phase 1–4 checkbox 全勾
+- [x] [`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) §Integration contracts 已含 DECISION/EXEC 與新欄位表
+- [x] [`CHANGELOG.md`](../../../CHANGELOG.md) `trading-app` 已記 audit 契約變更
+- [x] [`docs/features/README.md`](../README.md) FT-001 Status → **Landed**
+- [x] 本檔 + SPEC frontmatter `status: Landed`
+- [x] 上方 Phase 1–4 checkbox 全勾
 
 ## 參考
 

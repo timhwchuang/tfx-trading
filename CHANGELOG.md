@@ -175,6 +175,14 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - `docs/uat/APP.md` (formerly UAT_CHECKLIST) v2: phased UAT→Pilot flow, evidence collection, Pilot Readiness Gate.
 - Monorepo docs slim: single root CHANGELOG, centralized `docs/`.
 
+#### FT-001 Phase 3 + Phase 4 (Audit Event Replay)
+
+- **Phase 3**: `parse_decision_audit_line` / `parse_exec...`, `build_episode_timeline` + richer `Episode` (pressure_context, trade_date, outcome), `--episodes` / `--episode-id` CLI, `build_tuning_hints` using episode funnel + pressure, `DAILY_SUMMARY` with `episode_funnel` + `pressure` (max_consec, ratio, risk_blocked_count), streak emit in DECISION_AUDIT.
+- Synthetic fixture + snapshot test for `--episodes`.
+- **Phase 4 migration/land**: trend_veto/momentum_timeout/risk now primary via `DECISION_AUDIT` (legacy SIGNAL removed); determinism includes DEC/EXEC; contracts merged to `apps/trading-app/SPEC.md`; strategy SPEC updated; status → Landed.
+- Risk_blocked now throttled (60s/reason).
+- Full review fixes + 89+ tests green.
+
 #### Changed
 
 - BeforePilot content fully merged into [`docs/uat/APP.md`](docs/uat/APP.md) Phase 5 (Pilot Readiness Gate).
