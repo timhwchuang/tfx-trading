@@ -91,21 +91,21 @@ blockers: []
 
 **目標**：真實 kbar 上回答 structure vs trend vs 無濾網。
 
-- [ ] [`structure_calibration.py`](../../../apps/trading-app/src/reporting/structure_calibration.py)
+- [x] [`structure_calibration.py`](../../../apps/trading-app/src/reporting/structure_calibration.py)
   - 讀 `kbar_cache/{code}_kbars_{date}.csv`
   - 逐決策點呼叫 `compute_structure(as_of_ts=...)`（**重算**，非讀 live 快取）
   - 輸出 `structure_events.csv` + `structure_armed_join.csv`
-- [ ] armed join：UAT log `momentum_armed` → as-of structure + 30s forward conversion
-- [ ] 三組 counterfactual 腳本 / 文件：
+- [x] armed join：UAT log `momentum_armed` → as-of structure + 30s forward conversion
+- [x] 三組 counterfactual 腳本 / 文件：
   1. 兩 filter false
   2. structure only
   3. trend only
-- [ ] 報表：**veto 單 vs 放行單** friction-adjusted expectancy 分解
-- [ ] CLI：`python -m reporting.structure_calibration_cli`
+- [x] 報表：**veto 單 vs 放行單** friction-adjusted expectancy 分解
+- [x] CLI：`python -m reporting.structure_calibration_cli`
 
 **驗收**
 
-- [ ] ≥5 日 kbar_cache 可重現報表
+- [ ] ≥5 日 kbar_cache 可重現報表（需 UAT 累積；harness 已就緒）
 - [ ] **決策閘**：無正 `delta_expectancy` → Phase 3 暫緩 + CAL-8 No-Go 建議
 
 ### Phase 3 — Engine 接線

@@ -57,6 +57,11 @@ CATALOG: tuple[CliEntry, ...] = (
         "Trend filter 校準（CAL-8 研究）",
         "python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log --dates 2026-06-12",
     ),
+    CliEntry(
+        "reporting.structure_calibration_cli",
+        "SMC structure filter 校準（P6-SMC-CAL）",
+        "python -m reporting.structure_calibration_cli C:\\logs\\trading-app-uat.log --dates 2026-06-12",
+    ),
 )
 
 

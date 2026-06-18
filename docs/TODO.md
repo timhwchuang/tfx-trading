@@ -111,9 +111,9 @@
 **B 類（真實 UAT 資料）**
 
 - [ ] **1. 累積**：UAT 連續 **≥5 交易日**；`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`；log 含 `structure_veto`
-- [ ] **2. Harness**：`structure_calibration_cli`（見 ft PLAN Phase 2）
+- [x] **2. Harness**：`structure_calibration_cli`（見 ft PLAN Phase 2）
 - [ ] **3. Sweep**：`structure_min_strength` grid（見 ft SPEC §8）
-- [ ] **4. Counterfactual**：分開跑 — 無濾網 / structure only / trend only（互斥，不得同時開）
+- [x] **4. Counterfactual**：分開跑 — 無濾網 / structure only / trend only（harness 內建；互斥，不得同時開）
 - [ ] **5. CAL-8 Go/No-Go**：人類簽核 → [`WeeklyStatus.md`](WeeklyStatus.md)；**No-Go** 則維持 `structure_filter_enabled=false`
 
 - owner: `strategy-vwap-momentum` + `trading-app/reporting` + `trading-app/sweep`
