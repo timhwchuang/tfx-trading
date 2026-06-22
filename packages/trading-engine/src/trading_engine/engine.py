@@ -127,6 +127,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.strategy: Strategy = strategy
 
         self.lock = threading.Lock()
+        self._api_lock = threading.RLock()  # 保護 Shioaji api 的 mutable 操作，避免 PyBorrowMutError
         self.contract = None
         self._running = False
         self._raw_order_evt_dumped: set = set()
@@ -142,6 +143,11 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._order_queue: queue.Queue[OrderSignal | None] = queue.Queue()
         self._order_sync_mode = False
         self._order_worker_started = False
+
+    def _call_api(self, fn, *args, **kwargs):
+        """Helper to serialize Shioaji mutable calls under _api_lock."""
+        with self._api_lock:
+            return fn(*args, **kwargs)
 
     @property
     def current_vwap(self) -> float:
@@ -484,7 +490,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 long_lookback_days=self._cfg.atr_kline_lookback_days,
                 long_lookback_done_for=long_done,
             )
-            kbars = self.api.kbars(
+            kbars = self._call_api(
+                self.api.kbars,
                 contract=self.contract,
                 start=start.isoformat(),
                 end=today.isoformat(),
@@ -709,8 +716,10 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 self._check_session_watchdog()
                 self._check_no_tick_watchdog()
                 self._maybe_log_tick_type_summary()
-            except Exception as e:
-                logger.warning("背景維運檢查異常: %s", e)
+            except BaseException as e:
+                # Catch PanicException etc. from PyO3 to prevent silent thread death.
+                # Log and continue (thread may be compromised; monitor will notice).
+                logger.error("背景維運檢查嚴重異常 (可能殺死 thread): %s", e)
             time.sleep(1)
 
     def _check_session_watchdog(self) -> None:
@@ -742,7 +751,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 "Session 看門狗觸發重登入 | attempt=%d",
                 attempts + 1,
             )
-            self.api.login(
+            self._call_api(
+                self.api.login,
                 api_key=self._cfg.api_key,
                 secret_key=self._cfg.secret_key,
                 subscribe_trade=True,
@@ -893,7 +903,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             self._archive.shutdown_tick_archive()
             if self._trading_date is not None:
                 self._emit_daily_summary(self._trading_date)
-            self.api.logout()
+            self._call_api(self.api.logout)
             shutdown_async_logging()
 
     def start(self) -> None:

@@ -29,6 +29,15 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 - **`_resolve_contract`**: resolve rolling contracts via product category prefix (`TXF` / `MXF` / `TMF`) so `TMFR1` (微台) and `MXFR1` work without hardcoding大台 `TXF` only.
 
+#### Fixed
+
+- **Shioaji API thread-safety**: Added `_api_lock` (RLock) and serialized all mutable Shioaji operations (`update_status`, `order_deal_records`, `place_ioc_limit`, `list_positions`, `kbars`, `login`, `logout`, `usage`, `subscribe_trade`, `subscribe`, callback registration). Prevents `PyBorrowMutError` (PyO3) from concurrent threads in `_timeout_loop`, reconnect, order worker, and ATR refresh. Follow-up fixes per review:
+
+  - `trade.status` / fill snapshot inside `_api_lock` in reconcile.
+  - Early `pending_since` at arm time (closes timeout window before `place_order` completes).
+  - `BaseException` (including PanicException) in `_timeout_loop`.
+  - Lock ordering, `_call_api` helper, additional coverage, SPEC.md update.
+
 #### Added
 
 - **FT-002 Phase 4** `DecisionAudit` structure fields + `format_decision_audit` for `structure_veto` / armed enrichment。

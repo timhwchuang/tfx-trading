@@ -84,6 +84,10 @@ class OrderExecutorMixin:
         if signal.intent == PendingIntent.EXIT:
             self.exit_pending = True
 
+        # Set pending_since early (at arm time) to avoid premature timeout window
+        # when place_order takes time or order_id population is delayed.
+        self.pending_since = getattr(signal, "exchange_ts", 0) or self._clock()
+
         # Note: pending_armed EXEC is emitted from place_order after order_id is known (to satisfy SPEC order_id MUST).
         # See place_order below.
 
@@ -249,12 +253,14 @@ class OrderExecutorMixin:
                 else self._cfg.ioc_slippage_points
             )
             price = ref_price + slip if action == "Buy" else ref_price - slip
-            trade = self._order_adapter.place_ioc_limit(
+            account = self._call_api(lambda: self.api.futopt_account)
+            trade = self._call_api(
+                self._order_adapter.place_ioc_limit,
                 self.contract,
                 action=action,
                 qty=qty,
                 limit_price=price,
-                account=self.api.futopt_account,
+                account=account,
             )
             with self.lock:
                 self.pending_trade = trade
@@ -700,14 +706,14 @@ class OrderExecutorMixin:
     def _reconcile_pending_trade(self, trade) -> bool:
         """補查委託狀態。回傳 True 表示 pending 已處理完畢（含 callback 已搶先處理）。"""
         try:
-            self.api.update_status(trade=trade)
+            with self._api_lock:
+                self.api.update_status(trade=trade)
+                status = str(getattr(trade.status, "status", "") or "")
+                deal_qty = int(getattr(trade.status, "deal_quantity", 0) or 0)
+                fill = self._extract_fill_from_trade(trade)
         except Exception as e:
             logger.warning("update_status 補查失敗: %s", e)
             return False
-
-        status = str(getattr(trade.status, "status", "") or "")
-        deal_qty = int(getattr(trade.status, "deal_quantity", 0) or 0)
-        fill = self._extract_fill_from_trade(trade)
 
         if fill and deal_qty > 0 and status in ("Filled", "PartFilled"):
             price, is_buy = fill
@@ -743,7 +749,7 @@ class OrderExecutorMixin:
 
         if not self._cfg.simulation:
             try:
-                records = self.api.order_deal_records()
+                records = self._call_api(self.api.order_deal_records)
             except Exception as e:
                 logger.warning("order_deal_records 補查失敗: %s", e)
                 records = []
