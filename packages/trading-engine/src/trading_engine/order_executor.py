@@ -86,7 +86,8 @@ class OrderExecutorMixin:
 
         # Set pending_since early (at arm time) to avoid premature timeout window
         # when place_order takes time or order_id population is delayed.
-        self.pending_since = getattr(signal, "exchange_ts", 0) or self._clock()
+        # Always use internal _clock() (wall time) for consistent comparison in _check_pending_timeout.
+        self.pending_since = self._clock()
 
         # Note: pending_armed EXEC is emitted from place_order after order_id is known (to satisfy SPEC order_id MUST).
         # See place_order below.
@@ -263,15 +264,8 @@ class OrderExecutorMixin:
                 account=account,
             )
             oid = str(getattr(trade.order, "id", "") or "")
-            if not oid:
-                # In simulation or PendingSubmit, id may not be immediate.
-                # Populate via account update (safer, no live trade mutation).
-                # This ensures callback path (handle_order_event) can match by order_id.
-                try:
-                    self._call_api(self.api.update_status, self.api.futopt_account)
-                    oid = str(getattr(trade.order, "id", "") or "")
-                except Exception as e:
-                    logger.debug("post-place account update for id non-fatal: %s", e)
+            # Do not call update_status here even on account, to avoid any borrow risk in the order path.
+            # If oid empty, the callback handler will backfill pending_order_id from the first event.
             with self.lock:
                 self.pending_trade = trade
                 self.pending_order_id = oid
@@ -400,8 +394,13 @@ class OrderExecutorMixin:
                 if signal is None:
                     break
                 self.place_order(signal)
-            except Exception as e:
-                logger.error("Order worker 異常: %s", e)
+            except BaseException as e:
+                # Catch PanicException etc. too; order worker death is critical (no more orders).
+                logger.error("Order worker 嚴重異常: %s", e)
+                # Re-raise only system exits; otherwise continue to not lose the worker.
+                if isinstance(e, (SystemExit, KeyboardInterrupt)):
+                    raise
+                # else log and continue (worker stays alive)
             finally:
                 self._order_queue.task_done()
 
@@ -476,11 +475,16 @@ class OrderExecutorMixin:
 
         if not self.is_pending:
             return
+        actual_id = self._event_order_id(msg)
+        if not self.pending_order_id and actual_id:
+            # Backfill order_id from first callback if it was empty at place time (common in sim/PendingSubmit).
+            # This lets subsequent matches and armed re-emit work.
+            self.pending_order_id = actual_id
         if not self._matches_pending_order(msg):
             logger.warning(
                 "忽略非當前委託狀態回報 | expected=%s got=%s",
                 self.pending_order_id,
-                self._event_order_id(msg),
+                actual_id,
             )
             return
 
@@ -725,55 +729,14 @@ class OrderExecutorMixin:
         - 優先靠 handle_order_event callback。
         - 補查走 order_deal_records()（query 新資料，不 mutate live trade），用 pending_order_id 比對。
         - simulation 完全 short-circuit。
-        - 保留對 pre-populated trade 的安全讀取（用於 reconnect test，不呼叫 api）。
         """
-        # 安全讀取 caller 已 populate 的 trade（測試/reconnect），不碰 api。
-        if trade is not None:
-            status = str(getattr(trade.status, "status", "") or "")
-            deal_qty = int(getattr(trade.status, "deal_quantity", 0) or 0)
-            fill = self._extract_fill_from_trade(trade)
-            if fill and deal_qty > 0 and status in ("Filled", "PartFilled"):
-                price, is_buy = fill
-                needs_sync = False
-                with self.lock:
-                    if not self.is_pending or self.pending_order_id != str(getattr(trade.order, "id", "")):
-                        return True
-                    logger.info("補查確認成交 | status=%s qty=%d", status, deal_qty)
-                    needs_sync = self._apply_deal_fill(price, is_buy, deal_qty=deal_qty)
-                if needs_sync:
-                    self.sync_positions()
-                return True
-            if status in ("Cancelled", "Failed") and deal_qty == 0:
-                with self.lock:
-                    if not self.is_pending or self.pending_order_id != str(getattr(trade.order, "id", "")):
-                        return True
-                    logger.info("補查確認委託未成交/已取消，重置 pending")
-                    try:
-                        exec_audit = ExecAudit(
-                            event_type="pending_cancelled",
-                            ts=int(self.pending_exchange_ts or 0),
-                            signal_id=self.pending_signal_id,
-                            tag="",
-                            order_id=self.pending_order_id or "",
-                        )
-                        logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
-                    except Exception:
-                        pass
-                    self._clear_pending()
-                return True
-
         if self._cfg.simulation:
             # simulation 下短路 broker 補查，避免 shioaji sim 層 borrow 問題。
             # 靠 callback 或測試 mock 注入。
             return False
 
-        # 絕不 call update_status(trade=trade) 來 mutate 活的 trade 物件。
-        # 先 account refresh（較安全），再用 records 查。
-        try:
-            self._call_api(self.api.update_status, self.api.futopt_account)
-        except Exception as e:
-            logger.debug("account update_status non-fatal: %s", e)
-
+        # 絕不使用 account update_status 來觸發 borrow；直接用 records（query）。
+        # 這避免了即使 account 層級也會 borrow 底下 trades 的風險。
         try:
             records = self._call_api(self.api.order_deal_records)
         except Exception as e:
