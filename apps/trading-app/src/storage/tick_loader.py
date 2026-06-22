@@ -193,9 +193,10 @@ def download_and_cache(
     _log_usage(api, "download_start")
     for date in dates:
         path = cache_path(cache_dir, code, date)
-        if path.is_file() and not overwrite:
-            logger.info("快取已存在，跳過 %s", path.name)
-            written.append(path)
+        existing = resolve_tick_cache_path(cache_dir, code, date)
+        if existing is not None and not overwrite:
+            logger.info("快取已存在，跳過 %s", existing.name)
+            written.append(existing)
             continue
         try:
             ticks = fetch_ticks_for_date(api, contract, date)

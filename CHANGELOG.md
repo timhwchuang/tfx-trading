@@ -196,6 +196,13 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Added
 
+- **`backfilldata` CLI** — `python -m backfilldata date YYYY-MM-DD [end]`：透過 Shioaji `api.ticks` / `api.kbars` 補歷史 tick、kbar 快取；預設寫入 `tick_cache/` + `kbar_cache/`（kbar mirror 至 `tick_cache` 對齊 UAT archiver）；辨識 `*.csv.gz` 已壓縮 tick、單次 ≤10 tick 日 / ≤270 kbar 日；模組文件 `apps/trading-app/src/backfilldata/{README,SPEC}.md`。
+
+#### Changed
+
+- **`storage/tick_loader`**: `download_and_cache` 以 `resolve_tick_cache_path` 跳過已存在 plain CSV 或 gzip，避免 `python -m storage` 後重複打 API。
+- **`storage/kbar_loader`**: `download_and_cache_kbars` 支援 `simulation=`、`mirror_cache_dir`、`pace_sec`；mirror 自 primary 強制同步，避免 `tick_cache` 殘留舊 kbar。
+
 - **FT-002 Phase 4** `observability.record_structure_veto` + `episode_funnel.structure_veto`；`uat_report` 將 `structure_veto` 計入 episode outcome `veto`。
 
 - **FT-001 Phase 1**: `DECISION_AUDIT` + `DecisionAudit` dataclass + `format_decision_audit`; `momentum_armed` emission from `vwap-momentum` with `episode_id`; `SignalAudit`/`FillAudit` enriched with optional `episode_id`/`signal_id`/exit fields; `episode_id` propagated through pending to entry FILL.

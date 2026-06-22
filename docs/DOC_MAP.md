@@ -1,6 +1,6 @@
 # 文件職責地圖（tfx-trading monorepo）
 
-> **單一入口**：每份 active 文件一個真相來源。  
+> **單一入口**：每份 active 文件一個真相來源。
 > **分層**：**高階**（根 `SPEC.md`、`TODO`、`AGENTS`）描述 monorepo 整合；**低階**（各 package `SPEC.md`）描述該模組 API，**只連依賴、不連回根 SPEC**。
 
 ## 1. 專案進度（先看）
@@ -47,6 +47,7 @@
 | 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
 | MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
 | Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
+| 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
 
 ## 5. 考古（勿當現行流程）
 
@@ -92,3 +93,4 @@
 | 規劃中能力 / 開 ft？ | [`features/README.md`](features/README.md) |
 | Audit 事件回放？ | **FT-001** → [`features/audit-event-replay/`](features/audit-event-replay/) |
 | SMC 結構濾網？ | **FT-002** → [`features/smc-structure-filter/`](features/smc-structure-filter/) |
+| 補歷史 tick/kbar 快取？ | `python -m backfilldata date …` → [`backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |

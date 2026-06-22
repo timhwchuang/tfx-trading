@@ -25,6 +25,7 @@ class TestCliHelp(unittest.TestCase):
         self.assertIn("reporting", modules)
         self.assertIn("sweep.pilot_gate_check", modules)
         self.assertIn("reporting.uat_evidence_export", modules)
+        self.assertIn("backfilldata", modules)
 
     def test_catalog_matches_spec_cli_table(self):
         catalog_modules = {e.module for e in CATALOG}

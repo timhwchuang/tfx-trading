@@ -58,6 +58,7 @@
 | 證據 CSV | `python -m reporting.uat_evidence_export both reports\day*.json` | broker 對帳 + tick 分層 |
 | Pilot gate | `python -m sweep.pilot_gate_check reports\day*.json` | Phase 5 量化預檢 |
 | Tick 壓縮 | `python -m storage`（`storage.compress` alias） | 收盤後維護 |
+| 歷史快取補洞 | `python -m backfilldata date YYYY-MM-DD`（`apps/trading-app/src`） | 收盤後補缺 tick/kbar；勿與 live 同時 login |
 | 回測重跑 | `python -m backtest --code TMFR1 --dates …`（與 `config.yaml` `product_code` 一致） | UAT tick 驗證 |
 | P4-13 護欄 | `config.yaml` `operations.*` | 暖機、斷線上限、有倉 CRITICAL |
 | Near-miss 漏斗 | `DAILY_SUMMARY.near_miss` | pullback / timeout 診斷 |

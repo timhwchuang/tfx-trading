@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import gzip
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,8 +12,10 @@ from unittest.mock import MagicMock
 from storage.tick_loader import (
     ReplayTick,
     _ns_to_taipei_naive,
+    cache_gz_path,
     cache_path,
     date_range,
+    download_and_cache,
     iter_replay_ticks,
     load_ticks_csv,
     save_ticks_csv,
@@ -76,6 +79,26 @@ class TestCsvRoundTrip(unittest.TestCase):
             self.assertEqual(len(ticks), 2)
             self.assertEqual(ticks[0].close, "18000")
             self.assertEqual(ticks[1].close, "18010")
+
+
+class TestDownloadAndCache(unittest.TestCase):
+    def test_skips_when_only_gzip_exists(self):
+        api = MagicMock()
+        api.usage.return_value = MagicMock(
+            bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
+        )
+        contract = MagicMock()
+        contract.code = "TXFR1"
+        date = datetime.date(2026, 6, 12)
+        with tempfile.TemporaryDirectory() as d:
+            cache_dir = Path(d)
+            gz = cache_gz_path(cache_dir, "TXFR1", date)
+            gz.parent.mkdir(parents=True, exist_ok=True)
+            with gzip.open(gz, "wt", encoding="utf-8", newline="") as f:
+                f.write("datetime,close,volume,bid_price,ask_price,tick_type\n")
+            written = download_and_cache(api, contract, [date], cache_dir=cache_dir)
+            self.assertEqual(written, [gz])
+            api.ticks.assert_not_called()
 
 
 class TestDateRange(unittest.TestCase):

@@ -53,6 +53,11 @@ CATALOG: tuple[CliEntry, ...] = (
     ),
     CliEntry("storage", "壓縮 tick_cache CSV → .gz", "python -m storage"),
     CliEntry(
+        "backfilldata",
+        "永豐 API 補歷史 tick / kbar 快取",
+        "python -m backfilldata date 2026-06-20",
+    ),
+    CliEntry(
         "reporting.calibration_cli",
         "Trend filter 校準（CAL-8 研究）",
         "python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log --dates 2026-06-12",

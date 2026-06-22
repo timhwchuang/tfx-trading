@@ -328,7 +328,7 @@ Agent 不代操生產機，但改 code / 寫文件時須與下列運維現實一
 ### 9.3 日誌、tick 落盤與容量
 
 - Log：`LOG_FILE` + 每日輪替（P4-2）；結構化審計行見 [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts。
-- Tick：`tick_cache/{code}_{date}.csv` → 收盤後 `python -m storage` → `*.csv.gz`（**預設排除當日**；`storage.compress` 為相容 alias）。
+- Tick：`tick_cache/{code}_{date}.csv` → 收盤後 `python -m storage` → `*.csv.gz`（**預設排除當日**；`storage.compress` 為相容 alias）。缺日可收盤後 `python -m backfilldata date YYYY-MM-DD`（勿與 live 同時 login）。
 - Kbars：`KBARS_ARCHIVE=1` → `{code}_kbars_{date}.csv`。
 - **長期運行**：需人類規劃磁碟容量、保留天數、排程壓縮；Agent 改落盤格式時必須更新 `trading-backtest` loader 規格與 replay 相容性說明。
 
@@ -369,6 +369,9 @@ python -m reporting /path/to/log1.log /path/to/log2.log
 
 # 壓縮 tick 快取（收盤後）
 python -m storage
+
+# 補歷史 tick/kbar 快取（收盤後；勿與 live 同時 login）
+cd apps/trading-app/src && python -m backfilldata date 2026-06-20
 ```
 
 環境變數重點：

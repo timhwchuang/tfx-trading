@@ -31,6 +31,7 @@ flowchart TD
 | `src/live/` | `python -m live` — Shioaji + TradingEngine entry |
 | `src/backtest/engine.py` | Thin wrapper injecting app ports into `trading_backtest.BacktestEngine` |
 | `src/storage/` | Tick/kbar archive and loaders |
+| `src/backfilldata/` | `python -m backfilldata` — Shioaji historical tick/kbar backfill CLI |
 | `src/reporting/` | `uat_report`, `uat_evidence_export`, `metrics_extract`, `evidence_csv`, performance metrics, trend calibration |
 | `src/sweep/` | Walk-forward param sweep, `pilot_gate_check`, determinism gate |
 | `config/config.yaml` | Strategy/runtime parameters (non-secrets) |
@@ -76,6 +77,7 @@ TradingEngine(
 | `python -m sweep.pilot_gate_check reports/day*.json` | APP.md Phase 5 Pilot Readiness Gate |
 | `python -m sweep.determinism_check --date YYYY-MM-DD --mode hash` | Backtest audit hash / reproducibility |
 | `python -m storage` | Post-session tick gzip (`storage.compress` alias) |
+| `python -m backfilldata date YYYY-MM-DD` | Backfill past ticks/kbars into `tick_cache/` + `kbar_cache/` |
 
 ## Integration contracts
 
@@ -172,7 +174,7 @@ Tests (`tests/sweep/test_param_sweep.py`): `test_sweep_small_grid`, `test_config
 | Forward PnL replay | `src/reporting/forward_pnl.py` |
 | B-class CLI | `src/reporting/calibration_cli.py` |
 
-**Done**: same inputs → same hash (with fills); sweep restores config; `uat_report` parses backtest logs; app **122** tests green (`bash scripts/run-all-tests.sh` 合計 **270**)；FT-001 Phase 4 landed (DEC/EXEC in contracts + determinism); UAT evidence export + Pilot gate automation.
+**Done**: same inputs → same hash (with fills); sweep restores config; `uat_report` parses backtest logs; app **161** tests green (`python run_tests.py`)；FT-001 Phase 4 landed (DEC/EXEC in contracts + determinism); UAT evidence export + Pilot gate automation; `backfilldata` historical cache CLI.
 
 ### UAT execution
 
