@@ -52,6 +52,18 @@
 - 所有動作都要有**可驗證的 git commit + determinism hash + config snapshot**。
 - 參數凍結期從 Phase 3 開始算，必須有 git 證明。
 
+### 工作目錄與路徑（macOS / Windows 共通）
+
+| 動作 | 目錄 | 備註 |
+|------|------|------|
+| `python -m live` | `apps/trading-app/src` | 需先 `source` / 設定 `SJ_*` 環境變數 |
+| `reporting` / `storage` / `sweep.*` | **monorepo 根** | `PYTHONPATH=apps/trading-app/src`（Windows：`$env:PYTHONPATH=...`） |
+| `reports/`、`tick_cache/`、`snapshots/` | monorepo 根 | 勿在 `src/` 下重導向 `reports/day*.json` |
+
+`LOG_FILE` 可在 repo 內（`logs/trading-app-uat.log`）或 repo 外；**勿 commit** log 與金鑰。UAT 模擬只需**模擬** API Key + `simulation: true`（不需 `.pfx`）。
+
+**Phase 0 vs Phase 1 資料門檻**：Phase 0 冒煙（約 10 分鐘）以 log 內 `登入成功`、`ATR` 更新、`DECISION_AUDIT` 為準；`tick_cache/TXFR1_*.csv` 可為空或 `written=0`。**Phase 1** 才要求 tick csv >1MB 與完整 `SIGNAL_AUDIT` / `FILL_AUDIT`。
+
 ---
 
 ## Phase 0 — 準備與環境就緒（Day 0，1-2 小時）
@@ -66,10 +78,11 @@
 | 0.4 | 確認證據目錄 | ☐ | clone 已含 `reports/`、`snapshots/`、`uat_evidence/`（含 `templates/`、`phase*/`）；缺目錄再 `mkdir` | |
 | 0.5 | 設定模擬環境變數（永不 commit） | ☐ | `SJ_API_KEY` / `SJ_SEC_KEY` / `LOG_FILE=C:\logs\trading-app-uat.log` / `TICK_ARCHIVE=1` / `KBARS_ARCHIVE=1` | |
 | 0.6 | 確認 simulation + 建立 log 目錄 | ☐ | `config/config.yaml` 是 true；`mkdir C:\logs` | |
-| 0.7 | 第一次啟動驗證 | ☐ | `cd apps\trading-app\src && python -m live`（跑 10 分鐘 Ctrl+C） | 看到策略啟動 + ATR 更新 |
-| 0.8 | **強制證據收集** | ☐ | git commit + 建立第一個 snapshots/ | |
+| 0.7 | 第一次啟動驗證 | ☐ | `cd apps/trading-app/src && python -m live`（跑 10 分鐘 Ctrl+C） | 看到 `登入成功`、策略啟動、ATR 更新；可選 `DECISION_AUDIT` |
+| 0.7b | 冒煙日報（選做） | ☐ | **monorepo 根**：`PYTHONPATH=apps/trading-app/src python -m reporting "$LOG_FILE" --json > reports/dayYYYYMMDD.json` | 驗證 reporting 路徑正確 |
+| 0.8 | **強制證據收集** | ☐ | `cp apps/trading-app/config/config.yaml snapshots/config_YYYYMMDD.yaml`；git commit snapshots/（**不含** log、金鑰） | |
 
-**完成條件**：以上全部 ☐ + 至少一個 git commit + snapshots/ 有東西。
+**完成條件**：0.1–0.7 ☐ + snapshots/ 有 config 快照。Phase 0 **不要求** tick csv >1MB 或 `storage` 壓縮成功。
 
 **Kernel 對應**：完成 kernel Phase A（環境與設定）並簽名： ________________
 

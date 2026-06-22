@@ -1,0 +1,16 @@
+# UAT Phase 0 smoke — 2026-06-22
+# Status: DEFERRED (not a Phase 0 gate)
+#
+# Reason: No tick_cache/TXFR1_2026-06-22.csv after ~23s live smoke
+#         (Tick 落盤結束 | written=0). KBARS only: TXFR1_kbars_2026-06-22.csv
+#
+# Re-run after Phase 1 full trading day:
+#   cd <monorepo-root>
+#   export PYTHONPATH=apps/trading-app/src
+#   python -m storage
+#   python -m sweep.determinism_check --date 2026-06-22 --mode hash \
+#     --output snapshots/determinism_20260622.txt
+
+status: deferred
+date: 2026-06-22
+reason: no_tick_csv_for_replay

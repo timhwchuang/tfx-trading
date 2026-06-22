@@ -1,0 +1,14 @@
+# Sanitized log excerpt — Phase 0 smoke 2026-06-22
+# Source: logs/trading-app-uat.log (勿 commit 原始 .log)
+# Account ID redacted
+
+09:47:17 [INFO] 登入成功 | 合約: TXFR1 | 模擬: True | 帳號: ******
+09:47:17 [INFO] 持倉對帳 | 無持倉
+09:47:18 [INFO] ATR(20) 更新: 54.75 | start=2026-06-12 lookback=10d
+09:47:18 [INFO] Kbars 落盤 | code=TXFR1 date=2026-06-22 bars=63 path=TXFR1_kbars_2026-06-22.csv
+09:47:18 [INFO] Tick 落盤已啟用 | TICK_ARCHIVE=1 | code=TXFR1
+09:47:18 [INFO] VWAP Momentum 策略已啟動 | 模擬=True
+09:47:38 [INFO] MOMENTUM Short 突破 | 價格 47945.0
+09:47:38 [INFO] DECISION_AUDIT {"event_type":"momentum_armed","episode_id":"20260622-001","direction":"Short",...}
+09:47:40 [INFO] 策略手動停止
+09:47:40 [INFO] Tick 落盤結束 | written=0 dropped=0 path=None

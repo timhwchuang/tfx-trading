@@ -1,0 +1,46 @@
+UAT Phase 0 — 環境就緒證據
+Date: 2026-06-22
+Host: macOS (smoke test; long-run UAT 建議 Windows / GCE)
+Operator: tim_chuang
+
+=== Git ===
+branch: main
+commit: 5fd5fb8
+repo: /Users/tim_chuang/workaround/future
+
+=== setup-dev.sh ===
+status: ok (venv at .venv/)
+
+=== run-all-tests.sh (2026-06-22) ===
+trading-engine:  90 tests OK
+trading-backtest: 27 tests OK
+vwap-momentum:   60 tests OK
+trading-app:    136 tests, 1 FAILED
+  FAIL: tests.sweep.test_determinism.test_three_runs_same_hash_with_kbars_and_fills
+  note: 可能與當日 live 寫入 tick_cache/TXFR1_kbars_2026-06-22.csv 有關；不阻擋 Phase 0 連線冒煙
+
+=== 環境變數（未記錄密鑰）===
+simulation: true (config.yaml)
+SJ_API_KEY: set (len=44)
+SJ_SEC_KEY: set (len=44)
+LOG_FILE: /Users/tim_chuang/workaround/future/logs/trading-app-uat.log
+TICK_ARCHIVE: 1
+KBARS_ARCHIVE: 1
+SJ_CA_*: not set (UAT 模擬不需要)
+
+=== Live 冒煙 (~23s, 2026-06-22 09:47 Asia/Taipei) ===
+登入成功: yes | 模擬: True | 合約: TXFR1
+ATR 更新: yes (54.75)
+DECISION_AUDIT momentum_armed: yes (episode 20260622-001)
+DAILY_SUMMARY on shutdown: yes
+tick csv written: 0 (expected for short run)
+kbars: tick_cache/TXFR1_kbars_2026-06-22.csv
+
+=== 產出物 ===
+reports/day20260622.json: yes (smoke KPI / near_miss)
+snapshots/config_20260622.yaml: yes
+snapshots/determinism_20260622.txt: deferred (見檔內說明)
+
+=== Phase 0 判定 ===
+PASS (smoke): 連線、策略啟動、audit 產出、reporting 路徑驗證
+NEXT: Phase 1 完整交易日（跑滿盤 + tick csv >1MB）

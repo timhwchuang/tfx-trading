@@ -53,3 +53,28 @@ python -m sweep.determinism_check --date YYYY-MM-DD --mode hash --output snapsho
 ## 敏感資料
 
 勿 commit API 金鑰、CA 密碼；截圖可遮罩帳號。
+
+## 什麼可以 commit 到 GitHub、什麼不可以
+
+| ✅ 可以 commit | ❌ 不要 commit |
+|----------------|----------------|
+| `reports/day*.json`（UAT KPI；無密鑰） | `*.log`、`logs/`（含帳號、委託細節） |
+| `snapshots/config_YYYYMMDD.yaml` | `uat-env.sh`、`.env`、任何含 `SJ_*` 的檔案 |
+| `snapshots/determinism_*.txt`（hash 或 deferred 說明） | `*.pfx` / `*.p12` / `credentials/` |
+| `uat_evidence/phase*/` 內 **已去識別** 的 `.txt` / `.md` / `.csv` | `tick_cache/`（體積大、runtime 資料） |
+| `uat_evidence/templates/` | 券商截圖未遮罩帳號 |
+| 程式碼、測試、`config/config.yaml`（**無**密鑰） | `~/sinotrade/` 等 repo 外憑證目錄 |
+
+**原則**：只 commit **可重現 UAT 流程與 KPI** 的產物；密鑰、原始 log、tick 原始檔留在本機。
+
+**Phase 0 建議 commit 清單**（範例）：
+
+```bash
+git add reports/day20260622.json
+git add snapshots/config_20260622.yaml snapshots/determinism_20260622.txt
+git add uat_evidence/phase0/
+# 勿 git add logs/ tick_cache/ ~/sinotrade/
+git commit -m "UAT Phase 0 smoke complete - 20260622"
+```
+
+commit 前建議：`git status` 確認沒有 `logs/`、`tick_cache/`、`.env` 被 staged。
