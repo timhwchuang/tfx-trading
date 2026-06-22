@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import gzip
 import logging
 import tempfile
 import unittest
@@ -176,7 +177,7 @@ class TestKbarGzCache(unittest.TestCase):
             plain = kbars_cache_path(cache_dir, "TMFR1", datetime.date(2026, 6, 22))
             gz = kbars_cache_gz_path(cache_dir, "TMFR1", datetime.date(2026, 6, 22))
             save_kbars_csv([bar], plain)
-            gz.write_bytes(__import__("gzip").compress(plain.read_bytes()))
+            gz.write_bytes(gzip.compress(plain.read_bytes()))
             plain.unlink()
             loaded = load_kbars_csv(gz)
             self.assertEqual(len(loaded), 1)
@@ -214,7 +215,7 @@ class TestKbarGzCache(unittest.TestCase):
             plain = kbars_cache_path(cache_dir, "TMFR1", date)
             gz = kbars_cache_gz_path(cache_dir, "TMFR1", date)
             save_kbars_csv(bars, plain)
-            gz.write_bytes(__import__("gzip").compress(plain.read_bytes()))
+            gz.write_bytes(gzip.compress(plain.read_bytes()))
             plain.unlink()
             loaded = iter_kbars_in_range(
                 "TMFR1",

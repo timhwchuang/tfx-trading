@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import gzip
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,6 +16,7 @@ from storage.kbar_loader import (
     _kbar_window_needs_fetch,
     download_and_cache_kbars,
     iter_kbars_in_range,
+    kbar_cache_satisfies_request,
     kbars_cache_gz_path,
     kbars_cache_path,
     load_kbars_csv,
@@ -22,6 +24,29 @@ from storage.kbar_loader import (
     save_kbars_csv,
 )
 from storage.tick_loader import _ns_to_taipei_naive, shioaji_ts_from_ns
+
+
+def _session_kbars(date: datetime.date) -> list[KBarRecord]:
+    """One bar per minute from 08:46 through 13:44 (covers 08:45–13:45 window)."""
+    start = datetime.datetime.combine(date, datetime.time(8, 46))
+    end = datetime.datetime.combine(date, datetime.time(13, 44))
+    bars: list[KBarRecord] = []
+    cur = start
+    while cur <= end:
+        bars.append(KBarRecord(cur, 100.0, 101.0, 99.0, 100.0, 10))
+        cur += datetime.timedelta(minutes=1)
+    return bars
+
+
+def _write_gz_kbars_only(
+    cache_dir: Path, code: str, date: datetime.date, bars: list[KBarRecord]
+) -> Path:
+    plain = kbars_cache_path(cache_dir, code, date)
+    gz = kbars_cache_gz_path(cache_dir, code, date)
+    save_kbars_csv(bars, plain)
+    gz.write_bytes(gzip.compress(plain.read_bytes()))
+    plain.unlink()
+    return gz
 
 
 class TestKbarTsFromNs(unittest.TestCase):
@@ -213,8 +238,6 @@ class TestDownloadAndCacheKbarsTimeFilter(unittest.TestCase):
 
 class TestKbarGzCache(unittest.TestCase):
     def test_iter_kbars_in_range_reads_gz_only_mirror(self):
-        import gzip
-
         bars = [
             KBarRecord(datetime.datetime(2026, 6, 22, 9, 0), 100, 101, 99, 100, 10),
             KBarRecord(datetime.datetime(2026, 6, 22, 9, 1), 101, 102, 100, 101, 11),
@@ -222,15 +245,50 @@ class TestKbarGzCache(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             cache_dir = Path(d)
             date = datetime.date(2026, 6, 22)
-            plain = kbars_cache_path(cache_dir, "TMFR1", date)
-            gz = kbars_cache_gz_path(cache_dir, "TMFR1", date)
-            save_kbars_csv(bars, plain)
-            gz.write_bytes(gzip.compress(plain.read_bytes()))
-            plain.unlink()
+            _write_gz_kbars_only(cache_dir, "TMFR1", date, bars)
             loaded = iter_kbars_in_range("TMFR1", date, date, cache_dir=cache_dir)
             self.assertEqual(len(loaded), 2)
             self.assertEqual(loaded[0].Close, 100.0)
             self.assertEqual(loaded[1].Close, 101.0)
+
+    def test_kbar_cache_satisfies_request_reads_gz_only(self):
+        date = datetime.date(2026, 6, 22)
+        with tempfile.TemporaryDirectory() as d:
+            cache_dir = Path(d)
+            _write_gz_kbars_only(cache_dir, "TMFR1", date, _session_kbars(date))
+            self.assertTrue(
+                kbar_cache_satisfies_request(
+                    cache_dir,
+                    "TMFR1",
+                    date,
+                    time_start=datetime.time(8, 45),
+                    time_end=datetime.time(13, 45),
+                )
+            )
+
+    def test_download_skips_fetch_when_gz_only_cache_covers_window(self):
+        api = MagicMock()
+        api.usage.return_value = MagicMock(
+            bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
+        )
+        contract = MagicMock(code="TXFR1")
+        date = datetime.date(2026, 6, 18)
+        with tempfile.TemporaryDirectory() as d:
+            cache_dir = Path(d)
+            _write_gz_kbars_only(cache_dir, "TXFR1", date, _session_kbars(date))
+            written = download_and_cache_kbars(
+                api,
+                contract,
+                [date],
+                cache_dir=cache_dir,
+                overwrite=False,
+                simulation=True,
+                time_start=datetime.time(8, 45),
+                time_end=datetime.time(13, 45),
+            )
+            api.kbars.assert_not_called()
+            self.assertEqual(len(written), 1)
+            self.assertTrue(written[0].name.endswith(".csv.gz"))
 
 
 if __name__ == "__main__":

@@ -4,19 +4,19 @@ from __future__ import annotations
 
 import csv
 import datetime
-import gzip
 import logging
 import shutil
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, IO, Iterable, List, Optional, Sequence
+from typing import Any, Iterable, List, Optional, Sequence
 
 from storage.tick_loader import (
     DEFAULT_CACHE_DIR,
     DEFAULT_TICK_RANGE_END,
     DEFAULT_TICK_RANGE_START,
     _log_usage,
+    _open_tick_csv_reader,
     date_range,
     shioaji_ts_from_ns,
 )
@@ -191,13 +191,6 @@ def resolve_kbars_cache_path(
     return None
 
 
-def _open_kbars_csv_reader(path: Path) -> IO[str]:
-    path = Path(path)
-    if path.suffix == ".gz" or path.name.endswith(".csv.gz"):
-        return gzip.open(path, "rt", encoding="utf-8", newline="")
-    return path.open("r", encoding="utf-8", newline="")
-
-
 def mirror_kbar_cache_file(
     *,
     code: str,
@@ -251,7 +244,7 @@ def save_kbars_csv(bars: Iterable[KBarRecord], path: Path) -> int:
 
 def load_kbars_csv(path: Path) -> List[KBarRecord]:
     bars: List[KBarRecord] = []
-    with _open_kbars_csv_reader(Path(path)) as f:
+    with _open_tick_csv_reader(Path(path)) as f:
         for row in csv.DictReader(f):
             bars.append(
                 KBarRecord(
