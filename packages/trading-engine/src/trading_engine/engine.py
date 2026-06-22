@@ -144,6 +144,11 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._order_sync_mode = False
         self._order_worker_started = False
 
+    def _call_api(self, fn, *args, **kwargs):
+        """Helper to serialize Shioaji mutable calls under _api_lock."""
+        with self._api_lock:
+            return fn(*args, **kwargs)
+
     @property
     def current_vwap(self) -> float:
         return self.indicators.current_vwap
@@ -746,12 +751,12 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 "Session 看門狗觸發重登入 | attempt=%d",
                 attempts + 1,
             )
-            with self._api_lock:
-                self.api.login(
-                    api_key=self._cfg.api_key,
-                    secret_key=self._cfg.secret_key,
-                    subscribe_trade=True,
-                )
+            self._call_api(
+                self.api.login,
+                api_key=self._cfg.api_key,
+                secret_key=self._cfg.secret_key,
+                subscribe_trade=True,
+            )
             with self.lock:
                 self._session_relogin_attempts = 0
                 self._disconnect_since = 0.0
@@ -898,8 +903,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             self._archive.shutdown_tick_archive()
             if self._trading_date is not None:
                 self._emit_daily_summary(self._trading_date)
-            with self._api_lock:
-                self.api.logout()
+            self._call_api(self.api.logout)
             shutdown_async_logging()
 
     def start(self) -> None:

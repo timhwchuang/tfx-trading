@@ -61,15 +61,17 @@ class ShioajiLiveBootstrap:
         self.engine._resubscribe_ticks = self.subscribe_tick
 
     def register_callbacks(self) -> None:
+        def _on_tick(tick: TickFOPv1):
+            self.on_tick_from_shioaji(tick)
+
         with self.engine._api_lock:
             self.engine.api.set_order_callback(self.engine.handle_order_event)
             self.engine.api.set_event_callback(self.engine.handle_session_event)
             if hasattr(self.engine.api, "set_session_down_callback"):
                 self.engine.api.set_session_down_callback(self.engine.handle_session_down)
-
-        @self.engine.api.on_tick_fop_v1()
-        def _on_tick(tick: TickFOPv1):
-            self.on_tick_from_shioaji(tick)
+            # Apply the tick decorator registration inside the lock to ensure
+            # the registration side-effect happens under _api_lock.
+            self.engine.api.on_tick_fop_v1()(_on_tick)
 
     def wire_live(self) -> None:
         """Attach resubscribe hook and register Shioaji callbacks."""

@@ -16,19 +16,24 @@ class SessionMixin:
     def _activate_ca(self) -> None:
         """P4-10: 先無 person_id；失敗則以 env / 帳號 person_id 重試。"""
         try:
-            if self.api.activate_ca(ca_path=self._cfg.ca_path, ca_passwd=self._cfg.ca_passwd):
+            if self._call_api(
+                self.api.activate_ca,
+                ca_path=self._cfg.ca_path,
+                ca_passwd=self._cfg.ca_passwd,
+            ):
                 logger.info("CA 憑證啟用成功")
                 return
         except Exception as e:
             logger.warning("CA 啟用失敗（無 person_id）: %s", e)
 
-        person_id = os.environ.get("SJ_CA_PERSON_ID") or getattr(
-            self.api.futopt_account, "person_id", None
+        person_id = os.environ.get("SJ_CA_PERSON_ID") or self._call_api(
+            lambda: getattr(self.api.futopt_account, "person_id", None)
         )
         if not person_id:
             raise RuntimeError("CA 憑證啟用失敗；請設定 SJ_CA_PERSON_ID 或確認券商帳號 person_id")
 
-        if not self.api.activate_ca(
+        if not self._call_api(
+            self.api.activate_ca,
             ca_path=self._cfg.ca_path,
             ca_passwd=self._cfg.ca_passwd,
             person_id=person_id,
@@ -37,31 +42,34 @@ class SessionMixin:
         logger.info("CA 憑證啟用成功（person_id）")
 
     def _require_futopt_account(self) -> None:
-        if self.api.futopt_account is None:
+        account = self._call_api(lambda: self.api.futopt_account)
+        if account is None:
             raise RuntimeError("無期貨帳號，請確認帳號已開通期貨並完成簽署")
 
     def login(self):
         self._cfg.warn_if_placeholder_credentials(simulation=self._cfg.simulation)
-        with self._api_lock:
-            self.api.login(
-                api_key=self._cfg.api_key,
-                secret_key=self._cfg.secret_key,
-                subscribe_trade=True,
-            )
-            self._require_futopt_account()
-            self.contract = self._resolve_contract()
-            logger.info(
-                "登入成功 | 合約: %s | 模擬: %s | 帳號: %s",
-                self.contract.code,
-                self._cfg.simulation,
-                getattr(self.api.futopt_account, "account_id", "N/A"),
-            )
+        self._call_api(
+            self.api.login,
+            api_key=self._cfg.api_key,
+            secret_key=self._cfg.secret_key,
+            subscribe_trade=True,
+        )
+        self._require_futopt_account()
+        self.contract = self._resolve_contract()
+        account = self._call_api(lambda: self.api.futopt_account)
+        logger.info(
+            "登入成功 | 合約: %s | 模擬: %s | 帳號: %s",
+            self.contract.code,
+            self._cfg.simulation,
+            getattr(account, "account_id", "N/A"),
+        )
 
-            if not self._cfg.simulation:
-                if not self._cfg.ca_path or not self._cfg.ca_passwd:
-                    raise RuntimeError("正式模式需設定 SJ_CA_PATH 與 SJ_CA_PASSWD")
-                self._activate_ca()
-                self.api.subscribe_trade(self.api.futopt_account)
+        if not self._cfg.simulation:
+            if not self._cfg.ca_path or not self._cfg.ca_passwd:
+                raise RuntimeError("正式模式需設定 SJ_CA_PATH 與 SJ_CA_PASSWD")
+            self._activate_ca()
+            account = self._call_api(lambda: self.api.futopt_account)
+            self._call_api(self.api.subscribe_trade, account)
 
         self.sync_positions(force_resync=True)
         self.refresh_atr()
@@ -79,11 +87,6 @@ class SessionMixin:
         if current_atr <= 0 or long_lookback_done_for != today:
             return today - datetime.timedelta(days=long_lookback_days), True
         return today, False
-
-    def _call_api(self, fn, *args, **kwargs):
-        """Helper to serialize Shioaji mutable calls under _api_lock."""
-        with self._api_lock:
-            return fn(*args, **kwargs)
 
     def _log_api_usage(self, context: str) -> None:
         try:
@@ -121,7 +124,8 @@ class SessionMixin:
     def sync_positions(self, *, force_resync: bool = False):
         """啟動時從券商同步持倉，避免重啟後策略與實際部位脫節。"""
         try:
-            positions = self._call_api(self.api.list_positions, account=self.api.futopt_account)
+            account = self._call_api(lambda: self.api.futopt_account)
+            positions = self._call_api(self.api.list_positions, account=account)
         except Exception as e:
             logger.warning("持倉對帳失敗: %s", e)
             return
@@ -205,7 +209,8 @@ class SessionMixin:
     def _resolve_contract(self):
         code = self._cfg.product_code
         category = code[:3]  # TXF / MXF / TMF for TXFR1, MXFR1, TMFR1, ...
-        cat = getattr(self.api.Contracts.Futures, category, None)
-        if cat is not None and hasattr(cat, code):
-            return getattr(cat, code)
-        return self.api.Contracts.Futures[code]
+        with self._api_lock:
+            cat = getattr(self.api.Contracts.Futures, category, None)
+            if cat is not None and hasattr(cat, code):
+                return getattr(cat, code)
+            return self.api.Contracts.Futures[code]

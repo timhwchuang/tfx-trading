@@ -253,13 +253,14 @@ class OrderExecutorMixin:
                 else self._cfg.ioc_slippage_points
             )
             price = ref_price + slip if action == "Buy" else ref_price - slip
+            account = self._call_api(lambda: self.api.futopt_account)
             trade = self._call_api(
                 self._order_adapter.place_ioc_limit,
                 self.contract,
                 action=action,
                 qty=qty,
                 limit_price=price,
-                account=self.api.futopt_account,
+                account=account,
             )
             with self.lock:
                 self.pending_trade = trade
@@ -701,11 +702,6 @@ class OrderExecutorMixin:
             and self.pending_order_id is not None
             and self.pending_order_id == str(trade.order.id)
         )
-
-    def _call_api(self, fn, *args, **kwargs):
-        """Helper to serialize Shioaji mutable calls under _api_lock."""
-        with self._api_lock:
-            return fn(*args, **kwargs)
 
     def _reconcile_pending_trade(self, trade) -> bool:
         """補查委託狀態。回傳 True 表示 pending 已處理完畢（含 callback 已搶先處理）。"""
