@@ -28,6 +28,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 #### Changed
 
 - **`_resolve_contract`**: resolve rolling contracts via product category prefix (`TXF` / `MXF` / `TMF`) so `TMFR1` (微台) and `MXFR1` work without hardcoding大台 `TXF` only.
+- **`setup_async_logging`**: optional `console_level` (use `"OFF"` to omit stdout sink); `flush_async_logging()` waits for the async queue to drain then flushes sinks.
 
 #### Fixed
 
@@ -123,6 +124,10 @@ UAT-ready release addressing CodeReview#2 (see `docs/ARCHIVE/reviews/` for re-re
 ## trading-backtest
 
 ### [Unreleased]
+
+#### Changed
+
+- **`loader` tick validation**: warn on non-positive price / large jumps / unsorted input; **identical full rows** logged at INFO and **kept for replay** (same-ms different price = silent). SPEC §7 documents adhoc tick×kbar volume cross-check (kbar `ts` = minute end; raw tick sum must match `Volume`; do not dedupe identical rows on load).
 
 #### Fixed
 
@@ -220,8 +225,13 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 #### Added
 
 - **`--dates-from-cache`** on `python -m backtest` and `python -m reporting.calibration_cli`：自動掃描 `tick_cache/{code}_YYYY-MM-DD.csv[.gz]`（排除 `_kbars_` mirror）；可選 `--from-date` / `--to-date` 區間篩選（僅與 `--dates-from-cache` 併用）。共用 `storage.tick_loader.resolve_cli_tick_cache_dates`。
+- **`python -m backtest --report` / `--report-json` / `--log-file`**：回放後從 backtest log 產出 UAT 報告（終端只印結論；完整 replay → `logs/backtest_{code}_{date}.log` UTF-8 覆寫）；`--report-json` 另寫 `reports/backtest_{code}_{date}.json`。
+- **`reporting.uat_report.read_log_text`**：支援 UTF-8 / UTF-16（PowerShell `Tee-Object`）。
 
 #### Fixed
+
+- **`python -m backtest --report`**：修正 logging 接線（`configure_backtest_session_logging` 於 `BacktestEngine` 前呼叫 `setup_async_logging`，audit 寫入 backtest log 而非僅 `LOG_FILE`）；`flush_async_logging` 後再 parse。
+- **Plain `python -m backtest`**（無 `--report`/`--log-file`）：恢復寫入 config `LOG_FILE`（不再被空 session 鎖死 `_logging_configured`）。
 
 - **`storage/kbar_loader`**: `load_kbars_csv`, `iter_kbars_in_range`, and cache-satisfaction checks accept gzip kbar mirrors in `tick_cache/` (plain preferred); fixes 0-trade backtests when only `*_kbars_*.csv.gz` remains after storage compression.
 

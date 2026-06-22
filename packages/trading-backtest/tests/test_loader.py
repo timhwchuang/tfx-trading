@@ -96,7 +96,7 @@ class TestLoaderValidation(unittest.TestCase):
             )
             self.assertTrue(any("not monotonically sorted" in m for m in logs.output))
 
-    def test_duplicate_timestamp_warns(self):
+    def test_duplicate_tick_row_logged_not_dropped(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "TXFR1_2026-06-12.csv"
             row = {
@@ -108,10 +108,31 @@ class TestLoaderValidation(unittest.TestCase):
                 "tick_type": "0",
             }
             _write_tick_csv(path, [row, row])
-            with self.assertLogs("trading_backtest.loader", level="WARNING") as logs:
+            with self.assertLogs("trading_backtest.loader", level="INFO") as logs:
                 ticks = load_ticks_csv(path)
             self.assertEqual(len(ticks), 2)
-            self.assertTrue(any("duplicate timestamp" in m for m in logs.output))
+            self.assertTrue(any("identical tick row" in m for m in logs.output))
+
+    def test_same_millisecond_different_price_silent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "TXFR1_2026-06-12.csv"
+            base = {
+                "datetime": "2026-06-12T09:00:00.130000",
+                "volume": "1",
+                "bid_price": "0",
+                "ask_price": "0",
+                "tick_type": "1",
+            }
+            _write_tick_csv(
+                path,
+                [
+                    {**base, "close": "18000"},
+                    {**base, "close": "18001"},
+                ],
+            )
+            with self.assertNoLogs("trading_backtest.loader", level="WARNING"):
+                ticks = load_ticks_csv(path)
+            self.assertEqual(len(ticks), 2)
 
     def test_non_positive_close_warns(self):
         with tempfile.TemporaryDirectory() as tmp:

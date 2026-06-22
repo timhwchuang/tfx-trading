@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import gzip
+import logging
 import tempfile
 import unittest
 from pathlib import Path
@@ -760,6 +761,130 @@ class TestBacktestDatesFromCache(unittest.TestCase):
             ]
         )
         self.assertEqual(rc, 1)
+
+    def test_main_report_invokes_emit_report(self):
+        from backtest.__main__ import main
+
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            dt = datetime.date(2026, 6, 22)
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 22, 9), "18000", 1, 0)],
+                cache_path(root, "TMFR1", dt),
+            )
+            with patch("backtest.__main__.BacktestEngine") as engine_cls:
+                with patch("backtest.__main__.emit_report") as emit_report:
+                    with patch(
+                        "backtest.__main__.configure_backtest_session_logging"
+                    ) as configure_logging:
+                        rc = main(
+                            [
+                                "--code",
+                                "TMFR1",
+                                "--dates",
+                                "2026-06-22",
+                                "--cache-dir",
+                                str(root),
+                                "--report",
+                            ]
+                        )
+            self.assertEqual(rc, 0)
+            engine_cls.assert_called_once()
+            emit_report.assert_called_once()
+            log_path = emit_report.call_args[0][0]
+            self.assertEqual(log_path.name, "backtest_TMFR1_20260622.log")
+            self.assertTrue(emit_report.call_args.kwargs["print_report"])
+            configure_logging.assert_called_once()
+            self.assertEqual(configure_logging.call_args[0][0], str(log_path))
+            self.assertTrue(configure_logging.call_args.kwargs["truncate"])
+
+    def test_main_plain_backtest_uses_log_file_from_config(self):
+        from backtest.__main__ import main
+
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            log_path = root / "uat.log"
+            dt = datetime.date(2026, 6, 22)
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 22, 9), "18000", 1, 0)],
+                cache_path(root, "TMFR1", dt),
+            )
+            with patch("backtest.__main__.LOG_FILE", str(log_path)):
+                with patch("backtest.__main__.BacktestEngine") as engine_cls:
+                    with patch("backtest.__main__.configure_backtest_session_logging") as configure_logging:
+                        rc = main(
+                            [
+                                "--code",
+                                "TMFR1",
+                                "--dates",
+                                "2026-06-22",
+                                "--cache-dir",
+                                str(root),
+                            ]
+                        )
+            self.assertEqual(rc, 0)
+            engine_cls.assert_called_once()
+            configure_logging.assert_called_once_with(
+                str(log_path),
+                console_level=None,
+                truncate=False,
+            )
+
+    def test_main_report_json_also_prints_report(self):
+        from backtest.__main__ import main
+
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            dt = datetime.date(2026, 6, 22)
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 22, 9), "18000", 1, 0)],
+                cache_path(root, "TMFR1", dt),
+            )
+            with patch("backtest.__main__.BacktestEngine"):
+                with patch("backtest.__main__.emit_report") as emit_report:
+                    with patch("backtest.__main__.configure_backtest_session_logging"):
+                        rc = main(
+                            [
+                                "--code",
+                                "TMFR1",
+                                "--dates",
+                                "2026-06-22",
+                                "--cache-dir",
+                                str(root),
+                                "--report-json",
+                            ]
+                        )
+            self.assertEqual(rc, 0)
+            emit_report.assert_called_once()
+            self.assertTrue(emit_report.call_args.kwargs["print_report"])
+
+    def test_session_logging_writes_audits_before_engine_wiring(self):
+        from backtest.__main__ import configure_backtest_session_logging
+        from trading_engine.logging_setup import shutdown_async_logging
+
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "backtest.log"
+            configure_backtest_session_logging(str(path), truncate=True)
+            logging.getLogger("trading_engine").info("SIGNAL_AUDIT smoke")
+            shutdown_async_logging()
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("SIGNAL_AUDIT", text)
+
+    def test_session_logging_overwrites_previous_run(self):
+        from backtest.__main__ import configure_backtest_session_logging
+        from trading_engine.logging_setup import shutdown_async_logging
+
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "backtest.log"
+            configure_backtest_session_logging(str(path), truncate=True)
+            logging.getLogger("trading_engine").info("first-run-marker")
+            shutdown_async_logging()
+            configure_backtest_session_logging(str(path), truncate=True)
+            logging.getLogger("trading_engine").info("second-run-marker")
+            shutdown_async_logging()
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn("first-run-marker", text)
+            self.assertIn("second-run-marker", text)
 
 
 if __name__ == "__main__":

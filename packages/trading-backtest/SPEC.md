@@ -205,11 +205,26 @@ This package does **not** ship a data downloader. Typical workflow:
 `load_ticks_csv` warns (does not abort) on:
 
 - Non-monotonic timestamps (ticks are sorted before return)
-- Duplicate timestamps
 - Non-positive prices
 - Large single-tick price jumps (default: >5% from previous tick)
 
-Treat warnings as data-quality signals; fix upstream rather than ignoring them in production sweeps.
+**Identical full rows** (same `datetime` + `close` + `volume` + `bid_price` + `ask_price` + `tick_type`):
+
+- Logged once at INFO (`N identical tick row(s) in cache (kept for replay; …)`); **not dropped**.
+- **Same millisecond, different price or volume** → distinct trades; no warning.
+- Do **not** dedupe on load: raw per-minute volume sums must match kbar `Volume` (see below).
+
+#### Tick × kbar volume cross-check (adhoc UAT, not a repo script)
+
+When both `tick_cache/{code}_{date}.csv` and `tick_cache/{code}_kbars_{date}.csv` exist, reconcile in a one-off script or notebook:
+
+1. Per calendar minute: `sum(tick.volume)` where `datetime` floors to that minute.
+2. Kbar `ts` is the **end** of the bar period: ticks in minute `M` align to kbar row `ts = M + 1 minute` (e.g. `08:45:xx` ticks → kbar `2026-06-22T08:46:00`).
+3. Expect **exact** match between raw tick sum and kbar `Volume` for every bar (TMFR1 2026-06-22: 300/300).
+
+If identical tick rows are removed before summing, minute totals diverge from kbars — evidence that those rows are part of the exchange aggregate, not safe to drop for replay.
+
+Treat other loader warnings as data-quality signals; fix upstream rather than ignoring them in production sweeps.
 
 ---
 
@@ -344,7 +359,7 @@ Covers: normal slip, cancel above limit, sell fill, blowout, latency gate, no-lo
 
 ### Loader / validation
 
-- Loader: sort / duplicate / price anomaly warnings (`tests/test_loader.py`).
+- Loader: sort / identical-row note (kept for replay) / price anomaly warnings; tick×kbar volume cross-check documented in §7 (`tests/test_loader.py`).
 - Determinism helpers: `tests/test_validation.py`; pipeline 見 §9。
 
 CI: monorepo `bash scripts/run-all-tests.sh`（editable `trading-engine` from workspace）。

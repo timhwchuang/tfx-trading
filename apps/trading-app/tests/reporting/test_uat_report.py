@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from reporting.uat_report import (
     build_tuning_hints,
@@ -14,6 +16,8 @@ from reporting.uat_report import (
     parse_daily_summary_line,
     parse_fill_audit_line,
     parse_signal_audit_line,
+    read_log_lines,
+    read_log_text,
 )
 
 
@@ -176,6 +180,16 @@ class TestUatReport(unittest.TestCase):
         report = format_report(metrics)
         self.assertIn("滑價", report)
         self.assertIn("調參提示", report)
+
+    def test_read_log_text_utf16_le_powershell_tee(self):
+        line = "10:00:00 [INFO] MOMENTUM Long 突破 | 價格 18000.0\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "backtest.log"
+            path.write_bytes(b"\xff\xfe" + line.encode("utf-16-le"))
+            text = read_log_text(path)
+            self.assertIn("MOMENTUM Long", text)
+            metrics = compute_metrics(read_log_lines([path]))
+            self.assertEqual(metrics["momentum_triggers"], 1)
 
 
 if __name__ == "__main__":

@@ -31,6 +31,18 @@ _KBARS_CSV_FIELDS = ["ts", "Open", "High", "Low", "Close", "Volume"]
 _MAX_PRICE_JUMP_RATIO = 0.05
 
 
+def _tick_row_key(tick: ReplayTick) -> tuple:
+    """Full CSV row identity (same ms, different price/volume is valid)."""
+    return (
+        tick.datetime,
+        tick.close,
+        tick.volume,
+        tick.tick_type,
+        tick.bid_price,
+        tick.ask_price,
+    )
+
+
 @dataclass
 class ReplayTick:
     """Minimal replay unit compatible with ``TradingEngine.on_tick``."""
@@ -79,19 +91,25 @@ def _open_tick_csv_reader(path: Path) -> IO[str]:
 
 
 def _validate_and_sort_ticks(ticks: list[ReplayTick], path: Path) -> list[ReplayTick]:
-    """Warn on data-quality issues; return ticks sorted by datetime."""
+    """Warn on data-quality issues; return ticks sorted by datetime (no row drop)."""
     if not ticks:
         return ticks
 
     label = Path(path).name
-    seen_ts: set[datetime.datetime] = set()
+    seen_rows: set[tuple] = set()
+    duplicate_count = 0
+    first_duplicate_at: datetime.datetime | None = None
     prev_close: float | None = None
     for tick in ticks:
         if tick.close <= 0:
             logger.warning("%s: non-positive close %.4f at %s", label, tick.close, tick.datetime)
-        if tick.datetime in seen_ts:
-            logger.warning("%s: duplicate timestamp %s", label, tick.datetime)
-        seen_ts.add(tick.datetime)
+        row_key = _tick_row_key(tick)
+        if row_key in seen_rows:
+            duplicate_count += 1
+            if first_duplicate_at is None:
+                first_duplicate_at = tick.datetime
+        else:
+            seen_rows.add(row_key)
         if prev_close is not None and prev_close > 0:
             jump = abs(tick.close - prev_close) / prev_close
             if jump > _MAX_PRICE_JUMP_RATIO:
@@ -104,6 +122,14 @@ def _validate_and_sort_ticks(ticks: list[ReplayTick], path: Path) -> list[Replay
                     tick.datetime,
                 )
         prev_close = tick.close
+
+    if duplicate_count:
+        logger.info(
+            "%s: %d identical tick row(s) in cache (kept for replay; kbar volume cross-check uses raw sum); first at %s",
+            label,
+            duplicate_count,
+            first_duplicate_at,
+        )
 
     sorted_ticks = sorted(ticks, key=lambda t: t.datetime)
     if any(sorted_ticks[i].datetime != ticks[i].datetime for i in range(len(ticks))):

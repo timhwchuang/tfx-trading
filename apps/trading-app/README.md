@@ -102,7 +102,7 @@ C:\tfx-trading\apps\trading-app\scripts\windows\start-trading-app.ps1 -MonorepoR
 |------|------|----------|
 | **指令總覽** | `python -m cli_help` | `python -m cli_help <module>` → 轉該模組 `--help` |
 | Live / 模擬 | `python -m live` | `python -m live --help` |
-| 回測 | `python -m backtest --code TMFR1 --dates 2026-06-12` 或 `--dates-from-cache` | `python -m backtest --help` |
+| 回測 | `python -m backtest --dates 2026-06-22 --report`（終端只印 UAT 報告；完整 log → `logs/backtest_*.log`） | `python -m backtest --help` |
 | UAT 日報 JSON | 見下方「收盤後指令」 | `python -m reporting --help` |
 | 週 KPI 趨勢 | `python -m reporting reports/day*.json --trend`（**monorepo 根**） | 同上 |
 | Episode 回放 | `python -m reporting "$LOG_FILE" --episodes` | 同上 |
@@ -120,6 +120,7 @@ C:\tfx-trading\apps\trading-app\scripts\windows\start-trading-app.ps1 -MonorepoR
 | 指令 | 工作目錄 |
 |------|----------|
 | `python -m live` | `apps/trading-app/src` |
+| `python -m backtest` | `apps/trading-app/src` |
 | `python -m reporting` / `storage` / `sweep.*` | **monorepo 根** + `export PYTHONPATH=apps/trading-app/src` |
 
 在 `src/` 下執行 `> reports/day*.json` 會因路徑不存在而失敗；`reports/`、`tick_cache/` 都在 repo 根。
@@ -143,6 +144,8 @@ python -m reporting "$LOG_FILE" --json > reports/day$(date +%Y%m%d).json
 | `reports/...` no such file | 在 `src/` 重導向輸出 | 改到 monorepo 根執行 `reporting` |
 | `storage` 壓縮 0 檔 | 尚無 `tick_cache/{product_code}_YYYY-MM-DD.csv`（預設 `TMFR1`） | Phase 0 短跑正常；Phase 1 須跑滿交易日 |
 | `Tick 落盤結束 \| written=0` | 執行時間太短或 tick 極少；或 live 用 `TickSnapshot` 未相容（已修） | Phase 0 冒煙可接受；以 log 內 `登入成功` + `DECISION_AUDIT` 為準 |
+| `backtest --report` 終端沒輸出 | 舊版被數千行 INFO 淹沒；或 log 未接到 backtest 檔 | 升級後終端只印 `=== UAT Report ===`；細節見 `logs/backtest_{code}_{date}.log` |
+| `reporting` 全零 | PowerShell `Tee-Object` 寫 UTF-16 | 用 `python -m backtest --report`，或 `read_log_text` 已支援 UTF-16 |
 | kbars `ts` 比 tick 快 **8 小時** | 模擬 API 的 `kbars.ts` 與 tick 轉換方式不同（已依 `simulation` 修正） | 刪除舊 `*_kbars_*.csv` 讓 live 重寫；Pilot 前再驗正式 API |
 
 ---

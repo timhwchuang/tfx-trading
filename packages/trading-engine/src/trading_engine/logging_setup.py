@@ -7,8 +7,10 @@ import logging
 import logging.handlers
 import queue
 import sys
+import time
 
 _log_listener: logging.handlers.QueueListener | None = None
+_log_queue: queue.Queue | None = None
 _logger_initialized = False
 
 LOGGER_NAME = "trading_engine"
@@ -29,9 +31,10 @@ def setup_async_logging(
     log_file: str = "",
     *,
     configure_root: bool = True,
+    console_level: str | None = None,
 ) -> logging.Logger:
     """QueueHandler（非阻塞入隊）+ 背景 QueueListener 負責磁碟/終端 I/O."""
-    global _log_listener, _logger_initialized
+    global _log_listener, _log_queue, _logger_initialized
 
     if _log_listener is not None:
         _log_listener.stop()
@@ -39,6 +42,7 @@ def setup_async_logging(
 
     numeric_level = getattr(logging, level, logging.INFO)
     log_queue: queue.Queue = queue.Queue(-1)
+    _log_queue = log_queue
 
     if configure_root:
         root = logging.getLogger()
@@ -57,9 +61,12 @@ def setup_async_logging(
         datefmt="%H:%M:%S",
     )
     sink_handlers: list[logging.Handler] = []
-    stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setFormatter(formatter)
-    sink_handlers.append(stream_handler)
+    if console_level != "OFF":
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(formatter)
+        stream_level = getattr(logging, console_level or level, numeric_level)
+        stream_handler.setLevel(stream_level)
+        sink_handlers.append(stream_handler)
 
     if log_file:
         file_handler = logging.handlers.TimedRotatingFileHandler(
@@ -90,9 +97,27 @@ def get_logger(name: str = LOGGER_NAME) -> logging.Logger:
     return logging.getLogger(name)
 
 
+def flush_async_logging(*, timeout: float = 5.0) -> None:
+    """Wait for the async log queue to drain, then flush file/console sinks."""
+    if _log_listener is None:
+        return
+    if _log_queue is not None:
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if _log_queue.empty():
+                # One grace window so the listener thread can finish the last record.
+                time.sleep(0.05)
+                if _log_queue.empty():
+                    break
+            time.sleep(0.005)
+    for handler in _log_listener.handlers:
+        handler.flush()
+
+
 def shutdown_async_logging() -> None:
-    global _log_listener, _logger_initialized
+    global _log_listener, _log_queue, _logger_initialized
     if _log_listener is not None:
         _log_listener.stop()
         _log_listener = None
+    _log_queue = None
     _logger_initialized = False

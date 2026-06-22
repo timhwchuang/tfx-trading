@@ -33,7 +33,7 @@ CATALOG: tuple[CliEntry, ...] = (
     CliEntry(
         "backtest",
         "Tick 回放回測",
-        "python -m backtest --dates-from-cache",
+        "python -m backtest --dates 2026-06-22 --report",
     ),
     CliEntry(
         "reporting",

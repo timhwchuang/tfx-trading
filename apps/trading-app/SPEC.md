@@ -69,7 +69,7 @@ TradingEngine(
 |---------|---------|
 | `python -m cli_help` | CLI catalog; `python -m cli_help <module>` → module `--help` |
 | `python -m live` | Simulation or live session |
-| `python -m backtest` | App-wired backtest; `--dates` or `--dates-from-cache` (+ optional `--from-date`/`--to-date`) |
+| `python -m backtest` | App-wired backtest; `--dates` or `--dates-from-cache`; `--report` / `--report-json` run UAT metrics after replay (see §Backtest CLI) |
 | `python -m reporting <log>` | UAT metrics; `--json` / `--trend` / `--episodes` |
 | `python -m reporting.uat_evidence_export <broker\|tick\|both> reports/day*.json` | Broker reconciliation + tick stratification CSV |
 | `python -m reporting.calibration_cli <log> --dates YYYY-MM-DD` or `--dates-from-cache` | P6-1 trend filter calibration (CAL-8) |
@@ -78,6 +78,23 @@ TradingEngine(
 | `python -m sweep.determinism_check --date YYYY-MM-DD --mode hash` | Backtest audit hash / reproducibility |
 | `python -m storage` | Post-session tick gzip (`storage.compress` alias) |
 | `python -m backfilldata date YYYY-MM-DD` | Backfill past ticks/kbars into `tick_cache/` + `kbar_cache/` |
+
+### Backtest CLI (`python -m backtest`)
+
+| Flag | Behavior |
+|------|----------|
+| `--dates YYYY-MM-DD …` | Explicit replay dates (tick cache must exist). |
+| `--dates-from-cache` | Scan `tick_cache/{code}_*.csv[.gz]`; optional `--from-date` / `--to-date`. |
+| `--report` | After replay: parse backtest log → print `=== UAT Report ===` to **stdout** only; full replay log → `logs/backtest_{code}_{date}.log` (UTF-8, overwrite). |
+| `--report-json` | Same as `--report` plus write metrics JSON (`reports/backtest_{code}_{date}.json` by default). |
+| `--log-file PATH` | Override backtest log path; uses `setup_async_logging` (same async sink as live). Truncates each run. |
+| (none, no `--report`) | When `LOG_FILE` is set in config/env, audit appends via async logging (no truncate). |
+
+**Logging**: `--report` / `--report-json` configure session logging **before** `BacktestEngine` so audit lines land in `--log-file` (not only `LOG_FILE`). Console is file-only during replay (`console_level=OFF`); humans see the UAT report block at the end.
+
+**Reporting input**: `reporting.uat_report.read_log_text` accepts UTF-8 or UTF-16 LE/BE (PowerShell `Tee-Object` default).
+
+Tick cache validation and tick×kbar volume semantics: [`packages/trading-backtest/SPEC.md`](../../packages/trading-backtest/SPEC.md) §7 Loader validation.
 
 ## Integration contracts
 

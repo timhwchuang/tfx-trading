@@ -1159,10 +1159,22 @@ def format_kpi_trend_from_json_reports(reports: list[tuple[str, dict]]) -> str:
     return "\n".join(lines)
 
 
+def read_log_text(path: Path) -> str:
+    """Read a log file; accept UTF-8 or UTF-16 (PowerShell Tee-Object default on Windows)."""
+    raw = path.read_bytes()
+    if raw.startswith(b"\xff\xfe"):
+        return raw.decode("utf-16-le")
+    if raw.startswith(b"\xfe\xff"):
+        return raw.decode("utf-16-be")
+    if raw.startswith(b"\xef\xbb\xbf"):
+        return raw.decode("utf-8-sig")
+    return raw.decode("utf-8", errors="replace")
+
+
 def read_log_lines(paths: list[Path]) -> list[str]:
     lines: list[str] = []
     for path in paths:
-        lines.extend(path.read_text(encoding="utf-8", errors="replace").splitlines())
+        lines.extend(read_log_text(path).splitlines())
     return lines
 
 
