@@ -8,7 +8,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from trading_backtest.loader import load_ticks_csv
+from trading_backtest.loader import (
+    KBarRecord,
+    iter_kbars_in_range,
+    kbars_cache_gz_path,
+    kbars_cache_path,
+    load_kbars_csv,
+    load_ticks_csv,
+    resolve_kbars_cache_path,
+    save_kbars_csv,
+)
 
 
 def _write_tick_csv(path: Path, rows: list[dict[str, str]]) -> None:
@@ -150,6 +159,71 @@ class TestLoaderValidation(unittest.TestCase):
             with self.assertLogs("trading_backtest.loader", level="WARNING") as logs:
                 load_ticks_csv(path)
             self.assertTrue(any("large price jump" in m for m in logs.output))
+
+
+class TestKbarGzCache(unittest.TestCase):
+    def test_load_kbars_csv_reads_gzip(self):
+        bar = KBarRecord(
+            datetime.datetime(2026, 6, 22, 9, 0),
+            100.0,
+            101.0,
+            99.0,
+            100.5,
+            10,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp)
+            plain = kbars_cache_path(cache_dir, "TMFR1", datetime.date(2026, 6, 22))
+            gz = kbars_cache_gz_path(cache_dir, "TMFR1", datetime.date(2026, 6, 22))
+            save_kbars_csv([bar], plain)
+            gz.write_bytes(__import__("gzip").compress(plain.read_bytes()))
+            plain.unlink()
+            loaded = load_kbars_csv(gz)
+            self.assertEqual(len(loaded), 1)
+            self.assertEqual(loaded[0].ts, bar.ts)
+            self.assertAlmostEqual(loaded[0].Close, bar.Close)
+
+    def test_resolve_kbars_cache_path_prefers_plain_over_gz(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp)
+            date = datetime.date(2026, 6, 22)
+            plain = kbars_cache_path(cache_dir, "TMFR1", date)
+            gz = kbars_cache_gz_path(cache_dir, "TMFR1", date)
+            plain.write_text("ts,Open,High,Low,Close,Volume\n", encoding="utf-8")
+            gz.write_bytes(b"\x1f\x8b")  # not valid csv; plain must win
+            self.assertEqual(
+                resolve_kbars_cache_path(cache_dir, "TMFR1", date),
+                plain,
+            )
+
+    def test_iter_kbars_in_range_reads_gz_only_mirror(self):
+        bars = [
+            KBarRecord(
+                datetime.datetime(2026, 6, 22, 9, i),
+                100.0 + i,
+                101.0,
+                99.0,
+                100.5,
+                10,
+            )
+            for i in range(3)
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp)
+            date = datetime.date(2026, 6, 22)
+            plain = kbars_cache_path(cache_dir, "TMFR1", date)
+            gz = kbars_cache_gz_path(cache_dir, "TMFR1", date)
+            save_kbars_csv(bars, plain)
+            gz.write_bytes(__import__("gzip").compress(plain.read_bytes()))
+            plain.unlink()
+            loaded = iter_kbars_in_range(
+                "TMFR1",
+                date,
+                date,
+                cache_dir=cache_dir,
+            )
+            self.assertEqual(len(loaded), 3)
+            self.assertEqual([b.ts for b in loaded], [b.ts for b in bars])
 
 
 if __name__ == "__main__":

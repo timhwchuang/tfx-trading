@@ -14,6 +14,8 @@ from storage.kbar_loader import (
     _filter_bars_by_time,
     _kbar_window_needs_fetch,
     download_and_cache_kbars,
+    iter_kbars_in_range,
+    kbars_cache_gz_path,
     kbars_cache_path,
     load_kbars_csv,
     kbar_ts_from_ns,
@@ -207,6 +209,28 @@ class TestDownloadAndCacheKbarsTimeFilter(unittest.TestCase):
             self.assertTrue(_all_day_kbar_needs_fetch(
                 [KBarRecord(datetime.datetime(2026, 6, 18, 9, 0), 1, 1, 1, 1, 1)]
             ))
+
+
+class TestKbarGzCache(unittest.TestCase):
+    def test_iter_kbars_in_range_reads_gz_only_mirror(self):
+        import gzip
+
+        bars = [
+            KBarRecord(datetime.datetime(2026, 6, 22, 9, 0), 100, 101, 99, 100, 10),
+            KBarRecord(datetime.datetime(2026, 6, 22, 9, 1), 101, 102, 100, 101, 11),
+        ]
+        with tempfile.TemporaryDirectory() as d:
+            cache_dir = Path(d)
+            date = datetime.date(2026, 6, 22)
+            plain = kbars_cache_path(cache_dir, "TMFR1", date)
+            gz = kbars_cache_gz_path(cache_dir, "TMFR1", date)
+            save_kbars_csv(bars, plain)
+            gz.write_bytes(gzip.compress(plain.read_bytes()))
+            plain.unlink()
+            loaded = iter_kbars_in_range("TMFR1", date, date, cache_dir=cache_dir)
+            self.assertEqual(len(loaded), 2)
+            self.assertEqual(loaded[0].Close, 100.0)
+            self.assertEqual(loaded[1].Close, 101.0)
 
 
 if __name__ == "__main__":

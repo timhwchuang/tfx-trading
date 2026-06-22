@@ -122,6 +122,12 @@ UAT-ready release addressing CodeReview#2 (see `docs/ARCHIVE/reviews/` for re-re
 
 ## trading-backtest
 
+### [Unreleased]
+
+#### Fixed
+
+- **`loader` kbar cache**: `load_kbars_csv` / `iter_kbars_in_range` now read `tick_cache/{code}_kbars_{date}.csv.gz` mirrors (plain CSV still preferred when both exist), so backtest ATR warmup works after `python -m storage` compresses kbar mirrors.
+
 ### [0.1.1] - 2026-06-16
 
 #### Fixed
@@ -216,6 +222,8 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - **`--dates-from-cache`** on `python -m backtest` and `python -m reporting.calibration_cli`：自動掃描 `tick_cache/{code}_YYYY-MM-DD.csv[.gz]`（排除 `_kbars_` mirror）；可選 `--from-date` / `--to-date` 區間篩選（僅與 `--dates-from-cache` 併用）。共用 `storage.tick_loader.resolve_cli_tick_cache_dates`。
 
 #### Fixed
+
+- **`storage/kbar_loader`**: `load_kbars_csv`, `iter_kbars_in_range`, and cache-satisfaction checks accept gzip kbar mirrors in `tick_cache/` (plain preferred); fixes 0-trade backtests when only `*_kbars_*.csv.gz` remains after storage compression.
 
 - **`storage/tick_loader` / `backfilldata`**：`api.ticks(AllDay)` 改用 30s timeout（Shioaji 預設 5s 常不足以下載全日 tick）；逾時自動重試最多 3 次（間隔 2s）。`storage/kbar_loader` 同步將 `api.kbars` timeout 設為 30s。
 

@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import csv
 import datetime
+import gzip
 import logging
 import shutil
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, List, Optional, Sequence
+from typing import Any, IO, Iterable, List, Optional, Sequence
 
 from storage.tick_loader import (
     DEFAULT_CACHE_DIR,
@@ -130,8 +131,8 @@ def kbar_cache_satisfies_request(
     time_end: datetime.time | None,
 ) -> bool:
     """Whether on-disk kbar cache meets the requested backfill window."""
-    path = kbars_cache_path(cache_dir, code, date)
-    if not path.is_file():
+    path = resolve_kbars_cache_path(cache_dir, code, date)
+    if path is None:
         return False
     bars = load_kbars_csv(path)
     if time_start is None and time_end is None:
@@ -171,6 +172,30 @@ def _default_simulation_mode() -> bool:
 
 def kbars_cache_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
     return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv"
+
+
+def kbars_cache_gz_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
+    return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv.gz"
+
+
+def resolve_kbars_cache_path(
+    cache_dir: Path, code: str, date: datetime.date
+) -> Path | None:
+    """Return on-disk kbar cache (plain preferred over gzip mirror)."""
+    plain = kbars_cache_path(cache_dir, code, date)
+    gz = kbars_cache_gz_path(cache_dir, code, date)
+    if plain.is_file():
+        return plain
+    if gz.is_file():
+        return gz
+    return None
+
+
+def _open_kbars_csv_reader(path: Path) -> IO[str]:
+    path = Path(path)
+    if path.suffix == ".gz" or path.name.endswith(".csv.gz"):
+        return gzip.open(path, "rt", encoding="utf-8", newline="")
+    return path.open("r", encoding="utf-8", newline="")
 
 
 def mirror_kbar_cache_file(
@@ -226,7 +251,7 @@ def save_kbars_csv(bars: Iterable[KBarRecord], path: Path) -> int:
 
 def load_kbars_csv(path: Path) -> List[KBarRecord]:
     bars: List[KBarRecord] = []
-    with Path(path).open("r", encoding="utf-8", newline="") as f:
+    with _open_kbars_csv_reader(Path(path)) as f:
         for row in csv.DictReader(f):
             bars.append(
                 KBarRecord(
@@ -314,11 +339,12 @@ def download_and_cache_kbars(
     _log_usage(api, "kbars_download_start")
     for date in all_dates:
         path = kbars_cache_path(cache_dir, code, date)
+        cached_path = resolve_kbars_cache_path(cache_dir, code, date)
         existing_bars: List[KBarRecord] = (
-            load_kbars_csv(path) if path.is_file() else []
+            load_kbars_csv(cached_path) if cached_path is not None else []
         )
         needs_fetch = (
-            not path.is_file()
+            cached_path is None
             or overwrite
             or (
                 _all_day_kbar_needs_fetch(existing_bars)
@@ -326,9 +352,9 @@ def download_and_cache_kbars(
                 else _kbar_window_needs_fetch(existing_bars, time_start, time_end)
             )
         )
-        if path.is_file() and not needs_fetch:
-            logger.info("K 線視窗已覆蓋，跳過 %s", path.name)
-            written.append(path)
+        if cached_path is not None and not needs_fetch:
+            logger.info("K 線視窗已覆蓋，跳過 %s", cached_path.name)
+            written.append(cached_path)
             if mirror_cache_dir is not None:
                 mirrored = mirror_kbar_cache_file(
                     code=code,
@@ -391,8 +417,8 @@ def iter_kbars_in_range(
     """讀取 [start, end] 日曆日範圍內所有已快取 K 線（缺檔略過）。"""
     bars: List[KBarRecord] = []
     for date in date_range(start, end):
-        path = kbars_cache_path(cache_dir, code, date)
-        if not path.is_file():
+        path = resolve_kbars_cache_path(cache_dir, code, date)
+        if path is None:
             continue
         bars.extend(load_kbars_csv(path))
     bars.sort(key=lambda b: b.ts)
