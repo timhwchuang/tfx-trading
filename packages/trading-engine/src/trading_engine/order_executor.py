@@ -262,9 +262,19 @@ class OrderExecutorMixin:
                 limit_price=price,
                 account=account,
             )
+            oid = str(getattr(trade.order, "id", "") or "")
+            if not oid:
+                # In simulation or PendingSubmit, id may not be immediate.
+                # Populate via account update (safer, no live trade mutation).
+                # This ensures callback path (handle_order_event) can match by order_id.
+                try:
+                    self._call_api(self.api.update_status, self.api.futopt_account)
+                    oid = str(getattr(trade.order, "id", "") or "")
+                except Exception as e:
+                    logger.debug("post-place account update for id non-fatal: %s", e)
             with self.lock:
                 self.pending_trade = trade
-                self.pending_order_id = str(trade.order.id)
+                self.pending_order_id = oid
                 self.pending_since = self._clock()
                 self._exit_order_retry_count = 0
                 self._exit_order_retry_at = 0.0
@@ -289,7 +299,7 @@ class OrderExecutorMixin:
                 qty,
                 price,
                 signal.intent,
-                trade.order.id,
+                oid or getattr(trade.order, 'id', ''),
             )
         except Exception as e:
             self._handle_place_order_failure(signal, e)
@@ -695,80 +705,99 @@ class OrderExecutorMixin:
             return float(trade.order.price), self._is_buy_action(trade.order.action)
         return None
 
-    def _still_own_pending(self, trade) -> bool:
-        """須在 lock 內呼叫：確認 pending 仍屬於此 trade。"""
-        return (
-            self.is_pending
-            and self.pending_order_id is not None
-            and self.pending_order_id == str(trade.order.id)
-        )
+    def _still_own_pending(self, trade=None) -> bool:
+        """須在 lock 內呼叫：確認 pending 仍屬於此 trade。
+        優先用 stored pending_order_id，避免依賴 trade.order.id 可能為空的情況。
+        """
+        if not self.is_pending or not self.pending_order_id:
+            return False
+        if trade is not None:
+            tid = str(getattr(trade.order, "id", "") or "")
+            if tid and tid != self.pending_order_id:
+                return False
+        return True
 
     def _reconcile_pending_trade(self, trade) -> bool:
-        """補查委託狀態。回傳 True 表示 pending 已處理完畢（含 callback 已搶先處理）。"""
-        try:
-            with self._api_lock:
-                self.api.update_status(trade=trade)
-                status = str(getattr(trade.status, "status", "") or "")
-                deal_qty = int(getattr(trade.status, "deal_quantity", 0) or 0)
-                fill = self._extract_fill_from_trade(trade)
-        except Exception as e:
-            logger.warning("update_status 補查失敗: %s", e)
-            return False
+        """補查委託狀態。回傳 True 表示 pending 已處理完畢（含 callback 已搶先處理）。
 
-        if fill and deal_qty > 0 and status in ("Filled", "PartFilled"):
-            price, is_buy = fill
-            needs_sync = False
-            with self.lock:
-                if not self._still_own_pending(trade):
-                    return True
-                logger.info("補查確認成交 | status=%s qty=%d", status, deal_qty)
-                needs_sync = self._apply_deal_fill(price, is_buy, deal_qty=deal_qty)
-            if needs_sync:
-                self.sync_positions()
-            return True
-
-        if status in ("Cancelled", "Failed") and deal_qty == 0:
-            with self.lock:
-                if not self._still_own_pending(trade):
-                    return True
-                logger.info("補查確認委託未成交/已取消，重置 pending")
-                # Phase 2: also emit from reconcile path (covers live backfill cancels)
-                try:
-                    exec_audit = ExecAudit(
-                        event_type="pending_cancelled",
-                        ts=int(self.pending_exchange_ts or 0),
-                        signal_id=self.pending_signal_id,
-                        tag="",
-                        order_id=self.pending_order_id or "",
-                    )
-                    logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
-                except Exception:
-                    pass
-                self._clear_pending()
-            return True
-
-        if not self._cfg.simulation:
-            try:
-                records = self._call_api(self.api.order_deal_records)
-            except Exception as e:
-                logger.warning("order_deal_records 補查失敗: %s", e)
-                records = []
-
-            order_id = str(trade.order.id)
-            for state, event in records:
-                if not is_futures_deal(state):
-                    continue
-                if str(event.get("trade_id", "")) != order_id:
-                    continue
+        根本改進（按此 review 建議）：
+        - 背景 thread 絕不對 live trade 物件呼叫 update_status（避免 Shioaji 內部 Rust borrow panic）。
+        - 優先靠 handle_order_event callback。
+        - 補查走 order_deal_records()（query 新資料，不 mutate live trade），用 pending_order_id 比對。
+        - simulation 完全 short-circuit。
+        - 保留對 pre-populated trade 的安全讀取（用於 reconnect test，不呼叫 api）。
+        """
+        # 安全讀取 caller 已 populate 的 trade（測試/reconnect），不碰 api。
+        if trade is not None:
+            status = str(getattr(trade.status, "status", "") or "")
+            deal_qty = int(getattr(trade.status, "deal_quantity", 0) or 0)
+            fill = self._extract_fill_from_trade(trade)
+            if fill and deal_qty > 0 and status in ("Filled", "PartFilled"):
+                price, is_buy = fill
                 needs_sync = False
                 with self.lock:
-                    if not self._still_own_pending(trade):
+                    if not self.is_pending or self.pending_order_id != str(getattr(trade.order, "id", "")):
                         return True
-                    logger.info("order_deal_records 補查到成交")
-                    needs_sync = self._handle_futures_deal(event)
+                    logger.info("補查確認成交 | status=%s qty=%d", status, deal_qty)
+                    needs_sync = self._apply_deal_fill(price, is_buy, deal_qty=deal_qty)
                 if needs_sync:
                     self.sync_positions()
                 return True
+            if status in ("Cancelled", "Failed") and deal_qty == 0:
+                with self.lock:
+                    if not self.is_pending or self.pending_order_id != str(getattr(trade.order, "id", "")):
+                        return True
+                    logger.info("補查確認委託未成交/已取消，重置 pending")
+                    try:
+                        exec_audit = ExecAudit(
+                            event_type="pending_cancelled",
+                            ts=int(self.pending_exchange_ts or 0),
+                            signal_id=self.pending_signal_id,
+                            tag="",
+                            order_id=self.pending_order_id or "",
+                        )
+                        logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
+                    except Exception:
+                        pass
+                    self._clear_pending()
+                return True
+
+        if self._cfg.simulation:
+            # simulation 下短路 broker 補查，避免 shioaji sim 層 borrow 問題。
+            # 靠 callback 或測試 mock 注入。
+            return False
+
+        # 絕不 call update_status(trade=trade) 來 mutate 活的 trade 物件。
+        # 先 account refresh（較安全），再用 records 查。
+        try:
+            self._call_api(self.api.update_status, self.api.futopt_account)
+        except Exception as e:
+            logger.debug("account update_status non-fatal: %s", e)
+
+        try:
+            records = self._call_api(self.api.order_deal_records)
+        except Exception as e:
+            logger.warning("order_deal_records 補查失敗: %s", e)
+            records = []
+
+        order_id = self.pending_order_id
+        if not order_id:
+            return False
+
+        for state, event in records:
+            if not is_futures_deal(state):
+                continue
+            if str(event.get("trade_id", "")) != order_id:
+                continue
+            needs_sync = False
+            with self.lock:
+                if not self.is_pending or self.pending_order_id != order_id:
+                    return True
+                logger.info("order_deal_records 補查到成交")
+                needs_sync = self._handle_futures_deal(event)
+            if needs_sync:
+                self.sync_positions()
+            return True
 
         return False
 
