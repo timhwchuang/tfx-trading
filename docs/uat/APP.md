@@ -62,7 +62,7 @@
 
 `LOG_FILE` 可在 repo 內（`logs/trading-app-uat.log`）或 repo 外；**勿 commit** log 與金鑰。UAT 模擬只需**模擬** API Key + `simulation: true`（不需 `.pfx`）。
 
-**Phase 0 vs Phase 1 資料門檻**：Phase 0 冒煙（約 10 分鐘）以 log 內 `登入成功`、`ATR` 更新、`DECISION_AUDIT` 為準；`tick_cache/TXFR1_*.csv` 可為空或 `written=0`。**Phase 1** 才要求 tick csv >1MB 與完整 `SIGNAL_AUDIT` / `FILL_AUDIT`。
+**Phase 0 vs Phase 1 資料門檻**：Phase 0 冒煙（約 10 分鐘）以 log 內 `登入成功`、`ATR` 更新、`DECISION_AUDIT` 為準；`tick_cache/{product_code}_*.csv`（預設 **微台 `TMFR1`**，見 `config.yaml`）可為空或 `written=0`。**Phase 1** 才要求 tick csv >1MB 與完整 `SIGNAL_AUDIT` / `FILL_AUDIT`。
 
 ---
 
@@ -101,7 +101,7 @@
    - `cd apps\trading-app\src && python -m live`
 
 2. **盤中**
-   - 確認 `tick_cache\TXFR1_YYYY-MM-DD.csv` 大小持續增加
+   - 確認 `tick_cache\{product_code}_YYYY-MM-DD.csv`（預設 `TMFR1`）大小持續增加
    - 觀察至少一筆 SIGNAL_AUDIT（用 `grep "SIGNAL_AUDIT" logs\...` 或報告）
 
 3. **收盤後必做（15:00 後）** — 建議從 **monorepo 根**執行：
@@ -128,7 +128,7 @@ python -m sweep.determinism_check --date 2026-06-17 --mode hash --output snapsho
 或直接 `python -m ...` 如果 PYTHONPATH 已正確。
 
 **Day 1 完成 Check**（全部 ☐）：
-- [ ] 完整 log + `tick_cache\TXFR1_*.csv`（monorepo 根）>1MB + 壓縮 `.gz`
+- [ ] 完整 log + `tick_cache\{product_code}_*.csv`（monorepo 根，預設 `TMFR1`）>1MB + 壓縮 `.gz`
 - [ ] `reports\day*.json` 存在且含 KPI 欄位：`performance.expectancy.expectancy_per_trade_gross`、`performance.expectancy.expectancy_per_trade_net`、`performance.risk_adjusted.sharpe`、`cumulative_risk.budget_used_pct`
 - [ ] 至少一筆 `DECISION_AUDIT`（`momentum_armed`）+ `SIGNAL_AUDIT` + `FILL_AUDIT`
 - [ ] git commit + determinism hash + config snapshot 完成
@@ -151,7 +151,7 @@ python -m sweep.determinism_check --date 2026-06-17 --mode hash --output snapsho
 
 **Phase 2 完成條件**（全部 ☐）：
 - [ ] 連續 5 日都有完整 tick_cache + reports\*.json
-- [ ] 連續 5 日 `kbar_cache\TXFR1_kbars_*.csv` 有落盤（`KBARS_ARCHIVE=1`；供 ATR + **P6-SMC-CAL** harness）
+- [ ] 連續 5 日 `tick_cache\{product_code}_kbars_*.csv` 有落盤（`KBARS_ARCHIVE=1`；供 ATR + **P6-SMC-CAL** harness）
 - [ ] 至少 3 日有實際進場意圖（`SIGNAL_AUDIT` 或 `DECISION_AUDIT` entry path）
 - [ ] 無雙 entry / pending 問題
 - [ ] 每日都有 git commit + snapshot

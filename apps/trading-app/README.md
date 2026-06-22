@@ -1,6 +1,6 @@
 # trading-app
 
-> **Reference integrator app** for TXF VWAP momentum — part of the [**tfx-trading**](https://github.com/timhwchuang/tfx-trading) monorepo.
+> **Reference integrator app** for TAIFEX index-futures VWAP momentum — part of the [**tfx-trading**](https://github.com/timhwchuang/tfx-trading) monorepo.
 
 > **建議部署：地雲雙管** — Live 放 **GCP GCE asia-east1** 或 **Windows**；回測 / CAL 放地端 Linux/macOS。見 [`docs/ops/HYBRID_DEPLOY.md`](../../docs/ops/HYBRID_DEPLOY.md)。
 
@@ -102,7 +102,7 @@ C:\tfx-trading\apps\trading-app\scripts\windows\start-trading-app.ps1 -MonorepoR
 |------|------|----------|
 | **指令總覽** | `python -m cli_help` | `python -m cli_help <module>` → 轉該模組 `--help` |
 | Live / 模擬 | `python -m live` | `python -m live --help` |
-| 回測 | `python -m backtest --code TXFR1 --dates 2026-06-12` | `python -m backtest --help` |
+| 回測 | `python -m backtest --code TMFR1 --dates 2026-06-12` | `python -m backtest --help` |
 | UAT 日報 JSON | 見下方「收盤後指令」 | `python -m reporting --help` |
 | 週 KPI 趨勢 | `python -m reporting reports/day*.json --trend`（**monorepo 根**） | 同上 |
 | Episode 回放 | `python -m reporting "$LOG_FILE" --episodes` | 同上 |
@@ -140,7 +140,7 @@ python -m reporting "$LOG_FILE" --json > reports/day$(date +%Y%m%d).json
 |------|------|------|
 | `key not exist`（400） | 正式 Key 搭配 `simulation: true`，或變數未 `source` | 確認後台為**模擬** Key；`source uat-env.sh` 後再跑 |
 | `reports/...` no such file | 在 `src/` 重導向輸出 | 改到 monorepo 根執行 `reporting` |
-| `storage` 壓縮 0 檔 | 尚無 `tick_cache/TXFR1_YYYY-MM-DD.csv` | Phase 0 短跑正常；Phase 1 須跑滿交易日 |
+| `storage` 壓縮 0 檔 | 尚無 `tick_cache/{product_code}_YYYY-MM-DD.csv`（預設 `TMFR1`） | Phase 0 短跑正常；Phase 1 須跑滿交易日 |
 | `Tick 落盤結束 \| written=0` | 執行時間太短或 tick 極少；或 live 用 `TickSnapshot` 未相容（已修） | Phase 0 冒煙可接受；以 log 內 `登入成功` + `DECISION_AUDIT` 為準 |
 | kbars `ts` 比 tick 快 **8 小時** | 模擬 API 的 `kbars.ts` 與 tick 轉換方式不同（已依 `simulation` 修正） | 刪除舊 `*_kbars_*.csv` 讓 live 重寫；Pilot 前再驗正式 API |
 

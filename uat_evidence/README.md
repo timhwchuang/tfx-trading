@@ -17,6 +17,8 @@ uat_evidence/
 
 `reports/`、`snapshots/`、`tick_cache/` 在 monorepo 根（`cache_paths.py` 為 SSOT）。Phase 結束時 commit `reports/`、`snapshots/`、`uat_evidence/`（**不含** `tick_cache/`）。
 
+**合約代碼**：目前預設 **微台 `TMFR1`**（`config.yaml`）。`uat_evidence/phase0/` 若為 Phase 0 大台 `TXFR1` 冒煙，屬歷史證據，勿改寫；新 Phase 請以 log 內 `合約: TMFR1` 為準。
+
 ## 使用 SOP
 
 1. **Phase 0**：存 `phase0/setup_YYYYMMDD.txt`（`run_tests` 結果、`git branch`）。

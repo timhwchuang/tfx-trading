@@ -25,7 +25,7 @@ cfg = default_runtime_config()
 strategy = VWAPMomentumStrategy(params=StrategyParams.from_runtime_config(cfg))
 
 engine = BacktestEngine(
-    code="TXFR1",
+    code="TMFR1",
     dates=[...],
     strategy=strategy,
     runtime_config=cfg,

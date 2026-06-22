@@ -31,7 +31,7 @@ cfg = default_runtime_config()   # replace with your real calibrated RuntimeConf
 strategy = VWAPMomentumStrategy(params=StrategyParams.from_runtime_config(cfg))
 
 bt = BacktestEngine(
-    code="TXFR1",
+    code="TMFR1",
     dates=[...],                 # your list of date objects
     strategy=strategy,
     runtime_config=cfg,

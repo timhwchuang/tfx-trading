@@ -17,8 +17,8 @@
 # 是否使用 Shioaji 模擬環境（上線前務必改為 false）
 simulation: true
 
-# 交易商品代碼（近月台指期，例：TXFR1）
-product_code: TXFR1
+# 交易商品代碼（Shioaji 近月連續：大台 TXFR1 / 小台 MXFR1 / 微台 TMFR1）
+product_code: TMFR1
 
 strategy:
   # VWAP 滾動視窗長度（分鐘）；5 分鐘滾動 VWMA（非日內錨定 VWAP）
@@ -139,6 +139,7 @@ session:
 # vol_threshold = max(base_vol, atr * atr_vol_mult) * multiplier
 opening_volume:
   # 量能地板；動態閾值不會低於此值
+  # 微台 TMFR1 流動性低於大台；若 UAT 整天無 momentum_armed 可酌降（需 near_miss 檢討）
   base_vol: 150
 
   # 常態時段 ATR 換算係數（09:15 後 multiplier = mult_normal）

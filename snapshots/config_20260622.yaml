@@ -1,7 +1,5 @@
-# =============================================================================
-# VWAP Momentum 策略參數（非密鑰）
-# 目標執行環境：Windows（見 README.md）
-# =============================================================================
+# Frozen Phase 0 snapshot (2026-06-22). product_code was TXFR1 (大台近月).
+# Current default: TMFR1 (微台) in apps/trading-app/config/config.yaml
 #
 # 密鑰請用環境變數（PowerShell 範例）：
 #   $env:SJ_API_KEY = "your_api_key"

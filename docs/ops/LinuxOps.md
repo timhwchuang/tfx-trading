@@ -80,7 +80,7 @@ bash scripts/run-all-tests.sh
 GCE_HOST=ubuntu@<GCE_STATIC_IP> bash scripts/linux/sync-from-gce.sh
 
 cd apps/trading-app/src
-python -m backtest --code TXFR1 --dates 2026-06-12
+python -m backtest --code TMFR1 --dates 2026-06-12
 python -m reporting.calibration_cli ~/logs-from-gce/trading-app-uat.log --dates 2026-06-12
 python -m sweep.determinism_check --date 2026-06-12 --mode hash
 ```

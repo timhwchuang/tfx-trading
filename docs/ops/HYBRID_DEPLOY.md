@@ -34,7 +34,9 @@
 
 ## 3. GCP GCE 建議規格
 
-### UAT / Pilot（單策略、單口、TXFR1）
+### UAT / Pilot（單策略、單口、微台 `TMFR1`）
+
+預設商品見 `apps/trading-app/config/config.yaml`（`product_code`）。大台 `TXFR1`、小台 `MXFR1` 亦可，但點數參數相同、每點金額與流動性不同，需分開累積 `tick_cache` 並重跑校準。
 
 | 項目 | 建議 |
 |------|------|
@@ -66,7 +68,7 @@
 2. `git clone` → `bash scripts/setup-dev.sh`
 3. `sudo MONOREPO_ROOT=/opt/tfx-trading bash scripts/linux/install-systemd.sh`（`chown tfx:tfx` 整個 repo）
 4. 編輯 `/etc/tfx-trading/env`（API keys；`TICK_ARCHIVE=1`、`KBARS_ARCHIVE=1` 已預設）
-5. `sudo systemctl start tfx-trading`；盤中確認 `tick_cache/TXFR1_*.csv` 成長
+5. `sudo systemctl start tfx-trading`；盤中確認 `tick_cache/TMFR1_*.csv`（或你的 `product_code`）成長
 6. cron：`scripts/linux/post-session.sh`（15:30）— `storage` + `reporting` + `determinism_check` → `snapshots/`
 7. **git pull** 用 `sudo -u tfx git -C /opt/tfx-trading pull`（repo 屬 `tfx`）
 
@@ -88,7 +90,7 @@ GCE_HOST=ubuntu@<GCE_STATIC_IP> REMOTE_ROOT=/opt/tfx-trading \
 
 ```bash
 cd apps/trading-app/src
-python -m backtest --code TXFR1 --dates 2026-06-12
+python -m backtest --code TMFR1 --dates 2026-06-12
 python -m reporting ../../../reports/day*.json --trend
 python -m sweep.determinism_check --date 2026-06-12 --mode hash
 ```

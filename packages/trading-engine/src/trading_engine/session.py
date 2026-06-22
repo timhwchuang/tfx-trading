@@ -197,8 +197,9 @@ class SessionMixin:
                 )
 
     def _resolve_contract(self):
-        txf = getattr(self.api.Contracts.Futures, "TXF", None)
         code = self._cfg.product_code
-        if txf is not None and hasattr(txf, code):
-            return getattr(txf, code)
+        category = code[:3]  # TXF / MXF / TMF for TXFR1, MXFR1, TMFR1, ...
+        cat = getattr(self.api.Contracts.Futures, category, None)
+        if cat is not None and hasattr(cat, code):
+            return getattr(cat, code)
         return self.api.Contracts.Futures[code]

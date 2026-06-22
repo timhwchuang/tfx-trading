@@ -17,7 +17,7 @@
 
 ## 1. 定位
 
-台指期（TXF）個人研究用 **monorepo**：kernel、回測、可插拔策略、Live 整合（**GCE / Windows**）+ 地端回測，單一 `git clone` 即可開發。
+台指類期貨（TAIFEX 指數期：預設微台 `TMFR1`）個人研究用 **monorepo**：kernel、回測、可插拔策略、Live 整合（**GCE / Windows**）+ 地端回測，單一 `git clone` 即可開發。
 
 | 路徑 | pip 名稱 | import | 職責 |
 |------|----------|--------|------|

@@ -77,7 +77,7 @@ from trading_backtest import (
 
 ```python
 BacktestEngine(
-    code: str,                          # contract code, e.g. "TXFR1"
+    code: str,                          # contract code, e.g. "TMFR1" (micro); also "TXFR1", "MXFR1"
     dates: list[datetime.date],         # replay calendar days (caller supplies trading days)
     strategy: Strategy,                 # required — any trading_engine Strategy plugin
     *,

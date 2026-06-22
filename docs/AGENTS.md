@@ -362,7 +362,7 @@ cd apps/trading-app/src && python -m live
 # Windows：.\apps\trading-app\scripts\windows\start-trading-app.ps1 -MonorepoRoot C:\tfx-trading
 
 # 回測（cd src 或 PYTHONPATH=src）
-python -m backtest --code TXFR1 --dates 2026-01-02
+python -m backtest --code TMFR1 --dates 2026-01-02
 
 # UAT 報告
 python -m reporting /path/to/log1.log /path/to/log2.log

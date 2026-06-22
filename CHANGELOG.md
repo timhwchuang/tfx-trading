@@ -25,6 +25,10 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 ### [Unreleased]
 
+#### Changed
+
+- **`_resolve_contract`**: resolve rolling contracts via product category prefix (`TXF` / `MXF` / `TMF`) so `TMFR1` (微台) and `MXFR1` work without hardcoding大台 `TXF` only.
+
 #### Added
 
 - **FT-002 Phase 4** `DecisionAudit` structure fields + `format_decision_audit` for `structure_veto` / armed enrichment。
@@ -184,6 +188,11 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 ## trading-app
 
 ### [Unreleased]
+
+#### Changed
+
+- **Default contract `product_code`**: `TXFR1`（大台近月）→ **`TMFR1`（微台近月）** for 奈米戶 UAT/Pilot；`point_value_ntd: 10` 已對齊微台。大台/小台仍可用 `TXFR1` / `MXFR1`，需分開 `tick_cache` 與校準。
+- **Docs**: UAT checklist、README、ops、strategy README 範例改為 `TMFR1` 或 `{product_code}` 占位；Phase 0 快照 `snapshots/config_20260622.yaml` 保留歷史 `TXFR1`。
 
 #### Added
 

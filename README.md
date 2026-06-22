@@ -1,6 +1,6 @@
 # tfx-trading
 
-Monorepo for Taiwan TXF futures research: **trading-engine** kernel, **trading-backtest** replay, pluggable **strategies**, and **trading-app** live integrator (hybrid: **GCE Live** + on-prem backtest).
+Monorepo for Taiwan index futures (TAIFEX) research: **trading-engine** kernel, **trading-backtest** replay, pluggable **strategies**, and **trading-app** live integrator (hybrid: **GCE Live** + on-prem backtest).
 
 > Personal research / simulation — not investment advice. UAT-ready ≠ live-ready.
 
@@ -44,7 +44,7 @@ apps/trading-app/                 # config, storage, reporting, live entry
 ```bash
 cd apps/trading-app/src
 python -m live          # simulation default — see config/config.yaml
-python -m backtest --code TXFR1 --dates 2026-06-12
+python -m backtest --code TMFR1 --dates 2026-06-12
 ```
 
 ## CLI 指令（trading-app）

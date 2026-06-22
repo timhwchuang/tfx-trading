@@ -85,7 +85,7 @@ cfg = default_runtime_config()
 strategy = VWAPMomentumStrategy(params=StrategyParams.from_runtime_config(cfg))
 
 engine = BacktestEngine(
-    code="TXFR1",
+    code="TMFR1",
     dates=[datetime.date(2026, 6, 10)],  # 你的回測日期（交易日由 caller 提供）
     strategy=strategy,
     runtime_config=cfg,
@@ -106,7 +106,7 @@ print("final position:", snap.position_qty)
 產生測試用模板：
 
 ```bash
-python examples/tick_cache_template.py --code TXFR1 --date 2026-06-12
+python examples/tick_cache_template.py --code TMFR1 --date 2026-06-12
 ```
 
 ### Fill 比對（backtest vs paper/live）
