@@ -20,6 +20,10 @@ htmlcov/
 *.log
 logs/
 
+# Test fixtures may legitimately contain .log files (e.g. synthetic replay snapshots)
+!**/tests/fixtures/*.log
+!**/fixtures/*.log
+
 # Backtest tick CSV cache (project root; see data_loader.DEFAULT_CACHE_DIR)
 tick_cache/
 

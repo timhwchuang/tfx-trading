@@ -136,7 +136,7 @@ class TestEpisodeReplay(unittest.TestCase):
         self.assertTrue(any("timeout" in h.lower() for h in hints))
 
     def test_synthetic_fixture_snapshot(self):
-        fixture = Path(__file__).parent.parent / "fixtures" / "synthetic_high_pressure.log"
+        fixture = Path(__file__).parent.parent / "fixtures" / "synthetic_high_pressure.txt"
         self.assertTrue(fixture.exists())
         lines = fixture.read_text(encoding="utf-8").splitlines()
         eps = compute_episodes(lines)

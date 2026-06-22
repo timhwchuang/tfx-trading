@@ -23,6 +23,10 @@ htmlcov/
 logs/
 shioaji.log
 
+# Test fixtures may legitimately contain .log files (e.g. synthetic replay snapshots)
+!**/tests/fixtures/*.log
+!**/fixtures/*.log
+
 # Tick cache (runtime data)
 tick_cache/
 
