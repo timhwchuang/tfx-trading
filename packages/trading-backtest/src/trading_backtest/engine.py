@@ -103,6 +103,10 @@ class BacktestEngine:
                 self._cfg.session_start,
                 self._cfg.session_end,
             ):
+                # Exchange date must be set before ATR refresh; _today() falls back to
+                # wall clock when _last_tick_exchange_dt is None (breaks determinism).
+                self.host._last_tick_exchange_dt = tick.datetime
+                self.host._last_tick_exchange_ts = int(tick.datetime.timestamp())
                 _pre_tick_refresh_atr(
                     self.host,
                     int(tick.datetime.timestamp()),
