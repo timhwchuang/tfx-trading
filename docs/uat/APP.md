@@ -7,7 +7,7 @@
 
 | Phase | 狀態 | 完成日期 | 關鍵證據位置 | 負責人簽名 |
 |-------|------|----------|--------------|------------|
-| **0. 準備與環境** | ☐ | | | |
+| **0. 準備與環境** | ☑ | 2026-06-22 | `uat_evidence/phase0/`、`reports/day20260622.json`、`snapshots/config_20260622.yaml`；determinism **deferred** → Phase 1 | tim_chuang |
 | **1. Day 1 首次模擬交易** | ☐ | | | |
 | **2. 連續 5 日穩定收集** | ☐ | | | |
 | **3. 指標計算與日常觀測** | ☐ | | | |
@@ -16,9 +16,9 @@
 | **6. 切換正式 CA 準備** | ☐ | | | |
 | **7. Pilot 執行（1 口規則）** | ☐ | | | |
 
-**目前下一步建議**：_______________________________
+**目前下一步建議**：Phase 1 — 微台 `TMFR1` 完整模擬交易日 → 收盤 `storage` + `reporting` + `determinism_check`
 
-**本週重點**：_______________________________
+**本週重點**：累積 `tick_cache/TMFR1_*.csv`（>1MB）並更新 `snapshots/determinism_YYYYMMDD.txt`（非 deferred）
 
 ---
 
@@ -72,19 +72,19 @@
 
 | 步驟 | 項目 | 完成 ☐ | 精確命令 / 驗證 | 證據 |
 |------|------|--------|------------------|------|
-| 0.1 | monorepo 根 + 正確分支 | ☐ | `cd C:\tfx-trading && git status && git branch` | |
-| 0.2 | 執行 setup | ☐ | `bash scripts/setup-dev.sh` | 看到 "editable" 成功 |
-| 0.3 | 跑完整測試 | ☐ | `cd apps\trading-app && python run_tests.py` | 全部 Pass |
-| 0.4 | 確認證據目錄 | ☐ | clone 已含 `reports/`、`snapshots/`、`uat_evidence/`（含 `templates/`、`phase*/`）；缺目錄再 `mkdir` | |
-| 0.5 | 設定模擬環境變數（永不 commit） | ☐ | `SJ_API_KEY` / `SJ_SEC_KEY` / `LOG_FILE=C:\logs\trading-app-uat.log` / `TICK_ARCHIVE=1` / `KBARS_ARCHIVE=1` | |
-| 0.6 | 確認 simulation + 建立 log 目錄 | ☐ | `config/config.yaml` 是 true；`mkdir C:\logs` | |
-| 0.7 | 第一次啟動驗證 | ☐ | `cd apps/trading-app/src && python -m live`（跑 10 分鐘 Ctrl+C） | 看到 `登入成功`、策略啟動、ATR 更新；可選 `DECISION_AUDIT` |
-| 0.7b | 冒煙日報（選做） | ☐ | **monorepo 根**：`PYTHONPATH=apps/trading-app/src python -m reporting "$LOG_FILE" --json > reports/dayYYYYMMDD.json` | 驗證 reporting 路徑正確 |
-| 0.8 | **強制證據收集** | ☐ | `cp apps/trading-app/config/config.yaml snapshots/config_YYYYMMDD.yaml`；git commit snapshots/（**不含** log、金鑰） | |
+| 0.1 | monorepo 根 + 正確分支 | ☑ | `cd C:\tfx-trading && git status && git branch` | `uat_evidence/phase0/setup_20260622.txt`（main @ 5fd5fb8） |
+| 0.2 | 執行 setup | ☑ | `bash scripts/setup-dev.sh` | 看到 "editable" 成功 |
+| 0.3 | 跑完整測試 | ☑ | `cd apps\trading-app && python run_tests.py` | 冒煙日 1 fail（determinism）；已於 `2d036cd` 修復，現全綠 |
+| 0.4 | 確認證據目錄 | ☑ | clone 已含 `reports/`、`snapshots/`、`uat_evidence/`（含 `templates/`、`phase*/`）；缺目錄再 `mkdir` | repo 骨架已存在 |
+| 0.5 | 設定模擬環境變數（永不 commit） | ☑ | `SJ_API_KEY` / `SJ_SEC_KEY` / `LOG_FILE=...` / `TICK_ARCHIVE=1` / `KBARS_ARCHIVE=1` | `~/sinotrade/uat-env.sh`（未 commit） |
+| 0.6 | 確認 simulation + 建立 log 目錄 | ☑ | `config/config.yaml` 是 true；`mkdir C:\logs` 或 repo `logs/` | `simulation: true`；`logs/trading-app-uat.log` |
+| 0.7 | 第一次啟動驗證 | ☑ | `cd apps/trading-app/src && python -m live`（跑 10 分鐘 Ctrl+C） | `live_smoke_20260622.txt`：登入 TXFR1、ATR、`DECISION_AUDIT` |
+| 0.7b | 冒煙日報（選做） | ☑ | **monorepo 根**：`PYTHONPATH=apps/trading-app/src python -m reporting "$LOG_FILE" --json > reports/dayYYYYMMDD.json` | `reports/day20260622.json` |
+| 0.8 | **強制證據收集** | ☑ | `cp apps/trading-app/config/config.yaml snapshots/config_YYYYMMDD.yaml`；git commit snapshots/（**不含** log、金鑰） | `snapshots/config_20260622.yaml`（Phase 0 時 TXFR1）；commit `91d34ed` |
 
-**完成條件**：0.1–0.7 ☐ + snapshots/ 有 config 快照。Phase 0 **不要求** tick csv >1MB 或 `storage` 壓縮成功。
+**完成條件**：0.1–0.8 ☑ + `snapshots/config_20260622.yaml`。Phase 0 **不要求** tick csv >1MB、`storage` 壓縮或 determinism hash（`snapshots/determinism_20260622.txt` = **deferred**，見 Phase 1）。
 
-**Kernel 對應**：完成 kernel Phase A（環境與設定）並簽名： ________________
+**Kernel 對應**：完成 kernel Phase A（環境與設定）並簽名： tim_chuang（2026-06-22）
 
 **下一步**：Phase 1。
 
