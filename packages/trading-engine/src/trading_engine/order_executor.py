@@ -478,8 +478,20 @@ class OrderExecutorMixin:
         actual_id = self._event_order_id(msg)
         if not self.pending_order_id and actual_id:
             # Backfill order_id from first callback if it was empty at place time (common in sim/PendingSubmit).
-            # This lets subsequent matches and armed re-emit work.
+            # Re-emit armed with real id (to satisfy SPEC §5.3 and audit completeness).
             self.pending_order_id = actual_id
+            try:
+                exec_audit = ExecAudit(
+                    event_type="pending_armed",
+                    ts=getattr(self, 'pending_exchange_ts', 0) or 0,
+                    signal_id=self.pending_signal_id,
+                    order_id=self.pending_order_id,
+                    limit_price=self.pending_limit_price,
+                    direction=self._pending_action or "",
+                )
+                logger.info("EXEC_AUDIT %s (backfilled)", format_exec_audit(exec_audit))
+            except Exception:
+                pass
         if not self._matches_pending_order(msg):
             logger.warning(
                 "忽略非當前委託狀態回報 | expected=%s got=%s",
@@ -544,6 +556,24 @@ class OrderExecutorMixin:
         if not self.is_pending:
             logger.warning("忽略非 pending 成交回報 | order=%s", order_id)
             return False
+
+        # Symmetric backfill for deal-first events (if pending_order_id was empty at place time)
+        if not self.pending_order_id and order_id:
+            self.pending_order_id = order_id
+            logger.debug("Backfilled pending_order_id from deal event: %s", order_id)
+            try:
+                exec_audit = ExecAudit(
+                    event_type="pending_armed",
+                    ts=getattr(self, 'pending_exchange_ts', 0) or 0,
+                    signal_id=self.pending_signal_id,
+                    order_id=self.pending_order_id,
+                    limit_price=self.pending_limit_price,
+                    direction=self._pending_action or "",
+                )
+                logger.info("EXEC_AUDIT %s (backfilled from deal)", format_exec_audit(exec_audit))
+            except Exception:
+                pass
+
         if not self._matches_pending_order(msg):
             logger.warning(
                 "忽略非當前委託成交回報 | expected=%s got=%s",
