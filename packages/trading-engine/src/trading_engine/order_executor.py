@@ -730,14 +730,12 @@ class OrderExecutorMixin:
 
     def _still_own_pending(self, trade=None) -> bool:
         """須在 lock 內呼叫：確認 pending 仍屬於此 trade。
-        優先用 stored pending_order_id，避免依賴 trade.order.id 可能為空的情況。
+        只使用 stored pending_order_id，避免背景 thread 讀 live trade.order.id (即使是 read borrow 也可能有風險)。
         """
         if not self.is_pending or not self.pending_order_id:
             return False
-        if trade is not None:
-            tid = str(getattr(trade.order, "id", "") or "")
-            if tid and tid != self.pending_order_id:
-                return False
+        # trade param kept for backward compat with direct callers (tests/reconnect);
+        # we intentionally ignore it here to avoid any live object access from bg threads.
         return True
 
     def _reconcile_pending_trade(self, trade) -> bool:
@@ -757,6 +755,8 @@ class OrderExecutorMixin:
         # 絕不使用 account update_status 來觸發 borrow；直接用 records（query）。
         # 這避免了即使 account 層級也會 borrow 底下 trades 的風險。
         try:
+            # order_deal_records() is a query API (non-mutating on live Trade objects in Shioaji).
+            # Safe for background threads; assumed not to trigger internal borrow on trades.
             records = self._call_api(self.api.order_deal_records)
         except Exception as e:
             logger.warning("order_deal_records 補查失敗: %s", e)
@@ -804,7 +804,7 @@ class OrderExecutorMixin:
                 return
             if resolved:
                 return
-            if not self._still_own_pending(trade):
+            if not self._still_own_pending():
                 return
             logger.warning(
                 "Pending 超時 %.0fs 且補查無結果，重置 pending",
