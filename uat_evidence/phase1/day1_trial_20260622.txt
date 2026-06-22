@@ -1,0 +1,56 @@
+# Phase 1 Day 1 試跑紀錄 — 2026-06-22（不合格，待重跑）
+
+> 狀態：**Phase 1 未簽核**。本檔為收盤後 partial evidence；原始 log 勿 commit。
+> 產出時間：2026-06-22 收盤後 SOP
+
+## 摘要
+
+| 項目 | 結果 |
+|------|------|
+| Phase 1 簽核 | **否** — 試跑 / 除錯日 |
+| 合約 | TMFR1（盤中多次重啟；上午曾用 TXFR1 除錯） |
+| `DECISION_AUDIT` | 3957 |
+| `SIGNAL_AUDIT` | 6 |
+| `FILL_AUDIT` | **0**（pending / order_id status bug） |
+| `CRITICAL` | **3**（pending 超時 entry×1、exit×2） |
+| tick 覆蓋 | 11:14:39 → 13:44:59（缺 08:45–11:14） |
+| tick 檔 | `tick_cache/TMFR1_2026-06-22.csv.gz`（~26,774 rows，已壓縮） |
+| kbars | `tick_cache/TMFR1_kbars_2026-06-22.csv.gz` |
+| 日報 | `reports/day20260622.json`（全 log 重產） |
+| config 快照 | `snapshots/config_20260622.yaml`（TMFR1） |
+| determinism | **deferred**（刻意略過；待合格 Day 1） |
+
+## 不合格原因（對照 APP.md Day 1 Check）
+
+- [ ] 完整單次交易日 log（多次 Ctrl+C / 重啟）
+- [~] tick >1MB + `.gz`（有壓縮，但時段不完整）
+- [ ] `FILL_AUDIT` ≥1
+- [ ] 無 CRITICAL
+- [ ] determinism hash
+
+## 根因（已修復，待下一交易日驗證）
+
+- `pending_armed` 時 `order_id` 常為空 → timeout / position_sync 錯序
+- 修復已 merge：`fix/api-borrow-lock`（`2adc173` 起）
+
+## TMFR1 最後一段 session（脫敏）
+
+```
+11:14:38 [INFO] 登入成功 | 合約: TMFR1 | 模擬: True | 帳號: ******
+12:39:13 [INFO] EXEC_AUDIT ... event_type=pending_armed ... order_id="" ... signal_id=20260622-sig-001
+13:23:42 [CRITICAL] ALERT Pending 超時無回報（intent=exit）| timeout=8s
+13:30:21 [CRITICAL] ALERT Pending 超時無回報（intent=entry）| timeout=8s
+13:30:30 [CRITICAL] ALERT Pending 超時無回報（intent=exit）| timeout=8s
+13:47:57 [INFO] Tick 落盤結束 | written=6151 ... TMFR1_2026-06-22.csv
+```
+
+## backfill 備註
+
+- `python -m backfilldata date 2026-06-22` **今日無法執行**（CLI 僅支援過去交易日）。
+- **建議 2026-06-23 起**補跑以填 08:45–11:14 tick 缺口（勿與 live 同時 login）。
+
+## 下一交易日（合格 Day 1）
+
+1. 部署 `main` @ `2adc173+`
+2. 08:30 前單次啟動 `python -m live`，新 log，不重啟
+3. 收盤後：storage → reporting → determinism_check → snapshot → git commit
