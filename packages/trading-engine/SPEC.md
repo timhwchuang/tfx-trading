@@ -242,7 +242,14 @@ Breaking change 範例：`Strategy.evaluate` 簽名變更、`OrderSignal` 欄位
 
 1. Decision logic lives in **Strategy plugins** — never in the replay driver.
 2. No `time.time()` / `datetime.now()` / `date.today()` on the replay path.
-3. Lock rule: do not call `refresh_atr()` while holding the engine lock (deadlock). Backtest uses pre-tick sync refresh outside lock（見 `trading-backtest` SPEC §7.1）。
+3. Lock rule: 
+   - `self.lock` protects Python engine state only.
+   - `self._api_lock` (RLock) must be held for all mutable Shioaji API operations (place_order, update_status, list_positions, kbars, login, logout, usage, subscribe, activate_ca, subscribe_trade, callback registration).
+   - Acquisition order when both needed: `_api_lock` first, then `self.lock` (or keep them non-nested).
+   - Do not hold `self.lock` across API calls.
+   - Backtest uses pre-tick sync refresh outside lock（見 `trading-backtest` SPEC §7.1）.
+
+See implementation in TradingEngine.__init__, OrderExecutorMixin, SessionMixin.
 
 **Constructor**（同 §4.1；backtest 注入 `VirtualClock` + `MockOrderAdapter`）
 

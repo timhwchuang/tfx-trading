@@ -53,17 +53,19 @@ class ShioajiLiveBootstrap:
         import shioaji as sj
 
         if self.engine.contract is not None:
-            self.engine.api.subscribe(self.engine.contract, quote_type=sj.QuoteType.Tick)
+            with self.engine._api_lock:
+                self.engine.api.subscribe(self.engine.contract, quote_type=sj.QuoteType.Tick)
 
     def attach(self) -> None:
         """Register broker-neutral hooks on the engine (resubscribe, etc.)."""
         self.engine._resubscribe_ticks = self.subscribe_tick
 
     def register_callbacks(self) -> None:
-        self.engine.api.set_order_callback(self.engine.handle_order_event)
-        self.engine.api.set_event_callback(self.engine.handle_session_event)
-        if hasattr(self.engine.api, "set_session_down_callback"):
-            self.engine.api.set_session_down_callback(self.engine.handle_session_down)
+        with self.engine._api_lock:
+            self.engine.api.set_order_callback(self.engine.handle_order_event)
+            self.engine.api.set_event_callback(self.engine.handle_session_event)
+            if hasattr(self.engine.api, "set_session_down_callback"):
+                self.engine.api.set_session_down_callback(self.engine.handle_session_down)
 
         @self.engine.api.on_tick_fop_v1()
         def _on_tick(tick: TickFOPv1):
