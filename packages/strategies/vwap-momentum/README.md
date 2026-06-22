@@ -2,9 +2,9 @@
 
 # strategy-vwap-momentum
 
-**Reference VWAP momentum + higher-timeframe trend filter strategy plugin for `trading-engine`.**
+**台指期日內短線策略：量價突破 → 回檔到均價線附近 → 順勢進場；停損 / 停利 / 移動停利出場。**
 
-這是 `trading-engine` 架構下第一個公開的 `strategy-<name>` 參考實作（VWAP momentum pullback 進場 + P6-1 trend 濾網 + ATR 動態 trail / vwap-stop 出場）。
+這是 `trading-engine` 架構下的參考策略 plugin（VWAP momentum pullback 進場 + 可選趨勢 / 結構濾網 + ATR 動態出場）。
 
 **本策略實作為作者個人研究與學習用途而公開，不構成投資建議、交易邀約或獲利保證。** 任何實盤或模擬交易之決策、參數設定、資金配置，以及因此產生的盈虧、漏單或其他損失，**均由使用者自行承擔**。作者與貢獻者不對任何直接或間接損害負責。
 
@@ -15,9 +15,170 @@
 
 | 文件 | 用途 |
 |------|------|
-| [SPEC.md](SPEC.md) | 策略定位、完整參數表、決策邏輯細節、trend Level-2 語意、audit reason、遷移說明 |
+| **本文 §策略白話解說** | 不看 code 也能懂進出場（給新手） |
+| [SPEC.md](SPEC.md) | 完整參數表、決策邏輯細節、audit reason、校準流程 |
 | [CHANGELOG.md](../../../CHANGELOG.md#strategy-vwap-momentum) | 版本變更紀錄 |
-| [trading-engine SPEC §4.2](../../trading-engine/SPEC.md) | Strategy Protocol MUST / MUST NOT（必讀） |
+| [trading-engine SPEC §4.2](../../trading-engine/SPEC.md) | Strategy Protocol MUST / MUST NOT（開發者必讀） |
+
+---
+
+## 策略白話解說（給第一次看的人）
+
+### 這在交易什麼？
+
+- **商品**：台指期貨近月（例如 `TXFR1`），**每次最多 1 口**。
+- **時段**：日盤約 **08:45～13:45**（交易所時間）；**13:40 後不再開新倉**，**13:44 前強制平掉**所有持倉。
+- **風格**：日內短線、順勢。不隔夜。
+
+### 先懂兩個名詞
+
+| 名詞 | 白話 | 本策略怎麼用 |
+|------|------|----------------|
+| **VWAP 線** | 大家常說的「均價線」；這裡是 **最近 5 分鐘**的成交量加權均價（滾動 VWMA），**不是**從開盤一路累積到收盤的那條日內 VWAP | 價格「回檔貼近」這條線時，才考慮進場 |
+| **動量（Momentum）** | 某一秒突然 **爆量**，且買方或賣方明顯佔優 | 代表「有人急著往一個方向打」，策略先 **武裝**，再等價格回來 |
+
+### 核心想法（一句話）
+
+> **先看到「大單往一邊衝」→ 不追價 → 等價格回檔到均價線附近、且量能變小 → 順著原本方向進場。**
+
+很像：人潮先衝進某方向，你等回頭整理到「平均成本」附近，確認不是假突破後再跟上。
+
+### 進場：兩段式（很重要）
+
+程式 **不會** 在爆量當下就下單。分成兩步：
+
+```mermaid
+flowchart LR
+    A[平常觀望] --> B{1 秒內<br/>爆量 + 買/賣佔比夠高?}
+    B -->|否| A
+    B -->|是| C[武裝 Momentum<br/>記住方向 Long/Short]
+    C --> D{3 分鐘內<br/>價格貼近 VWAP<br/>且量能枯竭?}
+    D -->|否，逾時| A
+    D -->|是| E[下單進場 1 口]
+```
+
+#### 第 1 步：武裝（`momentum_armed`）— 還沒買賣
+
+在 **1 秒鐘** 內同時滿足（預設值）：
+
+| 條件 | 做多（Long） | 做空（Short） |
+|------|-------------|---------------|
+| 總成交量 | ≥ 150 口（開盤時段會再乘倍率） | 同左 |
+| 方向佔比 | 買量 ≥ **80%** | 賣量 ≥ **78%** |
+| 其他 | 沒持倉、在交易時段、ATR 夠大（市場有波動） | 同左 |
+
+通過後 log 會出現類似：`MOMENTUM Short 突破 | 價格 47945.0` —— **這只是「開始盯這個方向」，尚未下單。**
+
+武裝後若 **180 秒（3 分鐘）** 內沒等到合適回檔，狀態自動取消（`momentum_timeout`）。
+
+#### 第 2 步：回檔進場（`pullback`）— 真正下單
+
+武裝期間，每一筆 tick 檢查 **兩個條件要同時成立**：
+
+1. **貼近 VWAP**：`|現價 − VWAP| ≤ 2 點`
+2. **量能枯竭**：這 1 秒成交量 `≤ 15` 口（爆量後變冷清）
+
+通過 → 依武裝方向下單：**Long 買進 / Short 賣出**，1 口。
+
+> **可選濾網**（預設 **關閉**）：趨勢濾網、SMC 結構濾網。開啟時，回檔條件滿足也可能被擋下（log 會寫 `trend_veto` / `structure_veto`）。UAT 預設不開。
+
+---
+
+## 圖解範例：做空一筆（5 分 K 概念圖）
+
+以下用 **5 分鐘 K 線** 幫助想像；實際程式是 **逐 tick（毫秒級）** 判斷，比 K 線更細。
+
+**假設 VWAP ≈ 47,966，09:50～10:00 走勢：**
+
+```
+價格
+47980 ┤                    ╭─╮  ← ③ 回檔貼近 VWAP，量能變小 → 放空進場
+      │               ╭───╯ ╰──╮
+47960 ┤          ╭───╯    VWAP ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+      │     ╭───╯
+47940 ┤ ───╯  ← ② 爆量下跌，賣盤 81% → 武裝 Short（尚未下單）
+      │
+47920 ┤
+      └────┬────┬────┬────┬────┬──── 時間
+         09:50 09:52 09:54 09:56 09:58
+              ↑
+         ① 平常：不交易
+```
+
+| 步驟 | 時間（例） | 發生什麼 | 有沒有下單 |
+|------|-----------|----------|-----------|
+| ① | 09:50 前 | 價格震盪，沒有夠大的 1 秒爆量 | 無 |
+| ② | 09:52 某秒 | 1 秒賣了 150+ 口、賣方佔 81% | **無**（只武裝 Short） |
+| ③ | 09:56 某秒 | 價格回到 VWAP 附近（差 ≤2 點），且該秒量 ≤15 | **有**（賣出放空） |
+
+**做多** 把圖上下顛倒即可：爆量 **買方** 武裝 Long → 回檔貼 VWAP → 買進。
+
+---
+
+## 出場：什麼時候平倉？
+
+持倉後，每個 tick 檢查下列條件（**先觸發先出場**）。以下用 **做多、進場價 48,000** 為例（預設參數）：
+
+| 出場類型 | 條件（做多） | 預設距離 | 白話 |
+|----------|-------------|----------|------|
+| **硬停損** | 現價 ≤ 進場價 − 6 | 6 點 | 「進場就錯了」，認賠 |
+| **VWAP 停損** | 現價 ≤ VWAP − 3 | 3 點 | 價格跌回均價線下方太多，趨勢可能反轉 |
+| **固定停利** | 現價 ≥ 進場價 + 20 | 20 點 | 賺夠先走 |
+| **移動停利** | 從持倉後最高價回落 8 點 | 8 點 | 讓利潤奔跑，回吐一段就出 |
+| **收盤強平** | 時間 ≥ 13:44 | — | 日盤結束前一定平倉 |
+
+**做空** 時方向相反（例如硬停損是進場價 **+6**、停利是進場價 **−20**）。
+
+### 進場後的「緩衝期」（Grace）
+
+進場後 **前 30 秒**（或前 60 個 tick，先到為準）：
+
+- **只認硬停損**（±6 點）
+- **不認** VWAP 停損
+
+用意：避免剛進場就被 VWAP 線附近的正常抖動洗出去。
+
+### 還沒進場時，什麼情況完全不交易？
+
+- 不在 08:45～13:45 交易時段
+- 13:40 後（收盤前禁新單）
+- 剛平倉 **10 秒** 冷卻內
+- 當日虧損達 **120 點** 上限，或連續虧 **4** 筆
+- 市場波動太小（ATR < 25）
+- 已有持倉、或上一筆單還在掛單中
+
+---
+
+## 預設參數速查表
+
+數值來自 `apps/trading-app/config/config.yaml`（可依研究調整，調參見 [SPEC.md](SPEC.md)）：
+
+| 類別 | 參數 | 預設 | 意思 |
+|------|------|------|------|
+| 均價線 | `vwap_window_min` | 5 分鐘 | 滾動 VWAP 視窗 |
+| 武裝 | `momentum_vol_1s` | 150 | 1 秒爆量門檻 |
+| 武裝 | `momentum_buy_ratio` / `sell_ratio` | 80% / 78% | 買/賣方向佔比 |
+| 武裝 | `momentum_timeout_sec` | 180 秒 | 等回檔最久 3 分鐘 |
+| 進場 | `entry_band_points` | 2 點 | 多近算「貼 VWAP」 |
+| 進場 | `exhaustion_vol` | 15 | 多小算「量能枯竭」 |
+| 出場 | `hard_stop_points` | 6 點 | 硬停損 |
+| 出場 | `vwap_stop_points` | 3 點 | VWAP 停損距離 |
+| 出場 | `fixed_tp_points` | 20 點 | 固定停利 |
+| 出場 | `trail_points` | 8 點 | 移動停利回撤 |
+| 出場 | `exit_grace_sec` | 30 秒 | 進場後緩衝期 |
+| 風控 | `max_daily_loss_points` | 120 點 | 單日虧損上限 |
+| 風控 | `cooldown_sec` | 10 秒 | 平倉後冷卻 |
+| 時段 | `session_start` / `end` | 08:45 / 13:45 | 可產生信號區間 |
+| 時段 | `flatten_time` | 13:40 | 停止新進場 |
+| 時段 | `force_flatten_time` | 13:44 | 強制平倉 |
+
+> **1 點** 在台指期 ≈ 指數 1 點（每口約 200 元，依契約與券商為準）。本文只談「指數點數」，不談保證金。
+
+---
+
+## 開發者指南
+
+以下為安裝、注入 engine、測試與架構說明。若你只想懂策略邏輯，讀到上一節即可。
 
 ## Status
 
@@ -102,20 +263,19 @@ bt.run()
 
 ## 參數總覽（StrategyParams）
 
-完整說明與校準建議請見 [SPEC.md](SPEC.md) §4。
+完整說明與校準建議請見 [SPEC.md](SPEC.md) §4；**白話對照**見上文 §預設參數速查表。
 
-關鍵類別（皆來自 RuntimeConfig overlay，可在 sweep 時動態 patch）：
+開發者關鍵類別（皆來自 RuntimeConfig overlay，可在 sweep 時動態 patch）：
 - 進場：`entry_band_points`、`exhaustion_vol`、`momentum_buy_ratio` / `momentum_sell_ratio`、`min_atr_threshold`
 - 出場：`hard_stop_points`、`fixed_tp_points`、`vwap_stop_points` + ATR 動態（`atr_vwap_stop_enabled`、`vwap_stop_*_floor` / `*_atr_k`）
 - 移動停損：`trail_points` + ATR 動態 + `exit_grace_*`
 - 風險控管：`max_consecutive_loss`
-- 濾網：`trend_filter_enabled` + trend 相關（`trend_min_strength` 等，建議搭配 ATR normalization）
+- 濾網（預設關）：`trend_filter_enabled`、`structure_filter_enabled` 等
 
 ## 核心行為保證（本策略）
 
-- Momentum 啟動條件：量能門檻 + 買/賣比率 + ATR 足夠 + 無持倉 + 風險 gate 允許。
-- Pullback 進場：必須同時「貼近 VWAP」**且**「量能枯竭」，並通過 trend filter（若開啟）。
-- Trend veto 會發出完整 `reason="trend_veto"` 的 SIGNAL_AUDIT（含 trend_dir/strength），供後續校準分析。
+- **兩段式進場**：武裝（爆量）→ 回檔（貼 VWAP + 量縮）才下單；武裝當下不下單。
+- Pullback 須同時「貼近 VWAP」**且**「量能枯竭」；可選 trend / structure 濾網（預設關）。
 - 出場優先順序與 grace period：grace 內只認 hard stop；grace 後 VWAP stop 才生效。
 - ATR 動態 trail / vwap stop：可獨立開關，floor + k 係數控制下限與敏感度。
 - Session force flatten：kernel 主導，plugin 可客製 slippage 與 audit reason。

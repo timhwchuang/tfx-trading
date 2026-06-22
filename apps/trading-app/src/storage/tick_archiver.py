@@ -44,6 +44,34 @@ class TickArchiveRecord:
         }
 
 
+def tick_to_archive_record(tick: Any, tick_type: int) -> TickArchiveRecord:
+    """Normalize Shioaji tick or engine ``TickSnapshot`` for CSV archive."""
+    exchange_dt = getattr(tick, "datetime", None) or getattr(
+        tick, "exchange_dt", None
+    )
+    if exchange_dt is None:
+        ts = getattr(tick, "ts", None)
+        if ts is not None:
+            exchange_dt = datetime.datetime.fromtimestamp(int(ts))
+    if exchange_dt is None:
+        raise TypeError(f"tick missing datetime/exchange_dt/ts: {type(tick)!r}")
+
+    close_val = getattr(tick, "close", None)
+    if close_val is None:
+        close_val = getattr(tick, "price", None)
+    if close_val is None:
+        raise TypeError(f"tick missing close/price: {type(tick)!r}")
+
+    return TickArchiveRecord(
+        datetime=exchange_dt,
+        close=str(close_val),
+        volume=int(tick.volume),
+        tick_type=int(tick_type),
+        bid_price=float(getattr(tick, "bid_price", 0) or 0),
+        ask_price=float(getattr(tick, "ask_price", 0) or 0),
+    )
+
+
 def gzip_csv_file(csv_path: Path) -> Path:
     """Compress a closed ``*.csv`` to ``*.csv.gz`` and remove the plain file."""
     csv_path = Path(csv_path)
@@ -114,18 +142,7 @@ class TickArchiver:
             self._dropped += 1
 
     def enqueue_tick(self, tick: Any, tick_type: int) -> None:
-        bid = float(getattr(tick, "bid_price", 0) or 0)
-        ask = float(getattr(tick, "ask_price", 0) or 0)
-        self.enqueue(
-            TickArchiveRecord(
-                datetime=tick.datetime,
-                close=str(tick.close),
-                volume=int(tick.volume),
-                tick_type=int(tick_type),
-                bid_price=bid,
-                ask_price=ask,
-            )
-        )
+        self.enqueue(tick_to_archive_record(tick, tick_type))
 
     def shutdown(self) -> None:
         if self._shutdown_done:

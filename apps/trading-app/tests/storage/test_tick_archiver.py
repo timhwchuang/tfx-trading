@@ -19,7 +19,13 @@ from storage.tick_loader import (
     resolve_tick_cache_path,
     save_ticks_csv,
 )
-from storage.tick_archiver import TickArchiveRecord, TickArchiver, gzip_csv_file
+from storage.tick_archiver import (
+    TickArchiveRecord,
+    TickArchiver,
+    gzip_csv_file,
+    tick_to_archive_record,
+)
+from trading_engine.core.types import TickSnapshot
 
 
 def _record(
@@ -193,6 +199,39 @@ class TestTickArchiver(unittest.TestCase):
             )
             self.assertEqual(loaded[0].tick_type, 2)
             self.assertEqual(loaded[0].volume, 4)
+
+    def test_enqueue_tick_snapshot_live_path(self):
+        """Live Shioaji adapter passes TickSnapshot (exchange_dt/price), not .datetime/.close."""
+        snap = TickSnapshot(
+            ts=int(datetime.datetime(2026, 6, 22, 10, 0, 0).timestamp()),
+            price=48100.0,
+            volume=7,
+            tick_type=1,
+            exchange_dt=datetime.datetime(2026, 6, 22, 10, 0, 0),
+        )
+        record = tick_to_archive_record(snap, tick_type=2)
+        self.assertEqual(record.close, "48100.0")
+        self.assertEqual(record.tick_type, 2)
+
+        with tempfile.TemporaryDirectory() as d:
+            archiver = TickArchiver(
+                "TXFR1",
+                cache_dir=Path(d),
+                flush_batch=1,
+                flush_interval_sec=0.05,
+            )
+            archiver.start()
+            archiver.enqueue_tick(snap, tick_type=2)
+            time.sleep(0.15)
+            archiver.shutdown()
+
+            self.assertEqual(archiver.written, 1)
+            loaded = load_ticks_csv(
+                cache_path(Path(d), "TXFR1", datetime.date(2026, 6, 22))
+            )
+            self.assertEqual(len(loaded), 1)
+            self.assertEqual(loaded[0].close, "48100.0")
+            self.assertEqual(loaded[0].tick_type, 2)
 
 
 class TestCompressTickCache(unittest.TestCase):

@@ -19,6 +19,30 @@ from storage.tick_loader import (
 logger = logging.getLogger(__name__)
 
 _KBARS_CSV_FIELDS = ["ts", "Open", "High", "Low", "Close", "Volume"]
+UTC = datetime.timezone.utc
+
+
+def kbar_ts_from_ns(ts_ns: int, *, simulation: bool) -> datetime.datetime:
+    """Convert Shioaji ``kbars.ts`` (nanoseconds) to naive exchange-local time.
+
+    Simulation API encodes exchange wall clock as a UTC epoch (no +8 offset).
+    Production ``kbars.ts`` is true UTC epoch — apply ``_ns_to_taipei_naive``.
+    Historical ``api.ticks`` uses true UTC; see ``tick_loader._ns_to_taipei_naive``.
+    """
+    if simulation:
+        return datetime.datetime.fromtimestamp(
+            ts_ns / 1_000_000_000, UTC
+        ).replace(tzinfo=None)
+    return _ns_to_taipei_naive(ts_ns)
+
+
+def _default_simulation_mode() -> bool:
+    try:
+        import config as app_config
+
+        return bool(app_config.SIMULATION)
+    except Exception:
+        return False
 
 
 @dataclass
@@ -74,7 +98,10 @@ def load_kbars_csv(path: Path) -> List[KBarRecord]:
     return bars
 
 
-def kbars_raw_to_records(raw: Any) -> List[KBarRecord]:
+def kbars_raw_to_records(
+    raw: Any, *, simulation: bool | None = None
+) -> List[KBarRecord]:
+    sim = _default_simulation_mode() if simulation is None else simulation
     ts_list = list(raw.ts)
     opens = list(raw.Open)
     highs = list(raw.High)
@@ -85,7 +112,7 @@ def kbars_raw_to_records(raw: Any) -> List[KBarRecord]:
     for i in range(len(ts_list)):
         bars.append(
             KBarRecord(
-                ts=_ns_to_taipei_naive(int(ts_list[i])),
+                ts=kbar_ts_from_ns(int(ts_list[i]), simulation=sim),
                 Open=float(opens[i]),
                 High=float(highs[i]),
                 Low=float(lows[i]),
