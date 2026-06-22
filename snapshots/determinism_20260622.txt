@@ -1,16 +1,12 @@
-# UAT Phase 0 smoke — 2026-06-22
-# Status: DEFERRED (not a Phase 0 gate)
+# UAT 2026-06-22 — TMFR1 tick replay determinism hash
+# Phase 1 Day 1: NOT signed off (trial day; see uat_evidence/phase1/day1_trial_20260622.txt)
 #
-# Reason: No tick_cache/TXFR1_2026-06-22.csv after ~23s live smoke
-#         (Tick 落盤結束 | written=0). KBARS only: TXFR1_kbars_2026-06-22.csv
-#
-# Re-run after Phase 1 full trading day:
-#   cd <monorepo-root>
-#   export PYTHONPATH=apps/trading-app/src
-#   python -m storage
-#   python -m sweep.determinism_check --date 2026-06-22 --mode hash \
+# Generated:
+#   PYTHONPATH=apps/trading-app/src \
+#   python -m sweep.determinism_check --date 2026-06-22 --code TMFR1 --mode hash \
 #     --output snapshots/determinism_20260622.txt
 
-status: deferred
+status: replay_baseline
 date: 2026-06-22
-reason: no_tick_csv_for_replay
+code: TMFR1
+hash: 01e0917dc4bade927995a2ebd411639baec73258538ab93ac934dbbcd9914b6e

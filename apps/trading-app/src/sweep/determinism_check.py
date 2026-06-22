@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import hashlib
 import json
 import logging
@@ -100,7 +101,7 @@ def _run_with_audit_capture(fn) -> list[tuple[str, str]]:
 
 def run_hash(
     code: str,
-    dates: list,
+    dates: list[datetime.date],
     cache_dir=DEFAULT_CACHE_DIR,
 ) -> str:
     """Run one backtest and hash SIGNAL_AUDIT + FILL_AUDIT + DAILY_SUMMARY JSON."""
@@ -115,7 +116,7 @@ def run_hash(
 
 def capture_backtest_log_lines(
     code: str,
-    dates: list,
+    dates: list[datetime.date],
     cache_dir=DEFAULT_CACHE_DIR,
 ) -> list[str]:
     """Return uat_report-compatible log lines from a backtest run."""
@@ -130,7 +131,6 @@ def capture_backtest_log_lines(
 
 def main() -> None:
     import argparse
-    from datetime import datetime
 
     parser = argparse.ArgumentParser(
         description="Determinism check helper for UAT (backtest audit hash).",
@@ -149,7 +149,7 @@ def main() -> None:
     parser.add_argument("--mode", choices=["hash", "capture"], default="hash", help="Run backtest and hash, or just capture lines")
     args = parser.parse_args()
 
-    dates = [args.date]
+    dates = [datetime.date.fromisoformat(args.date)]
     if args.mode == "hash":
         h = run_hash(args.code, dates)
         print(f"Determinism hash for {args.date}: {h}")

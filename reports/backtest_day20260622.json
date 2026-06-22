@@ -1,0 +1,375 @@
+{
+  "momentum_triggers": 28,
+  "entry_signals": 20,
+  "exit_signals": 20,
+  "momentum_to_entry_conversion": 0.7142857142857143,
+  "completed_rounds": 19,
+  "open_rounds": 0,
+  "quick_stop_loss_lt_5s": 4,
+  "quick_stop_loss_rate_lt_5s": 0.21052631578947367,
+  "exit_reasons": {
+    "stop_loss": 6,
+    "trailing_stop": 14
+  },
+  "slippage": {
+    "entry_median": 0.5,
+    "entry_p90": 2.5,
+    "exit_median": 0.5,
+    "exit_p90": 1.7,
+    "entry_count": 19,
+    "exit_count": 19
+  },
+  "expectancy_by_reason": {
+    "stop_loss": {
+      "count": 6,
+      "total_pnl": -39.0,
+      "avg_pnl": -6.5
+    },
+    "trailing_stop": {
+      "count": 13,
+      "total_pnl": 22.0,
+      "avg_pnl": 1.69
+    }
+  },
+  "intent_cancelled": {
+    "intent_cancelled": 1,
+    "intent_cancelled_open_session": 0
+  },
+  "intent_cancel_rate": 0.05,
+  "open_session_cancel_rate": 0.0,
+  "tick_type": null,
+  "near_miss": {
+    "momentum_episodes": 28,
+    "momentum_timeout": 9,
+    "blocked_vwap_only": 7597,
+    "blocked_vol_only": 183,
+    "blocked_both": 28174,
+    "closest_vwap_distance": 0.01
+  },
+  "daily_summaries": [
+    {
+      "date": "2026-06-22",
+      "params": {
+        "simulation": true,
+        "product_code": "TMFR1",
+        "vwap_window_min": 5,
+        "entry_band_points": 2.0,
+        "momentum_vol_1s": 150,
+        "momentum_buy_ratio": 0.8,
+        "momentum_sell_ratio": 0.78,
+        "exhaustion_vol": 15,
+        "cooldown_sec": 10,
+        "momentum_timeout_sec": 180,
+        "max_daily_loss_points": 120,
+        "max_consecutive_loss": 4,
+        "fixed_tp_points": 20,
+        "trail_points": 8,
+        "atr_period": 20,
+        "min_atr_threshold": 25.0,
+        "atr_refresh_sec": 300,
+        "atr_kline_lookback_days": 10,
+        "pending_timeout_sec": 8,
+        "ioc_slippage_points": 3,
+        "exit_grace_ticks": 60,
+        "exit_grace_sec": 30,
+        "hard_stop_points": 6,
+        "vwap_stop_points": 3,
+        "no_tick_timeout_sec": 45,
+        "clock_skew_warn_sec": 1.0,
+        "trend_filter_enabled": false,
+        "trend_timeframe_min": 5,
+        "trend_mode": "ema",
+        "trend_ema_period": 20,
+        "trend_slope_min": 0.0,
+        "trend_min_strength": 0.0,
+        "structure_filter_enabled": false,
+        "structure_timeframe_min": 5,
+        "structure_swing_lookback": 2,
+        "structure_min_strength": 0.0,
+        "trail_atr_k": 0.25,
+        "trail_points_floor": 8.0,
+        "vwap_stop_atr_k": 0.25,
+        "vwap_stop_points_floor": 3.0,
+        "atr_trailing_enabled": false,
+        "atr_vwap_stop_enabled": false,
+        "session_start": "08:45",
+        "session_end": "13:45",
+        "session_flatten_time": "13:40",
+        "session_force_flatten_time": "13:44",
+        "flatten_slippage_points": 8,
+        "base_vol": 150,
+        "atr_vol_mult": 1.0,
+        "open_mult_futures": 2.5,
+        "open_mult_spot": 1.5,
+        "open_mult_normal": 1.0,
+        "log_level": "INFO",
+        "log_file": "/Users/tim_chuang/workaround/future/logs/trading-app-uat.log",
+        "friction_enabled": false,
+        "friction_mode": "flat_round_trip",
+        "round_trip_friction_points": 2.0,
+        "commission_per_side_points": 0.5,
+        "tax_per_exit_points": 1.0,
+        "commission_per_side_ntd": 0.0,
+        "friction_tax_rate": 0.0,
+        "point_value_ntd": 10.0,
+        "sharpe_period": "per_trade",
+        "sweep_score_metric": "expectancy_net",
+        "sweep_dd_penalty": 0.0,
+        "sweep_sl_penalty": 50.0,
+        "initial_capital_points": 0.0,
+        "max_acceptable_mdd_points": 120.0,
+        "exit_order_max_retries": 3,
+        "exit_order_retry_delay_sec": 1.0,
+        "session_watchdog_sec": 30.0,
+        "session_relogin_max_attempts": 5,
+        "session_relogin_backoff_base_sec": 5.0,
+        "atr_stale_multiplier": 2.0,
+        "reconnect_warmup_sec": 300,
+        "max_disconnects_per_day": 3,
+        "alert_on_disconnect_with_position": true
+      },
+      "signals": {
+        "momentum_triggers": 28,
+        "entry_signals": 20,
+        "exit_signals": 20,
+        "momentum_to_entry_conversion": 0.7142857142857143
+      },
+      "fills": {
+        "entry_count": 19,
+        "exit_count": 19,
+        "entry_slippage_median": 0.5,
+        "entry_slippage_p90": 2.5,
+        "exit_slippage_median": 0.5,
+        "exit_slippage_p90": 1.7
+      },
+      "pnl": {
+        "daily_pnl_points": -17.0,
+        "by_reason": {
+          "stop_loss": {
+            "count": 6,
+            "total_pnl": -39.0,
+            "avg_pnl": -6.5
+          },
+          "trailing_stop": {
+            "count": 13,
+            "total_pnl": 22.0,
+            "avg_pnl": 1.69
+          }
+        }
+      },
+      "performance": {
+        "friction_enabled": false,
+        "friction_mode": "flat_round_trip",
+        "expectancy": {
+          "trade_count": 19,
+          "win_rate": 0.2632,
+          "avg_win_gross": 9.2,
+          "avg_loss_gross": -5.7273,
+          "payoff_ratio": 1.6063,
+          "expectancy_per_trade_gross": -0.8947,
+          "expectancy_per_trade_net": -0.8947,
+          "friction_per_trade": 0.0
+        },
+        "drawdown": {
+          "max_drawdown_points": 22.0,
+          "max_drawdown_pct": 440.0,
+          "max_drawdown_duration_trades": 9
+        },
+        "risk_adjusted": {
+          "sharpe": -0.1267,
+          "sortino": -0.1977,
+          "return_period": "per_trade",
+          "return_count": 19
+        },
+        "total_pnl_gross": -17.0,
+        "total_pnl_net": -17.0,
+        "round_trip_net_pnls": [
+          -7.0,
+          0.0,
+          1.0,
+          0.0,
+          8.0,
+          0.0,
+          -6.0,
+          -4.0,
+          13.0,
+          -8.0,
+          -7.0,
+          11.0,
+          -6.0,
+          -7.0,
+          13.0,
+          -4.0,
+          -3.0,
+          -4.0,
+          -7.0
+        ]
+      },
+      "quick_stop_loss": {
+        "threshold_sec": 5,
+        "count": 4,
+        "rate": 0.21052631578947367
+      },
+      "near_miss": {
+        "momentum_episodes": 28,
+        "momentum_timeout": 9,
+        "blocked_vwap_only": 7597,
+        "blocked_vol_only": 183,
+        "blocked_both": 28174,
+        "closest_vwap_distance": 0.01
+      },
+      "episode_funnel": {
+        "armed": 28,
+        "entered": 20,
+        "timeout": 9,
+        "veto": 0,
+        "trend_veto": 0,
+        "structure_veto": 0
+      },
+      "pressure": {
+        "max_consecutive_veto": 0,
+        "max_consecutive_timeout": 3,
+        "max_episodes_without_entry": 4,
+        "armed_to_entered_ratio": 0.7142857142857143,
+        "risk_blocked_count": 36
+      },
+      "operational": {
+        "intent_cancelled": 1,
+        "intent_cancelled_open_session": 0,
+        "intent_cancel_rate": 0.05,
+        "open_session_cancel_rate": 0.0,
+        "tick_type0_pct": 3.15,
+        "tick_type_inferred": {
+          "1": 0,
+          "2": 0
+        },
+        "tick_type_inferred_total": 0,
+        "lock_wait_max_ms": 0.207,
+        "lock_wait_over_50ms": 0,
+        "no_tick_resubscribe": 0,
+        "atr_min": 21.85,
+        "atr_max": 75.35
+      }
+    }
+  ],
+  "performance": {
+    "friction_enabled": false,
+    "friction_mode": "flat_round_trip",
+    "expectancy": {
+      "trade_count": 19,
+      "win_rate": 0.2632,
+      "avg_win_gross": 9.2,
+      "avg_loss_gross": -5.7273,
+      "payoff_ratio": 1.6063,
+      "expectancy_per_trade_gross": -0.8947,
+      "expectancy_per_trade_net": -0.8947,
+      "friction_per_trade": 0.0
+    },
+    "drawdown": {
+      "max_drawdown_points": 22.0,
+      "max_drawdown_pct": 440.0,
+      "max_drawdown_duration_trades": 9
+    },
+    "risk_adjusted": {
+      "sharpe": -0.1267,
+      "sortino": -0.1977,
+      "return_period": "per_trade",
+      "return_count": 19
+    },
+    "total_pnl_gross": -17.0,
+    "total_pnl_net": -17.0,
+    "round_trip_net_pnls": [
+      -7.0,
+      0.0,
+      1.0,
+      0.0,
+      8.0,
+      0.0,
+      -6.0,
+      -4.0,
+      13.0,
+      -8.0,
+      -7.0,
+      11.0,
+      -6.0,
+      -7.0,
+      13.0,
+      -4.0,
+      -3.0,
+      -4.0,
+      -7.0
+    ]
+  },
+  "performance_aggregate": {
+    "day_count": 1,
+    "trade_count": 19,
+    "total_pnl_gross": -17.0,
+    "total_pnl_net": -17.0,
+    "win_rate": 0.2632,
+    "expectancy_per_trade_net": -0.8947,
+    "max_drawdown_points": 22.0,
+    "max_drawdown_pct": 440.0
+  },
+  "cumulative_risk": {
+    "initial_capital_points": 0.0,
+    "max_acceptable_mdd_points": 120.0,
+    "cumulative_pnl_net": -17.0,
+    "ending_equity": -17.0,
+    "cumulative_max_drawdown_points": 17.0,
+    "cumulative_max_drawdown_pct": null,
+    "current_drawdown_points": 17.0,
+    "budget_used_pct": 14.17,
+    "budget_headroom_points": 103.0,
+    "budget_breached": false,
+    "daily_progression": [
+      {
+        "date": "2026-06-22",
+        "daily_pnl_net": -17.0,
+        "cumulative_pnl_net": -17.0,
+        "equity": -17.0,
+        "peak_equity": 0.0,
+        "current_drawdown_points": 17.0,
+        "cumulative_max_drawdown_points": 17.0,
+        "budget_used_pct": 14.17
+      }
+    ]
+  },
+  "fill_count": 38,
+  "quick_stop_loss_examples": [
+    {
+      "direction": "Sell",
+      "exit_ts": 1782090120,
+      "hold_sec": 0,
+      "exit_reason": "stop_loss",
+      "slippage_pts": 0.5
+    },
+    {
+      "direction": "Sell",
+      "exit_ts": 1782096554,
+      "hold_sec": 2,
+      "exit_reason": "stop_loss",
+      "slippage_pts": 1.5
+    },
+    {
+      "direction": "Buy",
+      "exit_ts": 1782103529,
+      "hold_sec": 4,
+      "exit_reason": "stop_loss",
+      "slippage_pts": 0.5
+    },
+    {
+      "direction": "Sell",
+      "exit_ts": 1782105784,
+      "hold_sec": 2,
+      "exit_reason": "stop_loss",
+      "slippage_pts": -3.5
+    }
+  ],
+  "tuning_hints": [
+    "timeout 連續/總數 9 → band 太緊或 momentum_timeout 需調",
+    "blocked_vwap_only 偏高 → 量能已枯竭(vol_dried_up)但價格未進 band；考慮 entry_band_points",
+    "momentum_timeout>0 → 180s 內未等到 pullback；策略設計偏嚴或波動太快",
+    "exit_reason=stop_loss 平均 PnL -6.5 為負 → 檢查對應出場參數",
+    "當日 atr_min=21.85 < min_atr_threshold=25.0 → 可能整天無交易"
+  ]
+}
