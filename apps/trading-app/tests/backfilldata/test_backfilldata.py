@@ -33,6 +33,63 @@ def _mock_api_usage(api: MagicMock) -> None:
     api.usage.return_value = MagicMock(bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000)
 
 
+def _day_session_minute_count() -> int:
+    return (13 * 60 + 45) - (8 * 60 + 45) + 1
+
+
+def _full_session_kbar_records(date: datetime.date) -> list[KBarRecord]:
+    return [
+        KBarRecord(
+            ts=datetime.datetime(date.year, date.month, date.day, 8, 45)
+            + datetime.timedelta(minutes=i),
+            Open=100.0,
+            High=101.0,
+            Low=99.0,
+            Close=100.5,
+            Volume=10,
+        )
+        for i in range(_day_session_minute_count())
+    ]
+
+
+def _simulation_kbar_raw(date: datetime.date) -> MagicMock:
+    base = datetime.datetime(
+        date.year, date.month, date.day, 8, 45, tzinfo=datetime.timezone.utc
+    )
+    ts = [
+        int((base + datetime.timedelta(minutes=i)).timestamp() * 1_000_000_000)
+        for i in range(_day_session_minute_count())
+    ]
+    n = len(ts)
+    return MagicMock(
+        ts=ts,
+        Open=[100.0] * n,
+        High=[101.0] * n,
+        Low=[99.0] * n,
+        Close=[100.5] * n,
+        Volume=[10] * n,
+    )
+
+
+def _simulation_tick_raw(date: datetime.date) -> MagicMock:
+    base = datetime.datetime(
+        date.year, date.month, date.day, 8, 45, tzinfo=datetime.timezone.utc
+    )
+    ts = [
+        int((base + datetime.timedelta(minutes=i)).timestamp() * 1_000_000_000)
+        for i in range(_day_session_minute_count())
+    ]
+    n = len(ts)
+    return MagicMock(
+        ts=ts,
+        close=[18000.0] * n,
+        volume=[1] * n,
+        bid_price=[17999.0] * n,
+        ask_price=[18001.0] * n,
+        tick_type=[1] * n,
+    )
+
+
 class TestParseDateArgs(unittest.TestCase):
     def test_single_date(self):
         self.assertEqual(
@@ -54,10 +111,32 @@ class TestParseDateArgs(unittest.TestCase):
 
 
 class TestValidatePastDates(unittest.TestCase):
-    def test_rejects_today(self):
+    def test_rejects_today_before_session_close(self):
+        today = datetime.date(2026, 6, 22)
+        before_close = datetime.datetime(
+            2026, 6, 22, 11, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=8))
+        )
+        with self.assertRaises(BackfillError):
+            validate_past_dates([today], today=today, now=before_close)
+
+    def test_accepts_today_after_session_close(self):
+        today = datetime.date(2026, 6, 22)
+        after_close = datetime.datetime(
+            2026, 6, 22, 14, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=8))
+        )
+        validate_past_dates([today], today=today, now=after_close)
+
+    def test_accepts_today_exactly_at_session_close(self):
+        today = datetime.date(2026, 6, 22)
+        at_close = datetime.datetime(
+            2026, 6, 22, 13, 45, tzinfo=datetime.timezone(datetime.timedelta(hours=8))
+        )
+        validate_past_dates([today], today=today, now=at_close)
+
+    def test_rejects_future_date(self):
         today = datetime.date(2026, 6, 22)
         with self.assertRaises(BackfillError):
-            validate_past_dates([today], today=today)
+            validate_past_dates([datetime.date(2026, 6, 23)], today=today)
 
     def test_accepts_yesterday(self):
         today = datetime.date(2026, 6, 22)
@@ -130,7 +209,7 @@ class TestDownloadAndCacheKbarsMirror(unittest.TestCase):
             self.assertIn(primary, paths)
             self.assertIn(mirror, paths)
 
-    def test_refreshes_stale_mirror_from_existing_primary(self):
+    def test_skip_path_keeps_existing_mirror_when_not_overwrite(self):
         api = MagicMock()
         _mock_api_usage(api)
         contract = MagicMock()
@@ -140,16 +219,7 @@ class TestDownloadAndCacheKbarsMirror(unittest.TestCase):
             kbar_dir = Path(kd)
             tick_dir = Path(td)
             save_kbars_csv(
-                [
-                    KBarRecord(
-                        ts=datetime.datetime(2026, 6, 12, 9, 0),
-                        Open=100.0,
-                        High=101.0,
-                        Low=99.0,
-                        Close=100.5,
-                        Volume=10,
-                    )
-                ],
+                _full_session_kbar_records(date),
                 kbars_cache_path(kbar_dir, "TXFR1", date),
             )
             stale = kbars_cache_path(tick_dir, "TXFR1", date)
@@ -161,9 +231,11 @@ class TestDownloadAndCacheKbarsMirror(unittest.TestCase):
                 cache_dir=kbar_dir,
                 mirror_cache_dir=tick_dir,
                 simulation=True,
+                time_start=datetime.time(8, 45),
+                time_end=datetime.time(13, 45),
             )
             api.kbars.assert_not_called()
-            self.assertGreater(stale.stat().st_size, 20)
+            self.assertEqual(stale.read_text(encoding="utf-8"), "ts,Open,High,Low,Close,Volume\n")
 
 
 class TestBackfillDates(unittest.TestCase):
@@ -174,22 +246,8 @@ class TestBackfillDates(unittest.TestCase):
         contract.code = "TXFR1"
         api.Contracts.Futures.TXF.TXFR1 = contract
 
-        tick_raw = MagicMock(
-            ts=[1_700_000_000_000_000_000],
-            close=[18000.0],
-            volume=[1],
-            bid_price=[17999.0],
-            ask_price=[18001.0],
-            tick_type=[1],
-        )
-        kbar_raw = MagicMock(
-            ts=[1],
-            Open=[100.0],
-            High=[101.0],
-            Low=[99.0],
-            Close=[100.5],
-            Volume=[10],
-        )
+        tick_raw = _simulation_tick_raw(datetime.date(2026, 6, 12))
+        kbar_raw = _simulation_kbar_raw(datetime.date(2026, 6, 12))
         api.ticks.return_value = tick_raw
         api.kbars.return_value = kbar_raw
 
@@ -217,6 +275,9 @@ class TestBackfillDates(unittest.TestCase):
             self.assertEqual(len(result.ticks), 1)
             self.assertGreaterEqual(len(result.kbars), 2)
             self.assertTrue(result.ok)
+            _, kwargs = api.ticks.call_args
+            self.assertEqual(kwargs["time_start"], "08:45:00")
+            self.assertEqual(kwargs["time_end"], "13:45:00")
 
     def test_skips_existing_without_overwrite(self):
         api = MagicMock()
@@ -230,7 +291,16 @@ class TestBackfillDates(unittest.TestCase):
             kbar_dir = Path(kd)
             date = datetime.date(2026, 6, 12)
             save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 12, 9, 0), "1", 1, 0)],
+                [
+                    ReplayTick(
+                        datetime.datetime(2026, 6, 12, 8, 45)
+                        + datetime.timedelta(minutes=30 * i),
+                        str(i),
+                        1,
+                        0,
+                    )
+                    for i in range(11)
+                ],
                 cache_path(tick_dir, "TXFR1", date),
             )
             save_kbars_csv(
@@ -259,21 +329,40 @@ class TestBackfillDates(unittest.TestCase):
             )
             api.ticks.assert_not_called()
 
-    def test_ok_when_only_gzip_tick_cache(self):
+    def test_merges_partial_gzip_tick_cache(self):
         api = MagicMock()
         _mock_api_usage(api)
         contract = MagicMock()
         contract.code = "TXFR1"
         api.Contracts.Futures.TXF.TXFR1 = contract
-        date = datetime.date(2026, 6, 12)
+        date = datetime.date(2026, 6, 22)
+        morning_ns = int(
+            datetime.datetime(
+                2026, 6, 22, 8, 45, 0, tzinfo=datetime.timezone.utc
+            ).timestamp()
+            * 1_000_000_000
+        )
+        api.ticks.return_value = MagicMock(
+            ts=[morning_ns],
+            close=[18000.0],
+            volume=[1],
+            bid_price=[17999.0],
+            ask_price=[18001.0],
+            tick_type=[1],
+        )
         with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as kd:
             tick_dir = Path(td)
             kbar_dir = Path(kd)
+            plain = cache_path(tick_dir, "TXFR1", date)
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 22, 11, 14), "1", 1, 0)],
+                plain,
+            )
             gz = cache_gz_path(tick_dir, "TXFR1", date)
-            gz.parent.mkdir(parents=True, exist_ok=True)
-            with gzip.open(gz, "wt", encoding="utf-8", newline="") as f:
-                f.write("datetime,close,volume,bid_price,ask_price,tick_type\n")
-            today = datetime.date(2026, 6, 15)
+            with plain.open("rb") as src, gzip.open(gz, "wb") as dst:
+                dst.writelines(src)
+            plain.unlink()
+            today = datetime.date(2026, 6, 23)
             result = backfill_dates(
                 [date],
                 code="TXFR1",
@@ -284,9 +373,15 @@ class TestBackfillDates(unittest.TestCase):
                 api=api,
                 today=today,
             )
-            api.ticks.assert_not_called()
-            self.assertTrue(result.ok)
-            self.assertEqual(result.ticks, [gz])
+            api.ticks.assert_called_once()
+            self.assertFalse(result.ok)
+            self.assertEqual(result.missing_tick_dates, [date])
+            out = cache_path(tick_dir, "TXFR1", date)
+            self.assertTrue(out.is_file())
+            self.assertFalse(gz.is_file())
+            from storage.tick_loader import load_ticks_csv
+
+            self.assertEqual(len(load_ticks_csv(out)), 2)
 
 
 class TestBackfillCli(unittest.TestCase):
@@ -324,6 +419,27 @@ class TestBackfillCli(unittest.TestCase):
         )
         self.assertEqual(main(["date", "2026-06-12"]), 0)
         mock_backfill.assert_called_once()
+        _, kwargs = mock_backfill.call_args
+        self.assertEqual(kwargs["tick_time_start"], datetime.time(8, 45))
+        self.assertEqual(kwargs["tick_time_end"], datetime.time(13, 45))
+
+    @patch("backfilldata.__main__.backfill_dates")
+    def test_main_all_day_ticks_disables_range(self, mock_backfill):
+        from backfilldata.__main__ import main
+
+        mock_backfill.return_value = BackfillResult(ticks=[Path("tick.csv")])
+        self.assertEqual(main(["date", "2026-06-12", "--all-day-ticks"]), 0)
+        _, kwargs = mock_backfill.call_args
+        self.assertIsNone(kwargs["tick_time_start"])
+        self.assertIsNone(kwargs["tick_time_end"])
+
+    def test_rejects_inverted_tick_time_window(self):
+        from backfilldata.__main__ import main
+
+        self.assertEqual(
+            main(["date", "2026-06-12", "--time-start", "13:45:00", "--time-end", "08:45:00"]),
+            2,
+        )
 
     @patch("backfilldata.__main__.backfill_dates")
     def test_main_missing_files_return_code(self, mock_backfill):

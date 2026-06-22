@@ -9,43 +9,23 @@ import shutil
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, List, Optional
+from typing import Any, Iterable, List, Optional, Sequence
 
 from storage.tick_loader import (
     DEFAULT_CACHE_DIR,
+    DEFAULT_TICK_RANGE_END,
+    DEFAULT_TICK_RANGE_START,
     _log_usage,
-    _ns_to_taipei_naive,
     date_range,
+    shioaji_ts_from_ns,
 )
 
 logger = logging.getLogger(__name__)
 
 _KBARS_API_TIMEOUT_MS = 30_000
 _KBARS_CSV_FIELDS = ["ts", "Open", "High", "Low", "Close", "Volume"]
-UTC = datetime.timezone.utc
-
-
-def kbar_ts_from_ns(ts_ns: int, *, simulation: bool) -> datetime.datetime:
-    """Convert Shioaji ``kbars.ts`` (nanoseconds) to naive exchange-local time.
-
-    Simulation API encodes exchange wall clock as a UTC epoch (no +8 offset).
-    Production ``kbars.ts`` is true UTC epoch — apply ``_ns_to_taipei_naive``.
-    Historical ``api.ticks`` uses true UTC; see ``tick_loader._ns_to_taipei_naive``.
-    """
-    if simulation:
-        return datetime.datetime.fromtimestamp(
-            ts_ns / 1_000_000_000, UTC
-        ).replace(tzinfo=None)
-    return _ns_to_taipei_naive(ts_ns)
-
-
-def _default_simulation_mode() -> bool:
-    try:
-        import config as app_config
-
-        return bool(app_config.SIMULATION)
-    except Exception:
-        return False
+_WINDOW_EDGE_TOLERANCE_MIN = 1
+_KBAR_MAX_GAP_MIN = 10
 
 
 @dataclass
@@ -56,6 +36,137 @@ class KBarRecord:
     Low: float
     Close: float
     Volume: int
+
+
+def kbar_ts_from_ns(ts_ns: int, *, simulation: bool) -> datetime.datetime:
+    """Convert Shioaji ``kbars.ts`` (nanoseconds) to naive exchange-local time."""
+    return shioaji_ts_from_ns(ts_ns, simulation=simulation)
+
+
+def _filter_bars_by_time(
+    bars: List[KBarRecord],
+    time_start: datetime.time | None,
+    time_end: datetime.time | None,
+) -> List[KBarRecord]:
+    """Keep bars whose ``ts.time()`` falls in the inclusive session window."""
+    if time_start is None and time_end is None:
+        return bars
+    filtered: List[KBarRecord] = []
+    for bar in bars:
+        t = bar.ts.time()
+        if time_start is not None and t < time_start:
+            continue
+        if time_end is not None and t > time_end:
+            continue
+        filtered.append(bar)
+    return filtered
+
+
+def _bar_in_window(
+    bar: KBarRecord,
+    time_start: datetime.time | None,
+    time_end: datetime.time | None,
+) -> bool:
+    if time_start is None and time_end is None:
+        return True
+    t = bar.ts.time()
+    if time_start is not None and t < time_start:
+        return False
+    if time_end is not None and t > time_end:
+        return False
+    return True
+
+
+def _kbar_window_needs_fetch(
+    bars: Sequence[KBarRecord],
+    time_start: datetime.time | None,
+    time_end: datetime.time | None,
+) -> bool:
+    if time_start is None and time_end is None:
+        return False
+    in_window = [b for b in bars if _bar_in_window(b, time_start, time_end)]
+    if not in_window:
+        return True
+    earliest = min(b.ts.time() for b in in_window)
+    latest = max(b.ts.time() for b in in_window)
+    tol = datetime.timedelta(minutes=_WINDOW_EDGE_TOLERANCE_MIN)
+    if (
+        time_start is not None
+        and datetime.datetime.combine(datetime.date.min, earliest)
+        > datetime.datetime.combine(datetime.date.min, time_start) + tol
+    ):
+        return True
+    if (
+        time_end is not None
+        and datetime.datetime.combine(datetime.date.min, latest)
+        < datetime.datetime.combine(datetime.date.min, time_end) - tol
+    ):
+        return True
+    ordered = sorted(in_window, key=lambda b: b.ts)
+    for prev, cur in zip(ordered, ordered[1:]):
+        if cur.ts - prev.ts > datetime.timedelta(minutes=_KBAR_MAX_GAP_MIN):
+            return True
+    return False
+
+
+def _all_day_kbar_needs_fetch(bars: Sequence[KBarRecord]) -> bool:
+    """True when cache is empty, day session incomplete, or only session-filtered rows."""
+    if not bars:
+        return True
+    if _kbar_window_needs_fetch(bars, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END):
+        return True
+    return all(
+        _bar_in_window(b, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END)
+        for b in bars
+    )
+
+
+def kbar_cache_satisfies_request(
+    cache_dir: Path,
+    code: str,
+    date: datetime.date,
+    *,
+    time_start: datetime.time | None,
+    time_end: datetime.time | None,
+) -> bool:
+    """Whether on-disk kbar cache meets the requested backfill window."""
+    path = kbars_cache_path(cache_dir, code, date)
+    if not path.is_file():
+        return False
+    bars = load_kbars_csv(path)
+    if time_start is None and time_end is None:
+        return not _all_day_kbar_needs_fetch(bars)
+    return not _kbar_window_needs_fetch(bars, time_start, time_end)
+
+
+def merge_kbars(
+    existing: Iterable[KBarRecord],
+    fetched: Iterable[KBarRecord],
+    *,
+    time_start: datetime.time | None,
+    time_end: datetime.time | None,
+    replace_window: bool,
+) -> List[KBarRecord]:
+    if replace_window and time_start is None and time_end is None:
+        return sorted(fetched, key=lambda b: b.ts)
+
+    by_ts: dict[datetime.datetime, KBarRecord] = {}
+    for bar in existing:
+        if replace_window and _bar_in_window(bar, time_start, time_end):
+            continue
+        by_ts[bar.ts] = bar
+    for bar in fetched:
+        by_ts[bar.ts] = bar
+    return sorted(by_ts.values(), key=lambda b: b.ts)
+
+
+def _default_simulation_mode() -> bool:
+    try:
+        import config as app_config
+
+        return bool(app_config.SIMULATION)
+    except Exception:
+        return False
 
 
 def kbars_cache_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
@@ -85,23 +196,31 @@ def mirror_kbar_cache_file(
 
 
 def save_kbars_csv(bars: Iterable[KBarRecord], path: Path) -> int:
+    path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f"{path.name}.tmp")
     count = 0
-    with path.open("w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=_KBARS_CSV_FIELDS)
-        writer.writeheader()
-        for bar in bars:
-            writer.writerow(
-                {
-                    "ts": bar.ts.isoformat(),
-                    "Open": bar.Open,
-                    "High": bar.High,
-                    "Low": bar.Low,
-                    "Close": bar.Close,
-                    "Volume": bar.Volume,
-                }
-            )
-            count += 1
+    try:
+        with tmp.open("w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=_KBARS_CSV_FIELDS)
+            writer.writeheader()
+            for bar in bars:
+                writer.writerow(
+                    {
+                        "ts": bar.ts.isoformat(),
+                        "Open": bar.Open,
+                        "High": bar.High,
+                        "Low": bar.Low,
+                        "Close": bar.Close,
+                        "Volume": bar.Volume,
+                    }
+                )
+                count += 1
+        tmp.replace(path)
+    except Exception:
+        if tmp.is_file():
+            tmp.unlink(missing_ok=True)
+        raise
     return count
 
 
@@ -173,11 +292,14 @@ def download_and_cache_kbars(
     simulation: bool | None = None,
     mirror_cache_dir: Path | None = None,
     pace_sec: float = 0.0,
+    time_start: datetime.time | None = None,
+    time_end: datetime.time | None = None,
 ) -> List[Path]:
     """逐日抓取 K 線並落地快取；preload_dates 供 ATR 熱身（6.5）預載前日/夜盤。
 
     ``mirror_cache_dir``：主快取寫入 ``cache_dir`` 後，可選複製到第二目錄（如 tick_cache）。
     ``simulation``：覆寫 kbar ``ts`` 解碼（預設讀 ``config.SIMULATION``）。
+    ``time_start`` / ``time_end``：API 仍取整日，落地前依交易所時間裁切（backfill 對齊 tick 視窗）。
     """
     code = getattr(contract, "code", str(contract))
     all_dates: list[datetime.date] = []
@@ -188,11 +310,24 @@ def download_and_cache_kbars(
                 seen.add(date)
                 all_dates.append(date)
     written: List[Path] = []
+    all_day = time_start is None and time_end is None
     _log_usage(api, "kbars_download_start")
     for date in all_dates:
         path = kbars_cache_path(cache_dir, code, date)
-        if path.is_file() and not overwrite:
-            logger.info("K 線快取已存在，跳過 %s", path.name)
+        existing_bars: List[KBarRecord] = (
+            load_kbars_csv(path) if path.is_file() else []
+        )
+        needs_fetch = (
+            not path.is_file()
+            or overwrite
+            or (
+                _all_day_kbar_needs_fetch(existing_bars)
+                if all_day
+                else _kbar_window_needs_fetch(existing_bars, time_start, time_end)
+            )
+        )
+        if path.is_file() and not needs_fetch:
+            logger.info("K 線視窗已覆蓋，跳過 %s", path.name)
             written.append(path)
             if mirror_cache_dir is not None:
                 mirrored = mirror_kbar_cache_file(
@@ -200,16 +335,33 @@ def download_and_cache_kbars(
                     date=date,
                     source_dir=cache_dir,
                     dest_dir=mirror_cache_dir,
-                    overwrite=True,
+                    overwrite=overwrite,
                 )
                 if mirrored is not None:
                     written.append(mirrored)
             continue
         try:
             bars = fetch_kbars_for_date(api, contract, date, simulation=simulation)
+            bars = _filter_bars_by_time(bars, time_start, time_end)
         except Exception as e:
             logger.warning("抓取 K 線 %s %s 失敗: %s", code, date, e)
             continue
+
+        if existing_bars and (not all_day or not overwrite):
+            bars = merge_kbars(
+                existing_bars,
+                bars,
+                time_start=time_start,
+                time_end=time_end,
+                replace_window=overwrite,
+            )
+            logger.info(
+                "K 線合併 %s | existing=%d fetched→merged=%d bars",
+                date.isoformat(),
+                len(existing_bars),
+                len(bars),
+            )
+
         n = save_kbars_csv(bars, path)
         logger.info("已快取 K 線 %s | %d bars → %s", date.isoformat(), n, path.name)
         written.append(path)
@@ -219,7 +371,7 @@ def download_and_cache_kbars(
                 date=date,
                 source_dir=cache_dir,
                 dest_dir=mirror_cache_dir,
-                overwrite=True,
+                overwrite=overwrite,
             )
             if mirrored is not None:
                 written.append(mirrored)

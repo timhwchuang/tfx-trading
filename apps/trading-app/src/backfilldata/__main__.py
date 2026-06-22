@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import datetime
 import logging
 import sys
 from pathlib import Path
 
 from config import PRODUCT_CODE, SIMULATION
 from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR, DEFAULT_TICK_CACHE_DIR
+from storage.tick_loader import DEFAULT_TICK_RANGE_END, DEFAULT_TICK_RANGE_START
 
 from backfilldata.core import BackfillError, backfill_dates, parse_date_args
 
@@ -17,7 +19,9 @@ Examples (from apps/trading-app/src):
   python -m backfilldata date 2026-06-20
   python -m backfilldata date 2026-06-18 2026-06-20
   python -m backfilldata date 2026-06-20 --code TMFR1 --ticks-only
+  python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-end 13:45
   python -m backfilldata date 2026-06-20 --kbars-only --no-mirror-kbars
+  python -m backfilldata date 2026-06-20 --all-day-ticks
 
 Environment:
   SJ_API_KEY, SJ_SEC_KEY     Shioaji credentials (market data only; no CA)
@@ -29,7 +33,8 @@ Cache layout (defaults):
            (+ mirror to tick_cache when --mirror-kbars, matching UAT archiver)
 
 Notes:
-  Prefer running after market close; Shioaji intraday limits: ticks 10/day, kbars 270/day.
+  Prefer running after day session close (13:45 Taipei); same-day backfill is allowed from 13:45 onward.
+  Tick backfill defaults to RangeTime 08:45:00-13:45:00; use --all-day-ticks to fetch the full day.
   Do not run while live session holds one of the 5 connection slots for the same person_id.
   See backfilldata/SPEC.md for API limits and fidelity caveats.
 """
@@ -41,6 +46,15 @@ def _resolve_simulation(args: argparse.Namespace) -> bool:
     if args.simulation:
         return True
     return SIMULATION
+
+
+def _parse_hhmmss(value: str) -> datetime.time:
+    try:
+        return datetime.time.fromisoformat(value)
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(
+            f"無效時間格式: {value}（請用 HH:MM 或 HH:MM:SS）"
+        ) from e
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -108,6 +122,23 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Re-download even when cache file exists",
     )
+    date_p.add_argument(
+        "--time-start",
+        type=_parse_hhmmss,
+        default=DEFAULT_TICK_RANGE_START,
+        help="Session window start for ticks (RangeTime) and kbars post-filter (default: 08:45:00)",
+    )
+    date_p.add_argument(
+        "--time-end",
+        type=_parse_hhmmss,
+        default=DEFAULT_TICK_RANGE_END,
+        help="Session window end for ticks (RangeTime) and kbars post-filter (default: 13:45:00)",
+    )
+    date_p.add_argument(
+        "--all-day-ticks",
+        action="store_true",
+        help="Use TicksQueryType.AllDay instead of RangeTime for ticks",
+    )
     api_mode = date_p.add_mutually_exclusive_group()
     api_mode.add_argument(
         "--simulation",
@@ -135,8 +166,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.ticks_only and args.kbars_only:
         print("不可同時指定 --ticks-only 與 --kbars-only", file=sys.stderr)
         return 2
+    if not args.all_day_ticks and args.time_end <= args.time_start:
+        print("--time-end 必須晚於 --time-start", file=sys.stderr)
+        return 2
 
     simulation = _resolve_simulation(args)
+    tick_time_start = None if args.all_day_ticks else args.time_start
+    tick_time_end = None if args.all_day_ticks else args.time_end
 
     try:
         dates = parse_date_args(args.dates)
@@ -150,6 +186,8 @@ def main(argv: list[str] | None = None) -> int:
             kbar_cache_dir=Path(args.kbar_cache_dir),
             mirror_kbars_to_tick_cache=args.mirror_kbars,
             overwrite=args.overwrite,
+            tick_time_start=tick_time_start,
+            tick_time_end=tick_time_end,
         )
     except BackfillError as e:
         print(f"backfilldata: {e}", file=sys.stderr)

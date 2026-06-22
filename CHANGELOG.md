@@ -217,6 +217,10 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Changed
 
+- **`backfilldata` tick query mode**: default tick fetch switched from `TicksQueryType.AllDay` to `TicksQueryType.RangeTime` (`08:45:00`–`13:45:00`) for UAT day-session補洞; CLI adds `--time-start` / `--time-end` and `--all-day-ticks`.
+- **`storage/tick_loader` gap merge**: RangeTime backfill merges into existing partial cache (dedupe by `datetime`); removes stale `*.csv.gz` when rewriting plain CSV; `--overwrite` replaces only the requested window and keeps out-of-window ticks.
+- **`storage/tick_loader` window quality**: 1-minute edge tolerance for session bounds; large in-window gap re-fetch trigger; simulation legacy `+8h` rows are normalized during merge for day-session backfill.
+- **`storage/kbar_loader`**: post-fetch session filter + merge (same window rules as ticks); mirror no longer force-overwrites existing `tick_cache` kbars on skip paths unless `--overwrite`; simulation tick/kbar ts via shared `shioaji_ts_from_ns`.
 - **`risk_blocked` 節流**：`RISK_BLOCKED_THROTTLE_SEC`（60s/reason）；`record_risk_blocked` 回傳 `bool`；`DAILY_SUMMARY.risk_blocked_count` 與 strategy `DECISION_AUDIT` emit 共用節流（先前僅 counter 節流）。
 
 - **Default contract `product_code`**: `TXFR1`（大台近月）→ **`TMFR1`（微台近月）** for 奈米戶 UAT/Pilot；`point_value_ntd: 10` 已對齊微台。大台/小台仍可用 `TXFR1` / `MXFR1`，需分開 `tick_cache` 與校準。

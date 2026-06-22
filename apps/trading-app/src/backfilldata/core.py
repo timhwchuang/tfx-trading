@@ -11,8 +11,17 @@ from pathlib import Path
 from typing import Any, List, Sequence
 
 from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR, DEFAULT_TICK_CACHE_DIR
-from storage.kbar_loader import download_and_cache_kbars, kbars_cache_path
-from storage.tick_loader import date_range, download_and_cache, resolve_tick_cache_path
+from storage.kbar_loader import (
+    download_and_cache_kbars,
+    kbar_cache_satisfies_request,
+)
+from storage.tick_loader import (
+    DEFAULT_TICK_RANGE_END,
+    DEFAULT_TICK_RANGE_START,
+    date_range,
+    download_and_cache,
+    tick_cache_satisfies_request,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +54,38 @@ def taipei_today() -> datetime.date:
     return datetime.datetime.now(TAIWAN_TZ).date()
 
 
+def taipei_now() -> datetime.datetime:
+    return datetime.datetime.now(TAIWAN_TZ)
+
+
+def _day_session_close_dt(day: datetime.date) -> datetime.datetime:
+    return datetime.datetime.combine(day, DEFAULT_TICK_RANGE_END, TAIWAN_TZ)
+
+
+def validate_past_dates(
+    dates: Sequence[datetime.date],
+    *,
+    today: datetime.date | None = None,
+    now: datetime.datetime | None = None,
+) -> None:
+    """Reject future dates; allow today only after day session close (13:45 Taipei)."""
+    ref_now = now if now is not None else taipei_now()
+    if ref_now.tzinfo is None:
+        ref_now = ref_now.replace(tzinfo=TAIWAN_TZ)
+    ref_today = today if today is not None else ref_now.date()
+    close_dt = _day_session_close_dt(ref_today)
+    for d in dates:
+        if d > ref_today:
+            raise BackfillError(
+                f"{d.isoformat()} 不可 backfill（不可晚於今日台北={ref_today.isoformat()}）"
+            )
+        if d == ref_today and ref_now < close_dt:
+            raise BackfillError(
+                f"{d.isoformat()} 日盤尚未收盤（{DEFAULT_TICK_RANGE_END.strftime('%H:%M')} "
+                f"台北時間後方可 backfill；現在台北={ref_now.strftime('%H:%M:%S')}）"
+            )
+
+
 def parse_date_args(date_tokens: Sequence[str]) -> List[datetime.date]:
     """Parse one date or an inclusive ``start end`` range."""
     if not date_tokens:
@@ -58,18 +99,6 @@ def parse_date_args(date_tokens: Sequence[str]) -> List[datetime.date]:
             raise BackfillError(f"結束日 {end} 早於開始日 {start}")
         return date_range(start, end)
     raise BackfillError("date 子命令最多接受兩個日期 (start end)")
-
-
-def validate_past_dates(
-    dates: Sequence[datetime.date], *, today: datetime.date | None = None
-) -> None:
-    """Shioaji historical API only serves completed trade days."""
-    ref = today if today is not None else taipei_today()
-    for d in dates:
-        if d >= ref:
-            raise BackfillError(
-                f"{d.isoformat()} 不可 backfill（僅支援過去交易日；今日台北={ref.isoformat()}）"
-            )
 
 
 def validate_tick_day_count(dates: Sequence[datetime.date]) -> None:
@@ -119,11 +148,21 @@ def _missing_tick_dates(
     dates: Sequence[datetime.date],
     *,
     cache_dir: Path,
+    time_start: datetime.time | None,
+    time_end: datetime.time | None,
+    simulation: bool,
 ) -> List[datetime.date]:
     return [
         d
         for d in dates
-        if resolve_tick_cache_path(cache_dir, code, d) is None
+        if not tick_cache_satisfies_request(
+            cache_dir,
+            code,
+            d,
+            time_start=time_start,
+            time_end=time_end,
+            simulation=simulation,
+        )
     ]
 
 
@@ -132,11 +171,19 @@ def _missing_kbar_dates(
     dates: Sequence[datetime.date],
     *,
     cache_dir: Path,
+    time_start: datetime.time | None,
+    time_end: datetime.time | None,
 ) -> List[datetime.date]:
     return [
         d
         for d in dates
-        if not kbars_cache_path(cache_dir, code, d).is_file()
+        if not kbar_cache_satisfies_request(
+            cache_dir,
+            code,
+            d,
+            time_start=time_start,
+            time_end=time_end,
+        )
     ]
 
 
@@ -151,6 +198,8 @@ def backfill_dates(
     kbar_cache_dir: Path = DEFAULT_KBAR_CACHE_DIR,
     mirror_kbars_to_tick_cache: bool = True,
     overwrite: bool = False,
+    tick_time_start: datetime.time | None = DEFAULT_TICK_RANGE_START,
+    tick_time_end: datetime.time | None = DEFAULT_TICK_RANGE_END,
     api: Any | None = None,
     today: datetime.date | None = None,
 ) -> BackfillResult:
@@ -179,6 +228,9 @@ def backfill_dates(
                 dates,
                 cache_dir=tick_cache_dir,
                 overwrite=overwrite,
+                time_start=tick_time_start,
+                time_end=tick_time_end,
+                simulation=simulation,
             )
             time.sleep(_REQUEST_PACE_SEC)
 
@@ -192,6 +244,8 @@ def backfill_dates(
                 simulation=simulation,
                 mirror_cache_dir=tick_cache_dir if mirror_kbars_to_tick_cache else None,
                 pace_sec=_REQUEST_PACE_SEC,
+                time_start=tick_time_start,
+                time_end=tick_time_end,
             )
     finally:
         if owns_api:
@@ -205,11 +259,16 @@ def backfill_dates(
             resolved_code,
             dates,
             cache_dir=tick_cache_dir,
+            time_start=tick_time_start,
+            time_end=tick_time_end,
+            simulation=simulation,
         )
     if fetch_kbars:
         result.missing_kbar_dates = _missing_kbar_dates(
             resolved_code,
             dates,
             cache_dir=kbar_cache_dir,
+            time_start=tick_time_start,
+            time_end=tick_time_end,
         )
     return result

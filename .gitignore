@@ -27,8 +27,9 @@ shioaji.log
 !**/tests/fixtures/*.log
 !**/fixtures/*.log
 
-# Tick cache (runtime data)
+# Runtime market-data caches (generated locally; keep out of git)
 tick_cache/
+kbar_cache/
 
 # Secrets & certificates
 .env

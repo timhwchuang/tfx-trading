@@ -13,6 +13,7 @@ from unittest.mock import MagicMock
 from storage.compress import compress_tick_cache
 from storage.tick_loader import (
     ReplayTick,
+    cache_gz_path,
     cache_path,
     iter_replay_ticks,
     load_ticks_csv,
@@ -67,7 +68,7 @@ class TestGzipCsv(unittest.TestCase):
 
 
 class TestResolveTickCachePath(unittest.TestCase):
-    def test_prefers_gz_over_plain(self):
+    def test_prefers_plain_when_both_exist(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             date = datetime.date(2026, 6, 12)
@@ -77,8 +78,39 @@ class TestResolveTickCachePath(unittest.TestCase):
                 plain,
             )
             gz_path = gzip_csv_file(plain)
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 12, 10), "plain", 1, 0)],
+                plain,
+            )
             resolved = resolve_tick_cache_path(root, "TXFR1", date)
-            self.assertEqual(resolved, gz_path)
+            self.assertEqual(resolved, plain)
+            self.assertTrue(gz_path.is_file())
+
+    def test_load_merged_unions_plain_and_gzip(self):
+        from storage.tick_loader import load_merged_tick_cache
+
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            date = datetime.date(2026, 6, 22)
+            plain = cache_path(root, "TXFR1", date)
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 22, 8, 45), "morning", 1, 0)],
+                plain,
+            )
+            gz = cache_gz_path(root, "TXFR1", date)
+            afternoon = root / "afternoon.csv"
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 22, 11, 14), "afternoon", 1, 0)],
+                afternoon,
+            )
+            with afternoon.open("rb") as src, gzip.open(gz, "wb") as dst:
+                dst.writelines(src)
+            afternoon.unlink()
+            merged = load_merged_tick_cache(root, "TXFR1", date)
+            times = [t.datetime for t in merged]
+            self.assertEqual(len(merged), 2)
+            self.assertIn(datetime.datetime(2026, 6, 22, 8, 45), times)
+            self.assertIn(datetime.datetime(2026, 6, 22, 11, 14), times)
 
 
 class TestTickArchiver(unittest.TestCase):
