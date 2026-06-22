@@ -295,7 +295,7 @@ class OrderExecutorMixin:
                 qty,
                 price,
                 signal.intent,
-                oid or getattr(trade.order, 'id', ''),
+                oid,
             )
         except Exception as e:
             self._handle_place_order_failure(signal, e)
@@ -732,9 +732,10 @@ class OrderExecutorMixin:
 
     def _still_own_pending(self, trade=None) -> bool:
         """須在 lock 內呼叫：確認 pending 仍屬於此 trade。
-        只使用 stored pending_order_id，避免背景 thread 讀 live trade.order.id (即使是 read borrow 也可能有風險)。
+        只使用 is_pending，不讀 live trade.order.id（避免 bg thread borrow 風險）。
+        pending_order_id 空時仍視為 owned（id 尚未回填），讓 timeout 能清掉卡住的 pending。
         """
-        if not self.is_pending or not self.pending_order_id:
+        if not self.is_pending:
             return False
         # trade param kept for backward compat with direct callers (tests/reconnect);
         # we intentionally ignore it here to avoid any live object access from bg threads.

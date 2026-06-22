@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 from trading_engine.core.order_events import FUTURES_DEAL, FUTURES_ORDER
 from trading_engine.core.types import OrderSignal
-from trading_engine.testing.helpers import arm_pending_entry, make_host
+from trading_engine.testing.helpers import arm_pending_entry, arm_pending_exit, make_host
 
 
 class TestPendingArmedAudit(unittest.TestCase):
@@ -147,6 +147,33 @@ class TestPendingArmedAudit(unittest.TestCase):
         # Deal completes the pending lifecycle; order_id is cleared with _clear_pending.
         self.assertFalse(host.is_pending)
         self.assertEqual(host.position_qty, 1)
+
+    def test_sim_timeout_clears_pending_when_order_id_empty(self):
+        alerts = MagicMock()
+        host = make_host()
+        host._alerts = alerts
+        host._cfg.simulation = True
+        arm_pending_exit(host, order_id="")
+        host.position_qty = 1
+        host.pending_since = host._clock() - host._cfg.pending_timeout_sec - 1
+        host.pending_trade = MagicMock()
+
+        logged: list[str] = []
+
+        def _capture(msg, *args, **kwargs):
+            logged.append(msg % args if args else str(msg))
+
+        with patch("trading_engine.order_executor.logger.info", side_effect=_capture):
+            host._check_pending_timeout()
+
+        self.assertFalse(host.is_pending)
+        self.assertTrue(host.block_new_entry)
+        alerts.send.assert_called()
+        self.assertEqual(alerts.send.call_args.kwargs.get("level"), "CRITICAL")
+        self.assertTrue(
+            any("EXEC_AUDIT" in line and "pending_timeout" in line for line in logged),
+            f"expected pending_timeout EXEC_AUDIT, got: {logged}",
+        )
 
 
 if __name__ == "__main__":

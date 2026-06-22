@@ -40,11 +40,12 @@ Historical standalone-repo release links are kept for archaeology only; developm
   - Removed bg reads of live trade.status in reconcile; pre-pop support only for direct test/reconnect paths via records.
   - Enhanced callback handlers to backfill `pending_order_id` if missing at arm time.
   - `place_order` defers `pending_armed` EXEC when `order_id` empty at place time (callback backfill emits the single compliant event; fixes duplicate armed in replay).
-  - `_still_own_pending` now prefers stored `pending_order_id`.
+  - `_still_own_pending` no longer reads live trade; empty `pending_order_id` still counts as owned so timeout can clear stuck sim pending.
+  - `place_order` log uses captured `oid` only (no second read of `trade.order.id`).
   - `except BaseException` in `_timeout_loop` (thread resilience).
   - SPEC.md and lock rules updated.
 
-  This eliminates the source of Shioaji internal concurrent borrow instead of adding more locks. All 94 runtime tests pass.
+  This eliminates the source of Shioaji internal concurrent borrow instead of adding more locks. All 95 runtime tests pass.
 
 #### Added
 
