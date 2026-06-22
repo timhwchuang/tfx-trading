@@ -249,13 +249,14 @@ class OrderExecutorMixin:
                 else self._cfg.ioc_slippage_points
             )
             price = ref_price + slip if action == "Buy" else ref_price - slip
-            trade = self._order_adapter.place_ioc_limit(
-                self.contract,
-                action=action,
-                qty=qty,
-                limit_price=price,
-                account=self.api.futopt_account,
-            )
+            with self._api_lock:
+                trade = self._order_adapter.place_ioc_limit(
+                    self.contract,
+                    action=action,
+                    qty=qty,
+                    limit_price=price,
+                    account=self.api.futopt_account,
+                )
             with self.lock:
                 self.pending_trade = trade
                 self.pending_order_id = str(trade.order.id)
@@ -700,7 +701,8 @@ class OrderExecutorMixin:
     def _reconcile_pending_trade(self, trade) -> bool:
         """補查委託狀態。回傳 True 表示 pending 已處理完畢（含 callback 已搶先處理）。"""
         try:
-            self.api.update_status(trade=trade)
+            with self._api_lock:
+                self.api.update_status(trade=trade)
         except Exception as e:
             logger.warning("update_status 補查失敗: %s", e)
             return False
@@ -743,7 +745,8 @@ class OrderExecutorMixin:
 
         if not self._cfg.simulation:
             try:
-                records = self.api.order_deal_records()
+                with self._api_lock:
+                    records = self.api.order_deal_records()
             except Exception as e:
                 logger.warning("order_deal_records 補查失敗: %s", e)
                 records = []

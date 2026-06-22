@@ -115,7 +115,8 @@ class SessionMixin:
     def sync_positions(self, *, force_resync: bool = False):
         """啟動時從券商同步持倉，避免重啟後策略與實際部位脫節。"""
         try:
-            positions = self.api.list_positions(account=self.api.futopt_account)
+            with self._api_lock:
+                positions = self.api.list_positions(account=self.api.futopt_account)
         except Exception as e:
             logger.warning("持倉對帳失敗: %s", e)
             return

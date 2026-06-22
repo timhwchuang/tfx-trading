@@ -127,6 +127,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.strategy: Strategy = strategy
 
         self.lock = threading.Lock()
+        self._api_lock = threading.RLock()  # 保護 Shioaji api 的 mutable 操作，避免 PyBorrowMutError
         self.contract = None
         self._running = False
         self._raw_order_evt_dumped: set = set()
@@ -484,11 +485,12 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 long_lookback_days=self._cfg.atr_kline_lookback_days,
                 long_lookback_done_for=long_done,
             )
-            kbars = self.api.kbars(
-                contract=self.contract,
-                start=start.isoformat(),
-                end=today.isoformat(),
-            )
+            with self._api_lock:
+                kbars = self.api.kbars(
+                    contract=self.contract,
+                    start=start.isoformat(),
+                    end=today.isoformat(),
+                )
             atr = IndicatorState.compute_atr(kbars, atr_period=self._cfg.atr_period)
             # live_get reads sweep-patched config module attributes at runtime.
             _live_trend_enabled = self._cfg.live_get(
