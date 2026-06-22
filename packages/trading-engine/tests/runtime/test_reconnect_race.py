@@ -11,24 +11,23 @@ from trading_engine.testing.helpers import arm_pending_exit, make_host
 class TestReconnectRace(unittest.TestCase):
     def test_reconcile_on_reconnect_confirms_fill(self):
         host = make_host()
+        host._cfg.simulation = False  # force non-sim path for records
         arm_pending_exit(host, order_id="r1")
         host.position_qty = 1
         host.position_dir = "Long"
         host.entry_price = 18000.0
 
-        # Simulate trade object returned by pending
-        trade = MagicMock()
-        trade.order.id = "r1"
-        trade.status.status = "Filled"
-        trade.status.deal_quantity = 1
-        # deals list for extract
-        deal = MagicMock(price=18015.0, action="Sell")
-        trade.status.deals = [deal]
+        # Simulate via order_deal_records (preferred non-mutating path)
+        # Return a deal event for the order_id
+        host.api.order_deal_records.return_value = [
+            ("FuturesDeal", {"trade_id": "r1", "price": 18015.0, "quantity": 1, "action": "Sell"})
+        ]
 
-        host.pending_trade = trade
+        host.pending_trade = MagicMock()
+        host.pending_trade.order.id = "r1"
 
         # Force the reconcile path
-        host._reconcile_pending_trade(trade)
+        host._reconcile_pending_trade(host.pending_trade)
 
         # After reconcile the position should be flattened (deal applied)
         self.assertEqual(host.position_qty, 0)

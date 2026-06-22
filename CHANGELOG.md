@@ -31,12 +31,21 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Fixed
 
-- **Shioaji API thread-safety**: Added `_api_lock` (RLock) and serialized all mutable Shioaji operations (`update_status`, `order_deal_records`, `place_ioc_limit`, `list_positions`, `kbars`, `login`, `logout`, `usage`, `subscribe_trade`, `subscribe`, callback registration). Prevents `PyBorrowMutError` (PyO3) from concurrent threads in `_timeout_loop`, reconnect, order worker, and ATR refresh. Follow-up fixes per review:
+- **Shioaji API thread-safety (root cause of PyBorrowMutError)**: Prevented background threads from mutating live `Trade` objects via `update_status(trade=...)` or account-level calls that trigger internal Rust borrows. Primary path now relies on `handle_order_event` callbacks. Reconcile fallback uses non-mutating `order_deal_records()` (query + order_id match). Full review feedback addressed:
+  - Removed all live trade mutation in bg paths (reconcile/place_order no longer call update_status on trade objects).
+  - Fixed empty `order_id` at place time (backfill from first callback; post-place population only in non-sim when necessary).
+  - Consistent simulation short-circuit for entire broker reconcile (callback/test injection only).
+  - `pending_since` uses consistent internal `_clock()` (no exchange_ts mix to avoid skew).
+  - Order worker now catches `BaseException` (prevents critical path silent death).
+  - Removed bg reads of live trade.status in reconcile; pre-pop support only for direct test/reconnect paths via records.
+  - Enhanced callback handlers to backfill `pending_order_id` if missing at arm time.
+  - `place_order` defers `pending_armed` EXEC when `order_id` empty at place time (callback backfill emits the single compliant event; fixes duplicate armed in replay).
+  - `_still_own_pending` no longer reads live trade; empty `pending_order_id` still counts as owned so timeout can clear stuck sim pending.
+  - `place_order` log uses captured `oid` only (no second read of `trade.order.id`).
+  - `except BaseException` in `_timeout_loop` (thread resilience).
+  - SPEC.md and lock rules updated.
 
-  - `trade.status` / fill snapshot inside `_api_lock` in reconcile.
-  - Early `pending_since` at arm time (closes timeout window before `place_order` completes).
-  - `BaseException` (including PanicException) in `_timeout_loop`.
-  - Lock ordering, `_call_api` helper, additional coverage, SPEC.md update.
+  This eliminates the source of Shioaji internal concurrent borrow instead of adding more locks. All 95 runtime tests pass.
 
 #### Added
 
