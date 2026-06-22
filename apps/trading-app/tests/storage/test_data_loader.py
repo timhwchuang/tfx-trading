@@ -7,7 +7,7 @@ import gzip
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from storage.tick_loader import (
     ReplayTick,
@@ -16,6 +16,7 @@ from storage.tick_loader import (
     cache_path,
     date_range,
     download_and_cache,
+    fetch_ticks_for_date,
     iter_replay_ticks,
     load_ticks_csv,
     save_ticks_csv,
@@ -79,6 +80,34 @@ class TestCsvRoundTrip(unittest.TestCase):
             self.assertEqual(len(ticks), 2)
             self.assertEqual(ticks[0].close, "18000")
             self.assertEqual(ticks[1].close, "18010")
+
+
+class TestFetchTicksForDate(unittest.TestCase):
+    def test_passes_extended_timeout(self):
+        api = MagicMock()
+        raw = MagicMock(ts=[1], close=[18000], volume=[1])
+        api.ticks.return_value = raw
+        contract = MagicMock(code="TXFR1")
+        date = datetime.date(2026, 6, 18)
+        fetch_ticks_for_date(api, contract, date)
+        api.ticks.assert_called_once()
+        _, kwargs = api.ticks.call_args
+        self.assertEqual(kwargs["timeout"], 30_000)
+
+    @patch("storage.tick_loader.time.sleep")
+    def test_retries_on_timeout(self, sleep_mock: MagicMock):
+        api = MagicMock()
+        raw = MagicMock(ts=[1], close=[18000], volume=[1])
+        api.ticks.side_effect = [
+            TimeoutError("Timeout Topic: api/v1/data/ticks"),
+            raw,
+        ]
+        contract = MagicMock(code="TXFR1")
+        date = datetime.date(2026, 6, 18)
+        ticks = fetch_ticks_for_date(api, contract, date)
+        self.assertEqual(len(ticks), 1)
+        self.assertEqual(api.ticks.call_count, 2)
+        sleep_mock.assert_called_once()
 
 
 class TestDownloadAndCache(unittest.TestCase):

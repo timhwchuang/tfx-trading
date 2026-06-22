@@ -108,8 +108,8 @@ Canonical roots: `storage.cache_paths`.
 
 | Data | API | Parameters |
 |------|-----|------------|
-| Ticks | `api.ticks` | `query_type=TicksQueryType.AllDay`, `date=YYYY-MM-DD` |
-| Kbars | `api.kbars` | `start=date`, `end=date` (1-minute bars) |
+| Ticks | `api.ticks` | `query_type=TicksQueryType.AllDay`, `date=YYYY-MM-DD`, `timeout=30000` (ms); up to 3 retries on timeout (2s backoff) via `storage.tick_loader` |
+| Kbars | `api.kbars` | `start=date`, `end=date` (1-minute bars), `timeout=30000` (ms) |
 
 Use **continuous** contracts (`TMFR1`, not expired month codes). Futures history from **2020-03-22**.
 

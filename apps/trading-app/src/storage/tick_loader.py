@@ -19,6 +19,7 @@ import csv
 import datetime
 import gzip
 import logging
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, IO, Iterable, Iterator, List, Optional
@@ -28,6 +29,11 @@ logger = logging.getLogger(__name__)
 from storage.cache_paths import DEFAULT_CACHE_DIR, DEFAULT_TICK_CACHE_DIR
 
 TAIWAN_TZ = datetime.timezone(datetime.timedelta(hours=8))
+
+# Full-day AllDay ticks routinely exceed Shioaji's default 5s API timeout.
+_TICKS_API_TIMEOUT_MS = 30_000
+_TICK_FETCH_MAX_ATTEMPTS = 3
+_TICK_FETCH_RETRY_SLEEP_SEC = 2.0
 
 TICK_CSV_FIELDS = [
     "datetime",
@@ -58,17 +64,46 @@ def _ns_to_taipei_naive(ts_ns: int) -> datetime.datetime:
     return aware.replace(tzinfo=None)
 
 
+def _is_transient_tick_fetch_error(exc: BaseException) -> bool:
+    if isinstance(exc, TimeoutError):
+        return True
+    msg = str(exc)
+    return "Timeout" in msg or "timeout" in msg
+
+
 def fetch_ticks_for_date(
     api: Any, contract: Any, date: datetime.date
 ) -> List[ReplayTick]:
     """呼叫 api.ticks(AllDay) 取單日 tick，回傳依時間排序的 ReplayTick。"""
     import shioaji as sj
 
-    raw = api.ticks(
-        contract=contract,
-        date=date.isoformat(),
-        query_type=sj.TicksQueryType.AllDay,
-    )
+    last_exc: BaseException | None = None
+    for attempt in range(1, _TICK_FETCH_MAX_ATTEMPTS + 1):
+        try:
+            raw = api.ticks(
+                contract=contract,
+                date=date.isoformat(),
+                query_type=sj.TicksQueryType.AllDay,
+                timeout=_TICKS_API_TIMEOUT_MS,
+            )
+            break
+        except Exception as e:
+            last_exc = e
+            if attempt >= _TICK_FETCH_MAX_ATTEMPTS or not _is_transient_tick_fetch_error(e):
+                raise
+            logger.warning(
+                "抓取 %s %s 逾時 (attempt %d/%d)，%ss 後重試: %s",
+                getattr(contract, "code", contract),
+                date,
+                attempt,
+                _TICK_FETCH_MAX_ATTEMPTS,
+                _TICK_FETCH_RETRY_SLEEP_SEC,
+                e,
+            )
+            time.sleep(_TICK_FETCH_RETRY_SLEEP_SEC)
+    else:
+        assert last_exc is not None
+        raise last_exc
     ts = list(raw.ts)
     close = list(raw.close)
     volume = list(raw.volume)

@@ -20,6 +20,7 @@ from storage.tick_loader import (
 
 logger = logging.getLogger(__name__)
 
+_KBARS_API_TIMEOUT_MS = 30_000
 _KBARS_CSV_FIELDS = ["ts", "Open", "High", "Low", "Close", "Volume"]
 UTC = datetime.timezone.utc
 
@@ -156,6 +157,7 @@ def fetch_kbars_for_date(
         contract=contract,
         start=date.isoformat(),
         end=date.isoformat(),
+        timeout=_KBARS_API_TIMEOUT_MS,
     )
     return kbars_raw_to_records(raw, simulation=simulation)
 
