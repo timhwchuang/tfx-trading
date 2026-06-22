@@ -12,7 +12,7 @@ from trading_engine.settings import Settings
 def default_test_settings() -> Settings:
     return Settings(
         simulation=True,
-        product_code="TXFR1",
+        product_code="TMFR1",
         vwap_window_min=5,
         entry_band_points=2.0,
         momentum_vol_1s=150,

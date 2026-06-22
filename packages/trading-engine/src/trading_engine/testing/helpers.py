@@ -103,7 +103,7 @@ def make_broker_with_positions(*positions: dict) -> MagicMock:
     pos_objects = []
     for p in positions:
         pos = MagicMock()
-        pos.code = p.get("code", "TXFR1")
+        pos.code = p.get("code", "TMFR1")
         pos.quantity = int(p.get("quantity", 0))
         pos.direction = p.get("direction", "Buy")
         pos.price = float(p.get("price", 18000.0))

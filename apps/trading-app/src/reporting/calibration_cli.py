@@ -8,6 +8,7 @@ import json
 import sys
 from pathlib import Path
 
+from config import PRODUCT_CODE
 from reporting.forward_pnl import ForwardPnlPolicy
 from reporting.trend_calibration import (
     DEFAULT_TREND_MIN_STRENGTH_GRID,
@@ -85,7 +86,7 @@ def run_trend_sensitivity_sweep(
     )
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="P6-1-CAL B-class: trend veto harness from log + tick_cache replay.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -97,8 +98,7 @@ def main(argv: list[str] | None = None) -> int:
             "--dates 2026-06-12 --cache-dir ~/tfx-trading/tick_cache\n"
             "  python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log "
             "--dates 2026-06-10,2026-06-11,2026-06-12 --sweep --sweep-output sweep_result.jsonl\n"
-            "  python -m reporting.calibration_cli logs/backtest_multi.log "
-            "--dates-from-cache --code TMFR1\n"
+            "  python -m reporting.calibration_cli logs/backtest_multi.log --dates-from-cache\n"
         ),
     )
     parser.add_argument(
@@ -107,7 +107,11 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         help="Strategy log(s) with SIGNAL_AUDIT (incl. trend_veto)",
     )
-    parser.add_argument("--code", default="TXFR1", help="Contract code (default: TXFR1)")
+    parser.add_argument(
+        "--code",
+        default=PRODUCT_CODE,
+        help=f"Contract code (default: config product_code={PRODUCT_CODE})",
+    )
     date_group = parser.add_mutually_exclusive_group(required=True)
     date_group.add_argument(
         "--dates",
@@ -166,7 +170,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Write sweep_result.jsonl here when --sweep",
     )
     parser.add_argument("--json", action="store_true", help="JSON output")
-    args = parser.parse_args(argv)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
 
     for path in args.log_files:
         if not path.is_file():

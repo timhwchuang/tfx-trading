@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Iterable, List
 
 from backtest.engine import BacktestEngine
+from config import PRODUCT_CODE
 from storage.tick_loader import DEFAULT_CACHE_DIR
 
 _AUDIT_PREFIXES = ("SIGNAL_AUDIT ", "FILL_AUDIT ", "DAILY_SUMMARY ", "DECISION_AUDIT ", "EXEC_AUDIT ")
@@ -129,7 +130,7 @@ def capture_backtest_log_lines(
     return [f"10:00:00 [INFO] {label} {payload}" for label, payload in records]
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -143,11 +144,28 @@ def main() -> None:
             "  python -m sweep.determinism_check --date 2026-06-12 --mode capture --output audits.log\n"
         ),
     )
-    parser.add_argument("--date", required=True, help="Date in YYYY-MM-DD for backtest (or use for log capture)")
-    parser.add_argument("--code", default="TXFR1", help="Contract code")
+    parser.add_argument(
+        "--date",
+        required=True,
+        help="Date in YYYY-MM-DD for backtest (or use for log capture)",
+    )
+    parser.add_argument(
+        "--code",
+        default=PRODUCT_CODE,
+        help=f"Contract code (default: config product_code={PRODUCT_CODE})",
+    )
     parser.add_argument("--output", help="Optional path to write hash or lines")
-    parser.add_argument("--mode", choices=["hash", "capture"], default="hash", help="Run backtest and hash, or just capture lines")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--mode",
+        choices=["hash", "capture"],
+        default="hash",
+        help="Run backtest and hash, or just capture lines",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = build_parser().parse_args(argv)
 
     dates = [datetime.date.fromisoformat(args.date)]
     if args.mode == "hash":

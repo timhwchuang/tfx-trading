@@ -57,6 +57,16 @@ class TestCliHelp(unittest.TestCase):
         self.assertIn("python -m reporting --help", text)
         self.assertIn("cli_help", text)
 
+    def test_catalog_examples_omit_redundant_code_flag(self):
+        for entry in CATALOG:
+            if entry.module in (
+                "backtest",
+                "reporting.calibration_cli",
+                "reporting.structure_calibration_cli",
+            ):
+                with self.subTest(module=entry.module):
+                    self.assertNotIn("--code ", entry.example)
+
     def test_main_unknown_module(self):
         self.assertEqual(main(["no-such-module"]), 1)
 

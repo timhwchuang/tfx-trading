@@ -23,7 +23,7 @@ def main() -> None:
     dates = [datetime.date(2026, 6, 12)]
 
     engine = BacktestEngine(
-        code="TXFR1",
+        code="TMFR1",
         dates=dates,
         strategy=strategy,
         runtime_config=cfg,

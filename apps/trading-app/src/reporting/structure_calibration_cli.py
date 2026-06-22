@@ -8,6 +8,7 @@ import json
 import sys
 from pathlib import Path
 
+from config import PRODUCT_CODE
 from reporting.forward_pnl import ForwardPnlPolicy
 from reporting.performance_metrics import FrictionSettings
 from reporting.structure_calibration import (
@@ -80,7 +81,7 @@ def format_structure_calibration_report(result: dict) -> str:
     return "\n".join(lines)
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="P6-SMC-CAL B-class: structure vs trend counterfactual harness.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -103,7 +104,11 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         help="Strategy log(s) with DECISION_AUDIT momentum_armed",
     )
-    parser.add_argument("--code", default="TXFR1", help="Contract code (default: TXFR1)")
+    parser.add_argument(
+        "--code",
+        default=PRODUCT_CODE,
+        help=f"Contract code (default: config product_code={PRODUCT_CODE})",
+    )
     parser.add_argument(
         "--dates",
         required=True,
@@ -171,7 +176,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Write sweep_result.jsonl when --sweep",
     )
     parser.add_argument("--json", action="store_true", help="JSON output")
-    args = parser.parse_args(argv)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
 
     for path in args.log_files:
         if not path.is_file():

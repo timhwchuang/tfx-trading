@@ -33,7 +33,7 @@ CATALOG: tuple[CliEntry, ...] = (
     CliEntry(
         "backtest",
         "Tick 回放回測",
-        "python -m backtest --code TMFR1 --dates-from-cache",
+        "python -m backtest --dates-from-cache",
     ),
     CliEntry(
         "reporting",
@@ -64,7 +64,7 @@ CATALOG: tuple[CliEntry, ...] = (
     CliEntry(
         "reporting.calibration_cli",
         "Trend filter 校準（CAL-8 研究）",
-        "python -m reporting.calibration_cli logs/backtest.log --dates-from-cache --code TMFR1",
+        "python -m reporting.calibration_cli logs/backtest.log --dates-from-cache",
     ),
     CliEntry(
         "reporting.structure_calibration_cli",

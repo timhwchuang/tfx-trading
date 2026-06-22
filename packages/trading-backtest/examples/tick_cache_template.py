@@ -2,7 +2,7 @@
 """Write a minimal valid tick-cache CSV template for local testing.
 
 Usage:
-    python examples/tick_cache_template.py --code TXFR1 --date 2026-06-12 --output tick_cache/
+    python examples/tick_cache_template.py --code TMFR1 --date 2026-06-12 --output tick_cache/
 
 Produces `{output}/{code}_{date}.csv` with a short synthetic session snippet.
 Replace with your own recorded ticks for real backtests.
@@ -41,7 +41,7 @@ def _synthetic_rows(day: datetime.date) -> list[dict[str, str]]:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--code", default="TXFR1")
+    parser.add_argument("--code", default="TMFR1")
     parser.add_argument("--date", type=datetime.date.fromisoformat, default="2026-06-12")
     parser.add_argument(
         "--output",

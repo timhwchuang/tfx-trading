@@ -12,6 +12,8 @@ import yaml
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CONFIG_PATH = _PROJECT_ROOT / "config" / "config.yaml"
+# Fallback when config.yaml omits product_code (UAT/Pilot default: 微台近月).
+DEFAULT_PRODUCT_CODE = "TMFR1"
 
 
 def _parse_time(value: str) -> datetime.time:
@@ -144,7 +146,7 @@ def load_config(path: str | Path | None = None) -> Settings:
 
     return Settings(
         simulation=bool(raw.get("simulation", True)),
-        product_code=str(raw.get("product_code", "TXFR1")),
+        product_code=str(raw.get("product_code", DEFAULT_PRODUCT_CODE)),
         vwap_window_min=int(strategy.get("vwap_window_min", 5)),
         entry_band_points=float(strategy.get("entry_band_points", 2.0)),
         momentum_vol_1s=int(strategy.get("momentum_vol_1s", 150)),
@@ -337,3 +339,13 @@ TICK_ARCHIVE = _TICK_ARCHIVE in ("1", "true", "yes")
 
 _KBARS_ARCHIVE = os.environ.get("KBARS_ARCHIVE", "").strip().lower()
 KBARS_ARCHIVE = _KBARS_ARCHIVE in ("1", "true", "yes")
+
+__all__ = [
+    "DEFAULT_CONFIG_PATH",
+    "DEFAULT_PRODUCT_CODE",
+    "Settings",
+    "load_config",
+    "settings",
+    "PRODUCT_CODE",
+    "SIMULATION",
+]
