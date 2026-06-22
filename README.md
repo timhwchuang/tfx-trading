@@ -44,7 +44,7 @@ apps/trading-app/                 # config, storage, reporting, live entry
 ```bash
 cd apps/trading-app/src
 python -m live          # simulation default — see config/config.yaml
-python -m backtest --code TMFR1 --dates 2026-06-12
+python -m backtest --code TMFR1 --dates-from-cache   # 或 --dates 2026-06-12 ...
 ```
 
 ## CLI 指令（trading-app）

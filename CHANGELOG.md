@@ -211,6 +211,10 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 ### [Unreleased]
 
+#### Added
+
+- **`--dates-from-cache`** on `python -m backtest` and `python -m reporting.calibration_cli`：自動掃描 `tick_cache/{code}_YYYY-MM-DD.csv[.gz]`（排除 `_kbars_` mirror）；可選 `--from-date` / `--to-date` 區間篩選（僅與 `--dates-from-cache` 併用）。共用 `storage.tick_loader.resolve_cli_tick_cache_dates`。
+
 #### Fixed
 
 - **`storage/tick_loader` / `backfilldata`**：`api.ticks(AllDay)` 改用 30s timeout（Shioaji 預設 5s 常不足以下載全日 tick）；逾時自動重試最多 3 次（間隔 2s）。`storage/kbar_loader` 同步將 `api.kbars` timeout 設為 30s。

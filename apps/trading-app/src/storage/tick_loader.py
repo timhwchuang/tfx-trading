@@ -649,3 +649,148 @@ def iter_replay_ticks(
 def date_range(start: datetime.date, end: datetime.date) -> List[datetime.date]:
     days = (end - start).days
     return [start + datetime.timedelta(days=i) for i in range(days + 1)]
+
+
+def _tick_cache_filename_date(name: str, code: str) -> datetime.date | None:
+    """Parse trade date from ``{code}_YYYY-MM-DD.csv[.gz]``; skip kbar mirror files."""
+    if "_kbars_" in name:
+        return None
+    if name.endswith(".csv.gz"):
+        stem = name[: -len(".csv.gz")]
+    elif name.endswith(".csv"):
+        stem = name[: -len(".csv")]
+    else:
+        return None
+    prefix = f"{code}_"
+    if not stem.startswith(prefix):
+        return None
+    try:
+        return datetime.date.fromisoformat(stem[len(prefix) :])
+    except ValueError:
+        return None
+
+
+def list_cached_tick_dates(
+    code: str,
+    cache_dir: Path | str = DEFAULT_CACHE_DIR,
+    *,
+    start: datetime.date | None = None,
+    end: datetime.date | None = None,
+) -> List[datetime.date]:
+    """Return sorted trade dates with on-disk tick cache for *code* (plain or ``.gz``)."""
+    cache_dir = Path(cache_dir)
+    if not cache_dir.is_dir():
+        return []
+
+    seen: set[datetime.date] = set()
+    dates: list[datetime.date] = []
+    for path in cache_dir.iterdir():
+        if not path.is_file():
+            continue
+        day = _tick_cache_filename_date(path.name, code)
+        if day is None:
+            continue
+        if start is not None and day < start:
+            continue
+        if end is not None and day > end:
+            continue
+        if day not in seen:
+            seen.add(day)
+            dates.append(day)
+    return sorted(dates)
+
+
+def resolve_tick_cache_dates(
+    *,
+    explicit: Sequence[str] | None,
+    from_cache: bool,
+    code: str,
+    cache_dir: Path | str = DEFAULT_CACHE_DIR,
+    start: datetime.date | None = None,
+    end: datetime.date | None = None,
+) -> List[datetime.date]:
+    """Resolve CLI ``--dates`` or ``--dates-from-cache`` to a sorted date list."""
+    if from_cache:
+        dates = list_cached_tick_dates(code, cache_dir, start=start, end=end)
+        if not dates:
+            span = ""
+            if start is not None or end is not None:
+                span = f", range={start}..{end}"
+            raise ValueError(
+                f"tick_cache 無 {code} 快取（dir={cache_dir}{span}）"
+            )
+        return dates
+    if not explicit:
+        raise ValueError("需要 --dates 或 --dates-from-cache")
+    return parse_explicit_iso_dates(explicit)
+
+
+def parse_explicit_iso_dates(parts: Sequence[str]) -> List[datetime.date]:
+    """Parse ``YYYY-MM-DD`` strings; raise ``ValueError`` with a clear CLI message."""
+    if not parts:
+        raise ValueError("至少需一個日期（YYYY-MM-DD）")
+    out: list[datetime.date] = []
+    for raw in parts:
+        try:
+            out.append(datetime.date.fromisoformat(raw))
+        except ValueError as exc:
+            raise ValueError(f"無效的日期: {raw!r}（需 YYYY-MM-DD）") from exc
+    return out
+
+
+def split_csv_dates(raw: str) -> List[str]:
+    """Split comma-separated CLI date tokens (non-empty)."""
+    parts = [p.strip() for p in raw.split(",") if p.strip()]
+    if not parts:
+        raise ValueError("至少需一個日期（逗號分隔 YYYY-MM-DD）")
+    return parts
+
+
+def parse_optional_iso_date(value: str, *, label: str) -> datetime.date | None:
+    if not value:
+        return None
+    try:
+        return datetime.date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"無效的 {label}: {value!r}（需 YYYY-MM-DD）") from exc
+
+
+def parse_cli_cache_date_range(
+    *,
+    from_date: str,
+    to_date: str,
+    dates_from_cache: bool,
+) -> tuple[datetime.date | None, datetime.date | None]:
+    """Validate optional ``--from-date`` / ``--to-date`` for cache-driven CLIs."""
+    if (from_date or to_date) and not dates_from_cache:
+        raise ValueError("--from-date/--to-date 僅能與 --dates-from-cache 併用")
+    start = parse_optional_iso_date(from_date, label="--from-date") if from_date else None
+    end = parse_optional_iso_date(to_date, label="--to-date") if to_date else None
+    if start is not None and end is not None and start > end:
+        raise ValueError(f"--from-date ({start}) 不可晚於 --to-date ({end})")
+    return start, end
+
+
+def resolve_cli_tick_cache_dates(
+    *,
+    explicit: Sequence[str] | None,
+    from_cache: bool,
+    code: str,
+    cache_dir: Path | str = DEFAULT_CACHE_DIR,
+    from_date: str = "",
+    to_date: str = "",
+) -> List[datetime.date]:
+    """Parse CLI date flags and resolve tick_cache trade dates."""
+    start, end = parse_cli_cache_date_range(
+        from_date=from_date,
+        to_date=to_date,
+        dates_from_cache=from_cache,
+    )
+    return resolve_tick_cache_dates(
+        explicit=explicit,
+        from_cache=from_cache,
+        code=code,
+        cache_dir=cache_dir,
+        start=start,
+        end=end,
+    )

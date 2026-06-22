@@ -128,5 +128,70 @@ class TestTrendCalibrationBClass(unittest.TestCase):
             self.assertIn("B-class replay", vm.get("notes", ""))
 
 
+class TestCalibrationCliDatesFromCache(unittest.TestCase):
+    def test_main_dates_from_cache(self):
+        from reporting.calibration_cli import main
+        from storage.tick_loader import cache_path, save_ticks_csv
+
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            log_path = root / "cal.log"
+            log_path.write_text(
+                _signal_audit_line(
+                    {
+                        "intent": "entry",
+                        "direction": "Buy",
+                        "price": 100.0,
+                        "ts": _ENTRY_TS,
+                        "reason": "pullback",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            dt = datetime.date(2026, 6, 22)
+            save_ticks_csv(
+                [make_replay_tick(datetime.datetime(2026, 6, 22, 9), close="100")],
+                cache_path(root, "TMFR1", dt),
+            )
+            with patch(
+                "reporting.calibration_cli.run_b_class_calibration",
+                return_value={"status": "ok"},
+            ) as run_cal:
+                with patch("reporting.calibration_cli._log_dates_from_cache") as log_dates:
+                    rc = main(
+                        [
+                            str(log_path),
+                            "--dates-from-cache",
+                            "--code",
+                            "TMFR1",
+                            "--cache-dir",
+                            str(root),
+                            "--json",
+                        ]
+                    )
+            self.assertEqual(rc, 0)
+            run_cal.assert_called_once()
+            self.assertEqual(run_cal.call_args.kwargs["dates"], [dt])
+            log_dates.assert_called_once_with("TMFR1", [dt])
+
+    def test_main_invalid_from_date_exits_1(self):
+        from reporting.calibration_cli import main
+
+        with tempfile.TemporaryDirectory() as d:
+            log_path = Path(d) / "cal.log"
+            log_path.write_text("line\n", encoding="utf-8")
+            rc = main(
+                [
+                    str(log_path),
+                    "--dates",
+                    "2026-06-22",
+                    "--from-date",
+                    "not-a-date",
+                ]
+            )
+        self.assertEqual(rc, 1)
+
+
 if __name__ == "__main__":
     unittest.main()

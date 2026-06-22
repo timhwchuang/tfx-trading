@@ -30,7 +30,11 @@ class CliEntry:
 # Run from apps/trading-app/src with PYTHONPATH=. (or monorepo scripts).
 CATALOG: tuple[CliEntry, ...] = (
     CliEntry("live", "模擬 / 正式連線交易", "python -m live"),
-    CliEntry("backtest", "Tick 回放回測", "python -m backtest --code TXFR1 --dates 2026-06-12"),
+    CliEntry(
+        "backtest",
+        "Tick 回放回測",
+        "python -m backtest --code TMFR1 --dates-from-cache",
+    ),
     CliEntry(
         "reporting",
         "UAT log / JSON 分析（--json, --trend, --episodes）",
@@ -60,7 +64,7 @@ CATALOG: tuple[CliEntry, ...] = (
     CliEntry(
         "reporting.calibration_cli",
         "Trend filter 校準（CAL-8 研究）",
-        "python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log --dates 2026-06-12",
+        "python -m reporting.calibration_cli logs/backtest.log --dates-from-cache --code TMFR1",
     ),
     CliEntry(
         "reporting.structure_calibration_cli",

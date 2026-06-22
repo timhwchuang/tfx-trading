@@ -24,9 +24,14 @@ from storage.tick_loader import (
     download_and_cache,
     fetch_ticks_for_date,
     iter_replay_ticks,
+    list_cached_tick_dates,
     load_merged_tick_cache,
     load_ticks_csv,
     merge_ticks,
+    parse_cli_cache_date_range,
+    parse_optional_iso_date,
+    resolve_cli_tick_cache_dates,
+    resolve_tick_cache_dates,
     save_ticks_csv,
     shioaji_ts_from_ns,
 )
@@ -634,6 +639,127 @@ class TestInjectedClock(unittest.TestCase):
         self.assertEqual(host._today(), datetime.date.today())
         host._last_tick_exchange_dt = datetime.datetime(2020, 1, 2, 9, 0)
         self.assertEqual(host._today(), datetime.date(2020, 1, 2))
+
+
+class TestListCachedTickDates(unittest.TestCase):
+    def test_lists_tick_files_excludes_kbars_and_dedupes_gz(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            d1 = datetime.date(2026, 6, 15)
+            d2 = datetime.date(2026, 6, 16)
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 15, 9), "18000", 1, 0)],
+                cache_path(root, "TMFR1", d1),
+            )
+            cache_gz_path(root, "TMFR1", d2).write_bytes(b"not real gzip")
+            (root / "TMFR1_kbars_2026-06-15.csv").write_text("skip", encoding="utf-8")
+            (root / "TXFR1_2026-06-15.csv").write_text("skip", encoding="utf-8")
+
+            dates = list_cached_tick_dates("TMFR1", root)
+            self.assertEqual(dates, [d1, d2])
+
+    def test_resolve_from_cache_with_range(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for day in (15, 16, 17):
+                dt = datetime.date(2026, 6, day)
+                save_ticks_csv(
+                    [ReplayTick(datetime.datetime(2026, 6, day, 9), "18000", 1, 0)],
+                    cache_path(root, "TMFR1", dt),
+                )
+            dates = resolve_tick_cache_dates(
+                explicit=None,
+                from_cache=True,
+                code="TMFR1",
+                cache_dir=root,
+                start=datetime.date(2026, 6, 16),
+                end=datetime.date(2026, 6, 16),
+            )
+            self.assertEqual(dates, [datetime.date(2026, 6, 16)])
+
+    def test_resolve_from_cache_empty_raises(self):
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(ValueError):
+                resolve_tick_cache_dates(
+                    explicit=None,
+                    from_cache=True,
+                    code="TMFR1",
+                    cache_dir=Path(d),
+                )
+
+    def test_parse_optional_iso_date_invalid_raises(self):
+        with self.assertRaises(ValueError) as ctx:
+            parse_optional_iso_date("not-a-date", label="--from-date")
+        self.assertIn("--from-date", str(ctx.exception))
+
+    def test_parse_cli_cache_date_range_rejects_without_from_cache(self):
+        with self.assertRaises(ValueError) as ctx:
+            parse_cli_cache_date_range(
+                from_date="2026-06-01",
+                to_date="",
+                dates_from_cache=False,
+            )
+        self.assertIn("--dates-from-cache", str(ctx.exception))
+
+    def test_parse_cli_cache_date_range_rejects_inverted_range(self):
+        with self.assertRaises(ValueError):
+            parse_cli_cache_date_range(
+                from_date="2026-06-30",
+                to_date="2026-06-01",
+                dates_from_cache=True,
+            )
+
+    def test_resolve_cli_invalid_from_date_returns_error_not_traceback(self):
+        with self.assertRaises(ValueError) as ctx:
+            resolve_cli_tick_cache_dates(
+                explicit=["2026-06-22"],
+                from_cache=False,
+                code="TMFR1",
+                cache_dir="/tmp",
+                from_date="bad",
+            )
+        self.assertIn("--from-date", str(ctx.exception))
+
+
+class TestBacktestDatesFromCache(unittest.TestCase):
+    def test_main_dates_from_cache(self):
+        from backtest.__main__ import main
+
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            dt = datetime.date(2026, 6, 22)
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 22, 9), "18000", 1, 0)],
+                cache_path(root, "TMFR1", dt),
+            )
+            with patch("backtest.__main__.BacktestEngine") as engine_cls:
+                rc = main(
+                    [
+                        "--code",
+                        "TMFR1",
+                        "--dates-from-cache",
+                        "--cache-dir",
+                        str(root),
+                    ]
+                )
+            self.assertEqual(rc, 0)
+            engine_cls.assert_called_once()
+            self.assertEqual(engine_cls.call_args[0][1], [dt])
+
+    def test_main_invalid_from_date_exits_1(self):
+        from backtest.__main__ import main
+
+        rc = main(
+            [
+                "--code",
+                "TMFR1",
+                "--dates",
+                "2026-06-22",
+                "--from-date",
+                "not-a-date",
+            ]
+        )
+        self.assertEqual(rc, 1)
 
 
 if __name__ == "__main__":

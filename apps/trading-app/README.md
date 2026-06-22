@@ -102,14 +102,14 @@ C:\tfx-trading\apps\trading-app\scripts\windows\start-trading-app.ps1 -MonorepoR
 |------|------|----------|
 | **指令總覽** | `python -m cli_help` | `python -m cli_help <module>` → 轉該模組 `--help` |
 | Live / 模擬 | `python -m live` | `python -m live --help` |
-| 回測 | `python -m backtest --code TMFR1 --dates 2026-06-12` | `python -m backtest --help` |
+| 回測 | `python -m backtest --code TMFR1 --dates 2026-06-12` 或 `--dates-from-cache` | `python -m backtest --help` |
 | UAT 日報 JSON | 見下方「收盤後指令」 | `python -m reporting --help` |
 | 週 KPI 趨勢 | `python -m reporting reports/day*.json --trend`（**monorepo 根**） | 同上 |
 | Episode 回放 | `python -m reporting "$LOG_FILE" --episodes` | 同上 |
 | 證據 CSV | `python -m reporting.uat_evidence_export both reports/day*.json` | `python -m reporting.uat_evidence_export --help` |
 | Pilot 預檢 | `python -m sweep.pilot_gate_check reports/day*.json` | `python -m sweep.pilot_gate_check --help` |
 | Determinism | `python -m sweep.determinism_check --date YYYY-MM-DD --mode hash` | `python -m sweep.determinism_check --help` |
-| Trend 校準 | `python -m reporting.calibration_cli "$LOG_FILE" --dates 2026-06-12` | `python -m reporting.calibration_cli --help` |
+| Trend 校準 | `python -m reporting.calibration_cli "$LOG_FILE" --dates 2026-06-12` 或 `--dates-from-cache --code TMFR1` | `python -m reporting.calibration_cli --help` |
 | 壓縮 tick | `python -m storage` | `python -m storage --help` |
 | 補歷史 tick/kbar | `python -m backfilldata date 2026-06-20` | `python -m backfilldata --help` |
 

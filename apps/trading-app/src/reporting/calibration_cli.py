@@ -13,19 +13,25 @@ from reporting.trend_calibration import (
     DEFAULT_TREND_MIN_STRENGTH_GRID,
     run_b_class_calibration,
 )
-from storage.tick_loader import DEFAULT_CACHE_DIR
+from storage.tick_loader import (
+    DEFAULT_CACHE_DIR,
+    parse_explicit_iso_dates,
+    resolve_cli_tick_cache_dates,
+    split_csv_dates,
+)
 from sweep.param_sweep import sweep
 
 
 def _parse_dates(raw: str) -> list[datetime.date]:
-    out: list[datetime.date] = []
-    for part in raw.split(","):
-        part = part.strip()
-        if part:
-            out.append(datetime.date.fromisoformat(part))
-    if not out:
-        raise ValueError("at least one --date required")
-    return out
+    return parse_explicit_iso_dates(split_csv_dates(raw))
+
+
+def _log_dates_from_cache(code: str, dates: list[datetime.date]) -> None:
+    print(
+        f"dates-from-cache | code={code} count={len(dates)} "
+        f"range={dates[0].isoformat()}..{dates[-1].isoformat()}",
+        file=sys.stderr,
+    )
 
 
 def format_calibration_report(result: dict) -> str:
@@ -91,6 +97,8 @@ def main(argv: list[str] | None = None) -> int:
             "--dates 2026-06-12 --cache-dir ~/tfx-trading/tick_cache\n"
             "  python -m reporting.calibration_cli C:\\logs\\trading-app-uat.log "
             "--dates 2026-06-10,2026-06-11,2026-06-12 --sweep --sweep-output sweep_result.jsonl\n"
+            "  python -m reporting.calibration_cli logs/backtest_multi.log "
+            "--dates-from-cache --code TMFR1\n"
         ),
     )
     parser.add_argument(
@@ -100,10 +108,27 @@ def main(argv: list[str] | None = None) -> int:
         help="Strategy log(s) with SIGNAL_AUDIT (incl. trend_veto)",
     )
     parser.add_argument("--code", default="TXFR1", help="Contract code (default: TXFR1)")
-    parser.add_argument(
+    date_group = parser.add_mutually_exclusive_group(required=True)
+    date_group.add_argument(
         "--dates",
-        required=True,
         help="Comma-separated YYYY-MM-DD tick_cache dates for forward PnL",
+    )
+    date_group.add_argument(
+        "--dates-from-cache",
+        action="store_true",
+        help="Use all tick_cache dates for --code (optional --from-date/--to-date)",
+    )
+    parser.add_argument(
+        "--from-date",
+        type=str,
+        default="",
+        help="With --dates-from-cache: inclusive min date YYYY-MM-DD",
+    )
+    parser.add_argument(
+        "--to-date",
+        type=str,
+        default="",
+        help="With --dates-from-cache: inclusive max date YYYY-MM-DD",
     )
     parser.add_argument(
         "--cache-dir",
@@ -148,7 +173,23 @@ def main(argv: list[str] | None = None) -> int:
             print(f"找不到 log 檔: {path}", file=sys.stderr)
             return 1
 
-    dates = _parse_dates(args.dates)
+    explicit = split_csv_dates(args.dates) if args.dates else None
+    try:
+        dates = resolve_cli_tick_cache_dates(
+            explicit=explicit,
+            from_cache=args.dates_from_cache,
+            code=args.code,
+            cache_dir=args.cache_dir,
+            from_date=args.from_date,
+            to_date=args.to_date,
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    if args.dates_from_cache:
+        _log_dates_from_cache(args.code, dates)
+
     policy = ForwardPnlPolicy(
         mode=args.forward_mode,
         window_seconds=args.forward_seconds,
