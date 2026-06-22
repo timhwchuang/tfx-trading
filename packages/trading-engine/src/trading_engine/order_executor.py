@@ -728,17 +728,6 @@ class OrderExecutorMixin:
         name = getattr(action, "name", None)
         return name == "Buy"
 
-    def _extract_fill_from_trade(self, trade) -> tuple[float, bool] | None:
-        deals = getattr(trade.status, "deals", None) or []
-        if deals:
-            deal = deals[-1]
-            return float(deal.price), self._is_buy_action(deal.action)
-
-        deal_qty = int(getattr(trade.status, "deal_quantity", 0) or 0)
-        if deal_qty > 0:
-            return float(trade.order.price), self._is_buy_action(trade.order.action)
-        return None
-
     def _still_own_pending(self, trade=None) -> bool:
         """須在 lock 內呼叫：確認 pending 仍屬於此 trade。
         優先用 stored pending_order_id，避免依賴 trade.order.id 可能為空的情況。
