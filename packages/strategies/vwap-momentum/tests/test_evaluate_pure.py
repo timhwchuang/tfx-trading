@@ -19,6 +19,9 @@ from trading_engine.testing.defaults import default_runtime_config
 
 from strategy_vwap_momentum import StrategyParams, VWAPMomentumStrategy
 
+# Keep aligned with apps/trading-app observability.RISK_BLOCKED_THROTTLE_SEC
+RISK_BLOCKED_THROTTLE_SEC = 60
+
 
 def _make_risk(
     *,
@@ -352,6 +355,105 @@ class TestEvaluatePure(unittest.TestCase):
             )[1]
         )
         self.assertEqual(payload["block_reason"], "structure_stale")
+
+    def test_risk_blocked_audit_throttled_per_reason(self) -> None:
+        class _ThrottleObs:
+            def __init__(self) -> None:
+                self._last: dict[str, int] = {}
+
+            def record_risk_blocked(self, reason: str = "", ts: int = 0) -> bool:
+                key = reason or "unknown"
+                last = self._last.get(key, 0)
+                if ts == 0 or ts - last >= RISK_BLOCKED_THROTTLE_SEC:
+                    self._last[key] = ts
+                    return True
+                return False
+
+            def get_pressure_context(self) -> dict[str, int]:
+                return {
+                    "consecutive_veto_streak": 0,
+                    "consecutive_timeout_streak": 0,
+                    "episodes_since_last_entry": 0,
+                }
+
+        obs = _ThrottleObs()
+        strategy = VWAPMomentumStrategy(params=self.params, obs=obs)
+        risk = _make_risk()
+        mkt = _make_market(current_atr=1.0)  # below default min_atr_threshold
+
+        with self.assertLogs("strategy_vwap_momentum.strategy", level=logging.INFO) as cap:
+            strategy.evaluate(
+                mkt,
+                _make_flat_position(),
+                risk,
+                self.vol_threshold,
+                session_force_flatten_time=datetime.time(13, 45),
+                max_daily_loss_points=150.0,
+            )
+            strategy.evaluate(
+                _make_market(current_atr=1.0, ts=mkt.ts + 1),
+                _make_flat_position(),
+                risk,
+                self.vol_threshold,
+                session_force_flatten_time=datetime.time(13, 45),
+                max_daily_loss_points=150.0,
+            )
+        risk_logs = [
+            line for line in cap.output if "DECISION_AUDIT" in line and "risk_blocked" in line
+        ]
+        self.assertEqual(len(risk_logs), 1)
+
+    def test_risk_blocked_audit_different_reasons_not_throttled(self) -> None:
+        class _ThrottleObs:
+            def __init__(self) -> None:
+                self._last: dict[str, int] = {}
+
+            def record_risk_blocked(self, reason: str = "", ts: int = 0) -> bool:
+                key = reason or "unknown"
+                last = self._last.get(key, 0)
+                if ts == 0 or ts - last >= RISK_BLOCKED_THROTTLE_SEC:
+                    self._last[key] = ts
+                    return True
+                return False
+
+            def get_pressure_context(self) -> dict[str, int]:
+                return {
+                    "consecutive_veto_streak": 0,
+                    "consecutive_timeout_streak": 0,
+                    "episodes_since_last_entry": 0,
+                }
+
+        obs = _ThrottleObs()
+        strategy = VWAPMomentumStrategy(params=self.params, obs=obs)
+        ts = 1_700_000_200
+        mkt = _make_market(current_atr=1.0, ts=ts)
+
+        with self.assertLogs("strategy_vwap_momentum.strategy", level=logging.INFO) as cap:
+            strategy.evaluate(
+                mkt,
+                _make_flat_position(),
+                _make_risk(),
+                self.vol_threshold,
+                session_force_flatten_time=datetime.time(13, 45),
+                max_daily_loss_points=150.0,
+            )
+            strategy.evaluate(
+                mkt,
+                _make_flat_position(),
+                _make_risk(block_new_entry=True),
+                self.vol_threshold,
+                session_force_flatten_time=datetime.time(13, 45),
+                max_daily_loss_points=150.0,
+            )
+        risk_logs = [
+            line for line in cap.output if "DECISION_AUDIT" in line and "risk_blocked" in line
+        ]
+        self.assertEqual(len(risk_logs), 2)
+        reasons = {
+            json.loads(line.split("DECISION_AUDIT ", 1)[1])["block_reason"]
+            for line in risk_logs
+        }
+        self.assertEqual(reasons, {"min_atr", "block_new_entry"})
 
     def test_block_new_entry_and_pending_gates_return_none(self) -> None:
         mkt = _make_market()

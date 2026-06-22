@@ -140,9 +140,13 @@ Initial public release of the deterministic tick replay driver for `trading-engi
 
 ### [Unreleased]
 
-#### Added
+#### Changed
+
+- **`risk_blocked` DECISION_AUDIT**：`_emit_risk_blocked_audit` 依 `obs.record_risk_blocked()` 節流（60s/reason，與 `DailyObservability` 共用）。
 
 - **FT-002 Phase 4** `_try_pullback_entry` 改用 `regime_allows_entry`；`structure_veto` DECISION_AUDIT；`momentum_armed` structure 戰場快照；`structure_stale` → `risk_blocked`。
+
+#### Added
 
 - **FT-002 Phase 1** `strategy_vwap_momentum.structure`: frozen SMC v0.1 (`compute_structure`, `regime_allows_entry`, `structure_allows_entry`); 15+ unit tests (`test_structure.py`). No engine wiring yet (`structure_filter_enabled` not in runtime).
 
@@ -190,6 +194,8 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 ### [Unreleased]
 
 #### Changed
+
+- **`risk_blocked` 節流**：`RISK_BLOCKED_THROTTLE_SEC`（60s/reason）；`record_risk_blocked` 回傳 `bool`；`DAILY_SUMMARY.risk_blocked_count` 與 strategy `DECISION_AUDIT` emit 共用節流（先前僅 counter 節流）。
 
 - **Default contract `product_code`**: `TXFR1`（大台近月）→ **`TMFR1`（微台近月）** for 奈米戶 UAT/Pilot；`point_value_ntd: 10` 已對齊微台。大台/小台仍可用 `TXFR1` / `MXFR1`，需分開 `tick_cache` 與校準。
 - **Docs**: UAT checklist、README、ops、strategy README 範例改為 `TMFR1` 或 `{product_code}` 占位；Phase 0 快照 `snapshots/config_20260622.yaml` 保留歷史 `TXFR1`。

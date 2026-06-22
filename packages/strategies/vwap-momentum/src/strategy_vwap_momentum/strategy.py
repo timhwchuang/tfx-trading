@@ -141,6 +141,34 @@ class VWAPMomentumStrategy(BaseStrategy):
             setattr(decision, k, v)
         logger.info("DECISION_AUDIT %s", format_decision_audit(decision))
 
+    def _emit_risk_blocked_audit(
+        self,
+        reason: str,
+        market: MarketSnapshot,
+        *,
+        consecutive_loss: int | None = None,
+        atr: float | None = None,
+    ) -> None:
+        """Emit DECISION_AUDIT risk_blocked when observability accepts (per-reason throttle)."""
+        if self.obs is None:
+            return
+        if not self.obs.record_risk_blocked(reason, ts=market.ts):
+            return
+        ctx = self.obs.get_pressure_context()
+        risk_dec = DecisionAudit(
+            event_type="risk_blocked",
+            ts=market.ts,
+            price=market.price,
+            block_reason=reason,
+        )
+        if consecutive_loss is not None:
+            risk_dec.consecutive_loss = consecutive_loss
+        if atr is not None:
+            risk_dec.atr = atr
+        for k, v in ctx.items():
+            setattr(risk_dec, k, v)
+        logger.info("DECISION_AUDIT %s", format_decision_audit(risk_dec))
+
     def activate_momentum(self, direction: str, price: float, ts: int, episode_id: str = "") -> None:
         self.momentum = MomentumState(
             active=True,
@@ -187,18 +215,8 @@ class VWAPMomentumStrategy(BaseStrategy):
                         market, position, session_force_flatten_time
                     )
                 return self.manage_exit(market, position)
-            if structure_stale_block and self.obs is not None:
-                self.obs.record_risk_blocked("structure_stale", ts=market.ts)
-                ctx = self.obs.get_pressure_context()
-                risk_dec = DecisionAudit(
-                    event_type="risk_blocked",
-                    ts=market.ts,
-                    price=market.price,
-                    block_reason="structure_stale",
-                )
-                for k, v in ctx.items():
-                    setattr(risk_dec, k, v)
-                logger.info("DECISION_AUDIT %s", format_decision_audit(risk_dec))
+            if structure_stale_block:
+                self._emit_risk_blocked_audit("structure_stale", market)
             return None, effects
 
         if risk.is_pending or risk.exit_pending:
@@ -210,19 +228,9 @@ class VWAPMomentumStrategy(BaseStrategy):
 
         if risk.daily_pnl <= -max_daily_loss_points and not risk.block_new_entry:
             effects.block_new_entry = True
-            if self.obs is not None:
-                self.obs.record_risk_blocked("daily_pnl", ts=market.ts)
-                ctx = self.obs.get_pressure_context()
-                risk_dec = DecisionAudit(
-                    event_type="risk_blocked",
-                    ts=market.ts,
-                    price=market.price,
-                    block_reason="daily_pnl",
-                    consecutive_loss=risk.consecutive_loss,
-                )
-                for k, v in ctx.items():
-                    setattr(risk_dec, k, v)
-                logger.info("DECISION_AUDIT %s", format_decision_audit(risk_dec))
+            self._emit_risk_blocked_audit(
+                "daily_pnl", market, consecutive_loss=risk.consecutive_loss
+            )
             if on_daily_loss_block is not None:
                 on_daily_loss_block()
 
@@ -234,61 +242,18 @@ class VWAPMomentumStrategy(BaseStrategy):
             return self.manage_exit(market, position)
 
         if risk.after_flatten_time:
-            if self.obs is not None:
-                self.obs.record_risk_blocked("after_flatten", ts=market.ts)
-                ctx = self.obs.get_pressure_context()
-                risk_dec = DecisionAudit(
-                    event_type="risk_blocked",
-                    ts=market.ts,
-                    price=market.price,
-                    block_reason="after_flatten",
-                )
-                for k, v in ctx.items():
-                    setattr(risk_dec, k, v)
-                logger.info("DECISION_AUDIT %s", format_decision_audit(risk_dec))
+            self._emit_risk_blocked_audit("after_flatten", market)
             return None, effects
         if risk.block_new_entry:
-            if self.obs is not None:
-                self.obs.record_risk_blocked("block_new_entry", ts=market.ts)
-                ctx = self.obs.get_pressure_context()
-                risk_dec = DecisionAudit(
-                    event_type="risk_blocked",
-                    ts=market.ts,
-                    price=market.price,
-                    block_reason="block_new_entry",
-                )
-                for k, v in ctx.items():
-                    setattr(risk_dec, k, v)
-                logger.info("DECISION_AUDIT %s", format_decision_audit(risk_dec))
+            self._emit_risk_blocked_audit("block_new_entry", market)
             return None, effects
         if risk.consecutive_loss >= self.params.max_consecutive_loss:
-            if self.obs is not None:
-                self.obs.record_risk_blocked("consecutive_loss", ts=market.ts)
-                ctx = self.obs.get_pressure_context()
-                risk_dec = DecisionAudit(
-                    event_type="risk_blocked",
-                    ts=market.ts,
-                    price=market.price,
-                    block_reason="consecutive_loss",
-                    consecutive_loss=risk.consecutive_loss,
-                )
-                for k, v in ctx.items():
-                    setattr(risk_dec, k, v)
-                logger.info("DECISION_AUDIT %s", format_decision_audit(risk_dec))
+            self._emit_risk_blocked_audit(
+                "consecutive_loss", market, consecutive_loss=risk.consecutive_loss
+            )
             return None, effects
         if market.current_atr < self.params.min_atr_threshold:
-            if self.obs is not None:
-                self.obs.record_risk_blocked("min_atr", ts=market.ts)
-                ctx = self.obs.get_pressure_context()
-                risk_dec = DecisionAudit(
-                    event_type="risk_blocked",
-                    ts=market.ts,
-                    price=market.price,
-                    block_reason="min_atr",
-                    atr=market.current_atr,
-                    **ctx,
-                )
-                logger.info("DECISION_AUDIT %s", format_decision_audit(risk_dec))
+            self._emit_risk_blocked_audit("min_atr", market, atr=market.current_atr)
             return None, effects
 
         if not self.momentum.active:

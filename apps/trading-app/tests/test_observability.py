@@ -111,8 +111,8 @@ class TestDailyObservability(unittest.TestCase):
             hold_sec=10,
         )
         obs.update_risk_state(8, 0)
-        obs.record_risk_blocked("min_atr", ts=100)
-        obs.record_risk_blocked("min_atr", ts=101)  # should throttle
+        self.assertTrue(obs.record_risk_blocked("min_atr", ts=100))
+        self.assertFalse(obs.record_risk_blocked("min_atr", ts=101))  # should throttle
         summary = obs.build_summary("2026-06-10")
 
         self.assertEqual(summary["date"], "2026-06-10")
@@ -123,6 +123,14 @@ class TestDailyObservability(unittest.TestCase):
         self.assertIn("episode_funnel", summary)
         self.assertIn("pressure", summary)
         self.assertEqual(summary["pressure"]["risk_blocked_count"], 1)  # throttled
+
+    def test_record_risk_blocked_throttle_boundary_and_per_reason(self) -> None:
+        obs = DailyObservability()
+        self.assertTrue(obs.record_risk_blocked("min_atr", ts=100))
+        self.assertFalse(obs.record_risk_blocked("min_atr", ts=159))
+        self.assertTrue(obs.record_risk_blocked("min_atr", ts=160))
+        self.assertTrue(obs.record_risk_blocked("block_new_entry", ts=100))
+        self.assertEqual(obs.risk_blocked_count, 3)
 
     def test_exit_fill_clears_entry_tracking_scalars(self):
         obs = DailyObservability()

@@ -14,6 +14,8 @@ from reporting.performance_metrics import (
     friction_settings_from_mapping,
 )
 
+RISK_BLOCKED_THROTTLE_SEC = 60
+
 
 @dataclass
 class FillAudit:
@@ -258,13 +260,19 @@ class DailyObservability:
             "episodes_since_last_entry": self.episodes_since_last_entry,
         }
 
-    def record_risk_blocked(self, reason: str = "", ts: int = 0) -> None:
+    def record_risk_blocked(self, reason: str = "", ts: int = 0) -> bool:
+        """Record risk_blocked for DAILY_SUMMARY pressure.
+
+        Returns True if not throttled (``RISK_BLOCKED_THROTTLE_SEC`` per ``block_reason``).
+        """
         key = reason or "unknown"
         last = self._last_risk_blocked.get(key, 0)
-        if ts == 0 or ts - last >= 60:
+        if ts == 0 or ts - last >= RISK_BLOCKED_THROTTLE_SEC:
             self.risk_blocked_count += 1
             self._last_risk_blocked[key] = ts
+            return True
         # do not reset streaks for risk_blocked (per current design)
+        return False
 
     def record_fill(
         self,
