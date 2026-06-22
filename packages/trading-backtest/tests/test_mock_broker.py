@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import gzip
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,7 +14,13 @@ from trading_engine.core.types import OrderSignal
 from trading_engine.testing.defaults import default_test_settings
 from trading_engine.testing.helpers import make_host
 
-from trading_backtest.loader import KBarRecord, ReplayTick, kbars_cache_path, save_kbars_csv
+from trading_backtest.loader import (
+    KBarRecord,
+    ReplayTick,
+    kbars_cache_gz_path,
+    kbars_cache_path,
+    save_kbars_csv,
+)
 from trading_backtest.mock_broker import MockBroker
 
 MOMENTUM_VOL_1S = default_test_settings().momentum_vol_1s
@@ -213,6 +220,36 @@ class TestMockBrokerMatching(unittest.TestCase):
                 for i in range(25)
             ]
             save_kbars_csv(prev_bars, kbars_cache_path(cache_dir, code, prev))
+            clock_val = {"t": datetime.datetime(2026, 6, 12, 8, 45, 0).timestamp()}
+            broker = MockBroker(clock=lambda: clock_val["t"], cache_dir=cache_dir)
+            broker.current_dt = datetime.datetime(2026, 6, 12, 8, 45, 0)
+            host = make_host(api=broker)
+            host.contract = broker.resolve_contract(code)
+            host._last_tick_exchange_dt = datetime.datetime(2026, 6, 12, 8, 45, 0)
+            host.refresh_atr()
+            self.assertGreater(host.current_atr, 0)
+
+    def test_atr_available_when_kbar_mirror_is_gz_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp)
+            code = "TXFR1"
+            prev = datetime.date(2026, 6, 11)
+            prev_bars = [
+                KBarRecord(
+                    datetime.datetime(2026, 6, 11, 13, 30) + datetime.timedelta(minutes=i),
+                    18000 + i,
+                    18010 + i,
+                    17990 + i,
+                    18005 + i,
+                    50,
+                )
+                for i in range(25)
+            ]
+            plain = kbars_cache_path(cache_dir, code, prev)
+            gz = kbars_cache_gz_path(cache_dir, code, prev)
+            save_kbars_csv(prev_bars, plain)
+            gz.write_bytes(gzip.compress(plain.read_bytes()))
+            plain.unlink()
             clock_val = {"t": datetime.datetime(2026, 6, 12, 8, 45, 0).timestamp()}
             broker = MockBroker(clock=lambda: clock_val["t"], cache_dir=cache_dir)
             broker.current_dt = datetime.datetime(2026, 6, 12, 8, 45, 0)

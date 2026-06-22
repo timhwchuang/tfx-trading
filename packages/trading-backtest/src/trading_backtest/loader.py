@@ -146,6 +146,23 @@ def kbars_cache_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
     return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv"
 
 
+def kbars_cache_gz_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
+    return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv.gz"
+
+
+def resolve_kbars_cache_path(
+    cache_dir: Path, code: str, date: datetime.date
+) -> Path | None:
+    """Return on-disk kbar cache (plain preferred over gzip mirror)."""
+    plain = kbars_cache_path(cache_dir, code, date)
+    gz = kbars_cache_gz_path(cache_dir, code, date)
+    if plain.is_file():
+        return plain
+    if gz.is_file():
+        return gz
+    return None
+
+
 def save_kbars_csv(bars: Iterable[KBarRecord], path: Path) -> int:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -170,7 +187,7 @@ def save_kbars_csv(bars: Iterable[KBarRecord], path: Path) -> int:
 
 def load_kbars_csv(path: Path) -> list[KBarRecord]:
     bars: list[KBarRecord] = []
-    with Path(path).open("r", encoding="utf-8", newline="") as f:
+    with _open_tick_csv_reader(Path(path)) as f:
         for row in csv.DictReader(f):
             bars.append(
                 KBarRecord(
@@ -200,8 +217,8 @@ def iter_kbars_in_range(
 ) -> list[KBarRecord]:
     bars: list[KBarRecord] = []
     for date in date_range(start, end):
-        path = kbars_cache_path(cache_dir, code, date)
-        if not path.is_file():
+        path = resolve_kbars_cache_path(cache_dir, code, date)
+        if path is None:
             continue
         bars.extend(load_kbars_csv(path))
     bars.sort(key=lambda b: b.ts)
@@ -214,9 +231,11 @@ __all__ = [
     "ReplayTick",
     "iter_kbars_in_range",
     "iter_replay_ticks",
+    "kbars_cache_gz_path",
     "kbars_cache_path",
     "load_kbars_csv",
     "load_ticks_csv",
+    "resolve_kbars_cache_path",
     "resolve_tick_cache_path",
     "save_kbars_csv",
 ]
