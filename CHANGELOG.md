@@ -39,11 +39,12 @@ Historical standalone-repo release links are kept for archaeology only; developm
   - Order worker now catches `BaseException` (prevents critical path silent death).
   - Removed bg reads of live trade.status in reconcile; pre-pop support only for direct test/reconnect paths via records.
   - Enhanced callback handlers to backfill `pending_order_id` if missing at arm time.
+  - `place_order` defers `pending_armed` EXEC when `order_id` empty at place time (callback backfill emits the single compliant event; fixes duplicate armed in replay).
   - `_still_own_pending` now prefers stored `pending_order_id`.
   - `except BaseException` in `_timeout_loop` (thread resilience).
   - SPEC.md and lock rules updated.
 
-  This eliminates the source of Shioaji internal concurrent borrow instead of adding more locks. All 90 runtime tests pass.
+  This eliminates the source of Shioaji internal concurrent borrow instead of adding more locks. All 94 runtime tests pass.
 
 #### Added
 

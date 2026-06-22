@@ -273,19 +273,21 @@ class OrderExecutorMixin:
                 self._exit_order_retry_count = 0
                 self._exit_order_retry_at = 0.0
 
-                # Phase 2: Emit pending_armed here so order_id is populated (SPEC §5.3 MUST)
-                try:
-                    exec_audit = ExecAudit(
-                        event_type="pending_armed",
-                        ts=signal.exchange_ts or 0,
-                        signal_id=signal.signal_id or self.pending_signal_id,
-                        order_id=self.pending_order_id,
-                        limit_price=self.pending_limit_price,
-                        direction=signal.action,
-                    )
-                    logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
-                except Exception:
-                    pass  # never break hot path
+                # Phase 2: Emit pending_armed only when order_id is known (SPEC §5.3 MUST).
+                # If oid empty at place time, defer to first callback backfill (avoids duplicate armed).
+                if self.pending_order_id:
+                    try:
+                        exec_audit = ExecAudit(
+                            event_type="pending_armed",
+                            ts=signal.exchange_ts or 0,
+                            signal_id=signal.signal_id or self.pending_signal_id,
+                            order_id=self.pending_order_id,
+                            limit_price=self.pending_limit_price,
+                            direction=signal.action,
+                        )
+                        logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
+                    except Exception:
+                        pass  # never break hot path
 
             logger.info(
                 "下單 %s %d 口 @ %.1f (%s) | trade=%s",
