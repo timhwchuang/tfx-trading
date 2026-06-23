@@ -114,7 +114,8 @@ C:\tfx-trading\apps\trading-app\scripts\windows\start-trading-app.ps1 -MonorepoR
 | Determinism | `python -m sweep.determinism_check --date YYYY-MM-DD --mode hash` | `python -m sweep.determinism_check --help` |
 | Trend 校準 | `python -m reporting.calibration_cli "$LOG_FILE" --dates 2026-06-12` 或 `--dates-from-cache --code TMFR1` | `python -m reporting.calibration_cli --help` |
 | 壓縮 tick | `python -m storage` | `python -m storage --help` |
-| 補歷史 tick/kbar | `python -m backfilldata date 2026-06-20` | `python -m backfilldata --help` |
+| 補歷史 tick/kbar（單日） | `python -m backfilldata date 2026-06-20` | `python -m backfilldata --help` |
+| 補歷史 tick/kbar（整月） | `python -m backfilldata month 2026-04`（跳過週末+pin-yi 行事曆假日） | 同上 |
 
 首次請確認 `config/config.yaml` 中 **`simulation: true`**。
 

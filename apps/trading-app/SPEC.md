@@ -78,6 +78,7 @@ TradingEngine(
 | `python -m sweep.determinism_check --date YYYY-MM-DD --mode hash` | Backtest audit hash / reproducibility |
 | `python -m storage` | Post-session tick gzip (`storage.compress` alias) |
 | `python -m backfilldata date YYYY-MM-DD` | Backfill past ticks/kbars into `tick_cache/` + `kbar_cache/` |
+| `python -m backfilldata month YYYY-MM` | Backfill trading weekdays in month (skip weekends/holidays via pin-yi calendar) |
 
 ### Backtest CLI (`python -m backtest`)
 

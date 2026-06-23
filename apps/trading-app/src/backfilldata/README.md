@@ -31,6 +31,8 @@ export SJ_SEC_KEY=...
 
 cd apps/trading-app/src
 python -m backfilldata date 2026-06-20
+python -m backfilldata month 2026-04
+python -m backfilldata month 2026-04 --dry-run
 python -m backfilldata date 2026-06-18 2026-06-20 --code TMFR1
 python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-end 13:45
 python -m backfilldata date 2026-06-20 --all-day-ticks

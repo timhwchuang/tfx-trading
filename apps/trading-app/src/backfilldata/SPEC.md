@@ -30,6 +30,7 @@ This document is the **single source of truth** for the historical market-data b
 ## 2. In scope
 
 - CLI `python -m backfilldata date <YYYY-MM-DD> [end]`
+- CLI `python -m backfilldata month <YYYY-MM>` — trading weekdays (skip weekends + [pin-yi Taiwan calendar](https://api.pin-yi.me/taiwan-calendar/{year}); `isHoliday`); reads `trade_days/{year}.json` first, fetches API on cache miss; batched for tick API day limits
 - Login via `SJ_API_KEY` / `SJ_SEC_KEY` only (no CA; market data only)
 - Contract resolve for continuous futures (`TMFR1`, `TXFR1`, …) — same rule as `TradingEngine._resolve_contract`
 - Tick CSV → `tick_cache/{code}_{date}.csv` via `storage.tick_loader.download_and_cache`
@@ -69,6 +70,8 @@ from backfilldata import (
 ```bash
 cd apps/trading-app/src
 python -m backfilldata date 2026-06-20
+python -m backfilldata month 2026-04
+python -m backfilldata month 2026-04 --dry-run
 python -m backfilldata date 2026-06-18 2026-06-20 --code TMFR1
 python -m backfilldata date 2026-06-20 --ticks-only
 python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-end 13:45

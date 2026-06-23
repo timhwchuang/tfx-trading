@@ -451,5 +451,244 @@ class TestBackfillCli(unittest.TestCase):
         self.assertEqual(main(["date", "2026-06-12"]), 1)
 
 
+def _pin_yi_day(date: str, *, is_holiday: bool, caption: str = "") -> dict:
+    return {"date": date, "isHoliday": is_holiday, "caption": caption}
+
+
+_APRIL_2026_PIN_YI_CALENDAR = [
+    _pin_yi_day("20260401", is_holiday=False),
+    _pin_yi_day("20260402", is_holiday=False),
+    _pin_yi_day("20260403", is_holiday=True, caption="補假"),
+    _pin_yi_day("20260404", is_holiday=True, caption="兒童節"),
+    _pin_yi_day("20260405", is_holiday=True, caption="清明節"),
+    _pin_yi_day("20260406", is_holiday=True, caption="補假"),
+    _pin_yi_day("20260407", is_holiday=False),
+    _pin_yi_day("20260408", is_holiday=False),
+    _pin_yi_day("20260409", is_holiday=False),
+    _pin_yi_day("20260410", is_holiday=False),
+    _pin_yi_day("20260411", is_holiday=True),
+    _pin_yi_day("20260412", is_holiday=True),
+    _pin_yi_day("20260413", is_holiday=False),
+    _pin_yi_day("20260414", is_holiday=False),
+    _pin_yi_day("20260415", is_holiday=False),
+    _pin_yi_day("20260416", is_holiday=False),
+    _pin_yi_day("20260417", is_holiday=False),
+    _pin_yi_day("20260418", is_holiday=True),
+    _pin_yi_day("20260419", is_holiday=True),
+    _pin_yi_day("20260420", is_holiday=False),
+    _pin_yi_day("20260421", is_holiday=False),
+    _pin_yi_day("20260422", is_holiday=False),
+    _pin_yi_day("20260423", is_holiday=False),
+    _pin_yi_day("20260424", is_holiday=False),
+    _pin_yi_day("20260425", is_holiday=True),
+    _pin_yi_day("20260426", is_holiday=True),
+    _pin_yi_day("20260427", is_holiday=False),
+    _pin_yi_day("20260428", is_holiday=False),
+    _pin_yi_day("20260429", is_holiday=False),
+    _pin_yi_day("20260430", is_holiday=False),
+]
+
+
+class TestTaiwanCalendar(unittest.TestCase):
+    def test_parse_month_arg(self):
+        from backfilldata.taiwan_calendar import parse_month_arg
+
+        self.assertEqual(parse_month_arg("2026-04"), (2026, 4))
+
+    def test_april_2026_trading_days_skip_holidays(self):
+        from backfilldata.taiwan_calendar import resolve_month_trading_days
+
+        trading, skipped = resolve_month_trading_days(
+            2026,
+            4,
+            calendar_year=_APRIL_2026_PIN_YI_CALENDAR,
+        )
+        self.assertIn(datetime.date(2026, 4, 1), trading)
+        self.assertNotIn(datetime.date(2026, 4, 3), trading)
+        self.assertNotIn(datetime.date(2026, 4, 6), trading)
+        self.assertIn(datetime.date(2026, 4, 3), skipped["holiday"])
+        self.assertGreaterEqual(len(skipped["weekend"]), 8)
+
+    def test_cny_holidays_and_resume_trading(self):
+        from backfilldata.taiwan_calendar import resolve_month_trading_days
+
+        calendar = [
+            _pin_yi_day("20260216", is_holiday=True, caption="農曆除夕"),
+            _pin_yi_day("20260217", is_holiday=True, caption="春節"),
+            _pin_yi_day("20260218", is_holiday=True, caption="春節"),
+            _pin_yi_day("20260219", is_holiday=True, caption="春節"),
+            _pin_yi_day("20260220", is_holiday=True, caption="補假"),
+            _pin_yi_day("20260223", is_holiday=False),
+        ]
+        trading, skipped = resolve_month_trading_days(
+            2026,
+            2,
+            calendar_year=calendar,
+        )
+        self.assertIn(datetime.date(2026, 2, 23), trading)
+        self.assertNotIn(datetime.date(2026, 2, 16), trading)
+        self.assertIn(datetime.date(2026, 2, 16), skipped["holiday"])
+
+    def test_empty_calendar_raises(self):
+        from backfilldata.core import BackfillError
+        from backfilldata.taiwan_calendar import resolve_month_trading_days
+
+        with self.assertRaises(BackfillError) as ctx:
+            resolve_month_trading_days(2026, 4, calendar_year=[])
+        self.assertIn("行事曆", str(ctx.exception))
+
+    def test_reads_bundled_trade_days_cache(self):
+        from backfilldata.taiwan_calendar import resolve_month_trading_days
+        from storage.cache_paths import DEFAULT_TRADE_DAYS_DIR
+
+        cache_path = DEFAULT_TRADE_DAYS_DIR / "2026.json"
+        if not cache_path.is_file():
+            self.skipTest("trade_days/2026.json not present")
+
+        trading, skipped = resolve_month_trading_days(2026, 4, calendar_dir=DEFAULT_TRADE_DAYS_DIR)
+        self.assertIn(datetime.date(2026, 4, 1), trading)
+        self.assertNotIn(datetime.date(2026, 4, 3), trading)
+        self.assertIn(datetime.date(2026, 4, 3), skipped["holiday"])
+        self.assertEqual(skipped["missing_calendar"], [])
+
+    def test_weekday_without_calendar_entry_not_trading(self):
+        from backfilldata.taiwan_calendar import resolve_month_trading_days
+
+        calendar = [_pin_yi_day("20260401", is_holiday=False)]
+        trading, skipped = resolve_month_trading_days(
+            2026,
+            4,
+            calendar_year=calendar,
+        )
+        self.assertEqual(trading, [datetime.date(2026, 4, 1)])
+        self.assertIn(datetime.date(2026, 4, 2), skipped["missing_calendar"])
+
+    def test_invalid_cache_refetches_api(self):
+        from backfilldata.taiwan_calendar import get_taiwan_calendar_year
+
+        with tempfile.TemporaryDirectory() as tmp:
+            calendar_dir = Path(tmp)
+            (calendar_dir / "2026.json").write_text("[]\n", encoding="utf-8")
+            sample = [_pin_yi_day("20260101", is_holiday=True)]
+            with patch(
+                "backfilldata.taiwan_calendar.fetch_taiwan_calendar_year",
+                return_value=sample,
+            ) as mock_fetch:
+                data = get_taiwan_calendar_year(2026, calendar_dir=calendar_dir)
+            self.assertEqual(data, sample)
+            mock_fetch.assert_called_once()
+
+    def test_resolve_month_trading_days_with_fallback(self):
+        from backfilldata.taiwan_calendar import resolve_month_trading_days_with_fallback
+
+        with patch(
+            "backfilldata.taiwan_calendar.resolve_month_trading_days",
+            side_effect=[
+                BackfillError("Taiwan 行事曆 API 無法連線"),
+                ([datetime.date(2026, 4, 1)], {"weekend": [], "holiday": [], "missing_calendar": []}),
+            ],
+        ) as mock_resolve:
+            trading, skipped = resolve_month_trading_days_with_fallback(2026, 4)
+        self.assertEqual(trading, [datetime.date(2026, 4, 1)])
+        self.assertEqual(mock_resolve.call_count, 2)
+        self.assertFalse(mock_resolve.call_args_list[1].kwargs["use_holiday_calendar"])
+
+
+class TestBackfillMonth(unittest.TestCase):
+    @patch("backfilldata.core.backfill_dates")
+    @patch("backfilldata.core.create_and_login_api")
+    def test_backfill_month_batches_tick_days(self, mock_login, mock_backfill):
+        from backfilldata.core import BackfillResult, backfill_month
+
+        mock_login.return_value = MagicMock()
+        mock_backfill.return_value = BackfillResult(ticks=[Path("tick.csv")])
+
+        trading_days = [datetime.date(2026, 4, day) for day in range(1, 23)]
+        buckets = {"weekend": [], "holiday": [], "missing_calendar": []}
+        with patch(
+            "backfilldata.taiwan_calendar.resolve_month_trading_days_with_fallback",
+            return_value=(trading_days, buckets),
+        ):
+            result, meta = backfill_month(
+                2026,
+                4,
+                code="TMFR1",
+                simulation=True,
+                today=datetime.date(2026, 6, 30),
+            )
+
+        self.assertEqual(mock_backfill.call_count, 3)
+        self.assertEqual(len(meta["eligible_days"]), 22)
+        self.assertTrue(result.ok)
+
+    @patch("backfilldata.core.backfill_dates")
+    @patch("backfilldata.core.create_and_login_api")
+    def test_backfill_month_reuses_api_session(self, mock_login, mock_backfill):
+        from unittest.mock import MagicMock
+
+        from backfilldata.core import BackfillResult, backfill_month
+
+        mock_api = MagicMock()
+        mock_login.return_value = mock_api
+        mock_backfill.return_value = BackfillResult(ticks=[Path("tick.csv")])
+
+        trading_days = [datetime.date(2026, 4, day) for day in range(1, 23)]
+        buckets = {"weekend": [], "holiday": [], "missing_calendar": []}
+        with patch(
+            "backfilldata.taiwan_calendar.resolve_month_trading_days_with_fallback",
+            return_value=(trading_days, buckets),
+        ):
+            backfill_month(
+                2026,
+                4,
+                code="TMFR1",
+                simulation=True,
+                today=datetime.date(2026, 6, 30),
+            )
+
+        mock_login.assert_called_once()
+        self.assertEqual(mock_backfill.call_count, 3)
+        for call in mock_backfill.call_args_list:
+            self.assertIs(call.kwargs["api"], mock_api)
+        mock_api.logout.assert_called_once()
+
+    @patch("backfilldata.core.backfill_dates")
+    @patch("backfilldata.core.create_and_login_api")
+    def test_backfill_month_calendar_fallback(self, mock_login, mock_backfill):
+        from backfilldata.core import BackfillResult, backfill_month
+
+        mock_login.return_value = MagicMock()
+        mock_backfill.return_value = BackfillResult(ticks=[Path("tick.csv")])
+        weekdays = [datetime.date(2026, 4, 1), datetime.date(2026, 4, 2)]
+        buckets = {"weekend": [], "holiday": [], "missing_calendar": []}
+
+        with patch(
+            "backfilldata.taiwan_calendar.resolve_month_trading_days_with_fallback",
+            return_value=(weekdays, buckets),
+        ) as mock_resolve:
+            result, meta = backfill_month(
+                2026,
+                4,
+                code="TMFR1",
+                simulation=True,
+                today=datetime.date(2026, 6, 30),
+            )
+
+        mock_resolve.assert_called_once()
+        self.assertTrue(result.ok)
+        self.assertEqual(meta["eligible_days"], weekdays)
+
+    @patch("backfilldata.__main__.resolve_month_trading_days_with_fallback")
+    def test_month_dry_run_lists_days(self, mock_resolve):
+        from backfilldata.__main__ import main
+
+        days = [datetime.date(2026, 4, 1), datetime.date(2026, 4, 2)]
+        mock_resolve.return_value = (days, {"weekend": [], "holiday": [], "missing_calendar": []})
+        with patch("backfilldata.__main__.backfill_month") as mock_month:
+            rc = main(["month", "2026-04", "--dry-run"])
+        self.assertEqual(rc, 0)
+        mock_month.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()
