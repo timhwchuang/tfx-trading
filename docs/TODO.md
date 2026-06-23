@@ -3,13 +3,14 @@
 > **執行環境：地雲雙管** — Live 建議 **GCP GCE（asia-east1）** 或 **Windows**；回測/CAL 放 **地端 Linux/macOS**（見 [`ops/HYBRID_DEPLOY.md`](ops/HYBRID_DEPLOY.md)）。原則：**UAT 驗狀態機與對帳，不驗獲利**。
 > 文件職責見 [`DOC_MAP.md`](DOC_MAP.md)。Monorepo：[`tfx-trading`](https://github.com/timhwchuang/tfx-trading)。
 
-## 目前狀態（2026-06-18）
+## 目前狀態（2026-06-23）
 
 | 階段 | 狀態 |
 | ---- | ---- |
 | Phase 0～2 狀態機 / 訊號 / 委託 | ✅ 已落地（kernel + plugin） |
-| **Phase 3 UAT** | **🟢 API 金鑰就緒** — 執行 [`uat/APP.md`](uat/APP.md) Phase 0→1 |
-| Phase 4 運維骨架 | ✅ P4-1～12 已落地；**P4-13-F 斷網實機**、Telegram 實機待 UAT 演練 |
+| **Phase 3 UAT** | **🟢 GCE Live 就緒** — [`uat/APP.md`](uat/APP.md) Phase 0 ✅；**Phase 1** 首個完整交易日待驗（2026-06-24） |
+| **GCE Live 節點** | ✅ 已部署（`e2-medium`，Debian 13，asia-east1，08:30–14:00 排程）；見 [`ops/LinuxOps.md`](ops/LinuxOps.md) §GCE |
+| Phase 4 運維骨架 | ✅ P4-1～12 已落地；GCE systemd + cron 已設；**P4-13-F 斷網實機**、Telegram 實機待 UAT 演練 |
 | Phase 5 Pilot | 見 [`uat/APP.md`](uat/APP.md) Phase 5（量化 gate + 摩擦對帳 + 壓力情境審閱） |
 | Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（P6-1 + **P6-SMC-CAL** harness/sweep）；待 UAT tick 跑 CAL-8；P6-4/5 待做 |
 | **FT-002 SMC（工程）** | Phase 1–4 ✅（`REVIEW.md` PASS）；**Phase 5 Land + CAL-8** 待 ≥5 日 UAT |
@@ -72,10 +73,16 @@
 ### UAT 執行 — 人類（API 已就緒）
 
 - [x] 申請永豐**模擬** API（行情 + 帳務 + 交易；UAT 不需 CA）
-- [ ] Live 節點：Windows UAT 機 **或** GCE（見 [`ops/HYBRID_DEPLOY.md`](ops/HYBRID_DEPLOY.md)、[`ops/LinuxOps.md`](ops/LinuxOps.md)、[`ops/WindowsOps.md`](ops/WindowsOps.md)）— clone + `setup-dev.sh` + 環境變數
-- [ ] [`uat/APP.md`](uat/APP.md) **Phase 0** 完成 + 證據 commit
-- [ ] **Phase 1** 首個完整模擬交易日 + `reports/day*.json`
+- [x] Live 節點：**GCE** — 見 [`ops/LinuxOps.md`](ops/LinuxOps.md) §GCE（`setup-dev.sh`、`/etc/tfx-trading/env`、systemd、cron）
+- [x] [`uat/APP.md`](uat/APP.md) **Phase 0** 完成（地端）；GCE login smoke 2026-06-23
+- [ ] **Phase 1** 首個完整模擬交易日（GCE 自動排程）+ `reports/day*.json` + `sync-from-gce.sh` 回地端
 - [ ] Phase 3 起：每週 [`WeeklyStatus.md`](WeeklyStatus.md) + `uat_evidence/templates/*`
+
+### GCP 營運（人類）
+
+- [ ] **2026-07-23**：記錄首月 **GCP 實際花費**（VM `e2-medium`、20GB 磁碟、靜態 IP、egress）；Billing → Reports / Budgets
+- [ ] 交易時段 **VM 監控**（GCP Monitoring：08:30–14:00 instance 非 RUNNING → email）；應用 Telegram ≠ 基礎設施告警
+- [ ] 磁碟用量（20GB）：`df -h` 或 Ops Agent；tick 成長後評估擴容
 
 ### P2-1 多口 / 部分成交
 

@@ -16,9 +16,11 @@
 | **6. 切換正式 CA 準備** | ☐ | | | |
 | **7. Pilot 執行（1 口規則）** | ☐ | | | |
 
-**目前下一步建議**：Phase 1 — 微台 `TMFR1` 完整模擬交易日 → 收盤 `storage` + `reporting` + `determinism_check`
+**目前下一步建議**：**2026-06-24** GCE 自動排程首個完整 **Phase 1** 交易日 → 13:54 post-session → 地端 `sync-from-gce.sh` → 簽名 Phase 1
 
-**本週重點**：累積 `tick_cache/TMFR1_*.csv`（>1MB）並更新 `snapshots/determinism_YYYYMMDD.txt`（非 deferred）
+**GCE Live**：見 [`ops/LinuxOps.md`](../ops/LinuxOps.md) §GCE（`e2-medium`，08:30–14:00 排程）。
+
+**本週重點**：GCE 累積 `tick_cache/TMFR1_*.csv`（>1MB）並更新 `snapshots/determinism_YYYYMMDD.txt`
 
 ---
 
@@ -96,15 +98,16 @@
 
 **執行流程**：
 
+> **GCE Live**（目前路徑）：08:30 排程開機 → systemd 自動 `tfx-trading`；收盤 **13:50** root `systemctl stop` → **13:54** `post-session.sh`（見 [`ops/LinuxOps.md`](../ops/LinuxOps.md)）。地端收盤後 `GCE_HOST=<deploy-user>@<IP> bash scripts/linux/sync-from-gce.sh`，再 commit `reports/`、`snapshots/`。Phase 0 證據來自地端冒煙；Phase 1 以 **GCE 當日** `reports/day*.json` 為準。
+
 1. **早盤前（08:30 前）**
-   - 確認所有環境變數
-   - `cd apps\trading-app\src && python -m live`
+   - GCE：確認排程開機 + `systemctl status tfx-trading`（或地端手動：`cd apps/trading-app/src && python -m live`）
 
 2. **盤中**
    - 確認 `tick_cache\{product_code}_YYYY-MM-DD.csv`（預設 `TMFR1`）大小持續增加
    - 觀察至少一筆 SIGNAL_AUDIT（用 `grep "SIGNAL_AUDIT" logs\...` 或報告）
 
-3. **收盤後必做（15:00 後）** — 建議從 **monorepo 根**執行：
+3. **收盤後必做** — GCE 由 cron 執行；地端手動或驗證時從 **monorepo 根**：
    ```powershell
    cd C:\tfx-trading
    $env:PYTHONPATH="apps\trading-app\src"

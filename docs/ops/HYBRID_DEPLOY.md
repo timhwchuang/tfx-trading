@@ -27,7 +27,7 @@
 
 | 痛點 | 作法 |
 |------|------|
-| 家裡/公司網路不穩、VPN、睡眠 | GCE 24/7 穩定 egress、無睡眠 |
+| 家裡/公司網路不穩、VPN、睡眠 | GCE **交易時段開機**（例 08:30–14:00）或 24/7；穩定 egress、無睡眠 |
 | 回測吃 RAM/CPU、不想與 live 搶資源 | 地端或大規格工作站跑 `backtest` / `calibration_cli` |
 | 資料要可重現 | 收盤後 `rsync` 拉回 `tick_cache/*.csv.gz`，地端 hash 比對 |
 | 台灣券商 API 延遲 | **asia-east1**（彰化）區域 |
@@ -58,7 +58,14 @@
 ### 每月成本粗估（2026，僅供規劃）
 
 - `e2-standard-2` + 50GB + 靜態 IP：約 USD 50–70/月（以 GCP 計價器為準）
+- **已部署** `e2-medium` + 20GB + instance schedule（08:30–14:00 關機）：低於 24/7 `e2-standard-2`；**實際帳單以 Billing 為準**
 - 地端機器已有則 **不加 live 負載**，只付 GCE
+
+### 已部署節點（2026-06-23）
+
+規格與路徑 SSOT：[`LinuxOps.md`](LinuxOps.md) §GCE Live 節點（instance 名、SSH 帳號、IP **勿寫入 git**）。
+
+**下一驗收**：[`uat/APP.md`](../uat/APP.md) **Phase 1** 首個完整 GCE 交易日（2026-06-24 預定）。
 
 ## 4. 部署步驟（摘要）
 
@@ -69,8 +76,8 @@
 3. `sudo MONOREPO_ROOT=/opt/tfx-trading bash scripts/linux/install-systemd.sh`（`chown tfx:tfx` 整個 repo）
 4. 編輯 `/etc/tfx-trading/env`（API keys；`TICK_ARCHIVE=1`、`KBARS_ARCHIVE=1` 已預設）
 5. `sudo systemctl start tfx-trading`；盤中確認 `tick_cache/TMFR1_*.csv`（或你的 `product_code`）成長
-6. cron：`scripts/linux/post-session.sh`（15:30）— `storage` + `reporting` + `determinism_check` → `snapshots/`
-7. **git pull** 用 `sudo -u tfx git -C /opt/tfx-trading pull`（repo 屬 `tfx`）
+6. cron：**先** `systemctl stop tfx-trading`（root），**再** `post-session.sh`（tfx）— 見 [`LinuxOps.md`](LinuxOps.md) §GCE（GCP 14:00 關機用 13:50/13:54）
+7. **git pull** 用 `sudo -u tfx git -C /opt/tfx-trading pull`（repo 屬 `tfx`）；或地端 rsync 推版
 
 詳見 [`LinuxOps.md`](LinuxOps.md)。
 
@@ -80,10 +87,10 @@
 2. 收盤後：
 
 ```bash
-# 用 deploy 帳號（如 ubuntu@），勿用 tfx（nologin 無法 SSH）
-GCE_HOST=ubuntu@<GCE_STATIC_IP> REMOTE_ROOT=/opt/tfx-trading \
+# 用 GCP OS 登入帳號（<deploy-user>），勿用 tfx（nologin 無法 SSH）
+GCE_HOST=<deploy-user>@<GCE_STATIC_IP> REMOTE_ROOT=/opt/tfx-trading \
   bash scripts/linux/sync-from-gce.sh
-# 要拉 log 做 calibration_cli：SYNC_LOGS=1 GCE_HOST=ubuntu@... bash scripts/linux/sync-from-gce.sh
+# 要拉 log：SYNC_LOGS=1 GCE_HOST=<deploy-user>@<GCE_STATIC_IP> bash scripts/linux/sync-from-gce.sh
 ```
 
 3. 地端跑：
@@ -115,11 +122,12 @@ python -m sweep.determinism_check --date 2026-06-12 --mode hash
 
 ## 6. 驗收檢查
 
-- [ ] GCE `systemctl status tfx-trading` active（交易時段）
+- [x] GCE 節點部署 + login smoke（2026-06-23）
+- [ ] 交易時段 `systemctl status tfx-trading` active（08:30 開機後）
 - [ ] 地端 `sync-from-gce.sh` 後 `tick_cache` 與 GCE 一致
 - [ ] 地端 `determinism_check` hash 與 GCE `snapshots/` 一致
-- [ ] 地端 `run-all-tests.sh` 全綠（269 tests，以實際 `Ran` 為準）
-- [ ] [`uat/APP.md`](../uat/APP.md) Phase 0–1 證據路徑填寫（GCE 或 Windows）
+- [ ] 地端 `run-all-tests.sh` 全綠（以實際 `Ran` 為準）
+- [ ] [`uat/APP.md`](../uat/APP.md) **Phase 1** 完整交易日（2026-06-24 預定）
 
 ## 相關文件
 

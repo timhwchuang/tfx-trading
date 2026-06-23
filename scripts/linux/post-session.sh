@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Post-session maintenance: compress tick_cache, daily JSON report, determinism hash.
-# Run after market close (default 15:30 cron). See docs/ops/LinuxOps.md
+# Run after market close. GCP 14:00 shutdown: root stop @13:50, then this @13:54 (see docs/ops/LinuxOps.md).
+# 24/7 VMs: root stop @15:50, this @15:54.
 set -euo pipefail
 
 MONOREPO_ROOT="${MONOREPO_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"

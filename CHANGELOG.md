@@ -14,6 +14,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **GCE Live 運維 SSOT**：[`docs/ops/LinuxOps.md`](docs/ops/LinuxOps.md) §GCE（目錄、cron 13:50 stop → 13:54 post-session、sync）；[`HYBRID_DEPLOY.md`](docs/ops/HYBRID_DEPLOY.md) 已部署摘要；[`TODO.md`](docs/TODO.md) §GCP 營運（2026-07-23 帳單）。
 - **FT-002 Phase 4**：`regime_allows_entry` 接線；`structure_veto` / armed structure enrichment DECISION_AUDIT；`structure_stale` → `risk_blocked` audit；`record_structure_veto`；filter-on 3-run determinism；[`TODO.md`](docs/TODO.md) / [`WeeklyStatus.md`](docs/WeeklyStatus.md) / [`uat/APP.md`](docs/uat/APP.md) 同步 P6-SMC-CAL 指引。
 - **FT-002 Phase 3 + sweep（A1–A8）**：`StructureRefreshPort` / `structure_stale` / `refresh_atr` 掛載；`structure_refresh.py`；config + runtime 互斥；`structure_calibration_cli --sweep`；`param_sweep` structure grid；`test_structure_stale_guards`。
 - **FT-002 Phase 2** P6-SMC-CAL offline harness: `structure_calibration.py` + `structure_calibration_cli.py` —三組 counterfactual（no_filter / structure_only / trend_only）、friction-adjusted expectancy、`structure_events.csv` + `structure_armed_join.csv`、30s armed conversion；A/B-class tests + kbar fixture。

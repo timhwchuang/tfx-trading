@@ -7,6 +7,26 @@
 
 ---
 
+### 2026-06-23（GCE Live 節點就緒 — Phase 1 待驗）
+
+**目前進度**
+- GCP GCE Live 就緒（規格見 [`ops/LinuxOps.md`](ops/LinuxOps.md) §GCE）：`e2-medium`、Debian 13、20GB、排程 **08:30–14:00**（台北）。
+- `/opt/tfx-trading`：`setup-dev.sh`、`install-systemd.sh`、`tfx-trading` enabled；模擬登入 smoke OK（`TMFR1`）。
+- Cron：root **13:50** `systemctl stop` → tfx **13:54** `post-session.sh`（先 stop 再維護，見 [`ops/LinuxOps.md`](ops/LinuxOps.md)）。
+- 手動 post-session 驗證：`reports/day20260623.json`、`snapshots/determinism_20260623.txt`。
+
+**人類必做（Follow-up）**
+- [ ] **2026-06-24（下一交易日）**：GCE 自動跑完整 **Phase 1** → 收盤後 `sync-from-gce.sh` 回地端 → 對 `reports/`、`tick_cache`、`determinism` hash
+- [ ] **2026-07-23**：記錄首月 GCP 實際帳單（見 [`TODO.md`](TODO.md) §GCP 營運）
+- [ ] GCP Monitoring：交易時段 VM 死活 email 告警（Telegram 無法覆蓋 VM 關機）
+- [ ] 靜態 IP（若尚未綁定）
+
+**備註**
+- VM 上 git：`sudo -u tfx git -C /opt/tfx-trading pull`（repo owner `tfx`）。
+- 敏感設定僅在 `/etc/tfx-trading/env`，勿 commit。
+
+---
+
 ## UAT 週報必填欄位（Phase 3 起）
 
 每週更新（可併入下方範本）：
