@@ -10,6 +10,7 @@ from trading_engine.testing.helpers import (
     make_broker_with_positions,
     make_host,
 )
+from trading_engine.engine import AtrRefreshResult, ReconnectOutcome
 
 
 class _ImmediateThread:
@@ -45,6 +46,8 @@ class TestKernelUatRegression(unittest.TestCase):
         trade.order.id = host.pending_order_id
         host.pending_trade = trade
 
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(True))
+
         with patch("trading_engine.engine.threading.Thread", _ImmediateThread):
             host.handle_session_event(0, 13, "ok", "")
 
@@ -53,6 +56,24 @@ class TestKernelUatRegression(unittest.TestCase):
         host._resubscribe_ticks.assert_called()
         host.refresh_atr.assert_called()
         self.assertTrue(host._api_connected)
+
+    def test_b3_reconnect_unhealthy_session_stays_disconnected(self):
+        host = make_host()
+        host._api_connected = False
+        host.sync_positions = MagicMock()
+        host._resubscribe_ticks = MagicMock()
+        session_err = RuntimeError(
+            "kbars: Shioaji error Session error code: NotReady "
+            "SessionNotEstablished"
+        )
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(False, True))
+
+        host._on_reconnected()
+
+        host.sync_positions.assert_called()
+        host._resubscribe_ticks.assert_called()
+        host.refresh_atr.assert_called()
+        self.assertFalse(host._api_connected)
 
     def test_b4_pending_timeout_critical_alert_and_sync(self):
         alerts = MagicMock()

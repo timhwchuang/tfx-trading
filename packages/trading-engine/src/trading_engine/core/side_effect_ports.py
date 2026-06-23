@@ -131,6 +131,9 @@ class NullTelemetryPort:
     def record_no_tick_resubscribe(self) -> None:
         return None
 
+    def record_no_tick_escalation(self) -> None:
+        return None
+
     def reset(self) -> None:
         return None
 
@@ -180,6 +183,8 @@ class TelemetryPort(Protocol):
     def record_intent_cancelled(self, tag: str) -> None: ...
 
     def record_no_tick_resubscribe(self) -> None: ...
+
+    def record_no_tick_escalation(self) -> None: ...
 
     def reset(self) -> None: ...
 

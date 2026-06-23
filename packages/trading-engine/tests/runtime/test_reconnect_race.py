@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import threading
 import unittest
 from unittest.mock import MagicMock
 
 from trading_engine.testing.helpers import arm_pending_exit, make_host
+from trading_engine.engine import AtrRefreshResult, ReconnectOutcome
 
 
 class TestReconnectRace(unittest.TestCase):
@@ -58,9 +60,90 @@ class TestReconnectRace(unittest.TestCase):
         host.contract = MagicMock(code="TXFR1")
         host.api.login = MagicMock()
         host.sync_positions = MagicMock()
-        host.refresh_atr = MagicMock()
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(True))
 
         host._on_reconnected()
 
         host.sync_positions.assert_called()
         self.assertTrue(host._api_connected)
+
+    def test_stale_reconnect_does_not_undo_healthy_state(self):
+        host = make_host()
+        host._api_connected = True
+        host._disconnect_count_today = 0
+        host.contract = MagicMock(code="TXFR1")
+        host.sync_positions = MagicMock()
+        host._resubscribe_ticks = MagicMock()
+
+        started = threading.Event()
+        proceed = threading.Event()
+
+        def slow_unhealthy_refresh():
+            started.set()
+            proceed.wait(timeout=1)
+            return AtrRefreshResult(False, True)
+
+        host.refresh_atr = MagicMock(side_effect=slow_unhealthy_refresh)
+
+        stale = threading.Thread(target=host._on_reconnected, name="stale-reconnect")
+        stale.start()
+        started.wait(timeout=1)
+
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(True))
+        self.assertEqual(host._on_reconnected(), ReconnectOutcome.HEALTHY)
+        self.assertTrue(host._api_connected)
+
+        proceed.set()
+        stale.join(timeout=2)
+        self.assertTrue(host._api_connected)
+        self.assertEqual(host._disconnect_count_today, 0)
+
+    def test_unhealthy_reconnect_does_not_undo_newer_healthy(self):
+        host = make_host()
+        host._api_connected = True
+        host._disconnect_count_today = 0
+        host.contract = MagicMock(code="TXFR1")
+        host.sync_positions = MagicMock()
+        host._resubscribe_ticks = MagicMock()
+
+        started = threading.Event()
+        proceed = threading.Event()
+
+        def slow_unhealthy_atr():
+            started.set()
+            proceed.wait(timeout=1)
+            return AtrRefreshResult(False, True)
+
+        host.refresh_atr = MagicMock(side_effect=slow_unhealthy_atr)
+
+        slow = threading.Thread(target=host._on_reconnected, name="slow-unhealthy")
+        slow.start()
+        started.wait(timeout=1)
+
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(True))
+        self.assertEqual(host._on_reconnected(), ReconnectOutcome.HEALTHY)
+        self.assertTrue(host._api_connected)
+
+        proceed.set()
+        slow.join(timeout=2)
+        self.assertTrue(host._api_connected)
+        self.assertEqual(host._disconnect_count_today, 0)
+
+    def test_newer_unhealthy_reconnect_does_not_tear_down_established_session(self):
+        host = make_host()
+        host._api_connected = False
+        host.sync_positions = MagicMock()
+        host._resubscribe_ticks = MagicMock()
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(True))
+
+        self.assertEqual(host._on_reconnected(), ReconnectOutcome.HEALTHY)
+        self.assertTrue(host._api_connected)
+        established_gen = host._connected_reconnect_generation
+
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(False, True))
+        outcome = host._on_reconnected()
+
+        self.assertEqual(outcome, ReconnectOutcome.STALE)
+        self.assertTrue(host._api_connected)
+        self.assertEqual(host._connected_reconnect_generation, established_gen)
+        self.assertEqual(host._disconnect_count_today, 0)

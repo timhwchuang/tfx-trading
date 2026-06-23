@@ -14,7 +14,7 @@ Prerequisites: [trading-engine README § Go-Live](../../packages/trading-engine/
 |---|------|:----:|--------------|
 | A1 | App pins `trading-engine@v0.2.2` (git tag) | ☐ | |
 | A2 | `.env` from `.env.example`; **not** in git | ☐ | |
-| A3 | `python run_tests.py` green in trading-engine package | ☐ | ~80 tests |
+| A3 | `python run_tests.py` green in trading-engine package | ☐ | ~112 tests |
 | A4 | App boots with `ShioajiLiveBootstrap` + injected ports | ☐ | |
 
 ---
@@ -25,7 +25,7 @@ Prerequisites: [trading-engine README § Go-Live](../../packages/trading-engine/
 |---|----------|:----:|----------|--------------|
 | B1 | Full trading day tick flow | ☐ | Entry/exit signals, fills, `position_qty` correct | |
 | B2 | `session_force_flatten_time` with open position | ☐ | Kernel arms exit; position flat after fill | |
-| B3 | Disconnect → reconnect (`event_code` 12/13) | ☐ | `_on_reconnected`: reconcile → sync → resubscribe | |
+| B3 | Disconnect → reconnect (`event_code` 12/13) | ☐ | `_on_reconnected`: reconcile → sync → resubscribe; **`_api_connected` only if subscribe + session-healthy ATR**; else session watchdog relogin | |
 | B4 | Pending timeout (short `pending_timeout_sec` in test cfg) | ☐ | CRITICAL alert; `block_new_entry`; sync runs | |
 | B5 | Invalid strategy signal (test `qty=0`) | ☐ | Warning log; **no** arm | |
 | B6 | `get_state_snapshot()` matches broker after sync | ☐ | `snap.position_qty` / `dir` consistent | |

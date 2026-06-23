@@ -47,6 +47,9 @@ class TradingAppTelemetryPort:
     def record_no_tick_resubscribe(self) -> None:
         self._obs.record_no_tick_resubscribe()
 
+    def record_no_tick_escalation(self) -> None:
+        self._obs.record_no_tick_escalation()
+
     def reset(self) -> None:
         self._obs.reset()
 

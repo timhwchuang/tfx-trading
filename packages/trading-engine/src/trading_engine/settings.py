@@ -35,6 +35,7 @@ class Settings:
     hard_stop_points: int
     vwap_stop_points: int
     no_tick_timeout_sec: int
+    no_tick_resubscribe_escalate_after: int
     clock_skew_warn_sec: float
 
     trend_filter_enabled: bool

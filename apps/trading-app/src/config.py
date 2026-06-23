@@ -54,6 +54,7 @@ class Settings:
     hard_stop_points: int
     vwap_stop_points: int
     no_tick_timeout_sec: int
+    no_tick_resubscribe_escalate_after: int
     clock_skew_warn_sec: float
 
     trend_filter_enabled: bool
@@ -170,6 +171,9 @@ def load_config(path: str | Path | None = None) -> Settings:
         hard_stop_points=int(strategy.get("hard_stop_points", 6)),
         vwap_stop_points=int(strategy.get("vwap_stop_points", 3)),
         no_tick_timeout_sec=int(strategy.get("no_tick_timeout_sec", 45)),
+        no_tick_resubscribe_escalate_after=int(
+            operations.get("no_tick_resubscribe_escalate_after", 3)
+        ),
         clock_skew_warn_sec=float(strategy.get("clock_skew_warn_sec", 1.0)),
         trend_filter_enabled=bool(strategy.get("trend_filter_enabled", False)),
         trend_timeframe_min=int(strategy.get("trend_timeframe_min", 5)),

@@ -137,6 +137,7 @@ engine.on_tick(TickSnapshot(ts=..., price=..., volume=..., tick_type=1, exchange
 4. Exit 為全量平倉（`qty → 0`）；partial fill 未達 `pending_qty` 時維持 pending。
 5. 錯誤 `order_id` 的 deal/fill 忽略（idempotency）。
 6. 日內風控計數依 `trading_day_for_daily_reset` 重置。
+7. **`_api_connected`** 僅在 subscribe 成功且 `refresh_atr()` 成功（或 ATR 失敗非 session 錯誤）後由 `_on_reconnected` 設為 `True`；`SessionNotEstablished` / `NotReady` → 保持 disconnected，交由 session watchdog relogin（見 [`LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md)）。
 
 實作參考：`order_executor.py`、`session.py`、`engine.py`。歷史設計稿見 [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md)。
 
@@ -197,7 +198,7 @@ trading-engine/
 
 | 階段 | 做法 |
 |------|------|
-| **本 repo** | `python run_tests.py` — **73** kernel tests（含 adversarial：qty、callbacks、reconnect、sync、force-flatten、signal validation、state snapshot、no-shioaji core import） |
+| **本 repo** | `python run_tests.py` — **112** kernel tests（含 adversarial：qty、callbacks、reconnect、no-tick escalation、sync、force-flatten、signal validation、state snapshot、no-shioaji core import） |
 | **消費端** | strategy / backtest / app repo 自有整合測 |
 | **CI** | [.github/workflows/tests.yml](.github/workflows/tests.yml) — push/PR 至 `main` 跑 matrix Python 3.11–3.13：`ruff check`、`ruff format --check`、`mypy`、`python run_tests.py`（含 `test_no_shioaji_core_import.py`） |
 

@@ -138,6 +138,7 @@ class DailyObservability:
     lock_wait_max_ms: float = 0.0
     lock_wait_over_50ms: int = 0
     no_tick_resubscribe: int = 0
+    no_tick_escalations: int = 0
     tick_type_counts: dict[str, int] = field(
         default_factory=lambda: {"0": 0, "1": 0, "2": 0}
     )
@@ -241,6 +242,9 @@ class DailyObservability:
 
     def record_no_tick_resubscribe(self) -> None:
         self.no_tick_resubscribe += 1
+
+    def record_no_tick_escalation(self) -> None:
+        self.no_tick_escalations += 1
 
     def snapshot_tick_types(self, counts: Mapping[int, int]) -> None:
         for key in (0, 1, 2):
@@ -455,6 +459,7 @@ class DailyObservability:
                 "lock_wait_max_ms": self.lock_wait_max_ms,
                 "lock_wait_over_50ms": self.lock_wait_over_50ms,
                 "no_tick_resubscribe": self.no_tick_resubscribe,
+                "no_tick_escalations": self.no_tick_escalations,
                 "atr_min": self.atr_min,
                 "atr_max": self.atr_max,
             },
@@ -472,6 +477,7 @@ class DailyObservability:
         self.lock_wait_max_ms = 0.0
         self.lock_wait_over_50ms = 0
         self.no_tick_resubscribe = 0
+        self.no_tick_escalations = 0
         self.tick_type_counts = {"0": 0, "1": 0, "2": 0}
         self.tick_type_inferred_counts = {"1": 0, "2": 0}
         self.atr_min = None

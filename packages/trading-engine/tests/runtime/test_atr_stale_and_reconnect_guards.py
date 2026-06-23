@@ -8,6 +8,7 @@ from dataclasses import replace
 from unittest.mock import MagicMock
 
 from trading_engine.core.runtime_config import RuntimeConfig
+from trading_engine.engine import AtrRefreshResult, ReconnectOutcome
 from trading_engine.testing.defaults import default_test_settings
 from trading_engine.testing.helpers import make_host
 
@@ -46,10 +47,37 @@ class TestAtrStaleAndReconnectGuards(unittest.TestCase):
         host.indicators.last_atr_refresh = 500.0
 
         host._atr_refresh_in_flight = True
-        host.refresh_atr()
+        ok = host.refresh_atr()
 
+        self.assertFalse(ok)
         self.assertEqual(host.indicators.last_atr_refresh, 500.0)
         self.assertFalse(host._atr_refresh_in_flight)
+
+    def test_refresh_atr_returns_session_error_in_result(self):
+        host = make_host()
+        host.contract = MagicMock(code="TXFR1")
+        host.api.kbars = MagicMock(
+            side_effect=RuntimeError(
+                "Session error code: NotReady SessionNotEstablished"
+            )
+        )
+
+        result = host.refresh_atr()
+
+        self.assertFalse(result)
+        self.assertTrue(result.session_error)
+
+    def test_reconnect_uses_per_call_atr_session_error(self):
+        host = make_host()
+        host._api_connected = False
+        host.sync_positions = MagicMock()
+        host._resubscribe_ticks = MagicMock()
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(False, True))
+
+        outcome = host._on_reconnected()
+
+        self.assertEqual(outcome, ReconnectOutcome.UNHEALTHY)
+        self.assertFalse(host._api_connected)
 
     def test_disconnect_count_blocks_entry_at_limit(self):
         host = self._host_with_cfg(max_disconnects_per_day=2)
@@ -88,7 +116,7 @@ class TestAtrStaleAndReconnectGuards(unittest.TestCase):
         host.last_tick_exchange_ts = 5000
         host.contract = MagicMock(code="TXFR1")
         host.sync_positions = MagicMock()
-        host.refresh_atr = MagicMock()
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(True))
 
         host._on_reconnected()
 

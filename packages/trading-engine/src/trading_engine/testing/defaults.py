@@ -36,6 +36,7 @@ def default_test_settings() -> Settings:
         hard_stop_points=6,
         vwap_stop_points=3,
         no_tick_timeout_sec=45,
+        no_tick_resubscribe_escalate_after=3,
         clock_skew_warn_sec=1.0,
         trend_filter_enabled=False,
         trend_timeframe_min=5,

@@ -69,11 +69,24 @@ This document describes what the kernel does when things go wrong during live op
 
 | | |
 |---|---|
-| **Kernel behavior** | During trading session, if no tick for `no_tick_timeout_sec`, logs warning and calls `_resubscribe_ticks` hook (set by `ShioajiLiveBootstrap`). Throttled to once per 60s. Failure logs warning only. |
-| **Expected outcome** | Strategy evaluation stops (no ticks); existing position unchanged; pending orders may timeout separately. |
-| **Operator action** | Confirm `ShioajiLiveBootstrap.attach()` wired resubscribe hook. Check API usage limits and contract subscription. |
+| **Kernel behavior** | During trading session, if no tick for `no_tick_timeout_sec`, logs warning and calls `_resubscribe_ticks` hook (set by `ShioajiLiveBootstrap`). Throttled to once per 60s. Resubscribe `except` → `_mark_disconnected()` immediately. After `no_tick_resubscribe_escalate_after` consecutive resubscribes (default 3) with no tick recovery → CRITICAL alert + `_mark_disconnected()` → session watchdog `api.login()`. |
+| **Expected outcome** | Strategy evaluation stops until ticks resume or relogin succeeds; existing position unchanged; pending orders may timeout separately. |
+| **Operator action** | Confirm `ShioajiLiveBootstrap.attach()` wired resubscribe hook. Check API usage limits and contract subscription. If escalation repeats, restart live process. |
 
 **Code:** `engine.py:_check_no_tick_watchdog`, `adapters/shioaji_live.py`
+
+---
+
+### Zombie session after reconnect (SessionNotEstablished)
+
+| | |
+|---|---|
+| **Symptom** | `ATR 更新失敗` / kbars with `SessionNotEstablished` or `NotReady`; log says `重連後狀態同步完成` but no ticks; no-tick watchdog resubscribes endlessly; `logout` traceback on Ctrl+C. |
+| **Kernel behavior (fixed)** | `_on_reconnected` sets `_api_connected=True` **only** when subscribe succeeds and `refresh_atr()` succeeds, or ATR failure is **not** a session error (`api_errors.is_api_session_error`). Session-level ATR/kbars failure → stay disconnected → session watchdog relogin. `run()` finally swallows session-dead `logout` errors. |
+| **Expected outcome** | No long-lived “connected but no ticks” state; relogin within ~3 no-tick escalation cycles (~3 min) if resubscribe alone fails. |
+| **Operator action** | If relogin exhausts (`session_relogin_max_attempts`), stop process and check network / duplicate API login. |
+
+**Code:** `engine.py:_on_reconnected`, `api_errors.py`, `engine.py:run`
 
 ---
 
@@ -107,7 +120,7 @@ This document describes what the kernel does when things go wrong during live op
 
 | | |
 |---|---|
-| **Kernel behavior** | After `_on_reconnected`, synchronous `refresh_atr()` then `_pending_reconnect_warmup=True`. On the **first post-reconnect tick**, `reconnect_warmup_until_ts = tick_ts + reconnect_warmup_sec` (default 300s) so long disconnects still get a full warmup window. `RiskGate.reconnect_warmup_active` blocks **new entry** until exchange tick ts passes warmup end. Exits / force-flatten still allowed. |
+| **Kernel behavior** | After successful `_on_reconnected` (subscribe + session-healthy `refresh_atr()`), sets `_pending_reconnect_warmup=True`. On the **first post-reconnect tick**, `reconnect_warmup_until_ts = tick_ts + reconnect_warmup_sec` (default 300s) so long disconnects still get a full warmup window. `RiskGate.reconnect_warmup_active` blocks **new entry** until exchange tick ts passes warmup end. Exits / force-flatten still allowed. |
 | **Expected outcome** | No momentum entries on partially-filled VWAP/ATR windows immediately after reconnect. |
 | **Operator action** | UAT: manual disconnect 30–60s; confirm no entry during warmup log line window. |
 

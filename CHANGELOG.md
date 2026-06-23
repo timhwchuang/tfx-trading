@@ -32,12 +32,16 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Fixed
 
+- **Zombie session after reconnect (SessionNotEstablished)**: `_on_reconnected` no longer sets `_api_connected=True` when subscribe fails or `refresh_atr()` hits a session-level error (`api_errors.is_api_session_error`). No-tick watchdog escalates to `_mark_disconnected()` after `no_tick_resubscribe_escalate_after` (default 3) failed resubscribes, delegating to session watchdog relogin. `run()` shutdown swallows dead-session `logout` errors. See [`docs/ops/LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md).
+
 - **Live order callbacks ignored (UAT pending timeout)**: Shioaji `OrderState.FuturesOrder` / `FuturesDeal` are str-like (`isinstance(stat, str)` is True) but not equal to `"FuturesOrder"` / `"FuturesDeal"`. `normalize_order_stat` now prefers `.name` before the `isinstance(str)` branch so `handle_order_event` routes live callbacks. Mock/backtest string stats unchanged. Symptom: `RAW_ORDER_EVT` in log but no `委託回報` / `FILL_AUDIT`, then `Pending 超時`. Documented in [`docs/ops/LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md) and SPEC §4.2 Order/fill.
 
 #### Added
 
-- **`tests/test_order_events.py`**: Shioaji `OrderState` normalization regression (skipped if `shioaji` not installed).
-- **`tests/runtime/test_order_smoke.py`**: Buy/sell round-trip smoke with mock callbacks; documents sim no-callback timeout path.
+- **`api_errors.is_api_session_error`**: Classify `SessionNotEstablished` / `NotReady` / `ShioajiConnectionError` without importing shioaji in core.
+- **Config** `operations.no_tick_resubscribe_escalate_after` (default 3).
+- **`DAILY_SUMMARY.operational.no_tick_escalations`**: Count of no-tick → session-relogin escalations.
+- **Tests**: `test_api_errors.py`, `test_no_tick_escalation.py`, `test_graceful_logout.py`, B3 unhealthy reconnect regression.
 
 - **Shioaji API thread-safety (root cause of PyBorrowMutError)**: Prevented background threads from mutating live `Trade` objects via `update_status(trade=...)` or account-level calls that trigger internal Rust borrows. Primary path now relies on `handle_order_event` callbacks. Reconcile fallback uses non-mutating `order_deal_records()` (query + order_id match). Full review feedback addressed:
   - Removed all live trade mutation in bg paths (reconcile/place_order no longer call update_status on trade objects).
