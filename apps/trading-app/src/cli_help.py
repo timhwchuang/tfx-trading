@@ -59,7 +59,7 @@ CATALOG: tuple[CliEntry, ...] = (
     CliEntry(
         "backfilldata",
         "永豐 API 補歷史 tick / kbar 快取",
-        "python -m backfilldata date 2026-06-20",
+        "python -m backfilldata month 2026-04",
     ),
     CliEntry(
         "reporting.calibration_cli",

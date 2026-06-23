@@ -187,6 +187,103 @@ def _missing_kbar_dates(
     ]
 
 
+def _backfill_chunk_size(*, fetch_ticks: bool, fetch_kbars: bool) -> int:
+    if fetch_ticks:
+        return _MAX_TICK_DAYS_PER_RUN
+    if fetch_kbars:
+        return _MAX_KBAR_DAYS_PER_RUN
+    return _MAX_TICK_DAYS_PER_RUN
+
+
+def _merge_backfill_results(target: BackfillResult, batch: BackfillResult) -> None:
+    target.ticks.extend(batch.ticks)
+    target.kbars.extend(batch.kbars)
+    target.missing_tick_dates.extend(batch.missing_tick_dates)
+    target.missing_kbar_dates.extend(batch.missing_kbar_dates)
+
+
+def filter_backfill_eligible_dates(
+    dates: Sequence[datetime.date],
+    *,
+    today: datetime.date | None = None,
+    now: datetime.datetime | None = None,
+) -> tuple[list[datetime.date], list[datetime.date]]:
+    """Drop future dates and today before day-session close (per-day validate)."""
+    eligible: list[datetime.date] = []
+    skipped: list[datetime.date] = []
+    for d in dates:
+        try:
+            validate_past_dates([d], today=today, now=now)
+        except BackfillError:
+            skipped.append(d)
+            continue
+        eligible.append(d)
+    return eligible, skipped
+
+
+def backfill_month(
+    year: int,
+    month: int,
+    *,
+    use_holiday_calendar: bool = True,
+    calendar_year: Sequence[dict[str, Any]] | None = None,
+    today: datetime.date | None = None,
+    now: datetime.datetime | None = None,
+    **kwargs: Any,
+) -> tuple[BackfillResult, dict[str, Any]]:
+    """Backfill all trading weekdays in a calendar month (batched for API limits)."""
+    from backfilldata.taiwan_calendar import resolve_month_trading_days_with_fallback
+
+    trading_days, skipped_buckets = resolve_month_trading_days_with_fallback(
+        year,
+        month,
+        use_holiday_calendar=use_holiday_calendar,
+        calendar_year=calendar_year,
+    )
+    eligible, skipped_future = filter_backfill_eligible_dates(
+        trading_days,
+        today=today,
+        now=now,
+    )
+
+    fetch_ticks = kwargs.get("fetch_ticks", True)
+    fetch_kbars = kwargs.get("fetch_kbars", True)
+    chunk_size = _backfill_chunk_size(
+        fetch_ticks=fetch_ticks,
+        fetch_kbars=fetch_kbars,
+    )
+
+    merged = BackfillResult()
+    batches: list[BackfillResult] = []
+    api = kwargs.pop("api", None)
+    owns_api = api is None
+    if owns_api and eligible:
+        api = create_and_login_api(simulation=kwargs["simulation"])
+    try:
+        for offset in range(0, len(eligible), chunk_size):
+            chunk = eligible[offset : offset + chunk_size]
+            batch = backfill_dates(chunk, api=api, today=today, **kwargs)
+            batches.append(batch)
+            _merge_backfill_results(merged, batch)
+    finally:
+        if owns_api and api is not None:
+            try:
+                api.logout()
+            except Exception as e:
+                logger.warning("api.logout 失敗: %s", e)
+
+    meta = {
+        "trading_days": trading_days,
+        "eligible_days": eligible,
+        "skipped_weekend": skipped_buckets["weekend"],
+        "skipped_holiday": skipped_buckets["holiday"],
+        "skipped_missing_calendar": skipped_buckets.get("missing_calendar", []),
+        "skipped_future": skipped_future,
+        "batches": batches,
+    }
+    return merged, meta
+
+
 def backfill_dates(
     dates: Sequence[datetime.date],
     *,
