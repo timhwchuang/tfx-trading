@@ -32,6 +32,13 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Fixed
 
+- **Live order callbacks ignored (UAT pending timeout)**: Shioaji `OrderState.FuturesOrder` / `FuturesDeal` are str-like (`isinstance(stat, str)` is True) but not equal to `"FuturesOrder"` / `"FuturesDeal"`. `normalize_order_stat` now prefers `.name` before the `isinstance(str)` branch so `handle_order_event` routes live callbacks. Mock/backtest string stats unchanged. Symptom: `RAW_ORDER_EVT` in log but no `委託回報` / `FILL_AUDIT`, then `Pending 超時`. Documented in [`docs/ops/LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md) and SPEC §4.2 Order/fill.
+
+#### Added
+
+- **`tests/test_order_events.py`**: Shioaji `OrderState` normalization regression (skipped if `shioaji` not installed).
+- **`tests/runtime/test_order_smoke.py`**: Buy/sell round-trip smoke with mock callbacks; documents sim no-callback timeout path.
+
 - **Shioaji API thread-safety (root cause of PyBorrowMutError)**: Prevented background threads from mutating live `Trade` objects via `update_status(trade=...)` or account-level calls that trigger internal Rust borrows. Primary path now relies on `handle_order_event` callbacks. Reconcile fallback uses non-mutating `order_deal_records()` (query + order_id match). Full review feedback addressed:
   - Removed all live trade mutation in bg paths (reconcile/place_order no longer call update_status on trade objects).
   - Fixed empty `order_id` at place time (backfill from first callback; post-place population only in non-sim when necessary).
@@ -223,6 +230,8 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 ### [Unreleased]
 
 #### Added
+
+- **`python -m live.order_smoke`**: Manual UAT smoke for Shioaji Buy/Sell IOC — raw `place_order` + `TradingEngine` path; `DUMP_ORDER_EVENTS=1` recommended. Refuses `simulation: false`.
 
 - **`--dates-from-cache`** on `python -m backtest` and `python -m reporting.calibration_cli`：自動掃描 `tick_cache/{code}_YYYY-MM-DD.csv[.gz]`（排除 `_kbars_` mirror）；可選 `--from-date` / `--to-date` 區間篩選（僅與 `--dates-from-cache` 併用）。共用 `storage.tick_loader.resolve_cli_tick_cache_dates`。
 - **`python -m backtest --report` / `--report-json` / `--log-file`**：回放後從 backtest log 產出 UAT 報告（終端只印結論；完整 replay → `logs/backtest_{code}_{date}.log` UTF-8 覆寫）；`--report-json` 另寫 `reports/backtest_{code}_{date}.json`。

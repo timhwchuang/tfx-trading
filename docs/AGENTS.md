@@ -300,6 +300,7 @@ Agent 常見誤解如下；**實作前請以 `TODO.md` 為準**。
 | **daily_pnl** | 毛點數，未扣費稅滑價 | Pilot 以券商帳戶為準對帳 |
 | **歷史 tick 下載** | **決策：不再**批量 API 抓歷史 tick | 靠 UAT `TICK_ARCHIVE=1` 累積 `tick_cache/` |
 | **秒停損率** | UAT 觀測項；**Pilot 硬指標** | 不要在 UAT 報告裡寫成「未達標就不能 merge code」 |
+| **Shioaji `OrderState` callback** | Live `stat` 是 `OrderState` 物件（`isinstance(stat,str)` 為 True）；mock 用字串 | `normalize_order_stat` 必須先讀 `.name`；UAT 跑 `python -m live.order_smoke`；見 [`LIVE_SAFETY.md`](ops/LIVE_SAFETY.md) |
 
 ---
 

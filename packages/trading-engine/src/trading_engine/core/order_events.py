@@ -9,11 +9,13 @@ FUTURES_DEAL = "FuturesDeal"
 
 
 def normalize_order_stat(stat: Any) -> str:
+    # Shioaji OrderState is str-like (isinstance(..., str) is True) but must use .name
+    # for stable matching with FUTURES_ORDER / FUTURES_DEAL.
+    name = getattr(stat, "name", None)
+    if isinstance(name, str) and name:
+        return name
     if isinstance(stat, str):
         return stat
-    name = getattr(stat, "name", None)
-    if name is not None:
-        return str(name)
     return str(stat)
 
 

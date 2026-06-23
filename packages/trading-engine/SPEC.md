@@ -264,10 +264,11 @@ See implementation in TradingEngine.__init__, OrderExecutorMixin, SessionMixin.
 
 **Order / fill**
 
-- `place_order(signal)` → `api.place_order(contract, order, timeout=0)` → object with `.order.id`
+- `place_order(signal)` → `api.place_order(contract, order, timeout=0)` → object with `.order.id` (may be empty at return in simulation; backfill from first callback).
 - `handle_order_event(stat, msg)`:
   - `FuturesDeal`: `price`, `quantity`, `action`, `trade_id`
   - `FuturesOrder` (cancel): `operation`, `status`, `trade_id`
+- **Live Shioaji pitfall:** callback `stat` is `OrderState.FuturesOrder` / `FuturesDeal`, not a plain string. `isinstance(stat, str)` is `True` on Shioaji `OrderState` — route via `stat.name` (see `core/order_events.normalize_order_stat`). Mock/backtest use string `"FuturesOrder"` / `"FuturesDeal"`; live integration must be tested with real `OrderState` or `live.order_smoke`.
 - Pending fields used by replay: `pending_order_id`, `pending_intent`, `is_pending`, `pending_qty`, etc.
 
 **ATR / kbars**

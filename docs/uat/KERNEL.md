@@ -29,6 +29,7 @@ Prerequisites: [trading-engine README § Go-Live](../../packages/trading-engine/
 | B4 | Pending timeout (short `pending_timeout_sec` in test cfg) | ☐ | CRITICAL alert; `block_new_entry`; sync runs | |
 | B5 | Invalid strategy signal (test `qty=0`) | ☐ | Warning log; **no** arm | |
 | B6 | `get_state_snapshot()` matches broker after sync | ☐ | `snap.position_qty` / `dir` consistent | |
+| B7 | Order callback routing (Shioaji `OrderState`) | ☐ | `python -m live.order_smoke` → `委託回報` + `FILL_AUDIT`; no spurious pending timeout | See [`LIVE_SAFETY.md`](../ops/LIVE_SAFETY.md) |
 
 ---
 

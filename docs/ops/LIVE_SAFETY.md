@@ -77,6 +77,20 @@ This document describes what the kernel does when things go wrong during live op
 
 ---
 
+### Shioaji `OrderState` mis-routed callbacks (pending timeout with live API)
+
+| | |
+|---|---|
+| **Symptom** | `下單 ... \| trade=` empty; `RAW_ORDER_EVT OrderState.FuturesOrder` appears in log; **no** `委託回報` / `FILL_AUDIT`; after `pending_timeout_sec` → `Pending 超時 8s 且補查無結果` + CRITICAL; `sync_positions` may show flat even though broker UI shows fills. |
+| **Root cause** | Live Shioaji passes `OrderState.FuturesOrder` / `FuturesDeal` as callback `stat`. That type is **str-like** (`isinstance(stat, str)` is `True`) but `stat != "FuturesOrder"`. If `normalize_order_stat` checks `isinstance(stat, str)` **before** `.name`, `is_futures_order()` / `is_futures_deal()` never match → `handle_order_event` ignores all live order callbacks. Mock/backtest pass plain strings `"FuturesOrder"` / `"FuturesDeal"`, so unit tests stay green. |
+| **Kernel behavior (fixed)** | `core/order_events.py`: prefer `stat.name` when present, then plain `str`, then `str(stat)`. Regression: `tests/test_order_events.py` (requires `shioaji` installed). |
+| **Simulation note** | `_reconcile_pending_trade` short-circuits in simulation (no `order_deal_records` fallback). Without working callbacks, pending **always** times out in sim — do not blame `sync_positions` alone. |
+| **Operator / dev action** | UAT: `DUMP_ORDER_EVENTS=1 python -m live.order_smoke` (`apps/trading-app`). Expect `委託回報` → `pending_armed` → `成交回報` → `FILL_AUDIT`. Official Shioaji pattern: compare `stat == sj.OrderState.FuturesOrder` or use `.name`, not `isinstance(stat, str)`. |
+
+**Code:** `core/order_events.py`, `order_executor.py:handle_order_event`, `tests/test_order_events.py`
+
+---
+
 ### ATR / trend refresh persistent failure
 
 | | |

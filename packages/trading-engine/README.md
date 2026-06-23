@@ -40,6 +40,7 @@
 - **Position 模型**：單一方向、全倉進出；`sync_positions` 只取第一筆匹配的非零部位。設計目標是 ~1 口台指日盤策略，**不是**通用部位管理（scale-in、減碼留倉、多商品組合均不支援）。詳見 [SPEC.md §4.2.1](SPEC.md)。
 - **狀態觀察**：使用 `engine.get_state_snapshot()` 唯讀觀察。**切勿**直接修改 `TradingEngine` 的 `position_qty`、`is_pending`、`pending_*`、`daily_pnl`、`block_new_entry` 等屬性 — 外部寫入可能破壞狀態機。
 - **失敗模式**：斷線、pending 超時、CA 失敗、重登入耗盡等情境的行為與後果見 [docs/ops/LIVE_SAFETY.md](../../docs/ops/LIVE_SAFETY.md)。
+- **Shioaji callback 型別**：live 的 `set_order_callback` 第一參數是 `OrderState`（`isinstance(stat, str)` 為 True 但不是字串常數）。Mock 回測用 `"FuturesOrder"` 字串 — **兩者必須在 `normalize_order_stat` 統一**；見 SPEC §4.2 Order/fill 與 `tests/test_order_events.py`。
 
 ## Go-Live Checklist
 
