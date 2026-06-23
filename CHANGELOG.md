@@ -239,7 +239,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - **`python -m live.order_smoke`**: Manual UAT smoke for Shioaji Buy/Sell IOC — raw `place_order` + `TradingEngine` path; `DUMP_ORDER_EVENTS=1` recommended. Refuses `simulation: false`.
 
 - **`--dates-from-cache`** on `python -m backtest` and `python -m reporting.calibration_cli`：自動掃描 `tick_cache/{code}_YYYY-MM-DD.csv[.gz]`（排除 `_kbars_` mirror）；可選 `--from-date` / `--to-date` 區間篩選（僅與 `--dates-from-cache` 併用）。共用 `storage.tick_loader.resolve_cli_tick_cache_dates`。
-- **`python -m backtest --report` / `--report-json` / `--log-file`**：回放後從 backtest log 產出 UAT 報告（終端只印結論；完整 replay → `logs/backtest_{code}_{date}.log` UTF-8 覆寫）；`--report-json` 另寫 `reports/backtest_{code}_{date}.json`。
+- **`python -m backtest --report` / `--log-file`**：回放後從 backtest log 產出 UAT 報告（終端只印結論；完整 replay log + metrics JSON）。`--dates` → `logs/backtest_{code}_{date}.log` + `reports/backtest_{code}_{date}.json`；`--dates-from-cache --cache-dir tick_cache/2026_05` → `backtest_2026_05.*`。
 - **`reporting.uat_report.read_log_text`**：支援 UTF-8 / UTF-16（PowerShell `Tee-Object`）。
 
 #### Fixed
@@ -252,6 +252,8 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 - **`storage/tick_loader` / `backfilldata`**：`api.ticks(AllDay)` 改用 30s timeout（Shioaji 預設 5s 常不足以下載全日 tick）；逾時自動重試最多 3 次（間隔 2s）。`storage/kbar_loader` 同步將 `api.kbars` timeout 設為 30s。
 
 #### Changed
+
+- **`python -m backtest --report`**：移除 `--report-json`；`--report` 一律寫 log + JSON。`--dates-from-cache` 輸出檔名改為 `backtest_{cache_dir_name}`（預設 `tick_cache/` → `backtest_tick_cache`；`--from-date`/`--to-date` 加 `_{date_range}` 後綴；cache 在 monorepo 外則 `{parent}_{leaf}`）；`--dates` 維持 `backtest_{code}_{date}`；`--log-file` 時 JSON 為 `reports/{log_stem}.json`。
 
 - **`backfilldata` tick query mode**: default tick fetch switched from `TicksQueryType.AllDay` to `TicksQueryType.RangeTime` (`08:45:00`–`13:45:00`) for UAT day-session補洞; CLI adds `--time-start` / `--time-end` and `--all-day-ticks`.
 - **`storage/tick_loader` gap merge**: RangeTime backfill merges into existing partial cache (dedupe by `datetime`); removes stale `*.csv.gz` when rewriting plain CSV; `--overwrite` replaces only the requested window and keeps out-of-window ticks.

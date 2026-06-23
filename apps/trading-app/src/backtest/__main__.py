@@ -28,13 +28,90 @@ def _date_range_tag(dates: list[datetime.date]) -> str:
     return f"{dates[0].strftime('%Y%m%d')}_{dates[-1].strftime('%Y%m%d')}"
 
 
-def default_log_path(code: str, dates: list[datetime.date]) -> Path:
+def _cache_dir_output_tag(cache_dir: str | Path) -> str:
+    """Leaf name under monorepo ``tick_cache/``; ``{parent}_{leaf}`` elsewhere."""
+    resolved = Path(cache_dir).resolve()
+    try:
+        resolved.relative_to(DEFAULT_TICK_CACHE_DIR.resolve())
+    except ValueError:
+        parent = resolved.parent.name
+        if parent and parent != resolved.name:
+            return f"{parent}_{resolved.name}"
+    return resolved.name
+
+
+def _cache_dir_report_tag(
+    cache_dir: str | Path,
+    dates: list[datetime.date],
+    *,
+    date_range_filtered: bool,
+) -> str:
+    tag = _cache_dir_output_tag(cache_dir)
+    if date_range_filtered and dates:
+        tag = f"{tag}_{_date_range_tag(dates)}"
+    return tag
+
+
+def default_log_path_for_dates(code: str, dates: list[datetime.date]) -> Path:
     logs_dir = DEFAULT_TICK_CACHE_DIR.parent / "logs"
     return logs_dir / f"backtest_{code}_{_date_range_tag(dates)}.log"
 
 
-def default_report_json_path(code: str, dates: list[datetime.date]) -> Path:
+def default_report_json_path_for_dates(code: str, dates: list[datetime.date]) -> Path:
     return DEFAULT_REPORTS_DIR / f"backtest_{code}_{_date_range_tag(dates)}.json"
+
+
+def default_log_path_for_cache_dir(
+    cache_dir: str | Path,
+    dates: list[datetime.date],
+    *,
+    date_range_filtered: bool,
+) -> Path:
+    tag = _cache_dir_report_tag(
+        cache_dir, dates, date_range_filtered=date_range_filtered
+    )
+    logs_dir = DEFAULT_TICK_CACHE_DIR.parent / "logs"
+    return logs_dir / f"backtest_{tag}.log"
+
+
+def default_report_json_path_for_cache_dir(
+    cache_dir: str | Path,
+    dates: list[datetime.date],
+    *,
+    date_range_filtered: bool,
+) -> Path:
+    tag = _cache_dir_report_tag(
+        cache_dir, dates, date_range_filtered=date_range_filtered
+    )
+    return DEFAULT_REPORTS_DIR / f"backtest_{tag}.json"
+
+
+def report_json_path_for_log(log_path: Path) -> Path:
+    """Pair JSON with a custom ``--log-file`` (same stem under ``reports/``)."""
+    return DEFAULT_REPORTS_DIR / f"{log_path.stem}.json"
+
+
+def default_report_paths(
+    *,
+    dates_from_cache: bool,
+    code: str,
+    dates: list[datetime.date],
+    cache_dir: str | Path,
+    date_range_filtered: bool = False,
+) -> tuple[Path, Path]:
+    if dates_from_cache:
+        return (
+            default_log_path_for_cache_dir(
+                cache_dir, dates, date_range_filtered=date_range_filtered
+            ),
+            default_report_json_path_for_cache_dir(
+                cache_dir, dates, date_range_filtered=date_range_filtered
+            ),
+        )
+    return (
+        default_log_path_for_dates(code, dates),
+        default_report_json_path_for_dates(code, dates),
+    )
 
 
 def configure_backtest_session_logging(
@@ -110,9 +187,12 @@ def build_parser() -> argparse.ArgumentParser:
             "Examples:\n"
             "  python -m backtest --dates 2026-06-12\n"
             "  python -m backtest --dates 2026-06-22 --report\n"
-            "  python -m backtest --dates 2026-06-22 --report-json\n"
-            "  python -m backtest --dates-from-cache --report "
-            "--from-date 2026-06-01 --to-date 2026-06-30\n"
+            "  python -m backtest --dates-from-cache --report\n"
+            "    -> logs/backtest_tick_cache.log + reports/backtest_tick_cache.json\n"
+            "  python -m backtest --dates-from-cache --cache-dir tick_cache/2026_05 --report\n"
+            "  python -m backtest --dates-from-cache --cache-dir tick_cache/2026_05 --report "
+            "--from-date 2026-05-01 --to-date 2026-05-15\n"
+            "    -> backtest_2026_05_20260501_20260515.*\n"
         ),
     )
     parser.add_argument(
@@ -155,25 +235,20 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         metavar="PATH",
         help=(
-            "UTF-8 backtest log via async logging (overwrite each run). "
-            "Default logs/backtest_{code}_{date}.log when --report/--report-json; "
-            "otherwise uses config LOG_FILE when set."
+            "Override backtest log path (UTF-8, overwrite each run). "
+            "With --report, JSON is reports/{log_stem}.json. "
+            "Without --log-file, --report uses the computed logs/backtest_*.log path. "
+            "Otherwise uses config LOG_FILE when set."
         ),
     )
     parser.add_argument(
         "--report",
         action="store_true",
-        help="Print UAT report after run (also enabled by --report-json)",
-    )
-    parser.add_argument(
-        "--report-json",
-        nargs="?",
-        const="__default__",
-        default=None,
-        metavar="PATH",
         help=(
-            "Write metrics JSON and print UAT report "
-            "(default path: reports/backtest_{code}_{date}.json)"
+            "After replay: print UAT report, write logs/backtest_*.log and "
+            "reports/backtest_*.json. --dates -> backtest_{code}_{date}; "
+            "--dates-from-cache -> backtest_{cache_dir_name} "
+            "(+_{date_range} when --from-date/--to-date filter)"
         ),
     )
     return parser
@@ -182,7 +257,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
-    want_report = args.report or args.report_json is not None
+    want_report = args.report
     log_path = args.log_file
 
     try:
@@ -203,8 +278,18 @@ def main(argv: list[str] | None = None) -> int:
         logging.error("%s", exc)
         return 1
 
+    date_range_filtered = args.dates_from_cache and bool(
+        args.from_date or args.to_date
+    )
+    default_log, default_json = default_report_paths(
+        dates_from_cache=args.dates_from_cache,
+        code=args.code,
+        dates=dates,
+        cache_dir=args.cache_dir,
+        date_range_filtered=date_range_filtered,
+    )
     if log_path is None and want_report:
-        log_path = default_log_path(args.code, dates)
+        log_path = default_log
 
     session_log: str | None = None
     truncate_log = False
@@ -236,14 +321,14 @@ def main(argv: list[str] | None = None) -> int:
     engine.run()
 
     if want_report:
-        assert log_path is not None
-        json_path: Path | None = None
-        if args.report_json is not None:
-            json_path = (
-                default_report_json_path(args.code, dates)
-                if args.report_json == "__default__"
-                else Path(args.report_json)
-            )
+        if log_path is None:
+            logging.error("--report requires a backtest log path")
+            return 1
+        json_path = (
+            report_json_path_for_log(log_path)
+            if args.log_file is not None
+            else default_json
+        )
         emit_report(log_path, print_report=True, json_path=json_path)
 
     if log_path is not None:

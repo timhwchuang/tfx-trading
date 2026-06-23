@@ -102,7 +102,10 @@ C:\tfx-trading\apps\trading-app\scripts\windows\start-trading-app.ps1 -MonorepoR
 |------|------|----------|
 | **指令總覽** | `python -m cli_help` | `python -m cli_help <module>` → 轉該模組 `--help` |
 | Live / 模擬 | `python -m live` | `python -m live --help` |
-| 回測 | `python -m backtest --dates 2026-06-22 --report`（終端只印 UAT 報告；完整 log → `logs/backtest_*.log`） | `python -m backtest --help` |
+| 回測（單日） | `python -m backtest --dates 2026-06-22 --report` → `logs/backtest_{code}_{date}.log` + `reports/backtest_{code}_{date}.json` | `python -m backtest --help` |
+| 回測（整月） | `python -m backtest --dates-from-cache --cache-dir tick_cache/2026_05 --report` → `backtest_2026_05.*` | 同上 |
+| 回測（預設 cache） | `python -m backtest --dates-from-cache --report` → `backtest_tick_cache.*` | 同上 |
+| 回測（區間篩選） | 加 `--from-date` / `--to-date` → `backtest_{dir}_{date_range}.*` | 同上 |
 | UAT 日報 JSON | 見下方「收盤後指令」 | `python -m reporting --help` |
 | 週 KPI 趨勢 | `python -m reporting reports/day*.json --trend`（**monorepo 根**） | 同上 |
 | Episode 回放 | `python -m reporting "$LOG_FILE" --episodes` | 同上 |

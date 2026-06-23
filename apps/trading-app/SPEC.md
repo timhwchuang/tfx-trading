@@ -69,7 +69,7 @@ TradingEngine(
 |---------|---------|
 | `python -m cli_help` | CLI catalog; `python -m cli_help <module>` → module `--help` |
 | `python -m live` | Simulation or live session |
-| `python -m backtest` | App-wired backtest; `--dates` or `--dates-from-cache`; `--report` / `--report-json` run UAT metrics after replay (see §Backtest CLI) |
+| `python -m backtest` | App-wired backtest; `--dates` or `--dates-from-cache`; `--report` runs UAT metrics after replay (see §Backtest CLI) |
 | `python -m reporting <log>` | UAT metrics; `--json` / `--trend` / `--episodes` |
 | `python -m reporting.uat_evidence_export <broker\|tick\|both> reports/day*.json` | Broker reconciliation + tick stratification CSV |
 | `python -m reporting.calibration_cli <log> --dates YYYY-MM-DD` or `--dates-from-cache` | P6-1 trend filter calibration (CAL-8) |
@@ -85,12 +85,13 @@ TradingEngine(
 |------|----------|
 | `--dates YYYY-MM-DD …` | Explicit replay dates (tick cache must exist). |
 | `--dates-from-cache` | Scan `tick_cache/{code}_*.csv[.gz]`; optional `--from-date` / `--to-date`. |
-| `--report` | After replay: parse backtest log → print `=== UAT Report ===` to **stdout** only; full replay log → `logs/backtest_{code}_{date}.log` (UTF-8, overwrite). |
-| `--report-json` | Same as `--report` plus write metrics JSON (`reports/backtest_{code}_{date}.json` by default). |
-| `--log-file PATH` | Override backtest log path; uses `setup_async_logging` (same async sink as live). Truncates each run. |
+| `--report` | After replay: print `=== UAT Report ===` to **stdout**; write `logs/backtest_*.log` + `reports/backtest_*.json` (UTF-8, overwrite). `--dates` → `backtest_{code}_{date}`; `--dates-from-cache` → `backtest_{cache_dir_name}` (default root `tick_cache/` → `backtest_tick_cache`; subfolder `tick_cache/2026_05` → `backtest_2026_05`). With `--from-date`/`--to-date`, append `_{date_range}` (e.g. `backtest_2026_05_20260501_20260515`). Cache dirs outside monorepo `tick_cache/` use `{parent}_{leaf}` to avoid basename collisions. |
+| `--log-file PATH` | Override backtest log path; uses `setup_async_logging` (same async sink as live). Truncates each run. With `--report`, JSON is `reports/{log_stem}.json` (paired stem). |
 | (none, no `--report`) | When `LOG_FILE` is set in config/env, audit appends via async logging (no truncate). |
 
-**Logging**: `--report` / `--report-json` configure session logging **before** `BacktestEngine` so audit lines land in `--log-file` (not only `LOG_FILE`). Console is file-only during replay (`console_level=OFF`); humans see the UAT report block at the end.
+**Logging**: `--report` configures session logging **before** `BacktestEngine` so audit lines land in `--log-file` (not only `LOG_FILE`). Console is file-only during replay (`console_level=OFF`); humans see the UAT report block at the end.
+
+**Cross-month reporting**: `python -m reporting reports/backtest_2026_04.json reports/backtest_2026_05.json --trend` compares monthly KPI rows; merge both months into one KPI via `python -m reporting logs/backtest_2026_04.log logs/backtest_2026_05.log`.
 
 **Reporting input**: `reporting.uat_report.read_log_text` accepts UTF-8 or UTF-16 LE/BE (PowerShell `Tee-Object` default).
 
