@@ -30,6 +30,7 @@ shioaji.log
 # Runtime market-data caches (generated locally; keep out of git)
 tick_cache/
 kbar_cache/
+logs-from-gce/
 
 # Secrets & certificates
 .env

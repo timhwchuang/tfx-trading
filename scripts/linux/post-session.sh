@@ -26,10 +26,34 @@ for sibling in \
 done
 
 LOG_FILE="${LOG_FILE:-/var/log/tfx-trading/trading-app-uat.log}"
+LOG_DIR="${LOG_DIR:-$(dirname "$LOG_FILE")}"
+LOG_KEEP_DAYS="${LOG_KEEP_DAYS:-14}"
 REPORTS_DIR="$MONOREPO_ROOT/reports"
 SNAPSHOTS_DIR="$MONOREPO_ROOT/snapshots"
 DATE_ISO="$(TZ=Asia/Taipei date +%Y-%m-%d)"
 DAY="$(TZ=Asia/Taipei date +%Y%m%d)"
+
+_rotate_tfx_logs() {
+  [[ -d "$LOG_DIR" ]] || return 0
+
+  shopt -s nullglob
+  local f archive="$LOG_DIR/post-session.log.$DATE_ISO"
+  for f in "$LOG_DIR"/*.log.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]; do
+    gzip -f "$f"
+  done
+
+  if [[ -f "$LOG_DIR/post-session.log" && -s "$LOG_DIR/post-session.log" \
+    && ! -f "$archive" && ! -f "${archive}.gz" ]]; then
+    cp "$LOG_DIR/post-session.log" "$archive"
+    gzip -f "$archive"
+    : > "$LOG_DIR/post-session.log"
+  fi
+
+  find "$LOG_DIR" -maxdepth 1 -type f \
+    \( -name '*.log.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].gz' \
+    -o -name 'post-session.log.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].gz' \) \
+    -mtime +"$LOG_KEEP_DAYS" -delete
+}
 
 mkdir -p "$REPORTS_DIR" "$SNAPSHOTS_DIR"
 
@@ -48,4 +72,7 @@ fi
   --mode hash \
   --output "$SNAPSHOTS_DIR/determinism_${DAY}.txt"
 echo "Wrote snapshots/determinism_${DAY}.txt"
+
+_rotate_tfx_logs
+echo "Rotated logs under $LOG_DIR (keep ${LOG_KEEP_DAYS}d)"
 echo "Post-session done."

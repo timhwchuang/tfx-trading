@@ -24,15 +24,15 @@ _sync_dir kbar_cache
 _sync_dir reports
 _sync_dir snapshots
 
-if [[ -n "${SYNC_LOGS:-}" ]]; then
-  mkdir -p "$MONOREPO_ROOT/logs-from-gce"
-  if ssh -o BatchMode=yes -o ConnectTimeout=10 "$GCE_HOST" "test -d /var/log/tfx-trading" 2>/dev/null; then
-    rsync -avz --progress \
-      "$GCE_HOST:/var/log/tfx-trading/" \
-      "$MONOREPO_ROOT/logs-from-gce/"
-  else
-    echo "略過 logs：遠端尚無 /var/log/tfx-trading/" >&2
-  fi
+REMOTE_LOG_DIR="${REMOTE_LOG_DIR:-/var/log/tfx-trading}"
+LOCAL_LOG_DIR="$MONOREPO_ROOT/logs-from-gce"
+mkdir -p "$LOCAL_LOG_DIR"
+if ssh -o BatchMode=yes -o ConnectTimeout=10 "$GCE_HOST" "test -d $REMOTE_LOG_DIR" 2>/dev/null; then
+  rsync -avz --progress \
+    "$GCE_HOST:$REMOTE_LOG_DIR/" \
+    "$LOCAL_LOG_DIR/"
+else
+  echo "略過 logs：遠端尚無 $REMOTE_LOG_DIR/" >&2
 fi
 
-echo "Sync complete → $MONOREPO_ROOT (tick_cache, kbar_cache, reports, snapshots)"
+echo "Sync complete → $MONOREPO_ROOT (tick_cache, kbar_cache, reports, snapshots, logs-from-gce)"
