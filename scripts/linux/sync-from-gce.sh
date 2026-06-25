@@ -12,13 +12,11 @@ _sync_dir() {
   local name="$1"
   local local_dir="$MONOREPO_ROOT/$name"
   mkdir -p "$local_dir"
-  if ssh -o BatchMode=yes -o ConnectTimeout=10 "$GCE_HOST" "test -d '$REMOTE_ROOT/$name'" 2>/dev/null; then
-    rsync -avz --progress \
-      "$GCE_HOST:$REMOTE_ROOT/$name/" \
-      "$local_dir/"
-  else
-    echo "略過 $name：遠端尚無 $REMOTE_ROOT/$name/" >&2
-  fi
+
+  # 使用 --ignore-missing-args 讓 rsync 在遠端目錄不存在時不會報錯
+  rsync -avz --progress --ignore-missing-args \
+    "$GCE_HOST:$REMOTE_ROOT/$name/" \
+    "$local_dir/" || true
 }
 
 _sync_dir tick_cache

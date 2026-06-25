@@ -79,6 +79,28 @@ class TestPositionQty(unittest.TestCase):
         self.assertEqual(host.position_qty, 0)
         self.assertEqual(host.daily_pnl, 40.0)  # capped at 2 lots, not 5
 
+    def test_multi_lot_partial_exit_pnl_uses_each_fill_price(self):
+        """Multi-lot IOC exit: PnL sums per deal leg, not last price × total."""
+        host = make_host()
+        arm_pending_exit(host, order_id="x-partial", qty=3)
+        host.position_qty = 3
+        host.position_dir = "Short"
+        host.entry_price = 100.0
+
+        for price, qty in ((98.0, 1), (97.0, 1), (96.0, 1)):
+            msg = {
+                "price": str(price),
+                "quantity": qty,
+                "action": "Buy",
+                "trade_id": "x-partial",
+            }
+            host.handle_order_event(FUTURES_DEAL, msg)
+
+        # Short: (100-98) + (100-97) + (100-96) = 2+3+4 = 9
+        self.assertEqual(host.position_qty, 0)
+        self.assertEqual(host.daily_pnl, 9.0)
+        self.assertFalse(host.is_pending)
+
     def test_partial_exit_reduces_qty_and_keeps_position(self):
         # P1-1: a single exit fill must not flatten the whole position. The
         # residual is kept and re-synced against the broker (which still shows 1).

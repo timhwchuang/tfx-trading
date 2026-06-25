@@ -128,6 +128,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._next_signal_seq: int = 0
         self._current_signal_date: str = ""
         self.filled_qty = 0  # P2-1: 累計部分成交；IOC 結束前不全解鎖；多口管理前置（Mock+單測）
+        self._pending_exit_pnl = 0.0  # exit IOC 逐筆成交累積 PnL（FILL_AUDIT 用）
         self._resynced_position = False  # sync_positions 後待首 tick 校準 trailing_peak
         self._api_connected = True
         self._disconnect_since = 0.0
@@ -1020,6 +1021,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.pending_episode_id = ""
         self.pending_signal_id = ""
         self.filled_qty = 0
+        self._pending_exit_pnl = 0.0
         self._pending_action = None
         self._exit_order_retry_count = 0
         self._exit_order_retry_at = 0.0

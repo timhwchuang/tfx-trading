@@ -639,6 +639,24 @@ class OrderExecutorMixin:
         is_buy = self._is_buy_action(action)
         return self._apply_deal_fill(price, is_buy, deal_qty=qty)
 
+    def _exit_leg_pnl(self, price: float, leg_qty: int) -> float:
+        """Per-lot PnL for one exit fill leg (points, not currency)."""
+        if leg_qty <= 0:
+            return 0.0
+        if self.position_dir == "Long":
+            return (price - self.entry_price) * leg_qty
+        return (self.entry_price - price) * leg_qty
+
+    def _apply_exit_deal_leg(self, price: float, deal_qty: int) -> float:
+        """Apply one exit deal leg: reduce position and accumulate PnL immediately."""
+        leg_qty = min(deal_qty, self.position_qty)
+        leg_pnl = self._exit_leg_pnl(price, leg_qty)
+        if leg_qty > 0:
+            self.position_qty -= leg_qty
+            self.daily_pnl += leg_pnl
+            self._pending_exit_pnl += leg_pnl
+        return leg_pnl
+
     def _apply_deal_fill(self, price: float, is_buy: bool, deal_qty: int = 1) -> bool:
         """套用成交。回傳 True 表示須在 lock 外呼叫 sync_positions()。"""
         expected = self.pending_qty if self.pending_qty > 0 else 1
@@ -657,6 +675,12 @@ class OrderExecutorMixin:
                 expected,
                 self.pending_order_id,
             )
+
+        # Exit IOC: book PnL and reduce held qty on every deal leg, not only when
+        # the order is fully filled (multi-lot partial fills use different prices).
+        if self.pending_intent == PendingIntent.EXIT and self.has_position:
+            self._apply_exit_deal_leg(price, deal_qty)
+
         if self.filled_qty < expected:
             logger.info(
                 "部分成交進度 | intent=%s %d/%d (deal=%d) order=%s | pending 持續（IOC 未結束不全解鎖）",
@@ -703,21 +727,15 @@ class OrderExecutorMixin:
             logger.info("進場完成 | %s %d口 @ %.1f", self.position_dir, self.position_qty, price)
             return False
 
-        elif intent == PendingIntent.EXIT and self.has_position:
-            exit_qty = self.filled_qty if self.filled_qty > 0 else 1
-            exit_qty = min(exit_qty, self.position_qty)
-            if self.position_dir == "Long":
-                pnl_per_lot = price - self.entry_price
-            else:
-                pnl_per_lot = self.entry_price - price
-            pnl = pnl_per_lot * exit_qty
+        elif intent == PendingIntent.EXIT:
+            total_pnl = self._pending_exit_pnl
+            self._pending_exit_pnl = 0.0
 
             hold_sec = 0
             if self.entry_exchange_ts > 0:
                 hold_sec = max(0, self.pending_exchange_ts - self.entry_exchange_ts)
 
-            self.daily_pnl += pnl
-            if pnl < 0:
+            if total_pnl < 0:
                 self.consecutive_loss += 1
             else:
                 self.consecutive_loss = 0
@@ -733,45 +751,35 @@ class OrderExecutorMixin:
                 ts=self.pending_exchange_ts,
                 ioc_slippage_allowed=self.pending_ioc_slippage,
                 exit_reason=self.pending_exit_reason,
-                pnl_points=pnl,
+                pnl_points=total_pnl,
                 hold_sec=hold_sec,
                 signal_id=self.pending_signal_id,
             )
             self._telemetry.update_risk_state(self.daily_pnl, self.consecutive_loss)
             logger.info("FILL_AUDIT %s", self._telemetry.format_fill_audit(fill_audit))
 
-            # P1-1: do not assume a single exit fill flattens the whole position.
-            # Reduce by the amount this exit order actually filled; only go Flat
-            # when the held qty reaches zero. Always request a re-sync so the
-            # broker remains the source of truth for the residual position.
-            remaining = self.position_qty - exit_qty
-            if remaining > 0:
-                self.position_qty = remaining
-                self.last_exit_time = self.pending_exchange_ts
-                self._clear_pending()
+            self.last_exit_time = self.pending_exchange_ts
+            self._clear_pending()
+            if self.position_qty > 0:
                 logger.warning(
-                    "部分平倉 | 平 %d 口，剩 %d 口（保留持倉，續由策略/對帳處理）| PnL=%.1f",
-                    exit_qty,
-                    remaining,
-                    pnl,
+                    "部分平倉 | 委託已結束，剩 %d 口（續由策略/對帳處理）| 本筆 PnL=%.1f",
+                    self.position_qty,
+                    total_pnl,
                 )
-                return True  # re-sync to confirm residual matches broker
-            self.position_qty = 0
+                return True
             self.position_dir = "Flat"
             self.entry_price = 0.0
             self.trailing_peak = 0.0
             self._clear_entry_tracking()
-            self.last_exit_time = self.pending_exchange_ts
-            self._clear_pending()
             logger.info(
                 "平倉完成 | PnL=%.1f | 今日=%.1f | 連續虧損=%d",
-                pnl,
+                total_pnl,
                 self.daily_pnl,
                 self.consecutive_loss,
             )
             return True  # re-sync to confirm broker is truly flat
 
-        if intent == PendingIntent.EXIT and not self.has_position:
+        if intent == PendingIntent.EXIT and not self.has_position and self._pending_exit_pnl == 0:
             logger.warning(
                 "STATE_GUARD unexpected exit fill while flat | order=%s",
                 order_id,
