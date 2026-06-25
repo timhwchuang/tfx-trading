@@ -256,8 +256,15 @@ def load_kbars_csv(path: Path) -> List[KBarRecord]:
                     Volume=int(row["Volume"]),
                 )
             )
-    bars.sort(key=lambda b: b.ts)
-    return bars
+    return dedupe_kbars(bars)
+
+
+def dedupe_kbars(bars: Iterable[KBarRecord]) -> List[KBarRecord]:
+    """Collapse duplicate ``ts`` rows (last wins)."""
+    by_ts: dict[datetime.datetime, KBarRecord] = {}
+    for bar in bars:
+        by_ts[bar.ts] = bar
+    return sorted(by_ts.values(), key=lambda b: b.ts)
 
 
 def kbars_raw_to_records(

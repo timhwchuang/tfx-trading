@@ -214,9 +214,17 @@ This package does **not** ship a data downloader. Typical workflow:
 - **Same millisecond, different price or volume** → distinct trades; no warning.
 - Do **not** dedupe on load: raw per-minute volume sums must match kbar `Volume` (see below).
 
-#### Tick × kbar volume cross-check (adhoc UAT, not a repo script)
+#### Tick × kbar volume cross-check (`storage.cache_audit`)
 
-When both `tick_cache/{code}_{date}.csv` and `tick_cache/{code}_kbars_{date}.csv` exist, reconcile in a one-off script or notebook:
+Repo CLI (replaces adhoc notebook):
+
+```bash
+cd apps/trading-app/src
+python -m storage.cache_audit --code TMFR1
+python -m storage.cache_repair --code TMFR1 --fix   # repair then re-audit
+```
+
+Rules:
 
 1. Per calendar minute: `sum(tick.volume)` where `datetime` floors to that minute.
 2. Kbar `ts` is the **end** of the bar period: ticks in minute `M` align to kbar row `ts = M + 1 minute` (e.g. `08:45:xx` ticks → kbar `2026-06-22T08:46:00`).

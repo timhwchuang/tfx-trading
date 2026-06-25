@@ -252,6 +252,8 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Added
 
+- **`storage.cache_audit` / `storage.cache_repair`**：`python -m storage.cache_audit --code TMFR1` 掃描 `tick_cache/` 逐日輸出 `差異vols` / `ohlc差` / `kbars:N/300`；`cache_repair --fix` 自動 TMFR1+TMFR2 跨月尾盤合併、從 ticks 補 kbar 缺口並重稽核。`backfilldata` 預設 `--merge-rollover`（`--no-merge-rollover` 關閉）。模組：`storage/tick_rollover.py`、`storage/kbar_repair.py`；`kbar_loader.dedupe_kbars`。
+
 - **`python -m backfilldata month YYYY-MM`**：依 [pin-yi Taiwan calendar](https://api.pin-yi.me/taiwan-calendar/{year})（`isHoliday`）篩選當月交易日（跳過週末與國定假日）；自動以 10 日為一批符合 Shioaji tick 上限；`--dry-run` 預覽、`--no-holiday-calendar` 僅跳週末、API 失敗時 fallback 週末模式。
 
 - **`python -m live.order_smoke`**: Manual UAT smoke for Shioaji Buy/Sell IOC — raw `place_order` + `TradingEngine` path; `DUMP_ORDER_EVENTS=1` recommended. Refuses `simulation: false`.

@@ -22,6 +22,8 @@ from storage.tick_loader import (
     download_and_cache,
     tick_cache_satisfies_request,
 )
+from storage.kbar_repair import repair_kbars_batch
+from storage.tick_rollover import merge_rollover_afternoon_batch
 
 logger = logging.getLogger(__name__)
 
@@ -297,6 +299,7 @@ def backfill_dates(
     overwrite: bool = False,
     tick_time_start: datetime.time | None = DEFAULT_TICK_RANGE_START,
     tick_time_end: datetime.time | None = DEFAULT_TICK_RANGE_END,
+    merge_rollover: bool = True,
     api: Any | None = None,
     today: datetime.date | None = None,
 ) -> BackfillResult:
@@ -314,6 +317,7 @@ def backfill_dates(
 
     result = BackfillResult()
     resolved_code = code
+    rollover_days: list[datetime.date] = []
     try:
         contract = resolve_contract(api, code)
         resolved_code = getattr(contract, "code", code)
@@ -331,6 +335,26 @@ def backfill_dates(
             )
             time.sleep(_REQUEST_PACE_SEC)
 
+            if merge_rollover and (
+                tick_time_end is None or tick_time_end >= DEFAULT_TICK_RANGE_END
+            ):
+                rollover_days = merge_rollover_afternoon_batch(
+                    api,
+                    resolved_code,
+                    list(dates),
+                    cache_dir=tick_cache_dir,
+                    simulation=simulation,
+                    resolve_contract=resolve_contract,
+                )
+                if rollover_days:
+                    logger.info(
+                        "跨月 tick 合併完成 %d 天: %s",
+                        len(rollover_days),
+                        ", ".join(d.isoformat() for d in rollover_days),
+                    )
+            else:
+                rollover_days = []
+
         if fetch_kbars:
             result.kbars = download_and_cache_kbars(
                 api,
@@ -343,6 +367,17 @@ def backfill_dates(
                 pace_sec=_REQUEST_PACE_SEC,
                 time_start=tick_time_start,
                 time_end=tick_time_end,
+            )
+
+        rebuild_dates = set(rollover_days)
+        if fetch_ticks:
+            repair_kbars_batch(
+                resolved_code,
+                list(dates),
+                tick_cache_dir=tick_cache_dir,
+                kbar_cache_dir=kbar_cache_dir,
+                mirror_to_tick_cache=mirror_kbars_to_tick_cache,
+                rollover_dates=rebuild_dates if rebuild_dates else None,
             )
     finally:
         if owns_api:

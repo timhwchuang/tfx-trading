@@ -42,11 +42,12 @@ This document is the **single source of truth** for the historical market-data b
 - `api.usage()` logging before/after batches; pace ~0.15s between kbar day fetches
 - Past trade days and **today after 13:45 Taipei** (day session close)
 - Recognize compressed tick cache (`*.csv.gz` from `python -m storage`) as satisfied — no redundant `api.ticks`
+- **Cross-month rollover merge** (default **on**): after TMFR1 tick fetch, on near-month settlement (3rd Wednesday) when day session ends ~13:28–13:30, auto-fetch **TMFR2** `13:30–13:45` and merge into the primary code cache (`storage.tick_rollover`); disable with `--no-merge-rollover`
 
 ## 3. Out of scope
 
 - Live streaming subscribe / order placement
-- Tick data cleaning, rollover, or `simtrade` filtering on historical ticks
+- Tick data cleaning, `simtrade` filtering on historical ticks
 - Automatic scheduling (human or external cron)
 - Writing secrets to `config.yaml` or repo files
 
@@ -78,7 +79,10 @@ python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-en
 python -m backfilldata date 2026-06-20 --kbars-only --no-mirror-kbars
 python -m backfilldata date 2026-06-20 --all-day-ticks
 python -m backfilldata date 2026-06-20 --overwrite
+python -m backfilldata date 2026-01-21 --code TMFR1 --no-merge-rollover
 ```
+
+Post-backfill quality gate: `python -m storage.cache_audit --code TMFR1` or batch repair `python -m storage.cache_repair --code TMFR1 --fix` (see `storage/cache_audit.py`, `storage/cache_repair.py`).
 
 | Flag | Default | Meaning |
 |------|---------|---------|
@@ -90,6 +94,7 @@ python -m backfilldata date 2026-06-20 --overwrite
 | `--time-start` / `--time-end` | `08:45:00` / `13:45:00` | Tick `RangeTime` window **and** kbar post-fetch filter |
 | `--all-day-ticks` | off | Use `TicksQueryType.AllDay` instead of `RangeTime` |
 | `--overwrite` | off | Re-download existing files |
+| `--no-merge-rollover` | merge **on** | Skip TMFR2 afternoon merge into TMFR1 on settlement days |
 | `--simulation` / `--production` | `config.simulation` | API environment |
 
 ### `backfill_dates(...) -> BackfillResult`

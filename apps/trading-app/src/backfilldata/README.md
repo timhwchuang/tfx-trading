@@ -41,6 +41,24 @@ python -m backfilldata --help
 
 `config.yaml` 的 `simulation` / `product_code` 為預設；可用 `--production` 或 `--code` 覆寫。
 
+## Cache quality (audit / repair)
+
+回測前建議掃描整個 `tick_cache/`：
+
+```bash
+cd apps/trading-app/src
+python -m storage.cache_audit --code TMFR1          # 逐日一行：差異vols / ohlc差 / kbars 根數
+python -m storage.cache_repair --code TMFR1 --fix   # API 補跨月尾盤 + 從 ticks 補 kbar 缺口 + 重稽核
+python -m storage.cache_repair --code TMFR1 --fix-kbars-only   # 僅本地 ticks 修 kbar（不呼叫 API）
+```
+
+| 模組 | 職責 |
+|------|------|
+| `storage.cache_audit` | 比對 tick 聚合 1m OHLCV vs `*_kbars_*.csv` |
+| `storage.cache_repair` | 批次修復 + 輸出與 audit 相同格式 |
+| `storage.tick_rollover` | TMFR1+TMFR2 13:30–13:45 合併（backfill 預設呼叫） |
+| `storage.kbar_repair` | 缺 kbar 列從 ticks 補；跨月日整檔從 ticks 重建 |
+
 ## Cache layout (defaults)
 
 | Output | Path | Used by |

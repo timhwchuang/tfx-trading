@@ -133,6 +133,13 @@ def _add_backfill_options(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Use TicksQueryType.AllDay instead of RangeTime for ticks",
     )
+    parser.add_argument(
+        "--no-merge-rollover",
+        dest="merge_rollover",
+        action="store_false",
+        default=True,
+        help="Do not auto-merge next-month contract afternoon ticks (e.g. TMFR2 13:30–13:45 into TMFR1)",
+    )
     api_mode = parser.add_mutually_exclusive_group()
     api_mode.add_argument(
         "--simulation",
@@ -170,6 +177,7 @@ def _backfill_kwargs(args: argparse.Namespace, *, simulation: bool) -> dict:
         "overwrite": args.overwrite,
         "tick_time_start": tick_time_start,
         "tick_time_end": tick_time_end,
+        "merge_rollover": args.merge_rollover,
     }
 
 

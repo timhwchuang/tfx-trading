@@ -57,6 +57,16 @@ CATALOG: tuple[CliEntry, ...] = (
     ),
     CliEntry("storage", "壓縮 tick_cache CSV → .gz", "python -m storage"),
     CliEntry(
+        "storage.cache_audit",
+        "tick_cache 分 K / kbar OHLCV 交叉稽核（逐日一行）",
+        "python -m storage.cache_audit --code TMFR1",
+    ),
+    CliEntry(
+        "storage.cache_repair",
+        "修復 tick 跨月尾盤 + kbar 缺口，並稽核",
+        "python -m storage.cache_repair --code TMFR1 --fix",
+    ),
+    CliEntry(
         "backfilldata",
         "永豐 API 補歷史 tick / kbar 快取",
         "python -m backfilldata month 2026-04",

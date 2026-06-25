@@ -77,6 +77,8 @@ TradingEngine(
 | `python -m sweep.pilot_gate_check reports/day*.json` | APP.md Phase 5 Pilot Readiness Gate |
 | `python -m sweep.determinism_check --date YYYY-MM-DD --mode hash` | Backtest audit hash / reproducibility |
 | `python -m storage` | Post-session tick gzip (`storage.compress` alias) |
+| `python -m storage.cache_audit` | Audit tick_cache: tick-derived 1m OHLCV vs kbars (scan dir or `--date`) |
+| `python -m storage.cache_repair` | Repair rollover tick tail + fill kbar gaps from ticks; re-audit |
 | `python -m backfilldata date YYYY-MM-DD` | Backfill past ticks/kbars into `tick_cache/` + `kbar_cache/` |
 | `python -m backfilldata month YYYY-MM` | Backfill trading weekdays in month (skip weekends/holidays via pin-yi calendar) |
 
@@ -97,6 +99,20 @@ TradingEngine(
 **Reporting input**: `reporting.uat_report.read_log_text` accepts UTF-8 or UTF-16 LE/BE (PowerShell `Tee-Object` default).
 
 Tick cache validation and tick×kbar volume semantics: [`packages/trading-backtest/SPEC.md`](../../packages/trading-backtest/SPEC.md) §7 Loader validation.
+
+### Tick cache audit & repair (`storage.cache_*`)
+
+| Command | Purpose |
+|---------|---------|
+| `python -m storage.cache_audit --code TMFR1` | Scan `tick_cache/`: one line per day (`差異vols`, `ohlc差`, `kbars:N/300`); summary OK / WARN(vol) / FAIL |
+| `python -m storage.cache_repair --code TMFR1 --fix` | Fetch TMFR2 afternoon on rollover days, fill kbar gaps from ticks, re-audit |
+| `python -m storage.cache_repair --code TMFR1 --fix-kbars-only` | Local-only kbar repair from ticks |
+
+**Severity**: FAIL = missing kbars, OHLC mismatch, incomplete tick tail, or `kbars ≠ 300`; WARN = volume-only diffs (common Shioaji tick sum vs kbar `Volume`); OK = clean.
+
+**Rollover**: continuous `R1` ticks end ~13:30 on near-month settlement (3rd Wednesday); `backfilldata` merges `R2` 13:30–13:45 by default (`--no-merge-rollover` to disable). After merge, rollover-day kbars are rebuilt from merged ticks so ATR warmup matches replay.
+
+Implementation: `storage/cache_audit.py`, `storage/cache_repair.py`, `storage/tick_rollover.py`, `storage/kbar_repair.py`; `kbar_loader.dedupe_kbars` collapses duplicate `ts` on load.
 
 ## Integration contracts
 

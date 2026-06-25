@@ -383,6 +383,40 @@ class TestBackfillDates(unittest.TestCase):
 
             self.assertEqual(len(load_ticks_csv(out)), 2)
 
+    @patch("backfilldata.core.repair_kbars_batch")
+    @patch("backfilldata.core.merge_rollover_afternoon_batch")
+    @patch("backfilldata.core.download_and_cache")
+    def test_ticks_only_repairs_kbars_after_rollover_merge(
+        self, download_ticks, merge_batch, repair_kbars
+    ):
+        api = MagicMock()
+        _mock_api_usage(api)
+        contract = MagicMock()
+        contract.code = "TMFR1"
+        api.Contracts.Futures.TMF.TMFR1 = contract
+        date = datetime.date(2026, 1, 21)
+        download_ticks.return_value = [cache_path(Path("/tmp"), "TMFR1", date)]
+        merge_batch.return_value = [date]
+
+        with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as kd:
+            tick_dir = Path(td)
+            kbar_dir = Path(kd)
+            today = datetime.date(2026, 1, 22)
+            backfill_dates(
+                [date],
+                code="TMFR1",
+                simulation=True,
+                fetch_kbars=False,
+                tick_cache_dir=tick_dir,
+                kbar_cache_dir=kbar_dir,
+                api=api,
+                today=today,
+            )
+            merge_batch.assert_called_once()
+            repair_kbars.assert_called_once()
+            _, kwargs = repair_kbars.call_args
+            self.assertEqual(kwargs["rollover_dates"], {date})
+
 
 class TestBackfillCli(unittest.TestCase):
     def test_help_without_shioaji_import(self):

@@ -48,6 +48,7 @@
 | MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
 | Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
 | 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
+| tick_cache 品質稽核 / 修復 | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit；`storage.cache_audit` / `storage.cache_repair` |
 
 ## 5. 考古（勿當現行流程）
 
@@ -94,3 +95,4 @@
 | Audit 事件回放？ | **FT-001** → [`features/audit-event-replay/`](features/audit-event-replay/) |
 | SMC 結構濾網？ | **FT-002** → [`features/smc-structure-filter/`](features/smc-structure-filter/) |
 | 補歷史 tick/kbar 快取？ | `python -m backfilldata date …` → [`backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
+| 回測前 tick×kbar 品質？ | `python -m storage.cache_audit --code TMFR1`；修復 `python -m storage.cache_repair --fix` → [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit |
