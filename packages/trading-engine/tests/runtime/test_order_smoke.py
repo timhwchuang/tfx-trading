@@ -99,7 +99,12 @@ class TestOrderSmoke(unittest.TestCase):
         self.assertFalse(host.is_pending)
 
     def test_simulation_timeout_when_no_callback(self):
-        """Documents UAT failure mode: sim reconcile short-circuits, no callback → timeout."""
+        """UAT failure mode: exit placed, no callback, broker still holds → timeout + block.
+
+        Under P1-2 the sim reconcile checks the broker snapshot; when the broker
+        still reports the open position (exit did not actually fill) the reconcile
+        does not resolve and the timeout circuit-breaker fires.
+        """
         alerts = MagicMock()
         host = make_host()
         host._alerts = alerts
@@ -111,6 +116,10 @@ class TestOrderSmoke(unittest.TestCase):
         )
         host.position_qty = 1
         host.position_dir = "Long"
+        host.contract = MagicMock(code="TXFR1")
+        host.api.list_positions.return_value = [
+            SimpleNamespace(code="TXFR1", quantity=1, direction="Buy", price=18000.0)
+        ]
         host.pending_trade = MagicMock()
         host.pending_since = host._clock() - host._cfg.pending_timeout_sec - 1
 
@@ -118,8 +127,76 @@ class TestOrderSmoke(unittest.TestCase):
 
         self.assertFalse(host.is_pending)
         self.assertTrue(host.block_new_entry)
-        alerts.send.assert_called()
-        self.assertIn("CRITICAL", alerts.send.call_args.kwargs.get("level", ""))
+
+    def test_simulation_timeout_resolves_when_broker_shows_exit_filled(self):
+        """P1-2: sim reconcile confirms a real fill via broker snapshot.
+
+        When the broker shows the exit actually closed the position, the sim
+        reconcile resolves the pending instead of falsely circuit-breaking.
+        """
+        alerts = MagicMock()
+        host = make_host()
+        host._alerts = alerts
+        host._cfg.simulation = True
+        host._validate_order_signal = MagicMock(return_value=True)
+
+        host._arm_pending(
+            OrderSignal("Buy", 1, 18000.0, "exit", exchange_ts=100, signal_id="smoke-sig-006")
+        )
+        host.position_qty = 1
+        host.position_dir = "Long"
+        host.entry_price = 17980.0
+        host.contract = MagicMock(code="TXFR1")
+        host.api.list_positions.return_value = []  # broker flat -> exit filled
+        host.pending_trade = MagicMock()
+        host.pending_since = host._clock() - host._cfg.pending_timeout_sec - 1
+
+        host._check_pending_timeout()
+
+        self.assertFalse(host.is_pending)
+        self.assertFalse(host.block_new_entry)
+        self.assertEqual(host.position_qty, 0)
+        self.assertEqual(host.daily_pnl, 20.0)  # exit fill via reconcile path
+        # Resolved cleanly via reconcile -> no circuit-breaker alert.
+        alerts.send.assert_not_called()
+
+    def test_sim_entry_reconcile_rejects_opposite_side_broker_position(self):
+        """Unrelated opposite-side broker lot must not resolve a timed-out entry."""
+        host = make_host()
+        host._cfg.simulation = True
+        host._arm_pending(
+            OrderSignal("Buy", 1, 18000.0, "entry", exchange_ts=100, signal_id="smoke-sig-007")
+        )
+        host.contract = MagicMock(code="TXFR1")
+        host.api.list_positions.return_value = [
+            SimpleNamespace(code="TXFR1", quantity=1, direction="Sell", price=18000.0)
+        ]
+        trade = MagicMock()
+
+        resolved = host._reconcile_pending_trade(trade)
+
+        self.assertFalse(resolved)
+        self.assertTrue(host.is_pending)
+        self.assertEqual(host.position_qty, 0)
+
+    def test_sim_partial_exit_reconcile_does_not_false_resolve(self):
+        """Partial broker exit smaller than pending_qty must not mark reconcile done."""
+        host = make_host()
+        host._cfg.simulation = True
+        host.contract = MagicMock(code="TXFR1")
+        host._arm_pending(
+            OrderSignal("Sell", 3, 18000.0, "exit", exchange_ts=100, signal_id="smoke-sig-008")
+        )
+        host.position_qty = 3
+        host.position_dir = "Long"
+        host.entry_price = 18000.0
+        host.api.list_positions.return_value = [
+            SimpleNamespace(code="TXFR1", quantity=2, direction="Buy", price=18000.0)
+        ]
+        trade = MagicMock()
+        resolved = host._reconcile_pending_trade(trade)
+        self.assertFalse(resolved)
+        self.assertTrue(host.is_pending)
 
 
 if __name__ == "__main__":

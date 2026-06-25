@@ -45,6 +45,8 @@ class TestReconnectRace(unittest.TestCase):
         # Make update_status and records return nothing useful
         host.api.update_status.return_value = None
         host.api.order_deal_records.return_value = []
+        # Broker position query fails -> reconcile cannot confirm -> timeout path.
+        host.api.list_positions.side_effect = RuntimeError("broker unavailable")
 
         host._check_pending_timeout()
 
@@ -66,6 +68,41 @@ class TestReconnectRace(unittest.TestCase):
 
         host.sync_positions.assert_called()
         self.assertTrue(host._api_connected)
+
+    def test_on_reconnected_reattaches_trade_report_channel(self):
+        # P0-1: reconnect must re-attach the order/deal report channel, not only
+        # quote ticks. Otherwise fills arrive silently and orders perpetually
+        # time out (the 24-lot phantom-short root cause).
+        host = make_host()
+        host._api_connected = False
+        host._disconnect_since = host._clock() - 100
+        host.contract = MagicMock(code="TXFR1")
+        host.sync_positions = MagicMock()
+        host._resubscribe_ticks = MagicMock()
+        host._resubscribe_trade = MagicMock()
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(True))
+
+        host._on_reconnected()
+
+        host._resubscribe_ticks.assert_called()
+        host._resubscribe_trade.assert_called()
+
+    def test_reconnect_trade_resubscribe_failure_degrades_session(self):
+        # P0-1: if re-attaching the trade channel fails, the session must be
+        # marked unhealthy (STALE) rather than continuing to trade blind.
+        host = make_host()
+        host._api_connected = False
+        host._disconnect_since = host._clock() - 100
+        host.contract = MagicMock(code="TXFR1")
+        host.sync_positions = MagicMock()
+        host._resubscribe_ticks = MagicMock()
+        host._resubscribe_trade = MagicMock(side_effect=RuntimeError("subscribe_trade failed"))
+        host.refresh_atr = MagicMock(return_value=AtrRefreshResult(True))
+
+        outcome = host._on_reconnected()
+
+        self.assertEqual(outcome, ReconnectOutcome.UNHEALTHY)
+        self.assertFalse(host._api_connected)
 
     def test_stale_reconnect_does_not_undo_healthy_state(self):
         host = make_host()

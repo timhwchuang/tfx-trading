@@ -75,6 +75,8 @@ def default_test_settings() -> Settings:
         reconnect_warmup_sec=300,
         max_disconnects_per_day=3,
         alert_on_disconnect_with_position=True,
+        position_reconcile_sec=60,
+        max_position_qty=1,
         config_path=Path("config/config.yaml"),
     )
 

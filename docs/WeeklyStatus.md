@@ -7,6 +7,27 @@
 
 ---
 
+### 2026-06-25（事故：UAT 開盤 24 口 phantom short — 持倉/券商對帳防呆完成）
+
+**事故**
+- UAT 連續運行後，某日開盤 `position_sync` 撈到 **24 口 short**，kernel 全程不知情。回放顯示：重連/relogin 後**只重訂報價、未重掛委託/成交回報通道**，報價照進、策略續下單，但 fill callback 全失 → 一直 `pending_timeout` → 以為沒成交而反覆進場累積。之後 stop/exit 只平 1 口、剩 23 口孤兒（exit 成交把 `position_qty` 直接歸零的獨立 bug）。
+
+**修復（已併入 code + 測試 + 文件）**
+- **P0-1**：`_on_reconnected`（及 watchdog relogin 經由它）新增 `_resubscribe_trade`，重掛 `subscribe_trade` + `set_order_callback`；失敗即降級 → relogin。
+- **P0-2**：孤兒/不符 `order_id` 的成交不再丟棄 → 強制對帳 + `block_new_entry` + CRITICAL。
+- **P0-3**：`_check_position_reconcile` 每 `position_reconcile_sec`（預設 60）對帳；漂移以券商為準 + 熔斷 + CRITICAL。
+- **P0-4**：`max_position_qty`（預設 1）entry 硬上限。
+- **P1-1**：exit 依實際成交量遞減、歸零才 Flat，平倉後 re-sync 確認；kernel 以實際 `position_qty` 為平倉量。
+- **P1-2**：sim reconcile 改用 `list_positions` 判定成交，不再純短路。
+- 全套 `bash scripts/run-all-tests.sh` 綠（trading-engine 140 tests）。細節見 [`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md)、[`CHANGELOG.md`](../CHANGELOG.md)、SPEC §4.2.2。
+
+**人類必做（Follow-up）**
+- [ ] GCE 實機驗證：手動觸發一次 relogin 後下單，確認 `委託回報` → `FILL_AUDIT` 仍到；觀察開盤無 phantom 累積。
+- [ ] 確認 Pilot 期間 `operations.max_position_qty: 1` 不放大。
+- [ ] 收到 `持倉漂移` / `孤兒成交` CRITICAL 時，先人工核對券商部位再清 `block_new_entry`。
+
+---
+
 ### 2026-06-23（GCE Live 節點就緒 — Phase 1 待驗）
 
 **目前進度**

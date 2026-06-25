@@ -79,6 +79,12 @@ class Settings:
     reconnect_warmup_sec: int = 300
     max_disconnects_per_day: int = 3
     alert_on_disconnect_with_position: bool = True
+    # P0-3: background broker/kernel position reconcile cadence (exchange-time
+    # gated). <=0 disables. Drift -> block_new_entry + CRITICAL alert.
+    position_reconcile_sec: int = 60
+    # P0-4: hard position ceiling (Pilot = 1). Entry rejected when held/pending
+    # qty would reach this. Guards against runaway accumulation on report loss.
+    max_position_qty: int = 1
 
     config_path: Path = Path("")
 

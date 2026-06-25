@@ -87,6 +87,11 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._order_adapter = order_adapter
         # Optional hook set by live bootstrap (e.g. ShioajiLiveBootstrap.subscribe_tick).
         self._resubscribe_ticks: Callable[[], None] | None = None
+        # Optional hook set by live bootstrap to re-attach the order/deal report
+        # channel (subscribe_trade + set_order_callback) after reconnect / relogin.
+        # Without this, reconnect only restores quote ticks while order/fill
+        # callbacks stay dead -> silent fills + perpetual pending timeouts.
+        self._resubscribe_trade: Callable[[], None] | None = None
         # 注入式時鐘：實盤預設 time.time()；回測傳入 tick 時間驅動的時鐘以確保確定性。
         self._clock = clock if clock is not None else time.time
         if strategy is None:
@@ -135,6 +140,13 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._exit_order_retry_count = 0
         self._exit_order_retry_at = 0.0
         self._pending_action: str | None = None
+        # Staged CRITICAL alert text produced under lock (e.g. orphan deal,
+        # position drift); sent outside lock to avoid network I/O on hot path.
+        self._staged_critical_alert: str | None = None
+        # Set True once a broker/kernel position mismatch is detected; cleared on
+        # a clean reconcile. Observability only.
+        self._position_drift_detected = False
+        self._last_reconcile_wall = 0.0
 
         self.indicators = IndicatorState(
             vwap_window_min=self._cfg.vwap_window_min,
@@ -435,6 +447,12 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                         self._pending_intent_cancel_exchange_dt = dt_for_risk
                         self._telemetry.record_entry_signal()
                     elif signal.intent == "exit":
+                        # P1-1: kernel owns exit sizing — always flatten the full
+                        # held position regardless of what the strategy requested
+                        # (strategy may default to 1 lot). Prevents leaving a
+                        # residual broker position unmanaged after a stop/exit.
+                        if self.position_qty > 0:
+                            signal.qty = self.position_qty
                         self._telemetry.record_exit_signal()
                     if not getattr(signal, "signal_id", ""):
                         signal.signal_id = self._make_signal_id(signal.exchange_ts or ts)
@@ -767,6 +785,72 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         logger.warning(msg)
         self._alerts.send(msg, level="CRITICAL")
 
+    def _check_position_reconcile(self) -> None:
+        """P0-3: periodically reconcile kernel position with the broker.
+
+        Background safety net for lost order/fill callbacks: if the broker shows
+        a different position than the kernel believes, adopt the broker truth,
+        block new entries, and raise a CRITICAL alert. Exchange-time gated and
+        throttled by ``position_reconcile_sec``. Skipped while an order is in
+        flight (pending) to avoid racing with a resolving fill.
+        """
+        interval = self._cfg.position_reconcile_sec
+        if interval <= 0:
+            return
+        if not self._api_connected or self.contract is None:
+            return
+        if self._last_tick_exchange_dt is None:
+            return
+        if not self._calendar.is_trading_session(
+            self._last_tick_exchange_dt,
+            self._cfg.session_start,
+            self._cfg.session_end,
+        ):
+            return
+        now = self._clock()
+        if now - self._last_reconcile_wall < interval:
+            return
+
+        with self.lock:
+            if self.is_pending:
+                return
+            kernel_qty = self.position_qty
+            kernel_dir = self.position_dir
+
+        broker = self.read_broker_position()
+        if broker is None:
+            return  # failed read; throttle not consumed — retry next cycle
+        broker_qty, broker_dir = broker
+
+        # Only consume the throttle after a successful broker read and comparison.
+        self._last_reconcile_wall = now
+
+        if broker_qty == kernel_qty and broker_dir == kernel_dir:
+            if self._position_drift_detected:
+                logger.info(
+                    "週期對帳 | 已恢復一致 | %s %d口", kernel_dir, kernel_qty
+                )
+            self._position_drift_detected = False
+            return
+
+        logger.warning(
+            "持倉漂移偵測 | kernel=%s %d口 broker=%s %d口 → 以券商為準並停止新進場",
+            kernel_dir,
+            kernel_qty,
+            broker_dir,
+            broker_qty,
+        )
+        self._position_drift_detected = True
+        with self.lock:
+            self.block_new_entry = True
+        # Adopt broker truth via the canonical write path.
+        self.sync_positions()
+        self._alerts.send(
+            f"持倉漂移 | kernel={kernel_dir} {kernel_qty}口 vs broker={broker_dir} "
+            f"{broker_qty}口 → 已以券商為準並停止新進場；請人工核對",
+            level="CRITICAL",
+        )
+
     def _timeout_loop(self):
         while self._running:
             try:
@@ -774,6 +858,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 self._check_exit_order_retry()
                 self._check_session_watchdog()
                 self._check_no_tick_watchdog()
+                self._check_position_reconcile()
                 self._maybe_log_tick_type_summary()
             except BaseException as e:
                 # Catch PanicException etc. from PyO3 to prevent silent thread death.
@@ -977,6 +1062,16 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 self._resubscribe_ticks()
         except Exception as e:
             logger.warning("重連後 subscribe 失敗: %s", e)
+            session_healthy = False
+
+        # P0-1: re-attach order/deal report channel. A reconnect that restores
+        # only quote ticks (above) but not the trade channel leaves order/fill
+        # callbacks dead -> broker fills silently while kernel keeps timing out.
+        try:
+            if self._resubscribe_trade is not None:
+                self._resubscribe_trade()
+        except Exception as e:
+            logger.warning("重連後委託回報通道重掛失敗: %s", e)
             session_healthy = False
 
         atr = self.refresh_atr()

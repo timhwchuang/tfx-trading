@@ -48,6 +48,16 @@ class TestSignalValidation(unittest.TestCase):
         signal = OrderSignal("Sell", 1, 18000.0, "exit", exchange_ts=1)
         self.assertTrue(host._validate_order_signal(signal))
 
+    def test_rejects_entry_exceeding_max_position_qty(self):
+        host = make_host()  # default max_position_qty == 1
+        signal = OrderSignal("Buy", 2, 18000.0, "entry", exchange_ts=1)
+        self.assertFalse(host._validate_order_signal(signal))
+
+    def test_accepts_entry_at_max_position_qty(self):
+        host = make_host()
+        signal = OrderSignal("Buy", 1, 18000.0, "entry", exchange_ts=1)
+        self.assertTrue(host._validate_order_signal(signal))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -121,11 +121,35 @@ class SessionMixin:
     def _position_matches_contract(self, pos) -> bool:
         return pos.code in self._contract_position_codes()
 
+    def read_broker_position(self) -> tuple[int, str] | None:
+        """Read the first matching non-zero broker position as (qty, dir).
+
+        Returns ``(0, "Flat")`` when the broker is flat for this contract, or
+        ``None`` when the broker query failed (caller should not act on a failed
+        read). Pure query (``list_positions``); does not mutate kernel state.
+        """
+        try:
+            account = self._call_api(lambda: self.api.futopt_account)
+            positions = list(self._call_api(self.api.list_positions, account=account))
+        except Exception as e:
+            logger.warning("讀取券商持倉失敗: %s", e)
+            return None
+
+        from trading_engine.adapters.position_normalizer import is_long_direction
+
+        for pos in positions:
+            if int(pos.quantity) == 0:
+                continue
+            if self._position_matches_contract(pos):
+                direction = "Long" if is_long_direction(pos.direction) else "Short"
+                return int(pos.quantity), direction
+        return 0, "Flat"
+
     def sync_positions(self, *, force_resync: bool = False):
         """啟動時從券商同步持倉，避免重啟後策略與實際部位脫節。"""
         try:
             account = self._call_api(lambda: self.api.futopt_account)
-            positions = self._call_api(self.api.list_positions, account=account)
+            positions = list(self._call_api(self.api.list_positions, account=account))
         except Exception as e:
             logger.warning("持倉對帳失敗: %s", e)
             return

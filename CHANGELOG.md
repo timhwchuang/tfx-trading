@@ -26,6 +26,22 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 ### [Unreleased]
 
+#### Fixed
+
+- **Position/broker sync hardening — 24-lot phantom short RCA (2026-06-25)**: Kernel position drifted from the broker after a reconnect/relogin, accumulating 24 untracked short lots overnight. Three-layer fix + a separate exit bug:
+  - **P0-1 reconnect re-attaches the trade report channel**: `_on_reconnected` (and watchdog relogin, which routes through it) now calls a new broker-neutral `_resubscribe_trade` hook in addition to `_resubscribe_ticks`. `ShioajiLiveBootstrap.resubscribe_trade` re-runs `subscribe_trade` + `set_order_callback`. Failure degrades the session to unhealthy → relogin. Previously only quote ticks were restored, so fills arrived silently and every order timed out — the primary root cause.
+  - **P0-2 orphan deals are no longer dropped**: `_handle_futures_deal` for a deal with no pending or a non-matching `order_id` now forces `sync_positions` + `block_new_entry` + a staged CRITICAL alert instead of silently returning.
+  - **P1-1 exit fills flatten by actual qty + re-sync**: an exit fill reduces `position_qty` by the filled amount and only flips to Flat at zero; it then triggers a re-sync to confirm the broker is truly flat. The kernel sizes exits to the held `position_qty` (the strategy may still default to 1 lot). Previously an exit fill blanket-zeroed `position_qty`, orphaning residual lots.
+  - **P1-2 simulation reconcile uses the broker snapshot**: `_reconcile_pending_trade` no longer pure-short-circuits in sim; it reconciles against `list_positions` and resolves cleanly when the broker reflects the fill, only falling through to the timeout path when the broker read fails.
+  - `sync_positions` / `read_broker_position` materialize `list_positions` defensively so an unreadable broker is treated as a failed read rather than crashing the callback path.
+
+#### Added
+
+- **P0-3 periodic position reconcile + drift circuit-breaker**: `_check_position_reconcile` runs in `_timeout_loop` every `position_reconcile_sec` (default 60, `<=0` disables) during the trading session, skipped while pending. Broker/kernel qty/dir mismatch → adopt broker truth via `sync_positions` + `block_new_entry` + CRITICAL alert + `_position_drift_detected`. New `session.py:read_broker_position` helper.
+- **P0-4 hard position ceiling**: `max_position_qty` config (default 1). `_validate_order_signal` rejects entries when `position_qty + signal.qty > max_position_qty`.
+- **Config**: `operations.position_reconcile_sec` (60), `operations.max_position_qty` (1) wired through `config.yaml` → app `Settings` → engine `Settings`/`RuntimeConfig`/test defaults.
+- **Tests**: `test_shioaji_live_wiring.py` (reconnect re-attach), `test_position_reconcile.py` (drift block/alert/throttle/skip-pending/disabled), orphan-deal-adopts + duplicate-deal-reconciles in `test_adversarial_callbacks.py`, max-qty rejects in `test_signal_validation.py`, partial-exit + exit-resync in `test_position_qty.py`, sim-resolve + broker-still-holds in `test_order_smoke.py`, and updated B4 / reconnect-race / pending-armed sim reconcile expectations.
+
 #### Changed
 
 - **`_resolve_contract`**: resolve rolling contracts via product category prefix (`TXF` / `MXF` / `TMF`) so `TMFR1` (微台) and `MXFR1` work without hardcoding大台 `TXF` only.

@@ -3,23 +3,33 @@
 from __future__ import annotations
 
 import unittest
+from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 from trading_engine.core.order_events import FUTURES_DEAL, FUTURES_ORDER
 from trading_engine.testing.helpers import arm_pending_entry, make_host
 
 
 class TestAdversarialCallbacks(unittest.TestCase):
-    def test_duplicate_deal_is_ignored_after_clear(self):
+    def test_duplicate_deal_after_clear_reconciles_not_double_counts(self):
         host = make_host()
+        # Broker reports the real position so the orphan-deal reconcile keeps it.
+        host.contract = MagicMock(code="TXFR1")
+        host.api.list_positions.return_value = [
+            SimpleNamespace(code="TXFR1", quantity=1, direction="Buy", price=18010.0)
+        ]
         arm_pending_entry(host, order_id="dup-1")
         msg = {"price": "18010", "quantity": 1, "action": "Buy", "trade_id": "dup-1"}
 
         host.handle_order_event(FUTURES_DEAL, msg)
         self.assertEqual(host.position_qty, 1)
 
-        # Replay the same deal after position applied — should be ignored (no crash, qty not double counted)
+        # Replay the same deal after position applied. P0-2: an unattributable
+        # deal (pending already cleared) is no longer silently dropped — it forces
+        # a broker reconcile + circuit-break, but must NOT double-count.
         host.handle_order_event(FUTURES_DEAL, msg)
         self.assertEqual(host.position_qty, 1)
+        self.assertTrue(host.block_new_entry)
 
     def test_wrong_order_id_deal_ignored_even_when_pending(self):
         host = make_host()
@@ -40,6 +50,27 @@ class TestAdversarialCallbacks(unittest.TestCase):
 
         self.assertEqual(host.position_qty, 0)
         self.assertFalse(host.has_position)
+
+    def test_orphan_deal_adopts_broker_and_circuit_breaks(self):
+        # P0-2: an orphan fill (no pending) while the broker actually holds a
+        # position must force a reconcile (adopt broker), block new entries, and
+        # raise a CRITICAL alert instead of being silently dropped.
+        alerts = MagicMock()
+        host = make_host()
+        host._alerts = alerts
+        host.contract = MagicMock(code="TXFR1")
+        host.api.list_positions.return_value = [
+            SimpleNamespace(code="TXFR1", quantity=24, direction="Sell", price=46592.6)
+        ]
+
+        msg = {"price": "46590", "quantity": 1, "action": "Sell", "trade_id": "ghost"}
+        host.handle_order_event(FUTURES_DEAL, msg)
+
+        self.assertTrue(host.block_new_entry)
+        self.assertEqual(host.position_qty, 24)
+        self.assertEqual(host.position_dir, "Short")
+        alerts.send.assert_called()
+        self.assertEqual(alerts.send.call_args.kwargs.get("level"), "CRITICAL")
 
     def test_second_deal_while_pending_different_order_ignored(self):
         host = make_host()

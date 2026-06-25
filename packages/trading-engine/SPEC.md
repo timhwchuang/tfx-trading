@@ -134,10 +134,12 @@ engine.on_tick(TickSnapshot(ts=..., price=..., volume=..., tick_type=1, exchange
 1. `is_pending` 期間不 arm 第二筆 entry（`_validate_order_signal` 硬擋）。
 2. `session_force_flatten_time` 後若 `position_qty > 0`，**kernel** 產生 exit（strategy 僅可 `session_force_flatten_signal` 客製）。
 3. `position_qty` 僅由 `sync_positions` 與 matching deal 的 `_apply_deal_fill` 變更。
-4. Exit 為全量平倉（`qty → 0`）；partial fill 未達 `pending_qty` 時維持 pending。
-5. 錯誤 `order_id` 的 deal/fill 忽略（idempotency）。
+4. Exit 依實際成交量遞減 `position_qty`，歸零才轉 Flat（**P1-1**）；單筆委託內 partial fill 未達 `pending_qty` 時維持 pending。Exit 由 kernel 以實際 `position_qty` 為平倉量；平倉自認 flat 後觸發 re-sync 以券商確認。
+5. **無法歸屬的成交（pending 已清或 `order_id` 不符）不得靜默丟棄（P0-2）**：觸發 `sync_positions` + `block_new_entry` + CRITICAL，以券商為準。
 6. 日內風控計數依 `trading_day_for_daily_reset` 重置。
-7. **`_api_connected`** 僅在 subscribe 成功且 `refresh_atr()` 成功（或 ATR 失敗非 session 錯誤）後由 `_on_reconnected` 設為 `True`；`SessionNotEstablished` / `NotReady` → 保持 disconnected，交由 session watchdog relogin（見 [`LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md)）。
+7. **`_api_connected`** 僅在「報價 subscribe 成功」**且「委託/成交回報通道重掛（`_resubscribe_trade`）成功」**且 `refresh_atr()` 成功（或 ATR 失敗非 session 錯誤）後由 `_on_reconnected` 設為 `True`；任一失敗 → 保持 disconnected，交由 session watchdog relogin（**P0-1**，見 [`LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md)）。重連只重訂報價而不重掛回報通道，是 24 口 phantom short 的主因。
+8. **週期對帳熔斷（P0-3）**：交易時段每 `position_reconcile_sec`（預設 60）以 `list_positions` 比對；qty/dir 與券商不一致 → 以券商為準更新 + `block_new_entry` + CRITICAL。「未確認持倉與券商一致前，禁止任何新進場」；對帳是 kernel 的權威來源，callback 僅為快路徑。
+9. **硬部位上限（P0-4）**：`_validate_order_signal` 對 entry 於 `position_qty + signal.qty > max_position_qty`（預設 1）時拒單。
 
 實作參考：`order_executor.py`、`session.py`、`engine.py`。歷史設計稿見 [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md)。
 

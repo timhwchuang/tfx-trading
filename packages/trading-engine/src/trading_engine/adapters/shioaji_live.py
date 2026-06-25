@@ -56,9 +56,25 @@ class ShioajiLiveBootstrap:
             with self.engine._api_lock:
                 self.engine.api.subscribe(self.engine.contract, quote_type=sj.QuoteType.Tick)
 
+    def resubscribe_trade(self) -> None:
+        """Re-attach the order/deal report channel (idempotent).
+
+        Shioaji drops the trade subscription / order callback binding on
+        relogin. Calling this after reconnect restores ``委託回報`` / ``成交回報``
+        delivery so the kernel pending state machine keeps working instead of
+        timing out on every order while the broker silently fills.
+        """
+        with self.engine._api_lock:
+            account = self.engine.api.futopt_account
+            if account is None:
+                raise RuntimeError("futopt_account is None; cannot resubscribe trade channel")
+            self.engine.api.subscribe_trade(account)
+            self.engine.api.set_order_callback(self.engine.handle_order_event)
+
     def attach(self) -> None:
         """Register broker-neutral hooks on the engine (resubscribe, etc.)."""
         self.engine._resubscribe_ticks = self.subscribe_tick
+        self.engine._resubscribe_trade = self.resubscribe_trade
 
     def register_callbacks(self) -> None:
         def _on_tick(tick: TickFOPv1):

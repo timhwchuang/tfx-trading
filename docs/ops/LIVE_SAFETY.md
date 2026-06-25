@@ -41,6 +41,30 @@ This document describes what the kernel does when things go wrong during live op
 
 ---
 
+### Periodic broker/kernel position reconcile (P0-3, drift circuit-breaker)
+
+| | |
+|---|---|
+| **Kernel behavior** | The timeout loop runs `_check_position_reconcile` every `position_reconcile_sec` (default 60, `<=0` disables) during the trading session, skipping while an order is pending. It reads `list_positions` and compares qty/dir to kernel state. On mismatch: log + CRITICAL alert + `block_new_entry=True`, then adopts broker truth via `sync_positions` and sets `_position_drift_detected`. A clean reconcile clears the drift flag. |
+| **Expected outcome** | Even if a fill callback is lost entirely, kernel state converges to the broker within ~60s and new entries are blocked until manual review. |
+| **Operator action** | Treat any `持倉漂移` CRITICAL as a real position discrepancy. Reconcile against the broker before clearing `block_new_entry`. |
+
+**Code:** `engine.py:_check_position_reconcile`, `session.py:read_broker_position`
+
+---
+
+### Position ceiling exceeded (P0-4, `max_position_qty`)
+
+| | |
+|---|---|
+| **Kernel behavior** | `_validate_order_signal` rejects any **entry** when `position_qty + signal.qty > max_position_qty` (default 1, Pilot). Pending entries are already rejected, so held qty is authoritative. |
+| **Expected outcome** | Runaway accumulation (the 24-lot failure) is structurally impossible regardless of report-channel health. |
+| **Operator action** | Keep `max_position_qty: 1` during Pilot. Raise only with an explicit risk decision. |
+
+**Code:** `order_executor.py:_validate_order_signal`, `config.yaml: operations.max_position_qty`
+
+---
+
 ### CA / certificate activation failure
 
 | | |
@@ -97,10 +121,24 @@ This document describes what the kernel does when things go wrong during live op
 | **Symptom** | `下單 ... \| trade=` empty; `RAW_ORDER_EVT OrderState.FuturesOrder` appears in log; **no** `委託回報` / `FILL_AUDIT`; after `pending_timeout_sec` → `Pending 超時 8s 且補查無結果` + CRITICAL; `sync_positions` may show flat even though broker UI shows fills. |
 | **Root cause** | Live Shioaji passes `OrderState.FuturesOrder` / `FuturesDeal` as callback `stat`. That type is **str-like** (`isinstance(stat, str)` is `True`) but `stat != "FuturesOrder"`. If `normalize_order_stat` checks `isinstance(stat, str)` **before** `.name`, `is_futures_order()` / `is_futures_deal()` never match → `handle_order_event` ignores all live order callbacks. Mock/backtest pass plain strings `"FuturesOrder"` / `"FuturesDeal"`, so unit tests stay green. |
 | **Kernel behavior (fixed)** | `core/order_events.py`: prefer `stat.name` when present, then plain `str`, then `str(stat)`. Regression: `tests/test_order_events.py` (requires `shioaji` installed). |
-| **Simulation note** | `_reconcile_pending_trade` short-circuits in simulation (no `order_deal_records` fallback). Without working callbacks, pending **always** times out in sim — do not blame `sync_positions` alone. |
+| **Simulation note** | (P1-2, 2026-06-25) `_reconcile_pending_trade` no longer pure-short-circuits in simulation. It now reconciles against the broker position snapshot (`list_positions`): if the broker already reflects the pending order's outcome it resolves cleanly instead of falsely timing out + circuit-breaking. Only an **unreadable** broker falls through to the timeout path. |
 | **Operator / dev action** | UAT: `DUMP_ORDER_EVENTS=1 python -m live.order_smoke` (`apps/trading-app`). Expect `委託回報` → `pending_armed` → `成交回報` → `FILL_AUDIT`. Official Shioaji pattern: compare `stat == sj.OrderState.FuturesOrder` or use `.name`, not `isinstance(stat, str)`. |
 
 **Code:** `core/order_events.py`, `order_executor.py:handle_order_event`, `tests/test_order_events.py`
+
+---
+
+### Order/deal report channel lost after reconnect → phantom position accumulation (24-lot RCA, 2026-06-25)
+
+| | |
+|---|---|
+| **Symptom** | Overnight/relogin happened; quote ticks kept flowing and the strategy kept entering, but **no** `委託回報` / `FILL_AUDIT` arrived and every order hit `pending_timeout`. Because the kernel believed nothing filled, it re-entered repeatedly. At next-day login `position_sync` revealed **24 short lots** the kernel never tracked. A later stop/exit only flattened **1 lot**, orphaning the other 23. |
+| **Root cause (3 layers)** | **A (primary):** reconnect/relogin re-subscribed only quote ticks (`_resubscribe_ticks`), never the trade channel — `subscribe_trade` / `set_order_callback` ran only once at startup. Fills delivered silently. **B:** after a pending timed out and was cleared, a late/orphan deal callback was silently dropped (no position update, no `FILL_AUDIT`). **C:** sim reconcile short-circuited; `sync_positions` failure only warned; no periodic reconcile; `block_new_entry` cleared on restart. Separate exit bug: `manage_exit` sent qty=1 and the exit fill blanket-zeroed `position_qty`, leaving residual lots unmanaged. |
+| **Kernel behavior (fixed)** | **P0-1** `_on_reconnected` (and watchdog relogin via it) now calls `_resubscribe_trade` → re-`subscribe_trade` + re-`set_order_callback`; failure degrades the session to unhealthy → relogin. **P0-2** orphan/unattributable deals trigger `sync_positions` + `block_new_entry` + CRITICAL instead of being dropped. **P0-3** `_check_position_reconcile` runs every `position_reconcile_sec` (default 60) during the session; broker/kernel mismatch adopts broker truth + `block_new_entry` + CRITICAL. **P0-4** `max_position_qty` (default 1) hard-rejects entries that would exceed the ceiling. **P1-1** exit fills reduce `position_qty` by the filled amount and only go Flat at zero, then re-sync to confirm the broker is truly flat; kernel sizes exits to the actual held qty. |
+| **Expected outcome** | Lost report channel is restored on reconnect; silent fills become impossible to ignore (forced reconcile + block); position can never run away past `max_position_qty`; exits fully flatten or keep tracking the residual. |
+| **Operator action** | On any CRITICAL `持倉漂移` / `孤兒成交` / pending-timeout alert: inspect broker positions immediately, do **not** assume flat, and clear `block_new_entry` only after manual reconciliation. UAT: force a relogin, then place an order and confirm `委託回報` → `FILL_AUDIT` still arrive. |
+
+**Code:** `engine.py:_on_reconnected`, `_check_position_reconcile`, `adapters/shioaji_live.py:resubscribe_trade`, `order_executor.py:_handle_futures_deal`, `_apply_deal_fill`, `_validate_order_signal`
 
 ---
 
@@ -144,8 +182,8 @@ This document describes what the kernel does when things go wrong during live op
 
 | | |
 |---|---|
-| **Kernel behavior** | `sync_positions` takes **first** matching non-zero position for the contract. Does not net multiple legs. Unmatched positions log warning only. |
-| **Expected outcome** | Kernel state may not reflect full broker exposure. |
+| **Kernel behavior** | `sync_positions` takes **first** matching non-zero position for the contract. Does not net multiple legs. Unmatched positions log warning only. (P1-1) An exit fill reduces `position_qty` by the filled amount and only flips to Flat at zero, then re-syncs to confirm the broker is truly flat; the kernel sizes exits to the actual held qty so a single exit can fully flatten an accumulated position. |
+| **Expected outcome** | Kernel state may not reflect full broker exposure for mixed-direction manual legs, but an exit no longer falsely self-reports flat while lots remain at the broker. |
 | **Operator action** | Avoid manual trades outside kernel on the same contract. Flatten manually before restart if state is ambiguous. |
 
 **Code:** `session.py:sync_positions`
@@ -200,9 +238,12 @@ sequenceDiagram
     Eng->>Eng: _reconcile_pending_trade
     Eng->>Brk: sync_positions
     Eng->>API: _resubscribe_ticks
+    Eng->>API: _resubscribe_trade (subscribe_trade + set_order_callback)
     Eng->>Brk: refresh_atr
-    Eng->>Eng: _api_connected_true
+    Eng->>Eng: _api_connected_true (only if ticks+trade+ATR healthy)
 ```
+
+> **P0-1 (2026-06-25):** `_resubscribe_trade` is the critical step that was previously missing. A reconnect/relogin used to restore only quote ticks; the order/deal report channel stayed dead, so the broker filled silently while the kernel timed out and re-entered — the root cause of the 24-lot phantom short. If `_resubscribe_trade` fails, the session is marked unhealthy and degrades to the watchdog relogin path.
 
 ---
 

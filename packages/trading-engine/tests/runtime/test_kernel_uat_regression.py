@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from trading_engine.testing.helpers import (
@@ -10,6 +11,19 @@ from trading_engine.testing.helpers import (
     make_broker_with_positions,
     make_host,
 )
+
+
+def _broker_still_holds(host, *, code="TXFR1", quantity=1, direction="Buy", price=18000.0):
+    """Configure the host broker to keep reporting an open position.
+
+    Models 'exit order placed but not filled': the periodic/timeout reconcile
+    should then see the position is unchanged and fall through to the timeout
+    circuit-breaker rather than falsely treating it as resolved.
+    """
+    host.contract = MagicMock(code=code)
+    host.api.list_positions.return_value = [
+        SimpleNamespace(code=code, quantity=quantity, direction=direction, price=price)
+    ]
 from trading_engine.engine import AtrRefreshResult, ReconnectOutcome
 
 
@@ -88,6 +102,8 @@ class TestKernelUatRegression(unittest.TestCase):
 
         arm_pending_exit(host, order_id="timeout-ord")
         host.position_qty = 1
+        host.position_dir = "Long"
+        _broker_still_holds(host, quantity=1, direction="Buy")
         host.pending_since = host._clock() - host._cfg.pending_timeout_sec - 1
         trade = MagicMock()
         trade.order.id = host.pending_order_id

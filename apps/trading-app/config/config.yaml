@@ -199,3 +199,7 @@ operations:
   no_tick_resubscribe_escalate_after: 3
   # P0：ATR 超過 refresh×倍數視為 stale，擋新進場
   atr_stale_multiplier: 2.0
+  # P0-3：背景持倉對帳間隔（秒，交易所時間）；kernel 與券商不一致 → 停新進場 + CRITICAL。0 = 關閉
+  position_reconcile_sec: 60
+  # P0-4：硬部位上限（Pilot 固定 1）；持倉+在途達此值即拒絕新進場，防回報遺失時無限累積
+  max_position_qty: 1

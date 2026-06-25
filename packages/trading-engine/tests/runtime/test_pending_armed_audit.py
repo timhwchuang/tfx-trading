@@ -155,6 +155,11 @@ class TestPendingArmedAudit(unittest.TestCase):
         host._cfg.simulation = True
         arm_pending_exit(host, order_id="")
         host.position_qty = 1
+        host.position_dir = "Long"
+        host.contract = MagicMock(code="TXFR1")
+        host.api.list_positions.return_value = [
+            SimpleNamespace(code="TXFR1", quantity=1, direction="Buy", price=18000.0)
+        ]
         host.pending_since = host._clock() - host._cfg.pending_timeout_sec - 1
         host.pending_trade = MagicMock()
 

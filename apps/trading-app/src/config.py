@@ -113,6 +113,8 @@ class Settings:
     reconnect_warmup_sec: int
     max_disconnects_per_day: int
     alert_on_disconnect_with_position: bool
+    position_reconcile_sec: int
+    max_position_qty: int
 
     config_path: Path
 
@@ -248,6 +250,8 @@ def load_config(path: str | Path | None = None) -> Settings:
         alert_on_disconnect_with_position=bool(
             operations.get("alert_on_disconnect_with_position", True)
         ),
+        position_reconcile_sec=int(operations.get("position_reconcile_sec", 60)),
+        max_position_qty=int(operations.get("max_position_qty", 1)),
         config_path=config_path.resolve(),
     )
 

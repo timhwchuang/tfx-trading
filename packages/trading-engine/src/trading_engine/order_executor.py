@@ -44,6 +44,17 @@ class OrderExecutorMixin:
                     self.position_qty,
                 )
                 return False
+            # P0-4: hard position ceiling. ``is_pending`` is already rejected
+            # above, so pending_qty is 0 here; guard held + requested qty.
+            ceiling = self._cfg.max_position_qty
+            if ceiling > 0 and self.position_qty + signal.qty > ceiling:
+                logger.warning(
+                    "拒絕 entry OrderSignal: 超過部位上限 | 持倉=%d + 委託=%d > max=%d",
+                    self.position_qty,
+                    signal.qty,
+                    ceiling,
+                )
+                return False
         if signal.intent == "exit" and self.position_qty <= 0:
             logger.warning("拒絕 exit OrderSignal: 無持倉")
             return False
@@ -228,6 +239,23 @@ class OrderExecutorMixin:
             slippage_points=self._cfg.flatten_slippage_points,
             # audit left to None for pure kernel forced; consumers can enrich via telemetry
         )
+
+    def _stage_critical_alert(self, message: str) -> None:
+        """Record a CRITICAL alert to be sent outside the lock.
+
+        Must be called with ``self.lock`` held. The actual send happens via
+        ``_flush_staged_critical_alert`` after the lock is released, so we never
+        do network I/O on the callback hot path.
+        """
+        self._staged_critical_alert = message
+
+    def _flush_staged_critical_alert(self) -> None:
+        """Send any staged CRITICAL alert. Call OUTSIDE the lock."""
+        with self.lock:
+            message = self._staged_critical_alert
+            self._staged_critical_alert = None
+        if message:
+            self._alerts.send(message, level="CRITICAL")
 
     def _clear_entry_tracking(self) -> None:
         self.entry_exchange_ts = 0
@@ -437,6 +465,7 @@ class OrderExecutorMixin:
                 needs_sync = self._handle_futures_deal(msg)
         if needs_sync:
             self.sync_positions()
+        self._flush_staged_critical_alert()
 
     def _event_order_id(self, msg: dict) -> str | None:
         trade_id = msg.get("trade_id")
@@ -556,8 +585,21 @@ class OrderExecutorMixin:
         )
 
         if not self.is_pending:
-            logger.warning("忽略非 pending 成交回報 | order=%s", order_id)
-            return False
+            # P0-2: an orphan deal (no pending) almost always means a real broker
+            # fill whose callback arrived after we cleared pending on timeout.
+            # Do NOT silently drop it: force a reconcile + circuit-break new entry.
+            logger.warning(
+                "孤兒成交回報（無 pending）→ 強制對帳並停止新進場 | order=%s qty=%d @ %.1f",
+                order_id,
+                qty,
+                price,
+            )
+            self.block_new_entry = True
+            self._stage_critical_alert(
+                f"孤兒成交回報（無 pending）| order={order_id} qty={qty} @ {price} "
+                "→ 已強制對帳並停止新進場；請人工核對券商部位"
+            )
+            return True  # trigger sync_positions in caller
 
         # Symmetric backfill for deal-first events (if pending_order_id was empty at place time)
         if not self.pending_order_id and order_id:
@@ -577,12 +619,22 @@ class OrderExecutorMixin:
                 pass
 
         if not self._matches_pending_order(msg):
+            # P0-2: a deal for a different order_id while we hold a pending is a
+            # real broker fill we did not expect (e.g. stale order, duplicate
+            # leg). Reconcile instead of dropping; keep current pending intact.
             logger.warning(
-                "忽略非當前委託成交回報 | expected=%s got=%s",
+                "非當前委託成交回報 → 強制對帳並停止新進場 | expected=%s got=%s qty=%d @ %.1f",
                 self.pending_order_id,
                 order_id,
+                qty,
+                price,
             )
-            return False
+            self.block_new_entry = True
+            self._stage_critical_alert(
+                f"非當前委託成交回報 | expected={self.pending_order_id} got={order_id} "
+                f"qty={qty} @ {price} → 已強制對帳並停止新進場；請人工核對券商部位"
+            )
+            return True  # trigger sync_positions in caller
 
         is_buy = self._is_buy_action(action)
         return self._apply_deal_fill(price, is_buy, deal_qty=qty)
@@ -652,10 +704,13 @@ class OrderExecutorMixin:
             return False
 
         elif intent == PendingIntent.EXIT and self.has_position:
+            exit_qty = self.filled_qty if self.filled_qty > 0 else 1
+            exit_qty = min(exit_qty, self.position_qty)
             if self.position_dir == "Long":
-                pnl = price - self.entry_price
+                pnl_per_lot = price - self.entry_price
             else:
-                pnl = self.entry_price - price
+                pnl_per_lot = self.entry_price - price
+            pnl = pnl_per_lot * exit_qty
 
             hold_sec = 0
             if self.entry_exchange_ts > 0:
@@ -685,6 +740,22 @@ class OrderExecutorMixin:
             self._telemetry.update_risk_state(self.daily_pnl, self.consecutive_loss)
             logger.info("FILL_AUDIT %s", self._telemetry.format_fill_audit(fill_audit))
 
+            # P1-1: do not assume a single exit fill flattens the whole position.
+            # Reduce by the amount this exit order actually filled; only go Flat
+            # when the held qty reaches zero. Always request a re-sync so the
+            # broker remains the source of truth for the residual position.
+            remaining = self.position_qty - exit_qty
+            if remaining > 0:
+                self.position_qty = remaining
+                self.last_exit_time = self.pending_exchange_ts
+                self._clear_pending()
+                logger.warning(
+                    "部分平倉 | 平 %d 口，剩 %d 口（保留持倉，續由策略/對帳處理）| PnL=%.1f",
+                    exit_qty,
+                    remaining,
+                    pnl,
+                )
+                return True  # re-sync to confirm residual matches broker
             self.position_qty = 0
             self.position_dir = "Flat"
             self.entry_price = 0.0
@@ -698,7 +769,7 @@ class OrderExecutorMixin:
                 self.daily_pnl,
                 self.consecutive_loss,
             )
-            return False
+            return True  # re-sync to confirm broker is truly flat
 
         if intent == PendingIntent.EXIT and not self.has_position:
             logger.warning(
@@ -741,6 +812,75 @@ class OrderExecutorMixin:
         # we intentionally ignore it here to avoid any live object access from bg threads.
         return True
 
+    def _reconcile_pending_via_broker_snapshot(self) -> bool:
+        """Reconcile pending against broker position snapshot (sim + live fallback).
+
+        Uses ``list_positions`` only (non-mutating). Unreadable broker -> False.
+        """
+        broker = self.read_broker_position()
+        if broker is None:
+            return False
+        broker_qty, broker_dir = broker
+        with self.lock:
+            if not self.is_pending:
+                return True
+            intent = self.pending_intent
+            kernel_qty = self.position_qty
+            kernel_dir = self.position_dir
+            pending_qty = self.pending_qty if self.pending_qty > 0 else 1
+            pending_action = self._pending_action or ""
+        if intent == PendingIntent.ENTRY:
+            expected_dir = "Long" if pending_action == "Buy" else "Short"
+            resolved = (
+                broker_qty == pending_qty
+                and broker_dir == expected_dir
+                and (
+                    (kernel_qty == 0 and kernel_dir == "Flat")
+                    or (kernel_qty == broker_qty and kernel_dir == expected_dir)
+                )
+            )
+        elif intent == PendingIntent.EXIT:
+            resolved = broker_qty < kernel_qty and (
+                broker_qty == 0 or broker_dir == kernel_dir
+            )
+        else:
+            resolved = False
+        if not resolved:
+            return False
+        if (
+            intent == PendingIntent.ENTRY
+            and kernel_qty == broker_qty
+            and kernel_dir == expected_dir
+        ):
+            # Position already adopted (e.g. orphan/mismatch deal triggered sync).
+            with self.lock:
+                if self.is_pending:
+                    self._clear_pending()
+            return True
+        logger.info(
+            "券商部位對帳補查：部位已反映委託結果（broker=%s %d口）→ 採用券商為準",
+            broker_dir,
+            broker_qty,
+        )
+        fill_price = self.pending_signal_price
+        still_pending = False
+        with self.lock:
+            if not self.is_pending:
+                return True
+            self.filled_qty = 0
+            if intent == PendingIntent.EXIT:
+                is_buy = self.position_dir == "Short"
+                deal_qty = max(1, kernel_qty - broker_qty)
+            else:
+                is_buy = broker_dir == "Long"
+                deal_qty = max(1, broker_qty - kernel_qty)
+            self._apply_deal_fill(fill_price, is_buy, deal_qty=deal_qty)
+            still_pending = self.is_pending
+        if still_pending:
+            return False
+        self.sync_positions()
+        return True
+
     def _reconcile_pending_trade(self, trade) -> bool:
         """補查委託狀態。回傳 True 表示 pending 已處理完畢（含 callback 已搶先處理）。
 
@@ -748,12 +888,10 @@ class OrderExecutorMixin:
         - 背景 thread 絕不對 live trade 物件呼叫 update_status（避免 Shioaji 內部 Rust borrow panic）。
         - 優先靠 handle_order_event callback。
         - 補查走 order_deal_records()（query 新資料，不 mutate live trade），用 pending_order_id 比對。
-        - simulation 完全 short-circuit。
+        - simulation / live fallback：list_positions 快照對帳（P1-2）。
         """
         if self._cfg.simulation:
-            # simulation 下短路 broker 補查，避免 shioaji sim 層 borrow 問題。
-            # 靠 callback 或測試 mock 注入。
-            return False
+            return self._reconcile_pending_via_broker_snapshot()
 
         # 絕不使用 account update_status 來觸發 borrow；直接用 records（query）。
         # 這避免了即使 account 層級也會 borrow 底下 trades 的風險。
@@ -767,7 +905,7 @@ class OrderExecutorMixin:
 
         order_id = self.pending_order_id
         if not order_id:
-            return False
+            return self._reconcile_pending_via_broker_snapshot()
 
         for state, event in records:
             if not is_futures_deal(state):
@@ -784,7 +922,7 @@ class OrderExecutorMixin:
                 self.sync_positions()
             return True
 
-        return False
+        return self._reconcile_pending_via_broker_snapshot()
 
     def _check_pending_timeout(self):
         with self.lock:
