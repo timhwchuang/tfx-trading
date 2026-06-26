@@ -47,6 +47,7 @@
 | 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
 | MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
 | Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
+| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · [`workspaces/`](../workspaces/) |
 | 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
 | tick_cache 品質稽核 / 修復 | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit；`storage.cache_audit` / `storage.cache_repair` |
 
@@ -66,6 +67,7 @@
 | ---- | ---- | ------ | ---- |
 | FT-001 | audit-event-replay | Landed | [SPEC](features/audit-event-replay/SPEC.md) · [PLAN](features/audit-event-replay/PLAN.md) · [REVIEW](features/audit-event-replay/REVIEW.md) |
 | FT-002 | smc-structure-filter | Draft | [SPEC](features/smc-structure-filter/SPEC.md) · [PLAN](features/smc-structure-filter/PLAN.md) · [REVIEW](features/smc-structure-filter/REVIEW.md) |
+| FT-003 | ai-backtest-tuning | InProgress | [SPEC](features/ai-backtest-tuning/SPEC.md) · [PLAN](features/ai-backtest-tuning/PLAN.md) · [**ROSTER**](features/ai-backtest-tuning/AGENT_ROSTER.md) · [`workspaces/`](../workspaces/) |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 
@@ -94,5 +96,6 @@
 | 規劃中能力 / 開 ft？ | [`features/README.md`](features/README.md) |
 | Audit 事件回放？ | **FT-001** → [`features/audit-event-replay/`](features/audit-event-replay/) |
 | SMC 結構濾網？ | **FT-002** → [`features/smc-structure-filter/`](features/smc-structure-filter/) |
+| 回測調參 / AI 競賽？ | **FT-003** → [ROSTER](features/ai-backtest-tuning/AGENT_ROSTER.md)（編制表）· [SPEC](features/ai-backtest-tuning/SPEC.md) · 角色 [`senior-trading-professional`](../prompts/roles/senior-trading-professional.md) |
 | 補歷史 tick/kbar 快取？ | `python -m backfilldata date …` → [`backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
 | 回測前 tick×kbar 品質？ | `python -m storage.cache_audit --code TMFR1`；修復 `python -m storage.cache_repair --fix` → [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit |

@@ -7,7 +7,7 @@ import statistics
 from dataclasses import asdict, dataclass, field
 from typing import Any, Mapping
 
-from config import settings
+from config import load_config
 from reporting.performance_metrics import (
     aggregate_daily_performance,
     compute_performance_from_fills,
@@ -378,20 +378,21 @@ class DailyObservability:
             }
             for reason, v in self.pnl_by_reason.items()
         }
+        app_settings = load_config()
         friction = friction_settings_from_mapping(
             {
-                "enabled": settings.friction_enabled,
-                "mode": settings.friction_mode,
-                "round_trip_friction_points": settings.round_trip_friction_points,
-                "commission_per_side_points": settings.commission_per_side_points,
-                "tax_per_exit_points": settings.tax_per_exit_points,
-                "commission_per_side_ntd": settings.commission_per_side_ntd,
-                "tax_rate": settings.friction_tax_rate,
-                "point_value_ntd": settings.point_value_ntd,
+                "enabled": app_settings.friction_enabled,
+                "mode": app_settings.friction_mode,
+                "round_trip_friction_points": app_settings.round_trip_friction_points,
+                "commission_per_side_points": app_settings.commission_per_side_points,
+                "tax_per_exit_points": app_settings.tax_per_exit_points,
+                "commission_per_side_ntd": app_settings.commission_per_side_ntd,
+                "tax_rate": app_settings.friction_tax_rate,
+                "point_value_ntd": app_settings.point_value_ntd,
             }
         )
         performance = compute_performance_from_fills(
-            self.fills, friction, sharpe_period=settings.sharpe_period
+            self.fills, friction, sharpe_period=app_settings.sharpe_period
         )
         return {
             "date": trade_date,

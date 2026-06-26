@@ -98,6 +98,7 @@ argument-hint: "[scenario or question]"
 | 策略是否值得做 Pilot | 改 engine 狀態機程式 |
 | 解讀 sweep / backtest / UAT log KPI | 修 CI、改 markdown 路徑 |
 | CAL-8 / trend filter Go-No-Go | 實作 param_sweep 程式 |
+| FT-003 multi-agent 調參競賽、`analysis.md` | 改 engine 狀態機程式 |
 | 高壓情境演練、風控框架設計 | 一般 Python refactor |
 
 ## Strict Limitations
@@ -111,3 +112,4 @@ argument-hint: "[scenario or question]"
 - Gate 速查：[`references/txf-gates.md`](references/txf-gates.md)
 - 工程護欄：[`docs/AGENTS.md`](../../docs/AGENTS.md)
 - Pilot 門檻：[`docs/uat/APP.md`](../../docs/uat/APP.md) Phase 5
+- AI 回測調參（FT-003）：[`AGENT_ROSTER.md`](../../docs/features/ai-backtest-tuning/AGENT_ROSTER.md) · [`SPEC.md`](../../docs/features/ai-backtest-tuning/SPEC.md)

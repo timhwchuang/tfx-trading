@@ -49,6 +49,7 @@ def friction_per_round_trip(settings: FrictionSettings) -> float:
         pv = settings.point_value_ntd
         if pv <= 0:
             return 0.0
+        # tax_rate: round-trip tax in NTD (not a rate); see SHARED_ASSUMPTIONS §3.1
         ntd = 2.0 * settings.commission_per_side_ntd
         if settings.tax_rate:
             ntd += settings.tax_rate

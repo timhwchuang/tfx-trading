@@ -1,0 +1,5 @@
+{
+  "trend_filter_enabled": [true],
+  "trend_min_strength": [0.2, 0.4, 0.6],
+  "trend_slope_min": [0.0, 0.05]
+}

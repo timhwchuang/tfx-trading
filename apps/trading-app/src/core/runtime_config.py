@@ -41,8 +41,7 @@ class TradingAppRuntimeConfig(EngineRuntimeConfig):
 
 
 def default_runtime_config() -> TradingAppRuntimeConfig:
-    load_config()
-    return TradingAppRuntimeConfig(_to_engine_settings())
+    return TradingAppRuntimeConfig(_to_engine_settings(load_config()))
 
 
 __all__ = [

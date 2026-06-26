@@ -15,10 +15,25 @@ SWEEP_FIELD_TO_CONST: dict[str, str] = {
     "vwap_stop_points": "VWAP_STOP_POINTS",
     "exhaustion_vol": "EXHAUSTION_VOL",
     "exit_grace_ticks": "EXIT_GRACE_TICKS",
+    "exit_grace_sec": "EXIT_GRACE_SEC",
     "fixed_tp_points": "FIXED_TP_POINTS",
     "trail_points": "TRAIL_POINTS",
     "hard_stop_points": "HARD_STOP_POINTS",
     "momentum_timeout_sec": "MOMENTUM_TIMEOUT_SEC",
+    "momentum_buy_ratio": "MOMENTUM_BUY_RATIO",
+    "momentum_sell_ratio": "MOMENTUM_SELL_RATIO",
+    "momentum_vol_1s": "MOMENTUM_VOL_1S",
+    "min_atr_threshold": "MIN_ATR_THRESHOLD",
+    "max_consecutive_loss": "MAX_CONSECUTIVE_LOSS",
+    "ioc_slippage_points": "IOC_SLIPPAGE_POINTS",
+    "pending_timeout_sec": "PENDING_TIMEOUT_SEC",
+    "flatten_slippage_points": "FLATTEN_SLIPPAGE_POINTS",
+    "atr_trailing_enabled": "ATR_TRAILING_ENABLED",
+    "atr_vwap_stop_enabled": "ATR_VWAP_STOP_ENABLED",
+    "trail_points_floor": "TRAIL_POINTS_FLOOR",
+    "trail_atr_k": "TRAIL_ATR_K",
+    "vwap_stop_points_floor": "VWAP_STOP_POINTS_FLOOR",
+    "vwap_stop_atr_k": "VWAP_STOP_ATR_K",
     "trend_filter_enabled": "TREND_FILTER_ENABLED",
     "trend_min_strength": "TREND_MIN_STRENGTH",
     "trend_timeframe_min": "TREND_TIMEFRAME_MIN",
@@ -62,6 +77,9 @@ _CONST_TO_SNAKE = {
     "VWAP_STOP_ATR_K": "vwap_stop_atr_k",
     "FLATTEN_SLIPPAGE_POINTS": "flatten_slippage_points",
     "EXIT_GRACE_SEC": "exit_grace_sec",
+    "IOC_SLIPPAGE_POINTS": "ioc_slippage_points",
+    "PENDING_TIMEOUT_SEC": "pending_timeout_sec",
+    "MOMENTUM_VOL_1S": "momentum_vol_1s",
 }
 
 
@@ -71,6 +89,19 @@ def normalize_overlay_key(key: str) -> str:
 
 def _snake_for_const(name: str) -> str:
     return _CONST_TO_SNAKE.get(name, name.lower())
+
+
+def _overlay_key_valid(cfg: "RuntimeConfig", real_key: str) -> bool:
+    if real_key in _CONST_TO_SNAKE:
+        return True
+    if real_key in SWEEP_FIELD_TO_CONST:
+        return True
+    snake = _snake_for_const(real_key)
+    if hasattr(cfg._base, snake):
+        return True
+    if hasattr(cfg._base, real_key):
+        return True
+    return False
 
 
 class RuntimeConfig:
@@ -96,6 +127,11 @@ class RuntimeConfig:
         saved: dict[str, Any] = {}
         for key, value in params.items():
             real_key = normalize_overlay_key(key)
+            if not _overlay_key_valid(self, real_key):
+                raise ValueError(
+                    f"unknown overlay key {key!r} (normalized {real_key!r}); "
+                    "not in SWEEP_FIELD_TO_CONST and not a Settings field"
+                )
             saved[real_key] = self._overlay.get(real_key, _MISSING)
             self._overlay[real_key] = value
         self._validate_regime_mutual_exclusion()
@@ -164,6 +200,13 @@ class RuntimeConfig:
         return False
 
     def __getattr__(self, name: str) -> Any:
+        if name in ("_base", "_overlay"):
+            raise AttributeError(name)
+        overlay_key = normalize_overlay_key(name)
+        if overlay_key in self._overlay:
+            return self._overlay[overlay_key]
+        if name in self._overlay:
+            return self._overlay[name]
         return getattr(self._base, name)
 
 

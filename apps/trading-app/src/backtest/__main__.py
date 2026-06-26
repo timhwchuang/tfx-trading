@@ -12,6 +12,7 @@ from pathlib import Path
 from config import LOG_FILE, LOG_LEVEL, PRODUCT_CODE
 from storage.cache_paths import DEFAULT_REPORTS_DIR, DEFAULT_TICK_CACHE_DIR
 from storage.tick_loader import DEFAULT_CACHE_DIR, resolve_cli_tick_cache_dates
+from sweep.holdout_guard import assert_dates_unsealed
 from trading_engine.logging_setup import (
     flush_async_logging,
     setup_async_logging,
@@ -270,6 +271,17 @@ def main(argv: list[str] | None = None) -> int:
             to_date=args.to_date,
         )
     except ValueError as exc:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            datefmt="%H:%M:%S",
+        )
+        logging.error("%s", exc)
+        return 1
+
+    try:
+        assert_dates_unsealed(dates)
+    except RuntimeError as exc:
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s [%(levelname)s] %(message)s",

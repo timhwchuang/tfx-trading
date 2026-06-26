@@ -214,6 +214,50 @@ class TestParamSweep(unittest.TestCase):
             self.assertIn("structure_veto_metrics", row)
             self.assertNotIn("veto_metrics", row)
 
+    def test_min_atr_threshold_overlay_affects_strategy_params(self):
+        cfg = default_runtime_config()
+        saved = _apply_params({"min_atr_threshold": 36.0}, cfg)
+        try:
+            params = StrategyParams.from_runtime_config(cfg)
+            self.assertEqual(params.min_atr_threshold, 36.0)
+        finally:
+            _restore_params(saved, cfg)
+
+    def test_ioc_slippage_overlay_affects_cfg_getattr(self):
+        cfg = default_runtime_config()
+        original = cfg.ioc_slippage_points
+        saved = _apply_params({"ioc_slippage_points": 5}, cfg)
+        try:
+            self.assertEqual(cfg.ioc_slippage_points, 5)
+        finally:
+            _restore_params(saved, cfg)
+        self.assertEqual(cfg.ioc_slippage_points, original)
+
+
+    def test_sweep_rejects_holdout_dates(self):
+        grid = {"entry_band_points": [2.0]}
+        with self.assertRaises(RuntimeError) as ctx:
+            sweep(
+                grid,
+                dates_train=[datetime.date(2026, 5, 1)],
+                dates_valid=[datetime.date(2026, 4, 1)],
+                code="TXFR1",
+                cache_dir=Path("/tmp"),
+            )
+        self.assertIn("holdout dates sealed", str(ctx.exception))
+
+    def test_sweep_rejects_oversized_grid(self):
+        grid = {f"k{i}": [1, 2, 3] for i in range(5)}  # 3^5 = 243 combos, 5 keys
+        with self.assertRaises(ValueError) as ctx:
+            sweep(
+                grid,
+                dates_train=[datetime.date(2026, 3, 2)],
+                dates_valid=[datetime.date(2026, 4, 1)],
+                code="TXFR1",
+                cache_dir=Path("/tmp"),
+            )
+        self.assertIn("max", str(ctx.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

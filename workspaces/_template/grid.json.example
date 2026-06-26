@@ -1,0 +1,4 @@
+{
+  "entry_band_points": [1.5, 2.0, 2.5],
+  "min_atr_threshold": [22, 25, 28]
+}
