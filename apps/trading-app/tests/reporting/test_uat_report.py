@@ -170,7 +170,7 @@ class TestUatReport(unittest.TestCase):
         ]
         trend = format_kpi_trend_from_json_reports(reports)
         self.assertIn("exp_gross=0.5", trend)
-        self.assertIn("Sharpe=0.8", trend)
+        self.assertIn("Sharpe_net=0.8", trend)
 
     def test_format_report_contains_slippage_and_hints(self):
         lines = [

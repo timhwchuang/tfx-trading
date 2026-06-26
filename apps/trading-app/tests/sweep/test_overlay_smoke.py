@@ -81,6 +81,28 @@ class TestOverlaySmoke(unittest.TestCase):
             )
         self.assertEqual(rc, 1)
 
+    def test_fail_when_strategy_key_overlay_not_applied(self):
+        """Deliberately broken overlay: KPI unchanged and readback ignores toggle."""
+        summaries = [{"pnl": {"daily_pnl_points": 1.0}, "fills": {"exit_count": 2}, "quick_stop_loss": {"count": 0}}]
+
+        def fake_run(_code, _dates, cache_dir, runtime_config=None):
+            return summaries, [], []
+
+        with (
+            patch("sweep.overlay_smoke._run_backtest_summaries", side_effect=fake_run),
+            patch(
+                "sweep.overlay_smoke._read_applied_value",
+                side_effect=[False, False],
+            ),
+        ):
+            rc = run_overlay_smoke(
+                key="structure_filter_enabled",
+                values=[False, True],
+                date=datetime.date(2026, 3, 2),
+                cache_dir=Path("/tmp"),
+            )
+        self.assertEqual(rc, 1)
+
     def test_rejects_holdout_date(self):
         with self.assertRaises(RuntimeError):
             run_overlay_smoke(

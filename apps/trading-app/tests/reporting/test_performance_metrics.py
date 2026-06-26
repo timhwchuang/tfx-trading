@@ -112,6 +112,10 @@ class TestPerformanceMetrics(unittest.TestCase):
         perf = compute_performance_from_fills(fills, friction)
         self.assertEqual(perf["total_pnl_gross"], 5.0)
         self.assertEqual(perf["total_pnl_net"], 1.0)
+        risk = perf["risk_adjusted"]
+        self.assertEqual(risk["sharpe_net"], risk["sharpe"])
+        self.assertIsNotNone(risk["sharpe_gross"])
+        self.assertGreater(risk["sharpe_gross"], risk["sharpe_net"])
 
     def test_uat_report_includes_performance(self):
         lines = [

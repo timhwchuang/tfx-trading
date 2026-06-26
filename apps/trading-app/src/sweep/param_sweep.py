@@ -9,7 +9,13 @@ from pathlib import Path
 from typing import Any
 
 from backtest.engine import BacktestEngine
-from config import SWEEP_DD_PENALTY, SWEEP_SCORE_METRIC, SWEEP_SL_PENALTY
+from config import (
+    SWEEP_DD_PENALTY,
+    SWEEP_MAX_GRID_COMBOS,
+    SWEEP_MAX_GRID_KEYS,
+    SWEEP_SCORE_METRIC,
+    SWEEP_SL_PENALTY,
+)
 from core.runtime_config import default_runtime_config
 from reporting.performance_metrics import aggregate_daily_performance, sweep_score_from_kpi
 from reporting.forward_pnl import ForwardPnlPolicy, load_tick_series, make_replay_forward_pnl
@@ -28,8 +34,8 @@ from sweep.determinism_check import _run_with_audit_capture
 from sweep.holdout_guard import assert_dates_unsealed
 
 DEFAULT_PENALTY = 50.0
-MAX_GRID_COMBOS = 36
-MAX_GRID_KEYS = 4
+MAX_GRID_COMBOS = SWEEP_MAX_GRID_COMBOS
+MAX_GRID_KEYS = SWEEP_MAX_GRID_KEYS
 logger = logging.getLogger(__name__)
 
 # Backward-compatible aliases for tests

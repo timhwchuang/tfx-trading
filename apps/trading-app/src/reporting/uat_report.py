@@ -998,9 +998,11 @@ def format_report(metrics: dict, *, quick_sl_sec: int = 5) -> str:
             f"({dd.get('max_drawdown_pct')}%)"
         )
         risk = perf.get("risk_adjusted", {})
+        sharpe_label = risk.get("sharpe_net", risk.get("sharpe"))
+        sortino_label = risk.get("sortino_net", risk.get("sortino"))
         lines.append(
-            f"  Sharpe={risk.get('sharpe')} Sortino={risk.get('sortino')} "
-            f"({risk.get('return_period')})"
+            f"  Sharpe net={sharpe_label} gross={risk.get('sharpe_gross')} "
+            f"Sortino net={sortino_label} ({risk.get('return_period')})"
         )
         lines.append(
             f"  累計 PnL gross={perf.get('total_pnl_gross')} "
@@ -1153,7 +1155,7 @@ def format_kpi_trend_from_json_reports(reports: list[tuple[str, dict]]) -> str:
         lines.append(
             f"{date} | exp_gross={exp.get('expectancy_per_trade_gross')} "
             f"exp_net={exp.get('expectancy_per_trade_net')} | "
-            f"Sharpe={risk.get('sharpe')} | MDD_budget={mdd_text} | "
+            f"Sharpe_net={risk.get('sharpe_net', risk.get('sharpe'))} | MDD_budget={mdd_text} | "
             f"daily_pnl_points={pnl_pts}"
         )
     return "\n".join(lines)

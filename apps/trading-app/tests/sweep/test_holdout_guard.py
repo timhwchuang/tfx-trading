@@ -23,6 +23,13 @@ class TestHoldoutGuard(unittest.TestCase):
         with patch.dict(os.environ, {"FT003_HOLDOUT_UNSEAL": "1"}):
             assert_dates_unsealed([datetime.date(2026, 5, 15)])
 
+    def test_backtest_engine_blocks_holdout_in_constructor(self):
+        from backtest.engine import BacktestEngine
+
+        with self.assertRaises(RuntimeError) as ctx:
+            BacktestEngine("TMFR1", [datetime.date(2026, 5, 1)], cache_dir="/tmp")
+        self.assertIn("holdout dates sealed", str(ctx.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

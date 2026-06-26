@@ -82,6 +82,14 @@
 **本次 Sweep 最有價值的一個發現**（交易員語言，非只報數）：  
 （例：「min_atr 28→34 減少 18% 交易，Sharpe 僅降 0.12，低波動訊號多為噪音。」）
 
+### 摩擦對策略的實際影響（MUST — SHARED_ASSUMPTIONS §3.1）
+
+TMFR1 每趟 round-trip **淨扣 5 點**（手續費 + 稅；不含撮合滑價）。請討論：
+
+- 摩擦如何改變 **盈虧比（payoff）** 與 **expectancy_net**（相對 gross）？
+- 若提高進場門檻（如 `min_atr_threshold` ↑）減少交易次數，摩擦總成本是否下降足以抵銷機會損失？
+- 本 sweep 推薦配置的 **break-even 勝率 / 平均獲利** 在扣摩擦後是否仍可行？
+
 ---
 
 ## 4. Overfitting 與穩健性評估（Overfitting & Robustness）
@@ -136,6 +144,7 @@ recommended_params:
 
 ## Phase 3.4 交叉審核 Checklist（leaderboard 前 MUST）
 
+- [ ] 已確認與 [`SHARED_ASSUMPTIONS.md`](../SHARED_ASSUMPTIONS.md) **v1.1** 及 [`PLAN.md`](../../docs/features/ai-backtest-tuning/PLAN.md) 一致
 - [ ] 已完成 peer_review（由對方 agent 審核；見 `peer_review_*.md`）
 - [ ] 已回覆 peer_review 提出的質疑（若有；寫於 §5 協作備註或本節下方）
 

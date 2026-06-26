@@ -165,11 +165,12 @@ logging:
   # 可被 LOG_FILE env 覆寫；磁碟 I/O 在背景 QueueListener 執行緒
   file: ""
 
-# P6-6：回測 / 報表摩擦成本（不影響下單決策；TMFR1 SSOT：workspaces/SHARED_ASSUMPTIONS.md §3.1）
+# P6-6：回測 / 報表摩擦成本（不影響 MockBroker 撮合價；TMFR1 SSOT：SHARED_ASSUMPTIONS.md §3.1）
+# TMFR1 微台 qty=1：每趟 round-trip 手續費 30 + 交易稅 20 NTD ≈ 5 點（不含撮合滑價；滑價見 strategy.ioc_slippage_points）
 friction:
   enabled: true
   mode: ntd  # flat_round_trip | per_side | ntd
-  round_trip_friction_points: 5.0  # flat 備用：(2×15+20)/10
+  round_trip_friction_points: 5.0  # flat 備用：(2×15+20)/10 = 5 點/趟
   commission_per_side_points: 1.5  # per_side 備用：15 NTD/邊 ÷ 10
   tax_per_exit_points: 2.0         # per_side 備用：20 NTD 稅 ÷ 10
   commission_per_side_ntd: 15.0    # 微台單邊手續費（NTD）
@@ -182,6 +183,9 @@ performance:
   sweep_score_metric: expectancy_net  # expectancy_net | sharpe_net | pnl_net
   sweep_dd_penalty: 0.0
   sweep_sl_penalty: 50.0
+  # FT-003 SPEC §4.4：單次 grid 上限（param_sweep 強制）
+  sweep_max_grid_combos: 36
+  sweep_max_grid_keys: 4
   # uat_report 累積風險：本金（點數）與可承受累積最大回撤（點數，跨日累進）
   initial_capital_points: 0.0
   max_acceptable_mdd_points: 120.0
