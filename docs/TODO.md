@@ -88,9 +88,12 @@
 
 - [ ] Gate：MVP holdout 非 `overfit_suspect`
 - [ ] P1：補檔（先 2024–2025 pilot，再決定是否補 2022）+ `cache_audit`
-- [ ] P2：`DATA_SPLIT.md` fold + Phase 6 holdout
-- [ ] P3：GCE 跑 `ft003_walkforward`（或批次腳本）→ `robustness_report.md`
+- [ ] P2：`DATA_SPLIT.md` fold（季滾 pilot / 月滾完整）+ Phase 6 holdout
+- [ ] P3：GCE 跑 `ft003_walkforward`（或批次腳本）→ `robustness_report.md` §1–§10
+- [ ] P3b：人類簽核 WFO Gate（net Sharpe、MDD、trade_count 穩定；摩擦 5 點/趟 MUST）
 - [ ] P4：v1/v2 決策樹 + Phase 6 holdout 一次（若 v2）
+- [ ] **P5.5 Phase 6.5**：Shadow/Paper ≥2–4 週 + `compare_fill_audits`（報告 §11）
+- [ ] 運維：kill switch / emergency flatten 演練、日週報、券商 reconciliation 證據
 
 ### P0-5 部位真相驅動（已落地 code+測試；UAT gate 待驗）
 

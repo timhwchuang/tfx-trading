@@ -37,7 +37,7 @@ Phase 4：**新開獨立 AI 對話** 執行 **agent-election-judge** → [`judge
 | `logs/sweep_progress.log` | sweep JSONL 進度（預設 bulk + 60s heartbeat 含 `phase_elapsed_sec`；`--per-day` 才有逐日 `day` 事件）。`--heartbeat-sec` 最小 5s。勿 redirect |
 | `logs/sweep.lock` | 單實例鎖；第二個 sweep 會 `FAILED exit=2`；程序被強殺可能殘留，下次啟動若 PID 已死會自動替換 |
 | `sweep_result.jsonl` | 跑程中依 **完成順序** append（非排名）；`sweep_done` 後才依 `valid_score` 排序覆寫 |
-| `robustness_report.md` | **Phase 6 only**（Post-MVP）；模板 [`_template/robustness_report.md`](_template/robustness_report.md) |
+| `robustness_report.md` | **Phase 6 only**（Post-MVP）；模板 §1–§12（WFO Gate、擾動、市況、壓力、相關性、Phase 6.5 paper）[`_template/robustness_report.md`](_template/robustness_report.md) |
 | `_template/` | 範本（`analysis.md`、`peer_review.md`、`judge_opinion.md`、`election_report.md`、`robustness_report.md`） |
 
 ### Phase 3 sweep 啟動（`apps/trading-app/src`）

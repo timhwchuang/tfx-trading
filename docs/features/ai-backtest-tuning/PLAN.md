@@ -306,6 +306,7 @@ Checklist：
 | **P3** | **固定 grid**、**雲端**跑完所有 fold | `robustness_report.md` | 待做 |
 | **P4** | 依決策樹判定 v1 / v2 候選 | 人類簽核 | 待做 |
 | **P5** | UAT `compare_fill_audits` | 執行校準 | 待做 |
+| **P5.5** | **Phase 6.5** Shadow/Paper ≥2–4 週 + fill 對照 | `shadow_report` / 報告 §11 | 待做（**Phase 6 後**） |
 | **P6** | Pilot qty=1 + 帳戶對帳 | Live gate | 見 [`uat/APP.md`](../../uat/APP.md) |
 
 > **現行 MVP sweep**：valid 全負只代表「此 grid 在 2026 Q2 不賺」，**不影響** Phase 6 設計是否正確。
@@ -332,20 +333,75 @@ python -m storage.cache_repair --code TMFR1 --fix   # 若有 FAIL
 
 3. 每年須同時有 `{code}_{date}.csv` 與 `{code}_kbars_{date}.csv`。
 
-#### P2 — Rolling walk-forward（建議架構）
+#### P2 — Rolling walk-forward（建議架構 — **殘酷版**）
+
+> **禁止**只做「一次 train → 一次 valid」就宣稱穩健。Phase 6 **MUST** 多段滾動 re-train + re-validate。
 
 ```text
-例：12 個月 train + 3 個月 valid，每季往前滾
+例 A（季滾，pilot 最小）：12 個月 train + 3 個月 valid，每季往前滾
 
-2022-01～2022-12  train  →  2023-Q1  valid   (fold 1)   ← 可延後至擴 scope
+2022-01～2022-12  train  →  2023-Q1  valid   (fold 1)
 2022-04～2023-03  train  →  2023-Q2  valid   (fold 2)
 …
 最後封印：例如 2025 全年  →  Phase 6 holdout（僅跑一次）
+
+例 B（月滾，完整版 — 更嚴）：每月 re-train 視窗 + 下月 valid（或 rolling 1M OOS）
+→ fold 數 ↑、算力 ↑；pilot 通過後人類批准才開
 ```
 
-- **排名**：各 fold `valid_score`；冠軍 = 跨 fold **平均/中位排名** 最佳。
-- **人工必看 KPI**：`expectancy_net`、`quick_stop_loss_rate`、`max_drawdown_points`（淨）、`trade_count`/月、各年 net PnL 分布。
+- **排名**：各 fold `valid_score`（**淨摩擦** `friction.enabled: true`，見 SHARED_ASSUMPTIONS §3.1）；冠軍 = 跨 fold **平均/中位排名** 最佳。
+- **撮合假設**：回測仍用 MockBroker + 固定 `ioc_slippage_points` tier；**不得**在 Phase 6 關掉摩擦。滑價 tier 須與 workspace config 一致並寫入 `robustness_report.md` §1。
+- **人工必看 KPI**：`expectancy_net`、`sharpe_net`、`quick_stop_loss_rate`、`max_drawdown_points`（淨）、`trade_count`/月、各年 net PnL 分布。
 - **禁止**：封印前年全當 train 挑最佳；看完 fold 再改 grid（須人類批准新一輪）。
+
+##### Walk-forward Gate 通過條件（MUST — 人類簽核門檻）
+
+Pilot 啟動前，人類在 `robustness_report.md` §1 **簽核數值**（勿用 AI 自訂寬鬆門檻）。建議起點（可調嚴、不可調鬆而不記錄）：
+
+| 條件 | 建議檢查（每 fold **與** 跨 fold 彙總） | 未過 → |
+|------|----------------------------------------|--------|
+| Net Sharpe | `sharpe_net` **>** 簽核值 X（例：0 或 0.3） | **FAIL** — 不進 v2 / 不宣稱穩健 |
+| Net MDD | `max_drawdown_points` **<** 簽核值 Y（點數；依 qty=1 資本假設） | **FAIL** |
+| 交易頻率穩定 | 各 fold `trade_count`/月 變異係數 **<** 簽核值；無「某月 0 筆、某月暴增」 | **WARN/FAIL**（人類裁定） |
+| 淨期望 | 跨 fold **中位** `expectancy_net` **≥** 0（摩擦已扣） | 未過則僅診斷，不得上線敘事 |
+| QSL | `quick_stop_loss_rate` 不劣於 MVP baseline 簽核上限 | 未過 → 執行/出場假設重審 |
+
+**殘酷原則**：任一 fold 觸發 **FAIL** → 整體 Phase 6 **不得**標 `robustness_pass`；僅能 `diagnostic_only` 或重跑固定 grid（新 run_id，不得偷改 holdout）。
+
+#### P2b — 穩健性深度檢查（`robustness_report.md` MUST）
+
+模板 §7–§10；**固定 params**（MVP 冠軍或跨 fold 冠軍）上執行，**禁止**用這些檢查結果再 tune grid：
+
+| 檢查 | 做法 | 通過直覺 |
+|------|------|----------|
+| **參數擾動** | 各連續參數 **±10–20%**（或 grid 步長一檔）重跑 valid 區間 | `valid_score` / `expectancy_net` 衰退在簽核範圍內；非「尖峰」單點 |
+| **市況子樣本** | 依 ATR / 趨勢強度切分：高波、低波、趨勢、震盪（定義寫入報告） | 無單一市況獨撐全部淨利 |
+| **壓力情境** | 歷史或合成：flash 跳空、連續停損週、低量日（流動性枯竭 proxy） | MDD / QSL 在可接受範圍；無「理論上會爆倉」盲點 |
+| **策略相關性** | 與**其他已上線或 paper 策略**日收益相關係數 | 避免同因子同向暴倉（ρ 過高須人類說明分散） |
+
+#### Phase 6.5 — Shadow / Paper Live Realism Gate（Post-Phase 6，**不可只在 backtest 收工**）
+
+> **命名**：此為 **FT-003 Phase 6.5**；與 [`uat/APP.md`](../../uat/APP.md)「UAT Phase 6（切 CA）」不同層級。
+
+| 項目 | MUST |
+|------|------|
+| 形式 | **真實即時報價** + **模擬下單**（Shioaji 模擬 API）；`max_position_qty: 1` **硬限制**不變 |
+| 最短週期 | **≥ 2–4 週** 完整交易日（含不同市況） |
+| Fill 對照 | **強制** `compare_fill_audits`（或同等工具）：backtest replay fill vs paper/shadow fill |
+| 產物 | `shadow_report.md`（或 `robustness_report.md` §11）；偏差摘要：滑價、miss、延遲、部分成交 |
+| Gate | paper 淨期望與回測差異在簽核範圍；否則 **調執行假設**，不得直接 live |
+
+Phase 6 backtest 通過 **≠** Pilot 候選；**Phase 6 + 6.5 + UAT fill 校準** 才構成 live 前真實性鏈。
+
+#### 風險控管與運維（Phase 6 / 6.5 MUST — 交易員視角）
+
+| 項目 | 要求 | SSOT / 現況 |
+|------|------|-------------|
+| **Kill switch / 緊急平倉** | 演練：HALT、`block_new_entry`、市價收斂平倉、日切恢復 | [`ops/LIVE_SAFETY.md`](../../ops/LIVE_SAFETY.md)、engine P0-5 |
+| **單口硬上限** | `max_position_qty: 1`；entry 不得以 stale flat 重複下單 | config + engine 已落地 |
+| **每日 / 每週報告** | PnL（net）、MDD、trade frequency、異常單（CRITICAL / HALT） | `reports/day*.json`、DAILY_SUMMARY；Phase 3 起週報 |
+| **券商對帳** | 自動或半自動 reconciliation（部位、日損益） | UAT Phase 3 `broker_reconciliation.csv`；[`uat/APP.md`](../../uat/APP.md) |
+| **盤中禁長批** | 08:30–14:00 不跑 walk-forward / sweep | 本 PLAN §算力 |
 
 #### P2 — 工程缺口
 
@@ -367,11 +423,14 @@ python -m storage.cache_repair --code TMFR1 --fix   # 若有 FAIL
 #### Phase 6 驗收
 
 - [ ] Gate：MVP holdout 非 `overfit_suspect`
-- [ ] `DATA_SPLIT.md` 含 fold + Phase 6 holdout
+- [ ] `DATA_SPLIT.md` 含 fold + Phase 6 holdout（含月滾 / 季滾 spec）
 - [ ] `cache_audit` 覆蓋 fold 內所有交易日
-- [ ] 雲端跑完約定 fold 數（pilot：2–3；完整：≥4）
-- [ ] `workspaces/<agent>/robustness_report.md`（模板見 `_template/`）
+- [ ] 雲端跑完約定 fold 數（pilot：2–3；完整：≥4；完整版可含月滾）
+- [ ] `workspaces/<agent>/robustness_report.md`（模板 §1–§10 全填）
+- [ ] **Walk-forward Gate**：Sharpe / MDD / trade_count 穩定 — 人類簽核門檻已記錄且通過
 - [ ] 決策樹：v1 維持 / v2 候選 + Phase 6 holdout 一次
+- [ ] **Phase 6.5**：Shadow/Paper ≥2–4 週 + backtest vs paper fill 對照
+- [ ] Kill switch / emergency flatten **演練證據**（log 或 checklist）
 - [ ] 仍須 UAT fill 校準後才可宣稱 Pilot 候選
 
 ## 算力與排程
@@ -414,6 +473,9 @@ python -m storage.cache_repair --code TMFR1 --fix   # 若有 FAIL
 | Phase 6 算力          | **MUST** GCE overnight；需 `ft003_walkforward`（PLAN Phase 6 ②）                  |
 | 補檔工時              | 先 2024–2025 pilot；勿一次補滿 2022（PLAN Phase 6 ③）                             |
 | v2 治理               | fold 冠軍 ≠ MVP → v2 須 Phase 6 holdout；禁止偷換 holdout（PLAN Phase 6 ④）       |
+| WFO 門檻過鬆          | 人類簽核 Sharpe/MDD/trade_count；多段滾動非單次 WFO（PLAN P2 殘酷版）                 |
+| 回測≠live             | Phase 6.5 Shadow/Paper + fill 對照 MUST（PLAN Phase 6.5）                           |
+| 運維缺口              | kill switch 演練、日/週報、券商 reconciliation（PLAN 風險控管表）                     |
 
 ## 參考
 

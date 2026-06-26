@@ -18,6 +18,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-003 Phase 6 交易員強化**：PLAN 多段滾動 WFO 殘酷 Gate（net Sharpe/MDD/trade_count）、§7–§10 穩健性檢查、**Phase 6.5 Shadow/Paper**、運維 kill switch / 對帳；`robustness_report.md` 模板擴至 §12；SPEC §4.5 / TODO / DATA_SPLIT 同步。
 - **FT-003 Phase 6 roadmap**：[`PLAN.md`](docs/features/ai-backtest-tuning/PLAN.md) 長歷史穩健性（Gate、四風險、v1/v2 決策樹、**GCE overnight 算力 MUST**、`robustness_report.md` 模板）；[`SPEC.md`](docs/features/ai-backtest-tuning/SPEC.md) §4.5；[`TODO.md`](docs/TODO.md)；[`workspaces/_template/robustness_report.md`](workspaces/_template/robustness_report.md)。
 - **FT-003**：SHARED_ASSUMPTIONS **v1.1** — TMFR1 摩擦 **5 點/趟**（手續費 30 + 稅 20 NTD）上線；`friction.enabled: true`（主 config + 各 workspace）
 - **GCE Live 運維 SSOT**：[`docs/ops/LinuxOps.md`](docs/ops/LinuxOps.md) §GCE（目錄、cron 13:50 stop → 13:54 post-session、sync）；[`HYBRID_DEPLOY.md`](docs/ops/HYBRID_DEPLOY.md) 已部署摘要；[`TODO.md`](docs/TODO.md) §GCP 營運（2026-07-23 帳單）。
