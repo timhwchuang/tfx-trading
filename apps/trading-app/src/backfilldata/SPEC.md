@@ -98,7 +98,7 @@ Post-backfill quality gate: `python -m storage.cache_audit --code TMFR1` or batc
 
 Injectable `api=` for tests. Returns paths plus `missing_*_dates`; `ok` is false when any requested day lacks cache files.
 
-Kbar fetch delegates to `storage.kbar_loader.download_and_cache_kbars` with `simulation=` and `pace_sec`.
+Kbar fetch delegates to `storage.kbar_loader.download_and_cache_kbars` with `pace_sec`.
 
 ---
 
@@ -144,11 +144,12 @@ Official docs: [Historical Market Data](https://sinotrade.github.io/tutor/market
 
 ## 7. Fidelity caveats
 
+**Timestamp contract (SSOT):** see [`packages/trading-engine/SPEC.md`](../../../../packages/trading-engine/SPEC.md) § **Shioaji Time Contract**. Code entry point: `trading_engine.calendar.shioaji_ts.shioaji_historical_ts_from_ns` (re-exported by `storage.tick_loader` / `storage.kbar_loader`).
+
 Inherited from `storage.tick_loader` / `storage.kbar_loader`:
 
 - Historical ticks: best bid/ask only (no depth); no `simtrade` flag
-- Kbar `ts` encoding differs simulation vs production — `kbar_loader.kbar_ts_from_ns` / `tick_loader.shioaji_ts_from_ns` apply `simulation` from config/backfill
-- Historical backfill ticks on **simulation** API must not use `_ns_to_taipei_naive` (+8) — same wall-clock-as-UTC rule as kbars
+- **Cache migration**: read paths do **no** time correction — the CSV cache is read verbatim. Any file written before 2026-06-26 with the old +8 decode (tick **or** kbar) must be deleted and re-fetched (``--overwrite``, or ``rm tick_cache/*.csv*`` then re-run backfill); merge alone may leave duplicate rows
 - Strategy hot path uses `tick.close` only; bid/ask in CSV are optional reference
 - **Coverage heuristic**: skip/refetch uses session edge tolerance (±1 min) and max gap (ticks 30 min, kbars 10 min). Sparse but valid caches may trigger an extra API fetch; prefer `--overwrite` if you know the cache is complete
 

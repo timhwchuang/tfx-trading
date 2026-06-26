@@ -9,6 +9,8 @@ import datetime
 from collections import OrderedDict
 from typing import Any
 
+from trading_engine.calendar.shioaji_ts import shioaji_historical_ts_from_ns
+
 TAIWAN_TZ = datetime.timezone(datetime.timedelta(hours=8))
 
 
@@ -100,12 +102,6 @@ def compute_vol_threshold(
     return effective_base, multiplier, effective_base * multiplier
 
 
-def _ts_ns_to_naive_dt(ts_ns: int) -> datetime.datetime:
-    """Shioaji kbars/ts ns epoch -> naive Taipei local (matches tick.datetime + KBarRecord.ts)."""
-    aware = datetime.datetime.fromtimestamp(ts_ns / 1_000_000_000, TAIWAN_TZ)
-    return aware.replace(tzinfo=None)
-
-
 def select_recent_trading_days_closes(
     raw_kbars: Any,
     reference_dt: datetime.datetime,
@@ -144,7 +140,7 @@ def select_recent_trading_days_closes(
     if ts_list and close_list and len(ts_list) == len(close_list):
         for i in range(len(ts_list)):
             try:
-                dt = _ts_ns_to_naive_dt(int(ts_list[i]))
+                dt = shioaji_historical_ts_from_ns(int(ts_list[i]))
             except (TypeError, ValueError, OverflowError, OSError):
                 # Fallback only on parse failure (rare); reference_dt anchors the day for this bar
                 # (see engine call site: passes _last_tick_exchange_dt or now()).

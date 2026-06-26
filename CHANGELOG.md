@@ -32,6 +32,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **Shioaji Time Contract** ([`SPEC.md`](packages/trading-engine/SPEC.md)): documents historical `ts` decode (equivalent to official polars cast), live `TickFOPv1.datetime`, and anti-patterns. Code SSOT: `trading_engine.calendar.shioaji_ts.shioaji_historical_ts_from_ns`. Legacy cache policy: read paths do no time correction; pre-2026-06-26 +8h files are deleted and re-fetched.
 - **Layer 2 IOC terminal query (`order_status_query_enabled`, default OFF)**: `update_status(trade)` on the order worker; `QueryStatusTask`; place-time refresh; flag-only gating; graceful fallback. Signal taxonomy fix: during HALT, L3 inference (unchanged broker read) does not clear exit pending; L1 callback / L2 authoritative terminal (`cancelled`/`failed`/`inactive`) clears and allows convergence retry. `_check_pending_timeout` when flag ON: L3 snapshot → `order_deal_records` → L2 enqueue. Tests: `test_order_status_query.py` (26 cases).
 - **P0-5 truth-driven execution — >1-lot accumulation RCA (2026-06-26)**: After repeated `Pending 超時` the kernel treated UNKNOWN order outcomes as FAILED, cleared pending, and let the strategy re-issue exits while delayed/orphan fills landed — accumulating a 2-lot short under a 1-lot strategy. Reworked the state machine so the **broker `list_positions` is the single source of truth**:
   - **Timeout = UNKNOWN, not FAILED**: `_check_pending_timeout` no longer clears pending + re-arms. It keeps `pending_order_id` (so a late fill still attributes), enters `_settling`, and converges against the broker via the new `_settle_via_reconcile` (fast poll + `reconcile_confirm_reads` debounce). Unresolved past `settle_timeout_sec` → `_position_unconfirmed` (HALT) + `block_new_entry` + CRITICAL.
@@ -60,8 +61,13 @@ Historical standalone-repo release links are kept for archaeology only; developm
   - **`CALLBACK_LATENCY` instrumentation**: logs `exchange_ts` vs local receive delta at order/deal callbacks for UAT calibration.
   - New settings: `entry_miss_confirm_sec`, `max_consecutive_missed_entries`. Tests: `TestEntryMissResume` + updated incident replay (miss→orphan→converge).
 
+#### Removed
+
+- **`calendar.legacy_tick_cache` (entire module) + read-time +8h normalization**: removed `legacy_tick_cache.py` and all `normalize_legacy_plus8h*` / `is_legacy_plus8h_tick_candidate` / `existing_ticks_for_backfill_merge` / `cache_likely_legacy_plus8h_day_session` helpers and their `calendar` exports. Tick read paths (`tick_loader`, `trading_backtest.loader`) now read the CSV cache verbatim with zero transform. Policy: pre-2026-06-26 +8h files are deleted and re-fetched (`--overwrite`), never corrected on read — removes the recurring evening-shift ambiguity at its source.
+
 #### Fixed
 
+- **`calendar/taifex.select_recent_trading_days_closes`**: raw `api.kbars` ns now uses `shioaji_historical_ts_from_ns` (wall clock) instead of +8 decode — fixes live trend day slicing when `used_long_lookback=True`.
 - **Position/broker sync hardening — 24-lot phantom short RCA (2026-06-25)**: Kernel position drifted from the broker after a reconnect/relogin, accumulating 24 untracked short lots overnight. Three-layer fix + a separate exit bug:
   - **P0-1 reconnect re-attaches the trade report channel**: `_on_reconnected` (and watchdog relogin, which routes through it) now calls a new broker-neutral `_resubscribe_trade` hook in addition to `_resubscribe_ticks`. `ShioajiLiveBootstrap.resubscribe_trade` re-runs `subscribe_trade` + `set_order_callback`. Failure degrades the session to unhealthy → relogin. Previously only quote ticks were restored, so fills arrived silently and every order timed out — the primary root cause.
   - **P0-2 orphan deals are no longer dropped**: `_handle_futures_deal` for a deal with no pending or a non-matching `order_id` now forces `sync_positions` + `block_new_entry` + a staged CRITICAL alert instead of silently returning.
@@ -298,6 +304,8 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Fixed
 
+- **`storage/tick_loader` / `storage/kbar_loader` historical `ts` decode**: SSOT in `trading_engine.calendar.shioaji_ts.shioaji_historical_ts_from_ns`. Read paths do no time correction. Re-fetch pre-2026-06-26 tick/kbar caches with `--overwrite` if stored with the old +8 decode.
+
 - **`python -m backtest --report`**：修正 logging 接線（`configure_backtest_session_logging` 於 `BacktestEngine` 前呼叫 `setup_async_logging`，audit 寫入 backtest log 而非僅 `LOG_FILE`）；`flush_async_logging` 後再 parse。
 - **Plain `python -m backtest`**（無 `--report`/`--log-file`）：恢復寫入 config `LOG_FILE`（不再被空 session 鎖死 `_logging_configured`）。
 
@@ -305,14 +313,18 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 - **`storage/tick_loader` / `backfilldata`**：`api.ticks(AllDay)` 改用 30s timeout（Shioaji 預設 5s 常不足以下載全日 tick）；逾時自動重試最多 3 次（間隔 2s）。`storage/kbar_loader` 同步將 `api.kbars` timeout 設為 30s。
 
+#### Removed
+
+- **`storage/tick_loader` read-time legacy +8h normalization + `_ns_to_taipei_naive` + `shioaji_ts_from_ns` alias**: tick read/backfill/replay paths (`load_merged_tick_cache`, `download_and_cache`, `iter_replay_ticks`, `tick_cache_satisfies_request`, `cache_audit`, `cache_repair`, `kbar_repair`, `tick_rollover`, `trading_backtest.loader`) no longer transform timestamps on read — the CSV cache is the single source of truth and is read verbatim. Pre-2026-06-26 +8h files must be deleted and re-fetched (`--overwrite`).
+
 #### Changed
 
 - **`python -m backtest --report`**：移除 `--report-json`；`--report` 一律寫 log + JSON。`--dates-from-cache` 輸出檔名改為 `backtest_{cache_dir_name}`（預設 `tick_cache/` → `backtest_tick_cache`；`--from-date`/`--to-date` 加 `_{date_range}` 後綴；cache 在 monorepo 外則 `{parent}_{leaf}`）；`--dates` 維持 `backtest_{code}_{date}`；`--log-file` 時 JSON 為 `reports/{log_stem}.json`。
 
 - **`backfilldata` tick query mode**: default tick fetch switched from `TicksQueryType.AllDay` to `TicksQueryType.RangeTime` (`08:45:00`–`13:45:00`) for UAT day-session補洞; CLI adds `--time-start` / `--time-end` and `--all-day-ticks`.
 - **`storage/tick_loader` gap merge**: RangeTime backfill merges into existing partial cache (dedupe by `datetime`); removes stale `*.csv.gz` when rewriting plain CSV; `--overwrite` replaces only the requested window and keeps out-of-window ticks.
-- **`storage/tick_loader` window quality**: 1-minute edge tolerance for session bounds; large in-window gap re-fetch trigger; simulation legacy `+8h` rows are normalized during merge for day-session backfill.
-- **`storage/kbar_loader`**: post-fetch session filter + merge (same window rules as ticks); mirror no longer force-overwrites existing `tick_cache` kbars on skip paths unless `--overwrite`; simulation tick/kbar ts via shared `shioaji_ts_from_ns`.
+- **`storage/tick_loader` window quality**: 1-minute edge tolerance for session bounds; large in-window gap re-fetch trigger.
+- **`storage/kbar_loader`**: post-fetch session filter + merge (same window rules as ticks); mirror no longer force-overwrites existing `tick_cache` kbars on skip paths unless `--overwrite`; simulation tick/kbar ts via shared `shioaji_historical_ts_from_ns`.
 - **`risk_blocked` 節流**：`RISK_BLOCKED_THROTTLE_SEC`（60s/reason）；`record_risk_blocked` 回傳 `bool`；`DAILY_SUMMARY.risk_blocked_count` 與 strategy `DECISION_AUDIT` emit 共用節流（先前僅 counter 節流）。
 
 - **Default contract `product_code`**: `TXFR1`（大台近月）→ **`TMFR1`（微台近月）** for 奈米戶 UAT/Pilot；`point_value_ntd: 10` 已對齊微台。大台/小台仍可用 `TXFR1` / `MXFR1`，需分開 `tick_cache` 與校準。

@@ -1,6 +1,7 @@
 """Market calendar implementations."""
 
 from trading_engine.calendar.port import MarketCalendarPort, TaifexMarketCalendar
+from trading_engine.calendar.shioaji_ts import shioaji_historical_ts_from_ns
 from trading_engine.calendar.taifex import (
     TAIWAN_TZ,
     compute_vol_threshold,
@@ -28,5 +29,6 @@ __all__ = [
     "is_trading_session",
     "opening_session_multiplier",
     "select_recent_trading_days_closes",
+    "shioaji_historical_ts_from_ns",
     "trading_day_for_daily_reset",
 ]

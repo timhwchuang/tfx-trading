@@ -17,7 +17,7 @@ from storage.tick_loader import (
     _log_usage,
     _open_tick_csv_reader,
     date_range,
-    shioaji_ts_from_ns,
+    shioaji_historical_ts_from_ns,
 )
 
 logger = logging.getLogger(__name__)
@@ -38,9 +38,9 @@ class KBarRecord:
     Volume: int
 
 
-def kbar_ts_from_ns(ts_ns: int, *, simulation: bool) -> datetime.datetime:
+def kbar_ts_from_ns(ts_ns: int) -> datetime.datetime:
     """Convert Shioaji ``kbars.ts`` (nanoseconds) to naive exchange-local time."""
-    return shioaji_ts_from_ns(ts_ns, simulation=simulation)
+    return shioaji_historical_ts_from_ns(ts_ns)
 
 
 def _filter_bars_by_time(
@@ -160,15 +160,6 @@ def merge_kbars(
     return sorted(by_ts.values(), key=lambda b: b.ts)
 
 
-def _default_simulation_mode() -> bool:
-    try:
-        import config as app_config
-
-        return bool(app_config.SIMULATION)
-    except Exception:
-        return False
-
-
 def kbar_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
     """Plain ``{code}_kbars_{date}.csv`` under *cache_dir* (typically ``tick_cache/``)."""
     return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv"
@@ -245,10 +236,7 @@ def dedupe_kbars(bars: Iterable[KBarRecord]) -> List[KBarRecord]:
     return sorted(by_ts.values(), key=lambda b: b.ts)
 
 
-def kbars_raw_to_records(
-    raw: Any, *, simulation: bool | None = None
-) -> List[KBarRecord]:
-    sim = _default_simulation_mode() if simulation is None else simulation
+def kbars_raw_to_records(raw: Any) -> List[KBarRecord]:
     ts_list = list(raw.ts)
     opens = list(raw.Open)
     highs = list(raw.High)
@@ -259,7 +247,7 @@ def kbars_raw_to_records(
     for i in range(len(ts_list)):
         bars.append(
             KBarRecord(
-                ts=kbar_ts_from_ns(int(ts_list[i]), simulation=sim),
+                ts=kbar_ts_from_ns(int(ts_list[i])),
                 Open=float(opens[i]),
                 High=float(highs[i]),
                 Low=float(lows[i]),
@@ -272,7 +260,7 @@ def kbars_raw_to_records(
 
 
 def fetch_kbars_for_date(
-    api: Any, contract: Any, date: datetime.date, *, simulation: bool | None = None
+    api: Any, contract: Any, date: datetime.date
 ) -> List[KBarRecord]:
     """呼叫 api.kbars 取單日 1 分 K，回傳依時間排序的 KBarRecord。"""
     raw = api.kbars(
@@ -281,7 +269,7 @@ def fetch_kbars_for_date(
         end=date.isoformat(),
         timeout=_KBARS_API_TIMEOUT_MS,
     )
-    return kbars_raw_to_records(raw, simulation=simulation)
+    return kbars_raw_to_records(raw)
 
 
 def download_and_cache_kbars(
@@ -292,14 +280,12 @@ def download_and_cache_kbars(
     cache_dir: Path = DEFAULT_CACHE_DIR,
     overwrite: bool = False,
     preload_dates: Optional[Iterable[datetime.date]] = None,
-    simulation: bool | None = None,
     pace_sec: float = 0.0,
     time_start: datetime.time | None = None,
     time_end: datetime.time | None = None,
 ) -> List[Path]:
     """逐日抓取 K 線並落地快取；preload_dates 供 ATR 熱身（6.5）預載前日/夜盤。
 
-    ``simulation``：覆寫 kbar ``ts`` 解碼（預設讀 ``config.SIMULATION``）。
     ``time_start`` / ``time_end``：API 仍取整日，落地前依交易所時間裁切（backfill 對齊 tick 視窗）。
     """
     code = getattr(contract, "code", str(contract))
@@ -333,7 +319,7 @@ def download_and_cache_kbars(
             written.append(cached_path)
             continue
         try:
-            bars = fetch_kbars_for_date(api, contract, date, simulation=simulation)
+            bars = fetch_kbars_for_date(api, contract, date)
             bars = _filter_bars_by_time(bars, time_start, time_end)
         except Exception as e:
             logger.warning("抓取 K 線 %s %s 失敗: %s", code, date, e)

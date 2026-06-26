@@ -299,6 +299,32 @@ See implementation in TradingEngine.__init__, OrderExecutorMixin, SessionMixin.
 - `refresh_atr()` calls `api.kbars(contract, start, end)` expecting `.High` / `.Low` / `.Close` lists.
 - Backtest sets `_maybe_refresh_atr` to no-op; driver refreshes **before** `on_tick` outside lock.
 
+### Shioaji Time Contract
+
+**Internal convention:** all naive `datetime` values in this repo mean **exchange wall clock** (Asia/Taipei semantics, no `tzinfo`).
+
+**Vendor reference:** [Shioaji Historical Market Data](https://sinotrade.github.io/tutor/market_data/historical/) documents `ts` as an integer Unix timestamp. Official examples decode with `pl.col("ts").cast(pl.Datetime("ns"))`, producing naive session times (e.g. stock `09:00:08`, TXFR1 kbar `08:46:00`). The docs do **not** name UTC, Asia/Taipei, or simulation vs production differences.
+
+**Historical `api.ticks` / `api.kbars` raw `ts` (nanoseconds int):**
+
+| Rule | Detail |
+|------|--------|
+| Decode | `trading_engine.calendar.shioaji_ts.shioaji_historical_ts_from_ns` — equivalent to official polars cast |
+| Sim vs prod | Same encoding (verified 2026-06-25 TXFR1 sim + production) |
+| Tick vs kbar ns | Raw ns may differ by 28800s; wall-clock decode aligns prices; 1m kbar `ts` is **bar-end** (+1 min vs tick minute) |
+
+**Live streaming `TickFOPv1.datetime`:**
+
+- SDK provides naive exchange wall clock; `adapters/shioaji_live.tick_to_snapshot` uses it directly — **do not** pass through `shioaji_historical_ts_from_ns`.
+
+**Anti-patterns (do not use on historical raw ns):**
+
+- `datetime.fromtimestamp(ns, TAIWAN_TZ)` (+8) — shifts 08:45 → 16:45
+- Split rules (sim tick wall / kbar +8) — empirically wrong
+- Different decode in `select_recent_trading_days_closes` vs backfill loaders
+
+**Legacy cache migration (our bug, not Shioaji):** read paths perform **no** time correction — CSV cache on disk is the single source of truth and is read verbatim. Any pre-fix file written before 2026-06-26 with the +8 decode must be deleted and re-fetched (`--overwrite`, or `rm tick_cache/*.csv*` then `python -m backfilldata ...`); the corrected `shioaji_historical_ts_from_ns` decoder lands clean wall-clock times. Old kbar CSV with wrong times must likewise be re-fetched with `--overwrite`.
+
 **Session / premarket**
 
 - `exchange_time.is_trading_session(dt, SESSION_START, SESSION_END)` gates **decision** (`on_tick`).

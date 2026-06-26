@@ -150,7 +150,7 @@ python -m reporting "$LOG_FILE" --json > reports/day$(date +%Y%m%d).json
 | `Tick 落盤結束 \| written=0` | 執行時間太短或 tick 極少；或 live 用 `TickSnapshot` 未相容（已修） | Phase 0 冒煙可接受；以 log 內 `登入成功` + `DECISION_AUDIT` 為準 |
 | `backtest --report` 終端沒輸出 | 舊版被數千行 INFO 淹沒；或 log 未接到 backtest 檔 | 升級後終端只印 `=== UAT Report ===`；細節見 `logs/backtest_{code}_{date}.log` |
 | `reporting` 全零 | PowerShell `Tee-Object` 寫 UTF-16 | 用 `python -m backtest --report`，或 `read_log_text` 已支援 UTF-16 |
-| kbars `ts` 比 tick 快 **8 小時** | 模擬 API 的 `kbars.ts` 與 tick 轉換方式不同（已依 `simulation` 修正） | 刪除舊 `*_kbars_*.csv` 讓 live 重寫；Pilot 前再驗正式 API |
+| kbars/ticks 時間偏移 **8 小時** 或 tick/kbar 價格對不上 | 舊版對 historical ``ts`` 誤用 +8（或混用新舊快取） | 刪除該日 ``*_kbars_*.csv`` / ``*_{date}.csv``，``python -m backfilldata date YYYY-MM-DD --overwrite`` 重抓 |
 
 ---
 

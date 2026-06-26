@@ -360,7 +360,6 @@ def backfill_dates(
                 dates,
                 cache_dir=cache_dir,
                 overwrite=overwrite,
-                simulation=simulation,
                 pace_sec=_REQUEST_PACE_SEC,
                 time_start=tick_time_start,
                 time_end=tick_time_end,

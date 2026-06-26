@@ -87,14 +87,17 @@ class TestDailyStateReset(unittest.TestCase):
 
 
 class TestP6Cal1RecentTradingDaySlice(unittest.TestCase):
+    def _wall_ns(self, dt: datetime.datetime) -> int:
+        return int(dt.replace(tzinfo=datetime.timezone.utc).timestamp() * 1e9)
+
     def test_select_keeps_only_recent_days_and_includes_latest(self):
         d1 = datetime.datetime(2026, 6, 12, 9, 0)
         d2 = datetime.datetime(2026, 6, 13, 9, 0)
         day1 = [100.0 + i for i in range(5)]
         day2 = [110.0 + i for i in range(5)]
         all_c = day1 + day2
-        all_ts = [int((d1 + datetime.timedelta(minutes=i)).timestamp() * 1e9) for i in range(5)] + [
-            int((d2 + datetime.timedelta(minutes=i)).timestamp() * 1e9) for i in range(5)
+        all_ts = [self._wall_ns(d1 + datetime.timedelta(minutes=i)) for i in range(5)] + [
+            self._wall_ns(d2 + datetime.timedelta(minutes=i)) for i in range(5)
         ]
 
         class R:
@@ -114,9 +117,9 @@ class TestP6Cal1RecentTradingDaySlice(unittest.TestCase):
         prior = [100.0] * 10
         new = [100.0 + i * 0.7 for i in range(15)]
         closes = prior + new
-        tss = [
-            int((d_prior + datetime.timedelta(minutes=i)).timestamp() * 1e9) for i in range(10)
-        ] + [int((d_new + datetime.timedelta(minutes=i)).timestamp() * 1e9) for i in range(15)]
+        tss = [self._wall_ns(d_prior + datetime.timedelta(minutes=i)) for i in range(10)] + [
+            self._wall_ns(d_new + datetime.timedelta(minutes=i)) for i in range(15)
+        ]
 
         class R2:
             ts = tss

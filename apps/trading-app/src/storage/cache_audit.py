@@ -200,7 +200,9 @@ def _load_ticks_for_audit(cache_dir: Path, code: str, date: datetime.date) -> li
     if path is None:
         return []
     try:
-        return list(load_merged_tick_cache(cache_dir, code, date))
+        return list(
+            load_merged_tick_cache(cache_dir, code, date)
+        )
     except Exception:
         return list(_iter_ticks_csv(path))
 

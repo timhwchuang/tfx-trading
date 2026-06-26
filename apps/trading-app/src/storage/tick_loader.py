@@ -27,9 +27,8 @@ from typing import Any, IO, Iterable, Iterator, List, Optional, Sequence
 logger = logging.getLogger(__name__)
 
 from storage.cache_paths import DEFAULT_CACHE_DIR, DEFAULT_TICK_CACHE_DIR
+from trading_engine.calendar.shioaji_ts import shioaji_historical_ts_from_ns
 
-TAIWAN_TZ = datetime.timezone(datetime.timedelta(hours=8))
-UTC = datetime.timezone.utc
 DEFAULT_TICK_RANGE_START = datetime.time(8, 45, 0)
 DEFAULT_TICK_RANGE_END = datetime.time(13, 45, 0)
 _WINDOW_EDGE_TOLERANCE_MIN = 1
@@ -61,25 +60,6 @@ class ReplayTick:
     tick_type: int
     bid_price: float = 0.0
     ask_price: float = 0.0
-
-
-def _ns_to_taipei_naive(ts_ns: int) -> datetime.datetime:
-    """Shioaji ts 為奈秒 epoch；轉成台北 naive local（與線上 tick.datetime 同構）。"""
-    aware = datetime.datetime.fromtimestamp(ts_ns / 1_000_000_000, TAIWAN_TZ)
-    return aware.replace(tzinfo=None)
-
-
-def shioaji_ts_from_ns(ts_ns: int, *, simulation: bool) -> datetime.datetime:
-    """Convert Shioaji ``ts`` nanoseconds to naive exchange wall clock.
-
-    Simulation API (ticks + kbars): wall clock encoded as UTC epoch (no +8).
-    Production API: true UTC epoch → Taipei naive via ``_ns_to_taipei_naive``.
-    """
-    if simulation:
-        return datetime.datetime.fromtimestamp(
-            ts_ns / 1_000_000_000, UTC
-        ).replace(tzinfo=None)
-    return _ns_to_taipei_naive(ts_ns)
 
 
 def _is_transient_tick_fetch_error(exc: BaseException) -> bool:
@@ -149,7 +129,7 @@ def fetch_ticks_for_date(
     for i in range(len(ts)):
         ticks.append(
             ReplayTick(
-                datetime=shioaji_ts_from_ns(int(ts[i]), simulation=simulation),
+                datetime=shioaji_historical_ts_from_ns(int(ts[i])),
                 close=str(close[i]),
                 volume=int(volume[i]),
                 tick_type=int(tick_type[i]) if i < len(tick_type) else 0,
@@ -174,13 +154,6 @@ def _tick_in_window(
     if time_end is not None and t > time_end:
         return False
     return True
-
-
-def _add_hours_to_time(t: datetime.time, hours: int) -> datetime.time:
-    combined = datetime.datetime.combine(datetime.date.min, t) + datetime.timedelta(
-        hours=hours
-    )
-    return combined.time()
 
 
 def _window_needs_fetch(
@@ -241,10 +214,6 @@ def tick_cache_satisfies_request(
     if not tick_cache_files_exist(cache_dir, code, date):
         return False
     ticks = load_merged_tick_cache(cache_dir, code, date)
-    if simulation and (time_start is not None or time_end is not None):
-        ticks = _normalize_simulation_ticks_for_window(
-            ticks, time_start=time_start, time_end=time_end
-        )
     if time_start is None and time_end is None:
         return not _all_day_needs_fetch(ticks)
     return not _window_needs_fetch(ticks, time_start, time_end)
@@ -295,94 +264,6 @@ def _purge_stale_tick_gz_with_retry(
                 )
                 return
             logger.warning("移除 gzip 重試 (%d/2): %s", attempt, e)
-
-
-def _tick_at_datetime(
-    ticks: Sequence[ReplayTick], dt: datetime.datetime
-) -> bool:
-    return any(tick.datetime == dt for tick in ticks)
-
-
-def _is_legacy_plus8h_tick_candidate(
-    tick: ReplayTick,
-    *,
-    time_start: datetime.time | None,
-    time_end: datetime.time | None,
-    all_ticks: Sequence[ReplayTick],
-) -> bool:
-    """Detect misplaced day-session rows stored with the old +8h simulation offset."""
-    if time_start is None or time_end is None:
-        return False
-    if _tick_in_window(tick, time_start, time_end):
-        return False
-    minus_8h_dt = tick.datetime - datetime.timedelta(hours=8)
-    shifted_probe = ReplayTick(
-        datetime=minus_8h_dt,
-        close=tick.close,
-        volume=tick.volume,
-        tick_type=tick.tick_type,
-        bid_price=tick.bid_price,
-        ask_price=tick.ask_price,
-    )
-    if not _tick_in_window(shifted_probe, time_start, time_end):
-        return False
-
-    legacy_band_start = _add_hours_to_time(time_start, 8)
-    legacy_band_end = _add_hours_to_time(time_end, 8)
-    tick_time = tick.datetime.time()
-    if not (legacy_band_start <= tick_time <= legacy_band_end):
-        return False
-
-    day_ticks = [t for t in all_ticks if _tick_in_window(t, time_start, time_end)]
-    if not day_ticks:
-        return True
-
-    ambiguous_cutoff = datetime.time(18, 0)
-    if tick_time < ambiguous_cutoff:
-        return False
-
-    if _tick_at_datetime(day_ticks, minus_8h_dt):
-        return False
-    return True
-
-
-def _normalize_simulation_ticks_for_window(
-    ticks: Iterable[ReplayTick],
-    *,
-    time_start: datetime.time | None,
-    time_end: datetime.time | None,
-) -> List[ReplayTick]:
-    """Shift legacy (+8h) simulation rows back when they clearly belong to the day window."""
-    if time_start is None and time_end is None:
-        return list(ticks)
-    tick_list = list(ticks)
-    shifted: List[ReplayTick] = []
-    for t in tick_list:
-        minus_8h_dt = t.datetime - datetime.timedelta(hours=8)
-        if _is_legacy_plus8h_tick_candidate(
-            t,
-            time_start=time_start,
-            time_end=time_end,
-            all_ticks=tick_list,
-        ):
-            shifted.append(
-                ReplayTick(
-                    datetime=minus_8h_dt,
-                    close=t.close,
-                    volume=t.volume,
-                    tick_type=t.tick_type,
-                    bid_price=t.bid_price,
-                    ask_price=t.ask_price,
-                )
-            )
-            logger.info(
-                "simulation 舊 tick 時間校正 %s -> %s",
-                t.datetime.isoformat(),
-                minus_8h_dt.isoformat(),
-            )
-        else:
-            shifted.append(t)
-    return shifted
 
 
 def cache_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
@@ -541,20 +422,9 @@ def download_and_cache(
     for date in dates:
         path = cache_path(cache_dir, code, date)
         cache_exists = tick_cache_files_exist(cache_dir, code, date)
-        raw_existing_ticks: List[ReplayTick] = (
+        existing_ticks: List[ReplayTick] = (
             load_merged_tick_cache(cache_dir, code, date) if cache_exists else []
         )
-        existing_ticks = raw_existing_ticks
-        if (
-            simulation
-            and existing_ticks
-            and (time_start is not None or time_end is not None)
-        ):
-            existing_ticks = _normalize_simulation_ticks_for_window(
-                existing_ticks,
-                time_start=time_start,
-                time_end=time_end,
-            )
 
         needs_fetch = (
             not cache_exists
@@ -567,23 +437,12 @@ def download_and_cache(
         )
 
         if cache_exists and not needs_fetch:
-            if existing_ticks != raw_existing_ticks:
-                out_path, n = commit_ticks_cache(
-                    cache_dir, code, date, existing_ticks
-                )
-                logger.info(
-                    "simulation 舊 tick 時間已校正落地 %s | %d ticks",
-                    out_path.name,
-                    n,
-                )
-                written.append(out_path)
-            else:
-                existing_path = resolve_tick_cache_path(cache_dir, code, date)
-                logger.info(
-                    "視窗已覆蓋，跳過 %s",
-                    existing_path.name if existing_path is not None else path.name,
-                )
-                written.append(existing_path or path)
+            existing_path = resolve_tick_cache_path(cache_dir, code, date)
+            logger.info(
+                "視窗已覆蓋，跳過 %s",
+                existing_path.name if existing_path is not None else path.name,
+            )
+            written.append(existing_path or path)
             continue
 
         try:

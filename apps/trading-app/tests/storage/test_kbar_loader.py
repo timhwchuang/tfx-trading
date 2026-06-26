@@ -16,15 +16,14 @@ from storage.kbar_loader import (
     _kbar_window_needs_fetch,
     download_and_cache_kbars,
     iter_kbars_in_range,
+    kbars_raw_to_records,
     kbars_satisfy_request,
     kbar_gz_path,
     kbar_path,
-    load_kbars_csv,
     kbar_ts_from_ns,
+    load_kbars_csv,
     save_kbars_csv,
 )
-from storage.tick_loader import _ns_to_taipei_naive, shioaji_ts_from_ns
-
 
 def _session_kbars(date: datetime.date) -> list[KBarRecord]:
     """One bar per minute from 08:46 through 13:44 (covers 08:45–13:45 window)."""
@@ -56,7 +55,7 @@ class TestKbarTsFromNs(unittest.TestCase):
             2026, 6, 22, 10, 26, 0, tzinfo=datetime.timezone.utc
         )
         ts_ns = int(wall_as_utc.timestamp() * 1_000_000_000)
-        dt = kbar_ts_from_ns(ts_ns, simulation=True)
+        dt = kbar_ts_from_ns(ts_ns)
         self.assertEqual(dt, datetime.datetime(2026, 6, 22, 10, 26, 0))
 
     def test_simulation_old_conversion_would_add_eight_hours(self):
@@ -64,24 +63,72 @@ class TestKbarTsFromNs(unittest.TestCase):
             2026, 6, 22, 10, 26, 0, tzinfo=datetime.timezone.utc
         )
         ts_ns = int(wall_as_utc.timestamp() * 1_000_000_000)
-        wrong = _ns_to_taipei_naive(ts_ns)
+        # The old +8h decode would have produced 18:26 (wrong).
+        wrong = datetime.datetime.fromtimestamp(
+            ts_ns / 1_000_000_000,
+            datetime.timezone(datetime.timedelta(hours=8)),
+        ).replace(tzinfo=None)
         self.assertEqual(wrong, datetime.datetime(2026, 6, 22, 18, 26, 0))
 
-    def test_production_true_utc_epoch(self):
-        """Production kbars.ts: true UTC epoch -> Taipei naive via +8."""
-        true_utc = datetime.datetime(
-            2026, 6, 22, 2, 26, 0, tzinfo=datetime.timezone.utc
+    def test_production_kbar_ts_uses_wall_clock_not_plus_eight(self):
+        """Production api.kbars: same wall-as-UTC encoding as ticks (not true UTC +8)."""
+        wall_as_utc = datetime.datetime(
+            2026, 6, 25, 10, 26, 0, tzinfo=datetime.timezone.utc
         )
-        ts_ns = int(true_utc.timestamp() * 1_000_000_000)
-        dt = kbar_ts_from_ns(ts_ns, simulation=False)
-        self.assertEqual(dt, datetime.datetime(2026, 6, 22, 10, 26, 0))
+        ts_ns = int(wall_as_utc.timestamp() * 1_000_000_000)
+        dt = kbar_ts_from_ns(ts_ns)
+        self.assertEqual(dt, datetime.datetime(2026, 6, 25, 10, 26, 0))
+        # The old +8h decode would have produced 18:26 (wrong).
+        wrong = datetime.datetime.fromtimestamp(
+            ts_ns / 1_000_000_000,
+            datetime.timezone(datetime.timedelta(hours=8)),
+        ).replace(tzinfo=None)
+        self.assertEqual(wrong, datetime.datetime(2026, 6, 25, 18, 26, 0))
 
-    def test_shioaji_ts_from_ns_matches_kbar_helper(self):
-        ts_ns = 1_700_000_000_000_000_000
-        self.assertEqual(
-            kbar_ts_from_ns(ts_ns, simulation=True),
-            shioaji_ts_from_ns(ts_ns, simulation=True),
+    def test_tick_kbar_decode_align_when_raw_ns_offset_28800s(self):
+        """API tick/kbar raw ns differ by 8h; wall decode yields matching closes."""
+        tick_wall = datetime.datetime(
+            2026, 6, 25, 8, 45, 0, tzinfo=datetime.timezone.utc
         )
+        tick_ns = int(tick_wall.timestamp() * 1_000_000_000)
+        kbar_ns = tick_ns - 28_800_000_000_000
+        tick_close = 46688.0
+        kbar_close = 46688.0
+        raw_ticks = MagicMock(
+            ts=[tick_ns], close=[tick_close], volume=[1],
+            bid_price=[], ask_price=[], tick_type=[1],
+        )
+        raw_kbars = MagicMock(
+            ts=[kbar_ns],
+            Open=[tick_close],
+            High=[tick_close],
+            Low=[tick_close],
+            Close=[kbar_close],
+            Volume=[10],
+        )
+        from storage.tick_loader import fetch_ticks_for_date
+
+        api = MagicMock()
+        api.ticks.return_value = raw_ticks
+        ticks = fetch_ticks_for_date(
+            api, MagicMock(code="TMFR1"), datetime.date(2026, 6, 25)
+        )
+        bars = kbars_raw_to_records(raw_kbars)
+        self.assertEqual(ticks[0].datetime, datetime.datetime(2026, 6, 25, 8, 45, 0))
+        self.assertEqual(bars[0].ts, datetime.datetime(2026, 6, 25, 0, 45, 0))
+        self.assertEqual(bars[0].Close, tick_close)
+        # 1m bar ts is bar end; compare tick last to kbar at +1 minute label
+        bar_end = datetime.datetime(2026, 6, 25, 8, 46, 0)
+        bar_end_ns = int(
+            datetime.datetime(
+                2026, 6, 25, 8, 46, 0, tzinfo=datetime.timezone.utc
+            ).timestamp()
+            * 1_000_000_000
+        )
+        raw_kbars.ts = [bar_end_ns]
+        bars = kbars_raw_to_records(raw_kbars)
+        self.assertEqual(bars[0].ts, bar_end)
+        self.assertEqual(bars[0].Close, tick_close)
 
 
 class TestFilterBarsByTime(unittest.TestCase):
@@ -161,7 +208,6 @@ class TestDownloadAndCacheKbarsTimeFilter(unittest.TestCase):
                 contract,
                 [date],
                 cache_dir=cache_dir,
-                simulation=True,
                 time_start=datetime.time(8, 45),
                 time_end=datetime.time(13, 45),
             )
@@ -190,7 +236,6 @@ class TestDownloadAndCacheKbarsTimeFilter(unittest.TestCase):
                 [date],
                 cache_dir=cache_dir,
                 overwrite=False,
-                simulation=True,
                 time_start=datetime.time(8, 45),
                 time_end=datetime.time(13, 45),
             )
@@ -217,7 +262,6 @@ class TestDownloadAndCacheKbarsTimeFilter(unittest.TestCase):
                 contract,
                 [date],
                 cache_dir=cache_dir,
-                simulation=True,
                 time_start=None,
                 time_end=None,
             )
@@ -273,7 +317,6 @@ class TestKbarGzCache(unittest.TestCase):
                 [date],
                 cache_dir=cache_dir,
                 overwrite=False,
-                simulation=True,
                 time_start=datetime.time(8, 45),
                 time_end=datetime.time(13, 45),
             )

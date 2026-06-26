@@ -13,11 +13,8 @@ from unittest.mock import MagicMock, patch
 from storage.tick_loader import (
     DEFAULT_TICK_RANGE_END,
     DEFAULT_TICK_RANGE_START,
-    _is_legacy_plus8h_tick_candidate,
-    _normalize_simulation_ticks_for_window,
     _window_needs_fetch,
     ReplayTick,
-    _ns_to_taipei_naive,
     cache_gz_path,
     cache_path,
     commit_ticks_cache,
@@ -34,21 +31,9 @@ from storage.tick_loader import (
     resolve_cli_tick_cache_dates,
     resolve_tick_cache_dates,
     save_ticks_csv,
-    shioaji_ts_from_ns,
+    shioaji_historical_ts_from_ns,
 )
 from tests.test_helpers import make_host
-
-
-class TestTaipeiNaive(unittest.TestCase):
-    def test_ns_to_taipei_naive(self):
-        # 2026-06-12 09:00:00 +08:00
-        aware = datetime.datetime(
-            2026, 6, 12, 9, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=8))
-        )
-        ts_ns = int(aware.timestamp() * 1_000_000_000)
-        dt = _ns_to_taipei_naive(ts_ns)
-        self.assertIsNone(dt.tzinfo)
-        self.assertEqual(dt, datetime.datetime(2026, 6, 12, 9, 0, 0))
 
 
 class TestCsvRoundTrip(unittest.TestCase):
@@ -96,7 +81,6 @@ class TestCsvRoundTrip(unittest.TestCase):
             self.assertEqual(ticks[0].close, "18000")
             self.assertEqual(ticks[1].close, "18010")
 
-
 class TestFetchTicksForDate(unittest.TestCase):
     def test_defaults_to_rangetime_window(self):
         api = MagicMock()
@@ -137,13 +121,41 @@ class TestFetchTicksForDate(unittest.TestCase):
         ticks = fetch_ticks_for_date(api, contract, date, simulation=True)
         self.assertEqual(ticks[0].datetime, datetime.datetime(2026, 6, 18, 10, 26, 0))
         self.assertEqual(
-            shioaji_ts_from_ns(ts_ns, simulation=True),
+            shioaji_historical_ts_from_ns(ts_ns),
             datetime.datetime(2026, 6, 18, 10, 26, 0),
         )
-        self.assertEqual(
-            _ns_to_taipei_naive(ts_ns),
-            datetime.datetime(2026, 6, 18, 18, 26, 0),
+        # Negative reference: the old +8h decode would have produced 18:26 (wrong).
+        wrong_plus8 = datetime.datetime.fromtimestamp(
+            ts_ns / 1_000_000_000,
+            datetime.timezone(datetime.timedelta(hours=8)),
+        ).replace(tzinfo=None)
+        self.assertEqual(wrong_plus8, datetime.datetime(2026, 6, 18, 18, 26, 0))
+        self.assertNotEqual(wrong_plus8, ticks[0].datetime)
+
+    def test_production_tick_ts_uses_wall_clock_not_plus_eight(self):
+        """Production api.ticks: same wall-as-UTC encoding as simulation."""
+        wall_as_utc = datetime.datetime(
+            2026, 6, 25, 10, 26, 0, tzinfo=datetime.timezone.utc
         )
+        ts_ns = int(wall_as_utc.timestamp() * 1_000_000_000)
+        api = MagicMock()
+        raw = MagicMock(ts=[ts_ns], close=[18000], volume=[1])
+        api.ticks.return_value = raw
+        contract = MagicMock(code="TXFR1")
+        date = datetime.date(2026, 6, 25)
+        ticks = fetch_ticks_for_date(api, contract, date, simulation=False)
+        self.assertEqual(ticks[0].datetime, datetime.datetime(2026, 6, 25, 10, 26, 0))
+        self.assertEqual(
+            shioaji_historical_ts_from_ns(ts_ns),
+            datetime.datetime(2026, 6, 25, 10, 26, 0),
+        )
+        # Negative reference: the old +8h decode would have produced 18:26 (wrong).
+        wrong_plus8 = datetime.datetime.fromtimestamp(
+            ts_ns / 1_000_000_000,
+            datetime.timezone(datetime.timedelta(hours=8)),
+        ).replace(tzinfo=None)
+        self.assertEqual(wrong_plus8, datetime.datetime(2026, 6, 25, 18, 26, 0))
+        self.assertNotEqual(wrong_plus8, ticks[0].datetime)
 
     @patch("storage.tick_loader.time.sleep")
     def test_retries_on_timeout(self, sleep_mock: MagicMock):
@@ -379,144 +391,6 @@ class TestDownloadAndCache(unittest.TestCase):
             ticks = load_ticks_csv(plain)
             self.assertEqual(len(ticks), 2)
             api.ticks.assert_called_once()
-
-    def test_simulation_merge_normalizes_legacy_plus8_rows(self):
-        api = MagicMock()
-        api.usage.return_value = MagicMock(
-            bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
-        )
-        contract = MagicMock()
-        contract.code = "TXFR1"
-        date = datetime.date(2026, 6, 22)
-        morning_ns = int(
-            datetime.datetime(
-                2026, 6, 22, 8, 45, 0, tzinfo=datetime.timezone.utc
-            ).timestamp()
-            * 1_000_000_000
-        )
-        api.ticks.return_value = MagicMock(
-            ts=[morning_ns],
-            close=[18000],
-            volume=[1],
-            bid_price=[],
-            ask_price=[],
-            tick_type=[1],
-        )
-        with tempfile.TemporaryDirectory() as d:
-            cache_dir = Path(d)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 19, 14), "legacy", 1, 0)],
-                cache_path(cache_dir, "TXFR1", date),
-            )
-            written = download_and_cache(
-                api,
-                contract,
-                [date],
-                cache_dir=cache_dir,
-                simulation=True,
-            )
-            self.assertEqual(len(written), 1)
-            ticks = load_ticks_csv(cache_path(cache_dir, "TXFR1", date))
-            times = [t.datetime for t in ticks]
-            self.assertIn(datetime.datetime(2026, 6, 22, 11, 14), times)
-            self.assertNotIn(datetime.datetime(2026, 6, 22, 19, 14), times)
-
-    def test_simulation_legacy_skip_persists_normalized_timestamps(self):
-        api = MagicMock()
-        api.usage.return_value = MagicMock(
-            bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
-        )
-        contract = MagicMock()
-        contract.code = "TXFR1"
-        date = datetime.date(2026, 6, 22)
-        full_day = [
-            ReplayTick(
-                datetime.datetime(2026, 6, 22, 16, 45) + datetime.timedelta(minutes=i),
-                str(i),
-                1,
-                0,
-            )
-            for i in range((21 * 60 + 45) - (16 * 60 + 45) + 1)
-        ]
-        with tempfile.TemporaryDirectory() as d:
-            cache_dir = Path(d)
-            save_ticks_csv(full_day, cache_path(cache_dir, "TXFR1", date))
-            written = download_and_cache(
-                api,
-                contract,
-                [date],
-                cache_dir=cache_dir,
-                simulation=True,
-            )
-            self.assertEqual(len(written), 1)
-            api.ticks.assert_not_called()
-            ticks = load_ticks_csv(cache_path(cache_dir, "TXFR1", date))
-            self.assertTrue(
-                all(
-                    DEFAULT_TICK_RANGE_START
-                    <= t.datetime.time()
-                    <= DEFAULT_TICK_RANGE_END
-                    for t in ticks
-                )
-            )
-
-    def test_evening_tick_not_shifted_when_day_session_present(self):
-        ticks = [
-            ReplayTick(datetime.datetime(2026, 6, 22, 9, 0), "day", 1, 0),
-            ReplayTick(datetime.datetime(2026, 6, 22, 17, 0), "night", 1, 0),
-        ]
-        normalized = _normalize_simulation_ticks_for_window(
-            ticks,
-            time_start=DEFAULT_TICK_RANGE_START,
-            time_end=DEFAULT_TICK_RANGE_END,
-        )
-        times = [t.datetime for t in normalized]
-        self.assertIn(datetime.datetime(2026, 6, 22, 9, 0), times)
-        self.assertIn(datetime.datetime(2026, 6, 22, 17, 0), times)
-        self.assertEqual(len(normalized), 2)
-
-    def test_production_mode_skips_legacy_normalization_on_load(self):
-        ticks = [
-            ReplayTick(datetime.datetime(2026, 6, 22, 9, 0), "day", 1, 0),
-            ReplayTick(datetime.datetime(2026, 6, 22, 19, 14), "legacy", 1, 0),
-        ]
-        with tempfile.TemporaryDirectory() as d:
-            cache_dir = Path(d)
-            date = datetime.date(2026, 6, 22)
-            save_ticks_csv(ticks, cache_path(cache_dir, "TXFR1", date))
-            from storage.tick_loader import tick_cache_satisfies_request
-
-            self.assertFalse(
-                tick_cache_satisfies_request(
-                    cache_dir,
-                    "TXFR1",
-                    date,
-                    time_start=DEFAULT_TICK_RANGE_START,
-                    time_end=DEFAULT_TICK_RANGE_END,
-                    simulation=False,
-                )
-            )
-            loaded = load_merged_tick_cache(cache_dir, "TXFR1", date)
-            self.assertIn(datetime.datetime(2026, 6, 22, 19, 14), [t.datetime for t in loaded])
-
-    def test_legacy_shifts_when_shifted_time_near_but_not_duplicate(self):
-        legacy = ReplayTick(datetime.datetime(2026, 6, 22, 19, 14), "legacy", 1, 0)
-        morning = ReplayTick(datetime.datetime(2026, 6, 22, 11, 14, 39), "morning", 1, 0)
-        self.assertTrue(
-            _is_legacy_plus8h_tick_candidate(
-                legacy,
-                time_start=DEFAULT_TICK_RANGE_START,
-                time_end=DEFAULT_TICK_RANGE_END,
-                all_ticks=[legacy, morning],
-            )
-        )
-        normalized = _normalize_simulation_ticks_for_window(
-            [legacy, morning],
-            time_start=DEFAULT_TICK_RANGE_START,
-            time_end=DEFAULT_TICK_RANGE_END,
-        )
-        self.assertIn(datetime.datetime(2026, 6, 22, 11, 14), [t.datetime for t in normalized])
-        self.assertNotIn(datetime.datetime(2026, 6, 22, 19, 14), [t.datetime for t in normalized])
 
     def test_merged_plain_and_gzip_used_for_gap_backfill(self):
         api = MagicMock()

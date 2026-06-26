@@ -58,7 +58,8 @@ def repair_cache(
             d
             for d in dates
             if ticks_need_rollover_afternoon(
-                load_merged_tick_cache(cache_dir, code, d), d
+                load_merged_tick_cache(cache_dir, code, d),
+                d,
             )
         ]
         if rollover_candidates:

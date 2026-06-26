@@ -68,6 +68,8 @@ python -m storage.cache_repair --code TMFR1 --fix-kbars-only   # 僅本地 ticks
 
 若本機仍有舊版 `kbar_cache/`：`bash scripts/linux/migrate-legacy-kbar-cache.sh`（見 [`docs/ops/LinuxOps.md`](../../../../docs/ops/LinuxOps.md)）。
 
+**2026-06-26 前**落地的 `tick_cache/*_kbars_*.csv`（舊 +8 解碼）或誤用 +8 的 tick 快取，請對受影響日期執行 `python -m backfilldata date YYYY-MM-DD --overwrite` 重抓；merge 可能留下重複列。
+
 ## Shioaji limits (摘要)
 
 - 行情查詢 **50 次 / 5 秒**；盤中 ticks **10 次/日**、kbars **270 次/日**
