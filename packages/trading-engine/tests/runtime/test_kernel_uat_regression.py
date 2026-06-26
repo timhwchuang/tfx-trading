@@ -90,6 +90,10 @@ class TestKernelUatRegression(unittest.TestCase):
         self.assertFalse(host._api_connected)
 
     def test_b4_pending_timeout_critical_alert_and_sync(self):
+        """B4 (P0-5): timeout = UNKNOWN. When the broker cannot be read to confirm
+        the outcome, the kernel enters SETTLING (emits pending_timeout, keeps the
+        order in flight, freezes new orders) and only escalates to HALT
+        (block_new_entry + CRITICAL + sync) once settle_timeout_sec elapses."""
         alerts = MagicMock()
         host = make_host()
         host._alerts = alerts
@@ -103,7 +107,9 @@ class TestKernelUatRegression(unittest.TestCase):
         arm_pending_exit(host, order_id="timeout-ord")
         host.position_qty = 1
         host.position_dir = "Long"
-        _broker_still_holds(host, quantity=1, direction="Buy")
+        host.contract = MagicMock(code="TXFR1")
+        # Broker unreadable → outcome stays UNKNOWN → settle → HALT.
+        host.api.list_positions.side_effect = RuntimeError("broker down")
         host.pending_since = host._clock() - host._cfg.pending_timeout_sec - 1
         trade = MagicMock()
         trade.order.id = host.pending_order_id
@@ -114,15 +120,25 @@ class TestKernelUatRegression(unittest.TestCase):
         with patch("trading_engine.order_executor.logger.info", side_effect=_capture_info):
             host._check_pending_timeout()
 
-        self.assertFalse(host.is_pending)
-        self.assertTrue(host.block_new_entry)
-        host.sync_positions.assert_called()
-        alerts.send.assert_called()
-        self.assertEqual(alerts.send.call_args.kwargs.get("level"), "CRITICAL")
+        # Timeout → SETTLING (not cleared, not yet blocked); pending_timeout emitted.
+        self.assertTrue(host._settling)
+        self.assertTrue(host.is_pending)
+        self.assertFalse(host.block_new_entry)
         self.assertTrue(
             any("EXEC_AUDIT" in line and "pending_timeout" in line for line in logged),
             f"expected EXEC_AUDIT pending_timeout log line, got: {logged}",
         )
+
+        # Settle window exhausted with no broker confirmation → HALT.
+        host._settle_since = host._clock() - host._cfg.settle_timeout_sec - 1
+        host._settle_via_reconcile()
+
+        self.assertFalse(host.is_pending)
+        self.assertTrue(host.block_new_entry)
+        self.assertTrue(host._position_unconfirmed)
+        host.sync_positions.assert_called()
+        alerts.send.assert_called()
+        self.assertEqual(alerts.send.call_args.kwargs.get("level"), "CRITICAL")
 
     def test_b6_sync_positions_matches_get_state_snapshot_long(self):
         broker = make_broker_with_positions(

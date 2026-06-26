@@ -77,6 +77,9 @@ def default_test_settings() -> Settings:
         alert_on_disconnect_with_position=True,
         position_reconcile_sec=60,
         max_position_qty=1,
+        settle_timeout_sec=30,
+        reconcile_fast_sec=2,
+        reconcile_confirm_reads=2,
         config_path=Path("config/config.yaml"),
     )
 

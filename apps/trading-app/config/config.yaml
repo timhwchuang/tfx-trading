@@ -69,7 +69,7 @@ strategy:
   # 請求 K 線時往前回溯天數（P1-1；解決週一 / 連假後 ATR 斷層）
   atr_kline_lookback_days: 10
 
-  # IOC 委託 pending 超時（秒）；超時後補查並解鎖狀態機
+  # IOC 委託 pending 超時（秒）；超時 = UNKNOWN（非失敗）→ 轉主動對帳確認（SETTLING），不解鎖讓策略重下
   pending_timeout_sec: 8
 
   # IOC 限價讓價點數（買 = ref + N，賣 = ref - N）；全日固定，開盤不放大
@@ -203,3 +203,10 @@ operations:
   position_reconcile_sec: 60
   # P0-4：硬部位上限（Pilot 固定 1）；持倉+在途達此值即拒絕新進場，防回報遺失時無限累積
   max_position_qty: 1
+  # P0-5（部位真相驅動）：pending_timeout_sec 後不再信任延遲 callback，改主動向券商對帳。
+  # settle_timeout_sec：SETTLING 確認上限（秒）；逾時 → 部位 UNCONFIRMED（凍結 entry+exit）
+  settle_timeout_sec: 30
+  # 未解決（pending/settling/unconfirmed）時的快速對帳節奏（秒）
+  reconcile_fast_sec: 2
+  # 採信券商讀數前需連續一致的次數（debounce），避免單次抖動誤判
+  reconcile_confirm_reads: 2

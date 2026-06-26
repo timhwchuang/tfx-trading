@@ -29,15 +29,27 @@ This document describes what the kernel does when things go wrong during live op
 
 ---
 
-### Pending timeout + reconcile failure
+### Pending timeout = UNKNOWN → settle → HALT (P0-5, truth-driven)
 
 | | |
 |---|---|
-| **Kernel behavior** | `_check_pending_timeout` calls `_reconcile_pending_trade` (via `update_status` + `order_deal_records`). If unresolved after `pending_timeout_sec`, clears pending, sends **CRITICAL** alert, runs `sync_positions`, sets `block_new_entry = True`. |
-| **Expected outcome** | Pending cleared; actual broker position may differ from kernel belief until sync succeeds. New entries blocked until next trading-day reset (or manual intervention). |
-| **Operator action** | Inspect broker positions immediately. Do not assume flat. Review `FILL_AUDIT` / order logs. Clear `block_new_entry` only after manual reconciliation (restart or custom app logic). |
+| **Kernel behavior** | A `pending_timeout_sec` timeout means the order outcome is **UNKNOWN, not FAILED**. `_check_pending_timeout` does **not** clear pending and let the strategy re-issue. It keeps `pending_order_id` (so a late fill still attributes), tries a fast reconcile, then enters `_settling`: `_settle_via_reconcile` polls `list_positions` and adopts the truth after `reconcile_confirm_reads` consistent reads. A broker-confirmed fill / clean no-fill resolves cleanly (no block). If it cannot be confirmed within `settle_timeout_sec`, the kernel HALTs: `_position_unconfirmed = True` + `block_new_entry = True` + **CRITICAL**, and adopts broker truth. While `_settling` / `_position_unconfirmed`, **both entry and exit are frozen** (`_validate_order_signal` + strategy). |
+| **Expected outcome** | No cascade of re-issued orders, no >1-lot accumulation. The kernel either converges to the broker truth or freezes everything pending convergence/operator review. |
+| **Operator action** | On a HALT CRITICAL, inspect broker positions; do not assume flat. The kernel auto-converges (see below). Clear `block_new_entry` only after manual reconciliation (restart / next trading-day reset). |
 
-**Code:** `order_executor.py:_check_pending_timeout`, `_reconcile_pending_trade`
+**Code:** `order_executor.py:_check_pending_timeout`, `_settle_via_reconcile`, `_apply_pending_broker_truth`
+
+---
+
+### Convergence flatten while unconfirmed (P0-5)
+
+| | |
+|---|---|
+| **Kernel behavior** | While `_position_unconfirmed` (HALT) and the broker-adopted position is **not flat**, `_maybe_converge_flatten` sends exactly **one** exit sized to the held qty (throttled by `reconcile_fast_sec`, bypassing the freeze via `_kernel_converging`), then returns to `_settling` to await confirmation. Once confirmed flat, HALT lifts; `block_new_entry` stays set until daily reset / manual clear. |
+| **Expected outcome** | A single, correctly-sized flatten brings the position to flat without the strategy ever re-issuing exits. |
+| **Operator action** | Watch for `HALT 收斂平倉` logs; confirm the broker reaches flat. Investigate the root cause before re-enabling entries. |
+
+**Code:** `engine.py:_maybe_converge_flatten`, `order_executor.py:_halt_position_unconfirmed`
 
 ---
 
@@ -45,7 +57,7 @@ This document describes what the kernel does when things go wrong during live op
 
 | | |
 |---|---|
-| **Kernel behavior** | The timeout loop runs `_check_position_reconcile` every `position_reconcile_sec` (default 60, `<=0` disables) during the trading session, skipping while an order is pending. It reads `list_positions` and compares qty/dir to kernel state. On mismatch: log + CRITICAL alert + `block_new_entry=True`, then adopts broker truth via `sync_positions` and sets `_position_drift_detected`. A clean reconcile clears the drift flag. |
+| **Kernel behavior** | The timeout loop runs `_check_position_reconcile` every `position_reconcile_sec` (default 60, `<=0` disables) during the trading session — or every `reconcile_fast_sec` (default 2) while `_position_unconfirmed` (P0-5). Skipped while pending/settling (those windows are owned by `_settle_via_reconcile`). It reads `list_positions` and compares qty/dir to kernel state. On mismatch: log + CRITICAL alert + `block_new_entry=True`, then adopts broker truth via `sync_positions` and sets `_position_drift_detected`. If `broker_qty > max_position_qty` AND `> kernel_qty`, it escalates to HALT (P0-5) + convergence flatten. A clean reconcile clears the drift flag. |
 | **Expected outcome** | Even if a fill callback is lost entirely, kernel state converges to the broker within ~60s and new entries are blocked until manual review. |
 | **Operator action** | Treat any `持倉漂移` CRITICAL as a real position discrepancy. Reconcile against the broker before clearing `block_new_entry`. |
 
@@ -57,8 +69,8 @@ This document describes what the kernel does when things go wrong during live op
 
 | | |
 |---|---|
-| **Kernel behavior** | `_validate_order_signal` rejects any **entry** when `position_qty + signal.qty > max_position_qty` (default 1, Pilot). Pending entries are already rejected, so held qty is authoritative. |
-| **Expected outcome** | Runaway accumulation (the 24-lot failure) is structurally impossible regardless of report-channel health. |
+| **Kernel behavior** | `_validate_order_signal` rejects any **entry** when `position_qty + signal.qty > max_position_qty` (default 1, Pilot). Pending entries are already rejected, so held qty is authoritative. P0-5 adds a hard backstop: if reconcile/settle finds `broker_qty > max_position_qty` AND `> kernel_qty`, the kernel HALTs and converges with a single flatten. |
+| **Expected outcome** | Runaway accumulation (the 24-lot / >1-lot failures) is structurally impossible regardless of report-channel health. |
 | **Operator action** | Keep `max_position_qty: 1` during Pilot. Raise only with an explicit risk decision. |
 
 **Code:** `order_executor.py:_validate_order_signal`, `config.yaml: operations.max_position_qty`

@@ -79,6 +79,12 @@ class RiskGate:
     atr_stale: bool = False
     structure_stale: bool = False
     reconnect_warmup_active: bool = False
+    # P0-5 (truth-driven execution): order outcome unknown after timeout
+    # (awaiting broker reconcile) / position not yet confirmed against broker
+    # (HALT). Strategy MUST return None for both entry and exit when set; the
+    # kernel owns convergence in these states.
+    settling: bool = False
+    position_unconfirmed: bool = False
 
 
 @dataclass(frozen=True)
@@ -104,6 +110,8 @@ class EngineStateSnapshot:
     has_position: bool
     trailing_peak: float
     ticks_since_entry: int
+    settling: bool = False
+    position_unconfirmed: bool = False
 
 
 @dataclass

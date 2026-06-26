@@ -34,6 +34,21 @@ class OrderExecutorMixin:
                 self.pending_intent,
             )
             return False
+        # P0-5: while the previous order's outcome is UNKNOWN (settling) or the
+        # broker position is unconfirmed (HALT), freeze BOTH entry and exit.
+        # The strategy must never re-issue here; the kernel owns convergence via
+        # _settle_via_reconcile + _maybe_converge_flatten. ``_kernel_converging``
+        # lets kernel-owned convergence flatten bypass this freeze.
+        if (self._settling or self._position_unconfirmed) and not getattr(
+            self, "_kernel_converging", False
+        ):
+            logger.warning(
+                "拒絕 OrderSignal: 部位未確認/結算中 (settling=%s unconfirmed=%s intent=%s)",
+                self._settling,
+                self._position_unconfirmed,
+                signal.intent,
+            )
+            return False
         if signal.intent == "entry":
             if self.block_new_entry:
                 logger.warning("拒絕 entry OrderSignal: block_new_entry=True")
@@ -159,6 +174,9 @@ class OrderExecutorMixin:
         self.block_new_entry = False
         self.consecutive_loss = 0
         self._disconnect_count_today = 0
+        # P0-5: lift HALT on trading-day rollover (operator-equivalent reset).
+        self._position_unconfirmed = False
+        self._converge_flatten_at = 0.0
 
     def _emit_daily_summary(self, trade_date: datetime.date) -> None:
         self._telemetry.snapshot_tick_types(self._tick_type_counts)
@@ -589,15 +607,19 @@ class OrderExecutorMixin:
             # fill whose callback arrived after we cleared pending on timeout.
             # Do NOT silently drop it: force a reconcile + circuit-break new entry.
             logger.warning(
-                "孤兒成交回報（無 pending）→ 強制對帳並停止新進場 | order=%s qty=%d @ %.1f",
+                "孤兒成交回報（無 pending）→ HALT 並全面凍結新單 | order=%s qty=%d @ %.1f",
                 order_id,
                 qty,
                 price,
             )
+            # P0-5: unattributable fill → position is unconfirmed. Freeze BOTH
+            # entry and exit (not just block_new_entry); kernel converges via
+            # reconcile + single flatten once broker truth is adopted.
             self.block_new_entry = True
+            self._position_unconfirmed = True
             self._stage_critical_alert(
                 f"孤兒成交回報（無 pending）| order={order_id} qty={qty} @ {price} "
-                "→ 已強制對帳並停止新進場；請人工核對券商部位"
+                "→ 已 HALT 並凍結所有新單；請人工核對券商部位"
             )
             return True  # trigger sync_positions in caller
 
@@ -623,16 +645,27 @@ class OrderExecutorMixin:
             # real broker fill we did not expect (e.g. stale order, duplicate
             # leg). Reconcile instead of dropping; keep current pending intact.
             logger.warning(
-                "非當前委託成交回報 → 強制對帳並停止新進場 | expected=%s got=%s qty=%d @ %.1f",
+                "非當前委託成交回報 → HALT 並全面凍結新單 | expected=%s got=%s qty=%d @ %.1f",
                 self.pending_order_id,
                 order_id,
                 qty,
                 price,
             )
+            # P0-5: a fill for a different order while we hold a pending is an
+            # unattributed lot → position unconfirmed. Freeze entry AND exit, and
+            # transition the in-flight pending into SETTLING so the settle loop
+            # (and, via it, the convergence flatten) starts polling the broker
+            # immediately instead of waiting out pending_timeout_sec.
             self.block_new_entry = True
+            self._position_unconfirmed = True
+            if not self._settling:
+                self._settling = True
+                self._settle_since = self._clock()
+                self._reconcile_last_read = None
+                self._reconcile_read_streak = 0
             self._stage_critical_alert(
                 f"非當前委託成交回報 | expected={self.pending_order_id} got={order_id} "
-                f"qty={qty} @ {price} → 已強制對帳並停止新進場；請人工核對券商部位"
+                f"qty={qty} @ {price} → 已 HALT 並凍結所有新單；請人工核對券商部位"
             )
             return True  # trigger sync_positions in caller
 
@@ -828,7 +861,47 @@ class OrderExecutorMixin:
         broker = self.read_broker_position()
         if broker is None:
             return False
-        broker_qty, broker_dir = broker
+        return self._apply_pending_broker_truth(broker[0], broker[1])
+
+    def _halt_position_unconfirmed(self, reason: str) -> None:
+        """P0-5: enter HALT — broker position not confirmed / anomalous.
+
+        Freezes BOTH entry and exit (``_position_unconfirmed`` + ``block_new_entry``),
+        clears the in-flight pending, adopts broker truth so the kernel-owned
+        convergence flatten can size correctly, and raises a one-shot CRITICAL.
+        Safe to call from background threads (does its own locking; sends the
+        alert and ``sync_positions`` outside the lock).
+        """
+        with self.lock:
+            already = self._position_unconfirmed
+            self._position_unconfirmed = True
+            self.block_new_entry = True
+            self._clear_pending()
+        logger.warning("部位未確認（HALT）| %s", reason)
+        try:
+            self.sync_positions()
+        except Exception as e:
+            logger.error("HALT 後對帳失敗: %s", e)
+        if not already:
+            try:
+                self._alerts.send(
+                    f"部位未確認，已凍結所有新單（entry+exit）| {reason} "
+                    "→ 請人工核對券商部位",
+                    level="CRITICAL",
+                )
+            except Exception as e:
+                logger.error("HALT 告警送出失敗: %s", e)
+
+    def _apply_pending_broker_truth(self, broker_qty: int, broker_dir: str) -> bool:
+        """Resolve the current pending using an already-read broker snapshot.
+
+        The broker position is the single source of truth (P0-5). Returns True
+        when the pending is fully resolved — whether the order filled, did not
+        fill, or escalated to HALT. Returns False when the broker does not yet
+        reflect a resolvable outcome (caller keeps settling / retries).
+        """
+        ceiling = self._cfg.max_position_qty
+        within_ceiling = ceiling <= 0 or broker_qty <= ceiling
         with self.lock:
             if not self.is_pending:
                 return True
@@ -837,9 +910,22 @@ class OrderExecutorMixin:
             kernel_dir = self.position_dir
             pending_qty = self.pending_qty if self.pending_qty > 0 else 1
             pending_action = self._pending_action or ""
+            fill_price = self.pending_signal_price
+
+        # Ceiling backstop: the broker holds MORE than the kernel believed AND
+        # more than the ceiling → accumulation anomaly (the >1-lot failure mode).
+        # A broker qty <= kernel (e.g. a partial exit still showing lots) is a
+        # known/decreasing position handled by the normal resolution below.
+        if ceiling > 0 and broker_qty > ceiling and broker_qty > kernel_qty:
+            self._halt_position_unconfirmed(
+                f"對帳發現超過部位上限 | kernel={kernel_dir} {kernel_qty}口 "
+                f"broker={broker_dir} {broker_qty}口 > max={ceiling}"
+            )
+            return True
+
         if intent == PendingIntent.ENTRY:
             expected_dir = "Long" if pending_action == "Buy" else "Short"
-            resolved = (
+            entry_filled = (
                 broker_qty == pending_qty
                 and broker_dir == expected_dir
                 and (
@@ -847,47 +933,198 @@ class OrderExecutorMixin:
                     or (kernel_qty == broker_qty and kernel_dir == expected_dir)
                 )
             )
-        elif intent == PendingIntent.EXIT:
-            resolved = broker_qty < kernel_qty and (
+            if entry_filled:
+                if kernel_qty == broker_qty and kernel_dir == expected_dir:
+                    with self.lock:
+                        if self.is_pending:
+                            self._clear_pending()
+                    return True
+                logger.info(
+                    "結算對帳：entry 已成交（broker=%s %d口）→ 採用券商為準",
+                    broker_dir,
+                    broker_qty,
+                )
+                need_sync = False
+                with self.lock:
+                    if not self.is_pending:
+                        return True
+                    self.filled_qty = 0
+                    self._apply_deal_fill(
+                        fill_price,
+                        broker_dir == "Long",
+                        deal_qty=max(1, broker_qty - kernel_qty),
+                    )
+                    need_sync = not self.is_pending
+                if need_sync:
+                    self.sync_positions()
+                return need_sync
+            # No-fill: broker still flat and kernel flat → IOC simply missed.
+            if broker_qty == 0 and kernel_qty == 0:
+                logger.info("結算對帳：entry 未成交（broker flat）→ 清除 pending")
+                with self.lock:
+                    if self.is_pending:
+                        self._clear_pending()
+                return True
+            return False  # unexpected; keep settling until window/HALT
+
+        if intent == PendingIntent.EXIT:
+            exit_filled = broker_qty < kernel_qty and (
                 broker_qty == 0 or broker_dir == kernel_dir
             )
-        else:
-            resolved = False
-        if not resolved:
-            return False
-        if (
-            intent == PendingIntent.ENTRY
-            and kernel_qty == broker_qty
-            and kernel_dir == expected_dir
-        ):
-            # Position already adopted (e.g. orphan/mismatch deal triggered sync).
-            with self.lock:
-                if self.is_pending:
-                    self._clear_pending()
-            return True
-        logger.info(
-            "券商部位對帳補查：部位已反映委託結果（broker=%s %d口）→ 採用券商為準",
-            broker_dir,
-            broker_qty,
-        )
-        fill_price = self.pending_signal_price
-        still_pending = False
-        with self.lock:
-            if not self.is_pending:
+            if exit_filled:
+                logger.info(
+                    "結算對帳：exit 已成交（broker=%s %d口）→ 採用券商為準",
+                    broker_dir,
+                    broker_qty,
+                )
+                need_sync = False
+                with self.lock:
+                    if not self.is_pending:
+                        return True
+                    self.filled_qty = 0
+                    is_buy = self.position_dir == "Short"
+                    self._apply_deal_fill(
+                        fill_price, is_buy, deal_qty=max(1, kernel_qty - broker_qty)
+                    )
+                    need_sync = not self.is_pending
+                if need_sync:
+                    self.sync_positions()
+                return need_sync
+            # No-fill but broker confirms the position is unchanged, consistent,
+            # and within the ceiling → safe to clear pending; normal operation
+            # resumes (a confirmed, in-bounds position may be re-exited by the
+            # strategy on a later tick).
+            if (
+                broker_qty == kernel_qty
+                and broker_dir == kernel_dir
+                and within_ceiling
+            ):
+                logger.info(
+                    "結算對帳：exit 未成交但部位與券商一致（%s %d口）→ 清除 pending 回復正常",
+                    broker_dir,
+                    broker_qty,
+                )
+                with self.lock:
+                    if self.is_pending:
+                        self._clear_pending()
                 return True
-            self.filled_qty = 0
-            if intent == PendingIntent.EXIT:
-                is_buy = self.position_dir == "Short"
-                deal_qty = max(1, kernel_qty - broker_qty)
-            else:
-                is_buy = broker_dir == "Long"
-                deal_qty = max(1, broker_qty - kernel_qty)
-            self._apply_deal_fill(fill_price, is_buy, deal_qty=deal_qty)
-            still_pending = self.is_pending
-        if still_pending:
+            # Broker holds MORE than the kernel believed → extra/unattributed lots.
+            if broker_qty > kernel_qty:
+                self._halt_position_unconfirmed(
+                    f"對帳發現額外部位 | kernel={kernel_dir} {kernel_qty}口 "
+                    f"broker={broker_dir} {broker_qty}口"
+                )
+                return True
             return False
-        self.sync_positions()
-        return True
+
+        return False
+
+    def _record_reconcile_read(self, broker: tuple[int, str]) -> bool:
+        """Debounce broker reads. Returns True once the same (qty, dir) has been
+        observed ``reconcile_confirm_reads`` times in a row (P0-5)."""
+        need = max(1, int(self._cfg.reconcile_confirm_reads))
+        with self.lock:
+            if self._reconcile_last_read == broker:
+                self._reconcile_read_streak += 1
+            else:
+                self._reconcile_last_read = broker
+                self._reconcile_read_streak = 1
+            return self._reconcile_read_streak >= need
+
+    def _settle_via_reconcile(self) -> None:
+        """P0-5 settle loop: while SETTLING, poll the broker on a fast cadence,
+        adopt the debounced truth, and HALT if it cannot be confirmed within
+        ``settle_timeout_sec``. Runs in the background timeout loop."""
+        with self.lock:
+            if not self._settling or not self.is_pending:
+                return
+            settle_since = self._settle_since
+
+        broker = self.read_broker_position()
+        if broker is None:
+            # Unreadable broker: cannot decide. Escalate to HALT only once the
+            # settle window is exhausted (never act on an unknown broker).
+            if self._clock() - settle_since >= self._cfg.settle_timeout_sec:
+                self._halt_position_unconfirmed(
+                    f"結算逾時 {self._cfg.settle_timeout_sec}s 且券商持倉讀取失敗"
+                )
+            return
+
+        if self._record_reconcile_read(broker):
+            if self._apply_pending_broker_truth(broker[0], broker[1]):
+                return  # resolved (filled / no-fill / HALT)
+
+        if self._clock() - settle_since >= self._cfg.settle_timeout_sec:
+            self._halt_position_unconfirmed(
+                f"結算逾時 {self._cfg.settle_timeout_sec}s 仍無法確認部位"
+            )
+
+    def _maybe_converge_flatten(self) -> None:
+        """P0-5 convergence: while HALT and the (broker-adopted) position is not
+        flat, the kernel sends exactly ONE flatten sized to the held qty, then
+        returns to SETTLING to await confirmation. Throttled to avoid spamming.
+        Lifts HALT once the position is confirmed flat (entries stay blocked via
+        ``block_new_entry`` until daily reset / manual clear)."""
+        signal = None
+        with self.lock:
+            if not self._position_unconfirmed:
+                return
+            if self.is_pending or self._settling:
+                return  # an order is already in flight / being confirmed
+            if self.position_qty <= 0:
+                # Confirmed flat → lift HALT. Keep block_new_entry sticky so no
+                # NEW entry resumes until the operator / daily reset clears it.
+                self._position_unconfirmed = False
+                self._converge_flatten_at = 0.0
+                logger.info("部位已確認 flat → 解除 HALT（block_new_entry 維持至日切/人工）")
+                return
+            now = self._clock()
+            if now < self._converge_flatten_at:
+                return
+            self._converge_flatten_at = now + max(1, int(self._cfg.reconcile_fast_sec))
+            action = "Sell" if self.position_dir == "Long" else "Buy"
+            qty = self.position_qty
+            ref_price = self.indicators.last_tick_price or self.entry_price
+            ts = int(self.last_tick_exchange_ts or self._last_tick_exchange_ts_or_zero())
+            signal = OrderSignal(
+                action=action,
+                qty=qty,
+                ref_price=ref_price,
+                intent="exit",
+                exchange_ts=ts,
+                slippage_points=self._cfg.flatten_slippage_points,
+            )
+            # Kernel-owned convergence: arm directly (bypassing the strategy and
+            # the settling/unconfirmed freeze in _validate_order_signal).
+            self._kernel_converging = True
+            try:
+                if self._validate_order_signal(signal):
+                    if not getattr(signal, "signal_id", ""):
+                        signal.signal_id = self._make_signal_id(signal.exchange_ts or ts)
+                    self._arm_pending(signal)
+                    # Return to SETTLING so _settle_via_reconcile actively polls
+                    # the broker for the convergence outcome instead of waiting on
+                    # callbacks / a full pending_timeout_sec.
+                    self._settling = True
+                    self._settle_since = self._clock()
+                    self._reconcile_last_read = None
+                    self._reconcile_read_streak = 0
+                else:
+                    signal = None
+            finally:
+                self._kernel_converging = False
+        if signal is not None:
+            logger.warning(
+                "HALT 收斂平倉 | %s %d 口 @ ref=%.1f（kernel 主動，唯一一張）",
+                signal.action,
+                signal.qty,
+                signal.ref_price,
+            )
+            self._enqueue_order(signal)
+
+    def _last_tick_exchange_ts_or_zero(self) -> int:
+        dt = self._last_tick_exchange_dt
+        return int(dt.timestamp()) if dt is not None else 0
 
     def _reconcile_pending_trade(self, trade) -> bool:
         """補查委託狀態。回傳 True 表示 pending 已處理完畢（含 callback 已搶先處理）。
@@ -933,21 +1170,32 @@ class OrderExecutorMixin:
         return self._reconcile_pending_via_broker_snapshot()
 
     def _check_pending_timeout(self):
+        """P0-5: a pending timeout means the order outcome is UNKNOWN, not FAILED.
+
+        We do NOT clear pending and let the strategy re-issue (that is what caused
+        cascading duplicate orders + >1 lot). Instead we try a fast reconcile and,
+        if still unresolved, transition into SETTLING: keep ``pending_order_id`` so
+        a late fill still attributes, freeze all new orders, and let
+        ``_settle_via_reconcile`` converge against the broker (the source of truth).
+        """
         with self.lock:
             if not self.is_pending:
+                return
+            if self._settling:
+                # Past the callback-wait window already; the settle loop owns it.
                 return
             if self._clock() - self.pending_since < self._cfg.pending_timeout_sec:
                 return
             trade = self.pending_trade
 
-        if trade is None:
-            with self.lock:
-                if self.is_pending:
-                    logger.warning("Pending 超時但無 trade 物件，重置 pending")
-                    self._clear_pending()
-            return
+        # First attempt: fast reconcile (deal records / broker snapshot).
+        if trade is not None:
+            resolved = self._reconcile_pending_trade(trade)
+        else:
+            resolved = self._reconcile_pending_via_broker_snapshot()
 
-        resolved = self._reconcile_pending_trade(trade)
+        intent = None
+        entered_settling = False
         with self.lock:
             if not self.is_pending:
                 return
@@ -955,30 +1203,34 @@ class OrderExecutorMixin:
                 return
             if not self._still_own_pending():
                 return
+            if not self._settling:
+                self._settling = True
+                self._settle_since = self._clock()
+                self._reconcile_last_read = None
+                self._reconcile_read_streak = 0
+                entered_settling = True
+                intent = self.pending_intent
+                # Phase 2 audit: timeout now means "switch to broker reconcile".
+                try:
+                    exec_audit = ExecAudit(
+                        event_type="pending_timeout",
+                        ts=int(self.pending_exchange_ts or 0),
+                        signal_id=self.pending_signal_id,
+                        pending_sec=self._cfg.pending_timeout_sec,
+                    )
+                    logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
+                except Exception:
+                    pass
+
+        if entered_settling:
             logger.warning(
-                "Pending 超時 %.0fs 且補查無結果，重置 pending",
+                "Pending 超時 %.0fs 未獲回報 → 轉主動對帳確認（UNKNOWN，不重下單、凍結新單）",
                 self._cfg.pending_timeout_sec,
             )
-            # Emit EXEC timeout (Phase 2)
-            try:
-                exec_audit = ExecAudit(
-                    event_type="pending_timeout",
-                    ts=int(self.pending_exchange_ts or 0),
-                    signal_id=self.pending_signal_id,
-                    pending_sec=self._cfg.pending_timeout_sec,
-                )
-                logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
-            except Exception:
-                pass
-            intent = self.pending_intent
-            self._clear_pending()
-        self._alerts.send(
-            f"Pending 超時無回報（intent={intent or 'unknown'}）| timeout={self._cfg.pending_timeout_sec}s",
-            level="CRITICAL",
-        )
-        try:
-            self.sync_positions()
-        except Exception as e:
-            logger.error("Pending 超時後對帳失敗: %s", e)
-        with self.lock:
-            self.block_new_entry = True
+            self._alerts.send(
+                f"Pending 超時無回報（intent={intent or 'unknown'}）→ 轉對帳確認並凍結新單 "
+                f"| timeout={self._cfg.pending_timeout_sec}s",
+                level="CRITICAL",
+            )
+            # Kick off the first reconcile attempt immediately.
+            self._settle_via_reconcile()

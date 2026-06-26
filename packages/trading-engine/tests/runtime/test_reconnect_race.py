@@ -34,10 +34,11 @@ class TestReconnectRace(unittest.TestCase):
         # After reconcile the position should be flattened (deal applied)
         self.assertEqual(host.position_qty, 0)
 
-    def test_timeout_reconcile_with_no_broker_result_clears_and_alerts(self):
+    def test_timeout_reconcile_with_no_broker_result_settles_then_halts(self):
         host = make_host()
         arm_pending_exit(host)
         host.position_qty = 1
+        host.contract = MagicMock(code="TXFR1")
         trade = MagicMock()
         trade.order.id = host.pending_order_id
         host.pending_trade = trade
@@ -45,15 +46,23 @@ class TestReconnectRace(unittest.TestCase):
         # Make update_status and records return nothing useful
         host.api.update_status.return_value = None
         host.api.order_deal_records.return_value = []
-        # Broker position query fails -> reconcile cannot confirm -> timeout path.
+        # Broker position query fails -> outcome stays UNKNOWN -> SETTLING.
         host.api.list_positions.side_effect = RuntimeError("broker unavailable")
 
         host._check_pending_timeout()
 
-        # Pending should be cleared after timeout path
+        # P0-5: UNKNOWN, not FAILED. Stay in flight + settling (no re-arm, no block yet).
+        self.assertTrue(host._settling)
+        self.assertTrue(host.is_pending)
+        self.assertFalse(host.block_new_entry)
+
+        # Settle window exhausted with no broker confirmation -> HALT.
+        host._settle_since = host._clock() - host._cfg.settle_timeout_sec - 1
+        host._settle_via_reconcile()
+
         self.assertFalse(host.is_pending)
-        # block_new_entry set on hard timeout
         self.assertTrue(host.block_new_entry)
+        self.assertTrue(host._position_unconfirmed)
 
     def test_reconnect_after_disconnect_triggers_sync_and_reconcile(self):
         host = make_host()

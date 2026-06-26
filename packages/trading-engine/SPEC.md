@@ -126,8 +126,10 @@ engine.on_tick(TickSnapshot(ts=..., price=..., volume=..., tick_type=1, exchange
 | `pending_intent` | entry / exit / None | `is_pending` 時必須有值 |
 | `pending_order_id` | str / None | callback 嚴格比對 |
 | `filled_qty` | int | IOC partial 累積 |
+| `_settling` | bool | timeout 後 = 委託結果未知（UNKNOWN），主動對帳確認中 |
+| `_position_unconfirmed` | bool | 部位未經券商確認（HALT）；凍結 entry+exit |
 
-`has_position` 為衍生屬性（`position_qty > 0`）。
+`has_position` 為衍生屬性（`position_qty > 0`）。`settling` / `position_unconfirmed` 透過 `get_state_snapshot()` 與 `RiskGate` 對外暴露（唯讀）。
 
 **Kernel 保證**
 
@@ -138,8 +140,14 @@ engine.on_tick(TickSnapshot(ts=..., price=..., volume=..., tick_type=1, exchange
 5. **無法歸屬的成交（pending 已清或 `order_id` 不符）不得靜默丟棄（P0-2）**：觸發 `sync_positions` + `block_new_entry` + CRITICAL，以券商為準。
 6. 日內風控計數依 `trading_day_for_daily_reset` 重置。
 7. **`_api_connected`** 僅在「報價 subscribe 成功」**且「委託/成交回報通道重掛（`_resubscribe_trade`）成功」**且 `refresh_atr()` 成功（或 ATR 失敗非 session 錯誤）後由 `_on_reconnected` 設為 `True`；任一失敗 → 保持 disconnected，交由 session watchdog relogin（**P0-1**，見 [`LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md)）。重連只重訂報價而不重掛回報通道，是 24 口 phantom short 的主因。
-8. **週期對帳熔斷（P0-3）**：交易時段每 `position_reconcile_sec`（預設 60）以 `list_positions` 比對；qty/dir 與券商不一致 → 以券商為準更新 + `block_new_entry` + CRITICAL。「未確認持倉與券商一致前，禁止任何新進場」；對帳是 kernel 的權威來源，callback 僅為快路徑。
-9. **硬部位上限（P0-4）**：`_validate_order_signal` 對 entry 於 `position_qty + signal.qty > max_position_qty`（預設 1）時拒單。
+8. **週期對帳熔斷（P0-3）**：交易時段每 `position_reconcile_sec`（預設 60）以 `list_positions` 比對；qty/dir 與券商不一致 → 以券商為準更新 + `block_new_entry` + CRITICAL。`_position_unconfirmed`（HALT）時改 `reconcile_fast_sec`（預設 2）快節奏。「未確認持倉與券商一致前，禁止任何新進場」；對帳是 kernel 的權威來源，callback 僅為快路徑。
+9. **硬部位上限（P0-4）**：`_validate_order_signal` 對 entry 於 `position_qty + signal.qty > max_position_qty`（預設 1）時拒單；對帳/結算發現 `broker_qty > max 且 > kernel_qty` → HALT + 收斂平倉（硬背板）。
+10. **部位真相驅動（P0-5）**：券商 `list_positions` 為唯一真相。
+    - **Timeout = UNKNOWN，非 FAILED**：`pending_timeout_sec` 後**不**清 pending 讓策略重下，而是進入 `_settling`（保留 `pending_order_id` 使遲到成交仍可歸屬），快節奏 poll 券商（`_settle_via_reconcile`），讀數經 `reconcile_confirm_reads` 次 debounce 後採信。
+    - **不確定即凍結**：`_settling` 或 `_position_unconfirmed` 期間，`_validate_order_signal` 與策略 `evaluate`/`manage_exit` **同時拒絕 entry 與 exit**（補掉舊版只擋 entry 的洞）。
+    - **逾時轉 HALT**：`settle_timeout_sec`（預設 30）內無法確認 → `_position_unconfirmed` + `block_new_entry` + CRITICAL。
+    - **收斂式復原**：HALT 且券商非 flat → kernel `_maybe_converge_flatten` 以真實 qty 送**唯一一張**平倉（節流），送後回 `_settling` 等確認；確認 flat 後解除 HALT（`block_new_entry` 維持至日切/人工）。
+    - 孤兒/非當前委託成交 → `_position_unconfirmed`（全面凍結，非僅 `block_new_entry`）。
 
 實作參考：`order_executor.py`、`session.py`、`engine.py`。歷史設計稿見 [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md)。
 

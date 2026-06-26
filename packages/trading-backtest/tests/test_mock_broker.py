@@ -64,6 +64,28 @@ class TestMockBrokerMatching(unittest.TestCase):
         broker.process_matching_queue(tick, strategy)
         return strategy.events
 
+    def test_list_positions_reflects_net_fills(self):
+        """P0-5: list_positions() must mirror the broker's net filled position so
+        the kernel's reconcile (source of truth) works in backtest."""
+        epoch = datetime.datetime(2026, 6, 12, 9, 0, 0).timestamp()
+        broker = self._broker_at(epoch, latency_ms=0)
+        strategy = _RecordingStrategy()
+        tick = ReplayTick(datetime.datetime(2026, 6, 12, 9, 0, 0), "18000", 1, 1)
+
+        # Flat to start.
+        self.assertEqual(broker.list_positions(), [])
+
+        # Buy fills -> net Long 1.
+        self._place_and_match(broker, strategy, _make_buy_order(18003), tick)
+        positions = broker.list_positions()
+        self.assertEqual(len(positions), 1)
+        self.assertEqual(positions[0].quantity, 1)
+        self.assertEqual(positions[0].direction, "Buy")
+
+        # Sell fills -> back to flat.
+        self._place_and_match(broker, strategy, _make_sell_order(17997), tick)
+        self.assertEqual(broker.list_positions(), [])
+
     def test_buy_fill_with_string_close_from_csv_replay(self):
         """Regression: tick_cache CSV yields str close; must not TypeError vs limit."""
         epoch = datetime.datetime(2026, 6, 12, 9, 0, 0).timestamp()

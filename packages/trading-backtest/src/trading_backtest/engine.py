@@ -98,6 +98,11 @@ class BacktestEngine:
             self.broker.current_dt = tick.datetime
             self.broker.process_matching_queue(tick, self.host)
             self.host._check_pending_timeout()
+            # P0-5 (truth-driven execution): deterministically drive the settle /
+            # convergence / reconcile steps the live timeout loop runs every 1s.
+            self.host._settle_via_reconcile()
+            self.host._maybe_converge_flatten()
+            self.host._check_position_reconcile()
             if is_trading_session(
                 tick.datetime,
                 self._cfg.session_start,

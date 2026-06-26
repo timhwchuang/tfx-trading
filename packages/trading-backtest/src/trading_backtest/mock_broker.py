@@ -51,9 +51,36 @@ class MockBroker:
         self._seq = 0
         self.inflight: list[dict[str, Any]] = []
         self.current_dt: datetime.datetime | None = None
+        # P0-5: track net broker position so list_positions() reflects truth.
+        # Signed net lots (Buy = +, Sell = -) and the last establishing price.
+        self._net_qty = 0
+        self._last_fill_price = 0.0
+        self._position_code = "TMFR1"
 
     def resolve_contract(self, code: str) -> SimpleNamespace:
+        self._position_code = code
         return SimpleNamespace(code=code)
+
+    def list_positions(self, account: Any = None) -> list[SimpleNamespace]:
+        """P0-5: broker position snapshot reflecting net fills (truth source)."""
+        if self._net_qty == 0:
+            return []
+        direction = "Buy" if self._net_qty > 0 else "Sell"
+        return [
+            SimpleNamespace(
+                code=self._position_code,
+                quantity=abs(self._net_qty),
+                direction=direction,
+                price=self._last_fill_price,
+            )
+        ]
+
+    def _record_fill(self, action: str, qty: int, price: float) -> None:
+        """Update net broker position from a fill (mirror of what the kernel sees)."""
+        delta = qty if action == "Buy" else -qty
+        self._net_qty += delta
+        if self._net_qty != 0:
+            self._last_fill_price = price
 
     def place_order(self, contract: Any, order: Any, timeout: int = 0) -> SimpleNamespace:
         self._seq += 1
@@ -164,6 +191,10 @@ class MockBroker:
                     },
                 )
             else:
+                # Record the fill against the broker's own net position first so
+                # list_positions() reflects truth even if the kernel callback path
+                # drops/ignores it (P0-5 reconcile relies on this).
+                self._record_fill(ord["action"], ord["quantity"], fill)
                 host.handle_order_event(
                     FUTURES_DEAL,
                     {

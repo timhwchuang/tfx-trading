@@ -85,6 +85,16 @@ class Settings:
     # P0-4: hard position ceiling (Pilot = 1). Entry rejected when held/pending
     # qty would reach this. Guards against runaway accumulation on report loss.
     max_position_qty: int = 1
+    # P0-5 (truth-driven execution): after pending_timeout_sec the kernel stops
+    # trusting the (possibly delayed) callback and treats the order as UNKNOWN,
+    # actively reconciling against the broker position. ``settle_timeout_sec``
+    # bounds how long it stays in SETTLING before declaring the position
+    # UNCONFIRMED (HALT). ``reconcile_fast_sec`` is the poll cadence while any
+    # order is unresolved (pending/settling/unconfirmed); ``reconcile_confirm_reads``
+    # debounces consecutive identical broker reads before adopting them as truth.
+    settle_timeout_sec: int = 30
+    reconcile_fast_sec: int = 2
+    reconcile_confirm_reads: int = 2
 
     config_path: Path = Path("")
 

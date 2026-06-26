@@ -115,6 +115,9 @@ class Settings:
     alert_on_disconnect_with_position: bool
     position_reconcile_sec: int
     max_position_qty: int
+    settle_timeout_sec: int
+    reconcile_fast_sec: int
+    reconcile_confirm_reads: int
 
     config_path: Path
 
@@ -252,6 +255,9 @@ def load_config(path: str | Path | None = None) -> Settings:
         ),
         position_reconcile_sec=int(operations.get("position_reconcile_sec", 60)),
         max_position_qty=int(operations.get("max_position_qty", 1)),
+        settle_timeout_sec=int(operations.get("settle_timeout_sec", 30)),
+        reconcile_fast_sec=int(operations.get("reconcile_fast_sec", 2)),
+        reconcile_confirm_reads=int(operations.get("reconcile_confirm_reads", 2)),
         config_path=config_path.resolve(),
     )
 

@@ -99,11 +99,12 @@ class TestOrderSmoke(unittest.TestCase):
         self.assertFalse(host.is_pending)
 
     def test_simulation_timeout_when_no_callback(self):
-        """UAT failure mode: exit placed, no callback, broker still holds → timeout + block.
+        """P0-5: exit placed, no callback, broker confirms position unchanged.
 
-        Under P1-2 the sim reconcile checks the broker snapshot; when the broker
-        still reports the open position (exit did not actually fill) the reconcile
-        does not resolve and the timeout circuit-breaker fires.
+        Timeout = UNKNOWN, not FAILED. The reconcile reads the broker and sees the
+        exit did not fill but the position is unchanged, consistent, and within the
+        ceiling → it is SAFE to clear the pending (no HALT, no block). The strategy
+        may re-issue the exit on a later tick against a confirmed position.
         """
         alerts = MagicMock()
         host = make_host()
@@ -126,7 +127,10 @@ class TestOrderSmoke(unittest.TestCase):
         host._check_pending_timeout()
 
         self.assertFalse(host.is_pending)
-        self.assertTrue(host.block_new_entry)
+        self.assertFalse(host._settling)
+        self.assertFalse(host.block_new_entry)
+        self.assertFalse(host._position_unconfirmed)
+        self.assertEqual(host.position_qty, 1)  # still held; exit simply did not fill
 
     def test_simulation_timeout_resolves_when_broker_shows_exit_filled(self):
         """P1-2: sim reconcile confirms a real fill via broker snapshot.

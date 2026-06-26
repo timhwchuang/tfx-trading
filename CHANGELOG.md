@@ -26,6 +26,17 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 ### [Unreleased]
 
+#### Added
+
+- **P0-5 truth-driven execution — >1-lot accumulation RCA (2026-06-26)**: After repeated `Pending 超時` the kernel treated UNKNOWN order outcomes as FAILED, cleared pending, and let the strategy re-issue exits while delayed/orphan fills landed — accumulating a 2-lot short under a 1-lot strategy. Reworked the state machine so the **broker `list_positions` is the single source of truth**:
+  - **Timeout = UNKNOWN, not FAILED**: `_check_pending_timeout` no longer clears pending + re-arms. It keeps `pending_order_id` (so a late fill still attributes), enters `_settling`, and converges against the broker via the new `_settle_via_reconcile` (fast poll + `reconcile_confirm_reads` debounce). Unresolved past `settle_timeout_sec` → `_position_unconfirmed` (HALT) + `block_new_entry` + CRITICAL.
+  - **Freeze on uncertainty**: `_validate_order_signal` and the strategy (`evaluate`) now reject **both entry and exit** while `_settling` / `_position_unconfirmed` (previously only entry was gated). A `_kernel_converging` flag lets the kernel's own flatten bypass the freeze.
+  - **Kernel convergence flatten**: while HALT and not flat, `_maybe_converge_flatten` sends exactly ONE exit sized to the held qty (throttled by `reconcile_fast_sec`), then returns to `_settling`; HALT lifts once confirmed flat (entries stay blocked until daily reset).
+  - **Orphan / mismatched fills → HALT**: `_handle_futures_deal` now sets `_position_unconfirmed` (full freeze), not just `block_new_entry`.
+  - **Ceiling hard backstop**: reconcile/settle finding `broker_qty > max_position_qty` AND `> kernel_qty` → HALT + converge flatten.
+  - **Fast reconcile cadence**: `_check_position_reconcile` polls at `reconcile_fast_sec` while unconfirmed (no longer permanently skipped just because something is pending — the original "busy → never reconciled" gap).
+  - New `RiskGate` / `EngineStateSnapshot` fields `settling` / `position_unconfirmed`. New settings `settle_timeout_sec` (30) / `reconcile_fast_sec` (2) / `reconcile_confirm_reads` (2); `pending_timeout_sec` semantics redefined to "callback wait → switch to active reconcile". `MockBroker` gained net-position tracking + `list_positions()`; the backtest replay loop drives the settle/converge/reconcile steps deterministically. Tests: `test_truth_driven_execution.py` + updated timeout regressions.
+
 #### Fixed
 
 - **Position/broker sync hardening — 24-lot phantom short RCA (2026-06-25)**: Kernel position drifted from the broker after a reconnect/relogin, accumulating 24 untracked short lots overnight. Three-layer fix + a separate exit bug:

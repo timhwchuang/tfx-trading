@@ -40,6 +40,8 @@ class TestPositionReconcile(unittest.TestCase):
 
         self.assertTrue(host.block_new_entry)
         self.assertTrue(host._position_drift_detected)
+        # P0-5: broker holds 24 (> kernel 1 and > ceiling) → HALT, not just drift.
+        self.assertTrue(host._position_unconfirmed)
         self.assertEqual(host.position_qty, 24)
         self.assertEqual(host.position_dir, "Short")
         host._alerts.send.assert_called()

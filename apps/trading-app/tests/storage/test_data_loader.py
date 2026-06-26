@@ -619,15 +619,20 @@ class TestInjectedClock(unittest.TestCase):
         clock_value = {"t": 1000.0}
         host._clock = lambda: clock_value["t"]
         host.is_pending = True
+        host.pending_intent = "entry"
         host.pending_since = 1000.0
         host.pending_trade = None
-        # not yet timed out
+        # not yet timed out → still in fast (callback) wait.
         host._check_pending_timeout()
         self.assertTrue(host.is_pending)
-        # advance past timeout → no trade object → resets pending
+        # advance past timeout → the injected clock drives the timeout. P0-5: the
+        # broker reconcile confirms it stayed flat (entry never filled), a clean
+        # no-fill resolution — pending cleared without HALT/block.
         clock_value["t"] = 1000.0 + PENDING_TIMEOUT_SEC + 1
         host._check_pending_timeout()
         self.assertFalse(host.is_pending)
+        self.assertFalse(host._settling)
+        self.assertFalse(host.block_new_entry)
 
     def test_default_clock_is_time_time(self):
         import time

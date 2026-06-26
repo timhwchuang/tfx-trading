@@ -70,6 +70,13 @@
 
 ## Open items（未完成）
 
+### P0-5 部位真相驅動（已落地 code+測試；UAT gate 待驗）
+
+- [x] timeout=UNKNOWN → `_settling`/`_settle_via_reconcile`；逾時 HALT；entry+exit 全面凍結；kernel 收斂平倉；孤兒→HALT；對帳硬背板 + 快節奏（見 SPEC §4.2.2 不變量 10、[`CHANGELOG.md`](../CHANGELOG.md)、[`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md)）
+- [ ] **UAT gate（方向 B 成立前提）**：實測 `list_positions` 反映 fill 的延遲；若 > `settle_timeout_sec` 則收斂退化 HALT+人工，據實調 `settle_timeout_sec`/`reconcile_fast_sec`，結論回填 [`WeeklyStatus.md`](WeeklyStatus.md)
+- [ ] GCE 實機：刻意製造延遲回報，確認不再重下、最終 qty ≤ 1、HALT 後只補一張平倉
+- owner: `trading-engine`（狀態機）+ `trading-app`（config、UAT 條目）
+
 ### UAT 執行 — 人類（API 已就緒）
 
 - [x] 申請永豐**模擬** API（行情 + 帳務 + 交易；UAT 不需 CA）

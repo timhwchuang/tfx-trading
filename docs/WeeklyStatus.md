@@ -7,6 +7,26 @@
 
 ---
 
+### 2026-06-26（重構：部位真相驅動執行狀態機 — 杜絕「兩口以上」累積）
+
+**事故（延續）**
+- 1 口策略卻又出現 ≥2 口空單。回放：連續 `Pending 超時` 後，舊邏輯把「未知」當「失敗」清掉 pending，策略下一 tick 立刻重下 exit，與遲到的成交回報（孤兒/非當前委託）疊加 → 累積部位。根因有三：(1) timeout 被當成 FAILED；(2) 有 pending 時週期對帳被跳過（最該對帳時反而不對）；(3) 凍結只擋 entry、沒擋 exit。
+
+**修復（已併入 code + 測試 + 文件，方向 B：券商部位為唯一真相 + 持續 poll 收斂）**
+- **P0-5 timeout = UNKNOWN**：`_check_pending_timeout` 不再清 pending 重下，改進 `_settling`（保留 `order_id`，遲到成交仍可歸屬），`_settle_via_reconcile` 快速 poll `list_positions` + `reconcile_confirm_reads` 次 debounce 採信；逾 `settle_timeout_sec` → HALT（`_position_unconfirmed`）。
+- **不確定全面凍結**：`_validate_order_signal` 與策略 `evaluate` 在 `settling`/`unconfirmed` 時 entry+exit 全擋。
+- **kernel 收斂平倉**：HALT 且非 flat → 送唯一一張依真實 qty 的平倉（節流），確認 flat 才解 HALT（`block_new_entry` 維持至日切/人工）。
+- **孤兒/非當前委託成交 → HALT**（非僅 `block_new_entry`）。**對帳硬背板**：`broker_qty > max 且 > kernel` → HALT + 收斂。**對帳快節奏**：未確認時 `reconcile_fast_sec`。
+- 新設定 `settle_timeout_sec`(30)/`reconcile_fast_sec`(2)/`reconcile_confirm_reads`(2)；`pending_timeout_sec` 語意改為「callback 等待上限後轉主動對帳」。`MockBroker` 加淨部位 + `list_positions()`；回測 replay 驅動 settle/converge/reconcile。
+- 全套 `bash scripts/run-all-tests.sh` 綠（trading-engine 158、backtest 33、strategy 63、app 252）。細節見 [`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md)、[`CHANGELOG.md`](../CHANGELOG.md)、SPEC §4.2.2 不變量 10。
+
+**人類必做（Follow-up / UAT gate — 方向 B 成立前提）**
+- [ ] **UAT 實測 `list_positions` 反映 fill 的延遲**：在模擬 API 下單→量測券商部位多久反映成交。若對帳通道也嚴重延遲（> `settle_timeout_sec`），收斂會退化為 HALT+人工（計畫已含此 fallback）；據實調整 `settle_timeout_sec` / `reconcile_fast_sec`。結論回填本節。
+- [ ] GCE 實機觀察：刻意製造 timeout（延遲回報），確認**不再**重下、最終 qty ≤ 1、HALT 後只補一張平倉。
+- [ ] 收到 HALT/`部位未確認` CRITICAL 時，先人工核對券商部位再清 `block_new_entry`。
+
+---
+
 ### 2026-06-25（事故：UAT 開盤 24 口 phantom short — 持倉/券商對帳防呆完成）
 
 **事故**

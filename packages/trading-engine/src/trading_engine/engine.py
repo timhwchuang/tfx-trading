@@ -148,6 +148,23 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         # a clean reconcile. Observability only.
         self._position_drift_detected = False
         self._last_reconcile_wall = 0.0
+        # P0-5 (truth-driven execution) state machine extension.
+        # _settling: pending timed out → outcome UNKNOWN → actively reconciling
+        #   against the broker (no callback trust); new orders frozen.
+        # _settle_since: wall-time the SETTLING window started.
+        # _position_unconfirmed: broker truth not yet confirmed / mismatch / ceiling
+        #   breach → HALT; kernel converges (single flatten) but strategy is frozen.
+        # _reconcile_last_read / _reconcile_read_streak: debounce broker reads.
+        # _converge_flatten_at: throttle for kernel convergence flatten.
+        self._settling = False
+        self._settle_since = 0.0
+        self._position_unconfirmed = False
+        self._reconcile_last_read: tuple[int, str] | None = None
+        self._reconcile_read_streak = 0
+        self._converge_flatten_at = 0.0
+        # True only while the kernel arms its own convergence flatten (lets that
+        # one order bypass the settling/unconfirmed freeze in _validate_order_signal).
+        self._kernel_converging = False
 
         self.indicators = IndicatorState(
             vwap_window_min=self._cfg.vwap_window_min,
@@ -316,6 +333,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 has_position=self.has_position,
                 trailing_peak=self.trailing_peak,
                 ticks_since_entry=self.ticks_since_entry,
+                settling=self._settling,
+                position_unconfirmed=self._position_unconfirmed,
             )
 
     def _is_atr_stale(self, ts: int) -> bool:
@@ -366,6 +385,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             atr_stale=self._is_atr_stale(ts),
             structure_stale=self._is_structure_stale(ts),
             reconnect_warmup_active=self._is_reconnect_warmup_active(ts),
+            settling=self._settling,
+            position_unconfirmed=self._position_unconfirmed,
         )
 
     def _parse_tick_locked(self, tick: Any) -> tuple[int, float, int, int, int]:
@@ -791,12 +812,17 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
 
         Background safety net for lost order/fill callbacks: if the broker shows
         a different position than the kernel believes, adopt the broker truth,
-        block new entries, and raise a CRITICAL alert. Exchange-time gated and
-        throttled by ``position_reconcile_sec``. Skipped while an order is in
-        flight (pending) to avoid racing with a resolving fill.
+        block new entries, and raise a CRITICAL alert. Exchange-time gated.
+
+        P0-5: cadence is ``reconcile_fast_sec`` whenever the position is
+        unconfirmed (HALT) so the kernel re-checks the broker quickly; otherwise
+        the steady ``position_reconcile_sec``. Skipped while an order is in flight
+        (pending) or settling — those windows are owned by ``_settle_via_reconcile``
+        / ``_maybe_converge_flatten`` at the fast (1s) loop cadence, so the root
+        cause "had a pending → never reconciled" no longer applies.
         """
-        interval = self._cfg.position_reconcile_sec
-        if interval <= 0:
+        steady = self._cfg.position_reconcile_sec
+        if steady <= 0:
             return
         if not self._api_connected or self.contract is None:
             return
@@ -808,15 +834,20 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             self._cfg.session_end,
         ):
             return
-        now = self._clock()
-        if now - self._last_reconcile_wall < interval:
-            return
 
         with self.lock:
-            if self.is_pending:
+            if self.is_pending or self._settling:
                 return
             kernel_qty = self.position_qty
             kernel_dir = self.position_dir
+            unconfirmed = self._position_unconfirmed
+
+        interval = (
+            max(1, int(self._cfg.reconcile_fast_sec)) if unconfirmed else steady
+        )
+        now = self._clock()
+        if now - self._last_reconcile_wall < interval:
+            return
 
         broker = self.read_broker_position()
         if broker is None:
@@ -825,6 +856,18 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
 
         # Only consume the throttle after a successful broker read and comparison.
         self._last_reconcile_wall = now
+
+        ceiling = self._cfg.max_position_qty
+        if ceiling > 0 and broker_qty > ceiling and broker_qty > kernel_qty:
+            # P0-5 hard backstop: broker holds more than the kernel believed and
+            # over the ceiling → HALT + converge flatten (catches the >1-lot
+            # accumulation even if every other guard somehow missed it).
+            self._position_drift_detected = True
+            self._halt_position_unconfirmed(
+                f"週期對帳發現超過部位上限 | kernel={kernel_dir} {kernel_qty}口 "
+                f"broker={broker_dir} {broker_qty}口 > max={ceiling}"
+            )
+            return
 
         if broker_qty == kernel_qty and broker_dir == kernel_dir:
             if self._position_drift_detected:
@@ -856,6 +899,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         while self._running:
             try:
                 self._check_pending_timeout()
+                self._settle_via_reconcile()
+                self._maybe_converge_flatten()
                 self._check_exit_order_retry()
                 self._check_session_watchdog()
                 self._check_no_tick_watchdog()
@@ -1025,6 +1070,13 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._pending_action = None
         self._exit_order_retry_count = 0
         self._exit_order_retry_at = 0.0
+        # P0-5: clearing pending also exits the SETTLING window. ``_position_unconfirmed``
+        # (HALT) is intentionally NOT reset here — it is a sticky safety flag lifted
+        # only by a clean confirmed reconcile or daily reset, never by clearing pending.
+        self._settling = False
+        self._settle_since = 0.0
+        self._reconcile_last_read = None
+        self._reconcile_read_streak = 0
 
     def handle_session_event(self, resp_code: int, event_code: int, info: str, event: str):
         if event_code == 12:

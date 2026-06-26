@@ -193,6 +193,14 @@ class VWAPMomentumStrategy(BaseStrategy):
     ) -> tuple[OrderSignal | None, StrategySideEffects]:
         effects = StrategySideEffects()
 
+        # P0-5 (truth-driven execution): when the order outcome is UNKNOWN
+        # (settling) or the broker position is unconfirmed (HALT), the strategy
+        # must emit nothing — neither entry nor exit. The kernel owns convergence
+        # (reconcile + single flatten) in these states. This is the strategy-side
+        # half of the freeze; _validate_order_signal is the hard kernel backstop.
+        if risk.settling or risk.position_unconfirmed:
+            return None, effects
+
         # Tiny defensive normalization (low priority per review)
         trend_dir = market.trend_dir if market.trend_dir in ("Long", "Short", "Flat") else "Flat"
 

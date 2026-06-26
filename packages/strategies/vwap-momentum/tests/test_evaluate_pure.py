@@ -37,6 +37,8 @@ def _make_risk(
     reconnect_warmup_active: bool = False,
     daily_pnl: float = 0.0,
     consecutive_loss: int = 0,
+    settling: bool = False,
+    position_unconfirmed: bool = False,
 ) -> RiskGate:
     return RiskGate(
         is_pending=is_pending,
@@ -52,6 +54,8 @@ def _make_risk(
         reconnect_warmup_active=reconnect_warmup_active,
         daily_pnl=daily_pnl,
         consecutive_loss=consecutive_loss,
+        settling=settling,
+        position_unconfirmed=position_unconfirmed,
     )
 
 
@@ -605,6 +609,47 @@ class TestEvaluatePure(unittest.TestCase):
         )
         self.assertIsNotNone(sig)
         self.assertEqual(sig.intent, "exit")
+
+    def test_settling_or_unconfirmed_freezes_entry_and_exit(self) -> None:
+        """P0-5: while settling (order outcome UNKNOWN) or position unconfirmed
+        (HALT), the strategy must emit nothing — even with a stop-worthy open
+        position. The kernel owns convergence in these states."""
+        stop_market = _make_market(
+            price=18010.0 - 50, vwap=18020.0, current_atr=10.0, ts=1_700_000_500
+        )
+        held = PositionSnapshot(
+            has_position=True,
+            position_dir="Long",
+            entry_price=18010.0,
+            trailing_peak=18035.0,
+            entry_exchange_ts=1_700_000_100,
+            ticks_since_entry=300,
+            qty=1,
+        )
+        for risk in (
+            _make_risk(settling=True),
+            _make_risk(position_unconfirmed=True),
+        ):
+            # Flat: no entry.
+            sig, _ = self.strategy.evaluate(
+                _make_market(),
+                _make_flat_position(),
+                risk,
+                self.vol_threshold,
+                session_force_flatten_time=datetime.time(13, 45),
+                max_daily_loss_points=150.0,
+            )
+            self.assertIsNone(sig)
+            # Held with a stop hit: still no exit (kernel converges instead).
+            sig, _ = self.strategy.evaluate(
+                stop_market,
+                held,
+                risk,
+                self.vol_threshold,
+                session_force_flatten_time=datetime.time(13, 45),
+                max_daily_loss_points=150.0,
+            )
+            self.assertIsNone(sig)
 
     def test_reconnect_warmup_blocks_flat_entry(self) -> None:
         risk = _make_risk(reconnect_warmup_active=True)
