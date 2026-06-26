@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from sweep.sweep_instance_lock import SweepInstanceLock
 
@@ -43,6 +44,20 @@ class TestSweepInstanceLock(unittest.TestCase):
             lock.acquire()
             self.assertIn(str(os.getpid()), lock_path.read_text(encoding="utf-8"))
             lock.release()
+
+    def test_o_excl_race_maps_to_runtime_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            lock_path = Path(tmp) / "sweep.lock"
+            lock_path.write_text("4242 ft003_run_sweep\n", encoding="utf-8")
+            lock = SweepInstanceLock(lock_path)
+            with (
+                patch.object(Path, "exists", return_value=False),
+                patch("sweep.sweep_instance_lock._pid_alive", return_value=True),
+            ):
+                with self.assertRaises(RuntimeError) as ctx:
+                    lock.acquire()
+            self.assertIn("another sweep is running", str(ctx.exception))
+            self.assertIn("4242", str(ctx.exception))
 
 
 if __name__ == "__main__":

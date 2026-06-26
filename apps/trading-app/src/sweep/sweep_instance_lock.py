@@ -42,22 +42,35 @@ class SweepInstanceLock:
         self.lock_path = Path(lock_path)
         self._fd: int | None = None
 
+    def _raise_if_live_lock(self) -> None:
+        pid = _read_lock_pid(self.lock_path)
+        if _pid_alive(pid):
+            raise RuntimeError(
+                f"another sweep is running (pid={pid}); lock={self.lock_path}"
+            )
+
     def acquire(self) -> None:
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
-        if self.lock_path.exists():
-            pid = _read_lock_pid(self.lock_path)
-            if _pid_alive(pid):
-                raise RuntimeError(
-                    f"another sweep is running (pid={pid}); lock={self.lock_path}"
-                )
-            self.lock_path.unlink(missing_ok=True)
+        for _ in range(3):
+            if self.lock_path.exists():
+                self._raise_if_live_lock()
+                self.lock_path.unlink(missing_ok=True)
 
-        fd = os.open(
-            str(self.lock_path),
-            os.O_CREAT | os.O_EXCL | os.O_WRONLY,
-        )
-        self._fd = fd
-        os.write(fd, f"{os.getpid()} ft003_run_sweep\n".encode("utf-8"))
+            try:
+                fd = os.open(
+                    str(self.lock_path),
+                    os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+                )
+            except FileExistsError:
+                if self.lock_path.exists():
+                    self._raise_if_live_lock()
+                continue
+
+            self._fd = fd
+            os.write(fd, f"{os.getpid()} ft003_run_sweep\n".encode("utf-8"))
+            return
+
+        self._raise_if_live_lock()
 
     def release(self) -> None:
         if self._fd is not None:

@@ -237,15 +237,31 @@ def validate_sweep_inputs(
 ) -> None:
     """Raise before mutating sweep progress/result artifacts."""
     assert_dates_unsealed(list(dates_train) + list(dates_valid))
+    if not dates_train:
+        raise ValueError("dates_train is empty; need at least one train day")
+    if not dates_valid:
+        raise ValueError("dates_valid is empty; need at least one valid day")
+    if not grid:
+        raise ValueError("grid is empty")
+    for key, values in grid.items():
+        if not values:
+            raise ValueError(f"grid key {key!r} has no values")
     if len(grid) > MAX_GRID_KEYS:
         raise ValueError(
             f"grid has {len(grid)} keys; max {MAX_GRID_KEYS} per FT-003 SPEC §4.4"
         )
     combo_count = grid_combo_count(grid)
+    if combo_count == 0:
+        raise ValueError("grid yields zero combos")
     if combo_count > MAX_GRID_COMBOS:
         raise ValueError(
             f"grid has {combo_count} combos; max {MAX_GRID_COMBOS} per FT-003 SPEC §4.4"
         )
+    keys = list(grid.keys())
+    combos = list(itertools.product(*(grid[k] for k in keys)))
+    runnable, _ = _partition_combos(keys, combos)
+    if not runnable:
+        raise ValueError("grid has no runnable combos (all regime-conflict skips)")
 
 
 def sweep(

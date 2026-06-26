@@ -400,6 +400,42 @@ class TestParamSweep(unittest.TestCase):
             )
         self.assertIn("holdout dates sealed", str(ctx.exception))
 
+    def test_validate_sweep_inputs_rejects_empty_dates(self):
+        grid = {"entry_band_points": [2.0]}
+        day = datetime.date(2026, 4, 1)
+        with self.assertRaises(ValueError) as ctx:
+            validate_sweep_inputs(grid, dates_train=[], dates_valid=[day])
+        self.assertIn("dates_train", str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            validate_sweep_inputs(grid, dates_train=[day], dates_valid=[])
+        self.assertIn("dates_valid", str(ctx.exception))
+
+    def test_validate_sweep_inputs_rejects_empty_grid(self):
+        day = datetime.date(2026, 4, 1)
+        with self.assertRaises(ValueError) as ctx:
+            validate_sweep_inputs({}, dates_train=[day], dates_valid=[day])
+        self.assertIn("grid is empty", str(ctx.exception))
+
+    def test_validate_sweep_inputs_rejects_empty_grid_values(self):
+        day = datetime.date(2026, 4, 1)
+        with self.assertRaises(ValueError) as ctx:
+            validate_sweep_inputs(
+                {"entry_band_points": []},
+                dates_train=[day],
+                dates_valid=[day],
+            )
+        self.assertIn("no values", str(ctx.exception))
+
+    def test_validate_sweep_inputs_rejects_all_regime_skips(self):
+        day = datetime.date(2026, 4, 1)
+        grid = {
+            "structure_filter_enabled": [True],
+            "trend_filter_enabled": [True],
+        }
+        with self.assertRaises(ValueError) as ctx:
+            validate_sweep_inputs(grid, dates_train=[day], dates_valid=[day])
+        self.assertIn("no runnable combos", str(ctx.exception))
+
     def test_capture_prefixes_conservative_grid(self):
         prefixes = _capture_prefixes_for_params(
             {"entry_band_points": 2.0, "min_atr_threshold": 1.0}
