@@ -119,6 +119,22 @@ MVP 每 agent 算力預算（約）：
   holdout（Phase 4 一次）  =  1 × 20 日 replay（僅冠軍）
 ```
 
+### 4.5 長歷史驗證（Post-MVP，Phase 6）
+
+2022+ tick 樣本用於 **跨年穩健性關卡**（在 `elected_config` 之後），不取代 MVP 切分。硬規則：
+
+- 探索性全段回測 **不得** 用於選參或 leaderboard。
+- Phase 6 封印 holdout **解封前 0 次**；**不得**用 fold 結果取代 MVP 2026-05 holdout。
+- 跨商品（TMFR1 vs MXF/TXF）產物標 **邏輯穩健性**，不得直接當微台 `elected_config` v2。
+- Phase 6 批次回測 **MUST** 在 **GCE 盤後 / overnight**（08:30–14:00 留給 UAT）。
+- **多段滾動 WFO**（季滾 pilot、月滾完整版）；**禁止**單次 train/valid 即宣稱穩健。
+- **淨摩擦 MUST**：`friction.enabled: true`（SHARED_ASSUMPTIONS §3.1，5 點/趟）；Walk-forward Gate 須人類簽核 Sharpe / MDD / trade_count 穩定。
+- 產物：`robustness_report.md`（§7–§10 擾動 / 市況 / 壓力 / 相關性；非第二 leaderboard）。
+- **Phase 6.5**：Shadow/Paper ≥2–4 週 + backtest vs paper fill 對照 — **不可只在 backtest 收工**。
+- **運維**：kill switch / emergency flatten 演練、日週報、券商 reconciliation、`max_position_qty: 1` 硬限制（見 PLAN）。
+
+詳見 **[`PLAN.md`](PLAN.md) Phase 6 / 6.5**（Gate、四風險、v1/v2 決策樹、算力 SOP）。
+
 ## 5. Multi-Agent 競賽契約
 
 > **Agent 編制、職稱、假說、grid 邊界、copy-paste 開工 prompt**：[`AGENT_ROSTER.md`](AGENT_ROSTER.md)（**AI 必讀 SSOT**）。

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,10 +15,15 @@ from tests.sweep._tick_helpers import make_replay_tick
 from observability import build_config_snapshot
 from sweep.param_sweep import (
     _apply_params,
+    _capture_prefixes_for_params,
+    _partition_combos,
     _restore_params,
     _run_backtest_summaries,
     sweep,
+    validate_sweep_inputs,
+    assert_sweep_has_runnable_combos,
 )
+from sweep.sweep_progress import SweepProgressTracker
 from integrations.engine_wiring import trading_app_engine_ports
 from strategy_vwap_momentum import StrategyParams, VWAPMomentumStrategy
 from trading_engine.engine import TradingEngine
@@ -190,6 +196,133 @@ class TestParamSweep(unittest.TestCase):
             any("skip mutually exclusive regime combo" in line for line in cap.output)
         )
 
+    def test_sweep_regime_skip_emits_combo_skipped_progress(self):
+        ticks = [make_replay_tick(datetime.datetime(2026, 6, 12, 9, 0, 0))]
+
+        def fake_replay(_code, _dates, cache_dir=None):
+            yield from ticks
+
+        grid = {
+            "structure_filter_enabled": [True],
+            "trend_filter_enabled": [True],
+            "entry_band_points": [2.0],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cache_dir = root / "cache"
+            cache_dir.mkdir()
+            progress_path = root / "sweep_progress.log"
+            result_path = root / "sweep_result.jsonl"
+            tracker = SweepProgressTracker(progress_path, result_path, heartbeat_sec=3600)
+            tracker.start_sweep(agent="agent-regime-test")
+            with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
+                results = sweep(
+                    grid,
+                    dates_train=[datetime.date(2026, 6, 12)],
+                    dates_valid=[datetime.date(2026, 6, 13)],
+                    code="TXFR1",
+                    cache_dir=cache_dir,
+                    progress=tracker,
+                )
+            tracker.finish("DONE", exit_code=0)
+            self.assertEqual(len(results), 0)
+            events = [
+                json.loads(line)
+                for line in progress_path.read_text(encoding="utf-8").strip().splitlines()
+            ]
+            skipped = [e for e in events if e["event"] == "combo_skipped"]
+            self.assertEqual(len(skipped), 1)
+            self.assertEqual(skipped[0]["combo_index"], 1)
+            self.assertNotIn("combo_start", {e["event"] for e in events})
+            self.assertEqual(events[-1]["combos_skipped"], 1)
+            self.assertEqual(events[-1]["combos_completed"], 0)
+
+    def test_run_backtest_summaries_progress_defaults_to_bulk(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp)
+            progress_path = Path(tmp) / "sweep_progress.log"
+            result_path = Path(tmp) / "sweep_result.jsonl"
+            tracker = SweepProgressTracker(progress_path, result_path, heartbeat_sec=3600)
+            tracker.start_sweep(agent="test")
+            tracker.combo_start(
+                1, 1, {"entry_band_points": 2.0},
+                run_index=1, run_total=1, train_days=1, valid_days=1,
+            )
+            with patch("sweep.param_sweep._run_with_audit_capture", return_value=[]):
+                _run_backtest_summaries(
+                    "TXFR1",
+                    [datetime.date(2026, 6, 12)],
+                    cache_dir,
+                    progress=tracker,
+                    phase="train",
+                )
+            events = [json.loads(line) for line in progress_path.read_text(encoding="utf-8").strip().splitlines()]
+            self.assertIn("phase_start", {e["event"] for e in events})
+            self.assertNotIn("day", {e["event"] for e in events})
+
+    def test_run_backtest_summaries_day_split_emits_progress(self):
+        ticks = [make_replay_tick(datetime.datetime(2026, 6, 12, 9, 0, 0))]
+
+        def fake_replay(_code, _dates, cache_dir=None):
+            yield from ticks
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cache_dir = root / "cache"
+            cache_dir.mkdir()
+            progress_path = root / "sweep_progress.log"
+            result_path = root / "sweep_result.jsonl"
+            tracker = SweepProgressTracker(progress_path, result_path, heartbeat_sec=3600)
+            tracker.start_sweep(agent="test")
+            tracker.combo_start(
+                1,
+                1,
+                {"entry_band_points": 2.0},
+                run_index=1,
+                run_total=1,
+                train_days=2,
+                valid_days=1,
+            )
+            dates = [datetime.date(2026, 6, 12), datetime.date(2026, 6, 13)]
+            with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
+                _run_backtest_summaries(
+                    "TXFR1",
+                    dates,
+                    cache_dir,
+                    progress=tracker,
+                    phase="train",
+                    capture_prefixes=_capture_prefixes_for_params({"entry_band_points": 2.0}),
+                    bulk_days=False,
+                )
+            events = [json.loads(line) for line in progress_path.read_text(encoding="utf-8").strip().splitlines()]
+            day_events = [e for e in events if e["event"] == "day"]
+            self.assertEqual(len(day_events), 2)
+            self.assertEqual(day_events[0]["day_index"], 1)
+            self.assertEqual(day_events[1]["day_index"], 2)
+
+    def test_run_backtest_summaries_passes_daily_summary_capture_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp)
+            prefixes = _capture_prefixes_for_params({"entry_band_points": 2.0})
+            with patch("sweep.param_sweep._run_with_audit_capture") as mock_capture:
+                mock_capture.return_value = []
+                _run_backtest_summaries(
+                    "TXFR1",
+                    [datetime.date(2026, 6, 12)],
+                    cache_dir,
+                    capture_prefixes=prefixes,
+                )
+            mock_capture.assert_called_once()
+            self.assertEqual(mock_capture.call_args.kwargs["capture_prefixes"], prefixes)
+            self.assertEqual(prefixes, ("DAILY_SUMMARY ",))
+
+    def test_partition_combos_splits_regime_conflict(self):
+        keys = ["structure_filter_enabled", "trend_filter_enabled", "entry_band_points"]
+        combos = list(__import__("itertools").product([True], [True], [2.0]))
+        runnable, skipped = _partition_combos(keys, combos)
+        self.assertEqual(len(skipped), 1)
+        self.assertEqual(len(runnable), 0)
+
     def test_sweep_with_structure_params_attaches_structure_veto_metrics(self):
         ticks = [make_replay_tick(datetime.datetime(2026, 6, 12, 9, 0, 0))]
 
@@ -257,6 +390,70 @@ class TestParamSweep(unittest.TestCase):
                 cache_dir=Path("/tmp"),
             )
         self.assertIn("max", str(ctx.exception))
+
+    def test_validate_sweep_inputs_rejects_holdout(self):
+        grid = {"entry_band_points": [2.0]}
+        with self.assertRaises(RuntimeError) as ctx:
+            validate_sweep_inputs(
+                grid,
+                dates_train=[datetime.date(2026, 5, 1)],
+                dates_valid=[datetime.date(2026, 4, 1)],
+            )
+        self.assertIn("holdout dates sealed", str(ctx.exception))
+
+    def test_validate_sweep_inputs_rejects_empty_dates(self):
+        grid = {"entry_band_points": [2.0]}
+        day = datetime.date(2026, 4, 1)
+        with self.assertRaises(ValueError) as ctx:
+            validate_sweep_inputs(grid, dates_train=[], dates_valid=[day])
+        self.assertIn("dates_train", str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            validate_sweep_inputs(grid, dates_train=[day], dates_valid=[])
+        self.assertIn("dates_valid", str(ctx.exception))
+
+    def test_validate_sweep_inputs_rejects_empty_grid(self):
+        day = datetime.date(2026, 4, 1)
+        with self.assertRaises(ValueError) as ctx:
+            validate_sweep_inputs({}, dates_train=[day], dates_valid=[day])
+        self.assertIn("grid is empty", str(ctx.exception))
+
+    def test_validate_sweep_inputs_rejects_empty_grid_values(self):
+        day = datetime.date(2026, 4, 1)
+        with self.assertRaises(ValueError) as ctx:
+            validate_sweep_inputs(
+                {"entry_band_points": []},
+                dates_train=[day],
+                dates_valid=[day],
+            )
+        self.assertIn("no values", str(ctx.exception))
+
+    def test_assert_sweep_has_runnable_combos_rejects_all_regime_skips(self):
+        day = datetime.date(2026, 4, 1)
+        grid = {
+            "structure_filter_enabled": [True],
+            "trend_filter_enabled": [True],
+        }
+        with self.assertRaises(ValueError) as ctx:
+            assert_sweep_has_runnable_combos(grid)
+        self.assertIn("no runnable combos", str(ctx.exception))
+
+    def test_capture_prefixes_conservative_grid(self):
+        prefixes = _capture_prefixes_for_params(
+            {"entry_band_points": 2.0, "min_atr_threshold": 1.0}
+        )
+        self.assertEqual(prefixes, ("DAILY_SUMMARY ",))
+
+    def test_capture_prefixes_trend_grid_includes_signal(self):
+        prefixes = _capture_prefixes_for_params({"trend_filter_enabled": True})
+        self.assertEqual(prefixes, ("DAILY_SUMMARY ", "SIGNAL_AUDIT "))
+
+    def test_capture_prefixes_structure_grid_includes_decision(self):
+        prefixes = _capture_prefixes_for_params({"structure_min_strength": 0.5})
+        self.assertEqual(prefixes, ("DAILY_SUMMARY ", "DECISION_AUDIT "))
+
+    def test_capture_prefixes_does_not_match_entry_trend_substring(self):
+        prefixes = _capture_prefixes_for_params({"my_trend_proxy": 1.0})
+        self.assertEqual(prefixes, ("DAILY_SUMMARY ",))
 
 
 if __name__ == "__main__":

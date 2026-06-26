@@ -53,17 +53,40 @@ def canonical_audit_json(json_part: str) -> str:
 
 
 class _AuditCaptureHandler(logging.Handler):
-    def __init__(self) -> None:
+    def __init__(self, *, prefixes: tuple[str, ...] = _AUDIT_PREFIXES) -> None:
         super().__init__()
+        self._prefixes = prefixes
         self.records: List[tuple[str, str]] = []
 
     def emit(self, record: logging.LogRecord) -> None:
         msg = record.getMessage()
-        for prefix in _AUDIT_PREFIXES:
+        for prefix in self._prefixes:
             if msg.startswith(prefix):
                 label = prefix.strip()
                 self.records.append((label, msg[len(prefix) :]))
                 return
+
+
+def _run_with_audit_capture(
+    fn,
+    *,
+    capture_prefixes: tuple[str, ...] | None = None,
+) -> list[tuple[str, str]]:
+    prefixes = capture_prefixes if capture_prefixes is not None else _AUDIT_PREFIXES
+    handler = _AuditCaptureHandler(prefixes=prefixes)
+    loggers: list[tuple[logging.Logger, int]] = []
+    for name in _AUDIT_LOGGERS:
+        logger = logging.getLogger(name)
+        loggers.append((logger, logger.level))
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+    try:
+        fn()
+    finally:
+        for logger, prev_level in loggers:
+            logger.removeHandler(handler)
+            logger.setLevel(prev_level)
+    return handler.records
 
 
 def hash_audit_records(records: Iterable[tuple[str, str]]) -> str:
@@ -81,23 +104,6 @@ def hash_audit_lines(json_parts: Iterable[str]) -> str:
         hasher.update(canonical_audit_json(json_part).encode("utf-8"))
         hasher.update(b"\n")
     return hasher.hexdigest()
-
-
-def _run_with_audit_capture(fn) -> list[tuple[str, str]]:
-    handler = _AuditCaptureHandler()
-    loggers: list[tuple[logging.Logger, int]] = []
-    for name in _AUDIT_LOGGERS:
-        logger = logging.getLogger(name)
-        loggers.append((logger, logger.level))
-        logger.addHandler(handler)
-        logger.setLevel(logging.INFO)
-    try:
-        fn()
-    finally:
-        for logger, prev_level in loggers:
-            logger.removeHandler(handler)
-            logger.setLevel(prev_level)
-    return handler.records
 
 
 def run_hash(

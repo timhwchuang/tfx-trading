@@ -14,6 +14,7 @@
 | Phase 5 Pilot | 見 [`uat/APP.md`](uat/APP.md) Phase 5（量化 gate + 摩擦對帳 + 壓力情境審閱） |
 | Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（P6-1 + **P6-SMC-CAL** harness/sweep）；待 UAT tick 跑 CAL-8；P6-4/5 待做 |
 | **FT-002 SMC（工程）** | Phase 1–4 ✅（`REVIEW.md` PASS）；**Phase 5 Land + CAL-8** 待 ≥5 日 UAT |
+| **FT-003 回測調參** | **🟢 InProgress** — MVP Phase 3 sweep 進行中；Phase 4 holdout 待解封；**Phase 6 長歷史**見 [PLAN Phase 6](features/ai-backtest-tuning/PLAN.md#phase-6--長歷史穩健性驗證post-mvp2022) |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
 | **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
@@ -69,6 +70,30 @@
 ---
 
 ## Open items（未完成）
+
+### FT-003 — AI 回測調參（[`PLAN`](features/ai-backtest-tuning/PLAN.md)）
+
+**MVP（2026-01～05，先做）**
+
+- [ ] Phase 1：`cache_audit` PASS、`determinism_check` PASS（各 agent）
+- [ ] Phase 2：MVP 兩位 baseline + `analysis.md` §Baseline
+- [ ] Phase 3：`ft003_run_sweep.py` + `sweep_result.jsonl` + 五段式 `analysis.md`
+- [ ] Phase 3.4：雙向 `peer_review_*.md`
+- [ ] Phase 3.5：`leaderboard.jsonl`
+- [ ] Phase 4：holdout 解封 + `election_report.md` + `judge_opinion.md`
+
+**Post-MVP — Phase 6 長歷史（2022+，MVP holdout Gate 後）**
+
+> SSOT：[PLAN Phase 6](features/ai-backtest-tuning/PLAN.md#phase-6--長歷史穩健性驗證post-mvp2022)。**算力 MUST 雲端 GCE overnight。**
+
+- [ ] Gate：MVP holdout 非 `overfit_suspect`
+- [ ] P1：補檔（先 2024–2025 pilot，再決定是否補 2022）+ `cache_audit`
+- [ ] P2：`DATA_SPLIT.md` fold（季滾 pilot / 月滾完整）+ Phase 6 holdout
+- [ ] P3：GCE 跑 `ft003_walkforward`（或批次腳本）→ `robustness_report.md` §1–§10
+- [ ] P3b：人類簽核 WFO Gate（net Sharpe、MDD、trade_count 穩定；摩擦 5 點/趟 MUST）
+- [ ] P4：v1/v2 決策樹 + Phase 6 holdout 一次（若 v2）
+- [ ] **P5.5 Phase 6.5**：Shadow/Paper ≥2–4 週 + `compare_fill_audits`（報告 §11）
+- [ ] 運維：kill switch / emergency flatten 演練、日週報、券商 reconciliation 證據
 
 ### P0-5 部位真相驅動（已落地 code+測試；UAT gate 待驗）
 
