@@ -1,4 +1,8 @@
-"""Audit tick_cache: compare tick-derived 1m bars vs on-disk kbars (OHLC + volume)."""
+"""Audit tick_cache: compare tick-derived 1m bars vs on-disk kbars (OHLC + volume).
+
+Severity: structural gaps (missing bars, tail truncate, kbar count) → FAIL;
+tick-aggregated vs ``api.kbars`` OHLC/volume drift (broker inconsistency) → WARN.
+"""
 
 from __future__ import annotations
 
@@ -89,16 +93,17 @@ class DayAuditReport:
 
     @property
     def severity(self) -> str:
+        # Structural gaps → FAIL. Tick-aggregated 1m vs api.kbars OHLC/vol drift
+        # (verified on fresh Shioaji fetch) → WARN only; backtest replay uses ticks.
         if (
             self.missing_kbar_count
             or self.kbar_without_tick_count
-            or self.ohlc_diff_count
             or self.tick_tail_missing_minutes
             or self.kbar_count != EXPECTED_DAY_BARS
             or self.kbar_gap_missing_minutes
         ):
             return "FAIL"
-        if self.vol_diff_count:
+        if self.vol_diff_count or self.ohlc_diff_count:
             return "WARN"
         return "OK"
 

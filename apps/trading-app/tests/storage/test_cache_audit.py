@@ -92,6 +92,18 @@ class TestCacheAudit(unittest.TestCase):
         )
         self.assertEqual(r.severity, "FAIL")
 
+    def test_severity_warn_on_broker_ohlc_vol_drift_only(self):
+        from storage.cache_audit import DayAuditReport
+
+        r = DayAuditReport(
+            code="TMFR1",
+            date=datetime.date(2026, 1, 5),
+            vol_diff_count=160,
+            ohlc_diff_count=5,
+            kbar_count=300,
+        )
+        self.assertEqual(r.severity, "WARN")
+
     def test_audit_ignores_out_of_session_tick_minutes(self):
         day = datetime.date(2026, 6, 22)
         with tempfile.TemporaryDirectory() as d:

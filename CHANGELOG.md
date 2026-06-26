@@ -18,6 +18,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-003 Phase 6 roadmap**：[`PLAN.md`](docs/features/ai-backtest-tuning/PLAN.md) 長歷史穩健性（Gate、四風險、v1/v2 決策樹、**GCE overnight 算力 MUST**、`robustness_report.md` 模板）；[`SPEC.md`](docs/features/ai-backtest-tuning/SPEC.md) §4.5；[`TODO.md`](docs/TODO.md)；[`workspaces/_template/robustness_report.md`](workspaces/_template/robustness_report.md)。
 - **FT-003**：SHARED_ASSUMPTIONS **v1.1** — TMFR1 摩擦 **5 點/趟**（手續費 30 + 稅 20 NTD）上線；`friction.enabled: true`（主 config + 各 workspace）
 - **GCE Live 運維 SSOT**：[`docs/ops/LinuxOps.md`](docs/ops/LinuxOps.md) §GCE（目錄、cron 13:50 stop → 13:54 post-session、sync）；[`HYBRID_DEPLOY.md`](docs/ops/HYBRID_DEPLOY.md) 已部署摘要；[`TODO.md`](docs/TODO.md) §GCP 營運（2026-07-23 帳單）。
 - **FT-002 Phase 4**：`regime_allows_entry` 接線；`structure_veto` / armed structure enrichment DECISION_AUDIT；`structure_stale` → `risk_blocked` audit；`record_structure_veto`；filter-on 3-run determinism；[`TODO.md`](docs/TODO.md) / [`WeeklyStatus.md`](docs/WeeklyStatus.md) / [`uat/APP.md`](docs/uat/APP.md) 同步 P6-SMC-CAL 指引。
@@ -297,6 +298,14 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Changed
 
+- **`storage.cache_audit` severity**：tick 聚合 1m 與 `api.kbars` 的 OHLC/volume 漂移改為 **WARN**（券商 API 重抓仍不一致；回測以 ticks 為準）；結構性問題（空檔、尾盤缺段、kbar 根數不足）仍 **FAIL**。抽查腳本：`scripts/api_tick_kbar_spotcheck.py`。
+- **`sweep` package `__init__`**：移除對 `param_sweep` / `determinism_check` 的 eager import，修復 `python -m backtest` 循環 import。
+- **`sweep.sweep_progress` + `scripts/ft003_run_sweep.py`**：長時間 sweep 可觀測性——每 combo 增量寫入 `workspaces/<agent>/sweep_result.jsonl`、固定 `logs/sweep_progress.log`（JSONL 事件 + 120s heartbeat + 逐日進度）、結束印 `DONE`/`FAILED exit=N`。**勿**手動 redirect 到 `sweep_progress.log`。
+- **`sweep.sweep_instance_lock`**：`logs/sweep.lock` 單實例保護；重疊 sweep 會 fail fast（exit=2）。
+- **`SweepProgressTracker`**：progress/result 寫入同一把 thread lock；`sweep_start` truncate progress log 並附 `run_id`；`KeyboardInterrupt` → `sweep_failed exit=130`；regime skip 發 `combo_skipped`；`combo_start`/`combo_done` 附 `run_index`/`run_total`。
+- **`param_sweep` bulk 預設**（ft003 預設 bulk；`--per-day` 改逐日；`--heartbeat-sec` 可調，預設 60s、最小 5s）：bulk heartbeat 附 `phase_elapsed_sec`；中途 `sweep_result.jsonl` 為完成順序，結束才排序。
+- **`validate_sweep_inputs`**：ft003 在 `start_sweep` truncate 前先驗證 dates/grid，避免配置錯誤清掉上一輪結果。
+- **`param_sweep` audit capture**：預設只收 `DAILY_SUMMARY`（不再把每 tick 的 `DECISION_AUDIT` 塞進記憶體）；trend/structure grid 才額外收 `SIGNAL_AUDIT` / `DECISION_AUDIT`。
 - **TMFR1 摩擦上線**：`friction.enabled: true`；`mode: ntd`（單邊手續費 15 NTD ×2 + 稅 20 NTD = **5 點/趟**）；SSOT [`workspaces/SHARED_ASSUMPTIONS.md`](workspaces/SHARED_ASSUMPTIONS.md) §3.1。DAILY_SUMMARY `expectancy_net` / sweep `valid_score` 以 net 為準。`observability` 每次 summary 自 `CONFIG_PATH` 重讀 friction。
 
 #### Added
