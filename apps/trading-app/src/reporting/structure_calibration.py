@@ -1,7 +1,7 @@
 """P6-SMC-CAL: Offline harness for structure vs trend vs no-filter counterfactuals.
 
 Pure functions with synthetic A-class support. B-class replays UAT ``momentum_armed``
-events against ``kbar_cache`` (recompute ``compute_structure`` as-of) and tick_cache
+events against tick_cache kbars (recompute ``compute_structure`` as-of) and tick_cache
 forward PnL under three mutually-exclusive regime scenarios.
 
 Core metrics (mirror P6-1-CAL):
@@ -31,8 +31,8 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 from reporting.forward_pnl import ForwardPnlPolicy, load_tick_series, make_replay_forward_pnl, policy_summary
 from reporting.performance_metrics import FrictionSettings, friction_per_round_trip
 from reporting.uat_report import parse_decision_audits, parse_log_audits_and_fills, read_log_lines
-from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR
 from storage.kbar_loader import KBarRecord, iter_kbars_in_range
+from storage.legacy_cache_migrate import ensure_legacy_kbars_migrated
 from storage.tick_loader import DEFAULT_CACHE_DIR
 from strategy_vwap_momentum.structure import (
     STRUCTURE_ALGO_VERSION,
@@ -559,8 +559,7 @@ def run_b_class_structure_calibration(
     log_paths: list[Path] | None = None,
     code: str,
     dates: list[datetime.date],
-    kbar_cache_dir: Path | str = DEFAULT_KBAR_CACHE_DIR,
-    tick_cache_dir: Path | str = DEFAULT_CACHE_DIR,
+    cache_dir: Path | str = DEFAULT_CACHE_DIR,
     forward_policy: ForwardPnlPolicy | None = None,
     structure_params: StructureParams | None = None,
     trend_cfg: TrendHarnessConfig | None = None,
@@ -580,18 +579,19 @@ def run_b_class_structure_calibration(
     if not dates:
         raise ValueError("at least one date required")
 
+    ensure_legacy_kbars_migrated(Path(cache_dir))
+
     start = min(dates)
     end = max(dates)
-    bars_1m = iter_kbars_in_range(code, start, end, cache_dir=Path(kbar_cache_dir))
+    bars_1m = iter_kbars_in_range(code, start, end, cache_dir=Path(cache_dir))
 
     pol = forward_policy or ForwardPnlPolicy()
-    series = load_tick_series(code, dates, cache_dir=Path(tick_cache_dir))
+    series = load_tick_series(code, dates, cache_dir=Path(cache_dir))
 
     base: dict[str, Any] = {
         "code": code,
         "dates": [d.isoformat() for d in dates],
-        "kbar_cache_dir": str(kbar_cache_dir),
-        "tick_cache_dir": str(tick_cache_dir),
+        "cache_dir": str(cache_dir),
         "forward_policy": policy_summary(pol),
         "n_armed": len(candidates),
         "kbar_count": len(bars_1m),
@@ -605,7 +605,7 @@ def run_b_class_structure_calibration(
 
     if not bars_1m:
         base["status"] = "no_kbars"
-        base["notes"] = "B-class blocked: kbar_cache empty for requested dates."
+        base["notes"] = "B-class blocked: no kbars in tick_cache for requested dates."
         base["counterfactuals"] = None
         return base
 
@@ -697,8 +697,7 @@ def run_structure_sensitivity_sweep(
     log_paths: list[Path] | None = None,
     code: str,
     dates: list[datetime.date],
-    kbar_cache_dir: Path | str = DEFAULT_KBAR_CACHE_DIR,
-    tick_cache_dir: Path | str = DEFAULT_CACHE_DIR,
+    cache_dir: Path | str = DEFAULT_CACHE_DIR,
     forward_policy: ForwardPnlPolicy | None = None,
     friction: FrictionSettings | None = None,
     min_strength_grid: list[float] | None = None,
@@ -714,8 +713,7 @@ def run_structure_sensitivity_sweep(
             log_paths=log_paths,
             code=code,
             dates=dates,
-            kbar_cache_dir=kbar_cache_dir,
-            tick_cache_dir=tick_cache_dir,
+            cache_dir=cache_dir,
             forward_policy=forward_policy,
             structure_params=sp,
             friction=friction,

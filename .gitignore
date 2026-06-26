@@ -29,7 +29,7 @@ shioaji.log
 
 # Runtime market-data caches (generated locally; keep out of git)
 tick_cache/
-kbar_cache/
+kbar_cache/  # deprecated legacy layout; run scripts/linux/migrate-legacy-kbar-cache.sh
 logs-from-gce/
 
 # Secrets & certificates

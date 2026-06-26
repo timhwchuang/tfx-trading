@@ -12,11 +12,11 @@ from pathlib import Path
 from trading_backtest.loader import (
     KBarRecord,
     iter_kbars_in_range,
-    kbars_cache_gz_path,
-    kbars_cache_path,
+    kbar_gz_path,
+    kbar_path,
     load_kbars_csv,
     load_ticks_csv,
-    resolve_kbars_cache_path,
+    resolve_kbar_path,
     save_kbars_csv,
 )
 
@@ -195,8 +195,8 @@ class TestKbarGzCache(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as tmp:
             cache_dir = Path(tmp)
-            plain = kbars_cache_path(cache_dir, "TMFR1", datetime.date(2026, 6, 22))
-            gz = kbars_cache_gz_path(cache_dir, "TMFR1", datetime.date(2026, 6, 22))
+            plain = kbar_path(cache_dir, "TMFR1", datetime.date(2026, 6, 22))
+            gz = kbar_gz_path(cache_dir, "TMFR1", datetime.date(2026, 6, 22))
             save_kbars_csv([bar], plain)
             gz.write_bytes(gzip.compress(plain.read_bytes()))
             plain.unlink()
@@ -205,16 +205,16 @@ class TestKbarGzCache(unittest.TestCase):
             self.assertEqual(loaded[0].ts, bar.ts)
             self.assertAlmostEqual(loaded[0].Close, bar.Close)
 
-    def test_resolve_kbars_cache_path_prefers_plain_over_gz(self):
+    def test_resolve_kbar_path_prefers_plain_over_gz(self):
         with tempfile.TemporaryDirectory() as tmp:
             cache_dir = Path(tmp)
             date = datetime.date(2026, 6, 22)
-            plain = kbars_cache_path(cache_dir, "TMFR1", date)
-            gz = kbars_cache_gz_path(cache_dir, "TMFR1", date)
+            plain = kbar_path(cache_dir, "TMFR1", date)
+            gz = kbar_gz_path(cache_dir, "TMFR1", date)
             plain.write_text("ts,Open,High,Low,Close,Volume\n", encoding="utf-8")
             gz.write_bytes(b"\x1f\x8b")  # not valid csv; plain must win
             self.assertEqual(
-                resolve_kbars_cache_path(cache_dir, "TMFR1", date),
+                resolve_kbar_path(cache_dir, "TMFR1", date),
                 plain,
             )
 
@@ -233,8 +233,8 @@ class TestKbarGzCache(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             cache_dir = Path(tmp)
             date = datetime.date(2026, 6, 22)
-            plain = kbars_cache_path(cache_dir, "TMFR1", date)
-            gz = kbars_cache_gz_path(cache_dir, "TMFR1", date)
+            plain = kbar_path(cache_dir, "TMFR1", date)
+            gz = kbar_gz_path(cache_dir, "TMFR1", date)
             save_kbars_csv(bars, plain)
             gz.write_bytes(gzip.compress(plain.read_bytes()))
             plain.unlink()

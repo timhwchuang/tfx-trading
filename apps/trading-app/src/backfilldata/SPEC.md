@@ -37,8 +37,7 @@ This document is the **single source of truth** for the historical market-data b
 - Tick API defaults to `TicksQueryType.RangeTime` for day session (`08:45:00`–`13:45:00`); `--all-day-ticks` opt-out for full-day fetch
 - Partial cache (e.g. live `*.csv.gz` missing morning) is **merged** into plain CSV; when both plain and gzip exist, rows are unioned before gap detection
 - Stale gzip is removed only after a successful plain CSV write (atomic temp → rename)
-- Kbar CSV → primary `kbar_cache/{code}_kbars_{date}.csv` for sweep / B-class calibration
-- Optional mirror of kbars → `tick_cache/` (default **on**) to match `kbar_archiver` UAT layout
+- Kbar CSV → `tick_cache/{code}_kbars_{date}.csv` (same root as ticks; sweep / B-class calibration / UAT archiver)
 - `api.usage()` logging before/after batches; pace ~0.15s between kbar day fetches
 - Past trade days and **today after 13:45 Taipei** (day session close)
 - Recognize compressed tick cache (`*.csv.gz` from `python -m storage`) as satisfied — no redundant `api.ticks`
@@ -76,7 +75,7 @@ python -m backfilldata month 2026-04 --dry-run
 python -m backfilldata date 2026-06-18 2026-06-20 --code TMFR1
 python -m backfilldata date 2026-06-20 --ticks-only
 python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-end 13:45
-python -m backfilldata date 2026-06-20 --kbars-only --no-mirror-kbars
+python -m backfilldata date 2026-06-20 --kbars-only
 python -m backfilldata date 2026-06-20 --all-day-ticks
 python -m backfilldata date 2026-06-20 --overwrite
 python -m backfilldata date 2026-01-21 --code TMFR1 --no-merge-rollover
@@ -87,9 +86,7 @@ Post-backfill quality gate: `python -m storage.cache_audit --code TMFR1` or batc
 | Flag | Default | Meaning |
 |------|---------|---------|
 | `--code` | `config.product_code` | Continuous futures code |
-| `--tick-cache-dir` | `<monorepo>/tick_cache` | Tick output |
-| `--kbar-cache-dir` | `<monorepo>/kbar_cache` | Primary kbar output |
-| `--mirror-kbars` / `--no-mirror-kbars` | mirror **on** | Copy kbars to `tick_cache` |
+| `--tick-cache-dir` | `<monorepo>/tick_cache` | Tick and kbar output |
 | `--ticks-only` / `--kbars-only` | both | Fetch subset |
 | `--time-start` / `--time-end` | `08:45:00` / `13:45:00` | Tick `RangeTime` window **and** kbar post-fetch filter |
 | `--all-day-ticks` | off | Use `TicksQueryType.AllDay` instead of `RangeTime` |
@@ -101,7 +98,7 @@ Post-backfill quality gate: `python -m storage.cache_audit --code TMFR1` or batc
 
 Injectable `api=` for tests. Returns paths plus `missing_*_dates`; `ok` is false when any requested day lacks cache files.
 
-Kbar fetch delegates to `storage.kbar_loader.download_and_cache_kbars` with `simulation=`, `mirror_cache_dir=`, and `pace_sec`.
+Kbar fetch delegates to `storage.kbar_loader.download_and_cache_kbars` with `simulation=` and `pace_sec`.
 
 ---
 
@@ -109,13 +106,12 @@ Kbar fetch delegates to `storage.kbar_loader.download_and_cache_kbars` with `sim
 
 Canonical roots: `storage.cache_paths`.
 
-| Kind | Primary path | Consumers |
-|------|--------------|-----------|
+| Kind | Path | Consumers |
+|------|------|-----------|
 | Ticks | `tick_cache/{code}_{date}.csv` | `backtest`, `param_sweep`, replay |
-| Kbars | `kbar_cache/{code}_kbars_{date}.csv` | `param_sweep`, `structure_calibration` |
-| Kbars (mirror) | `tick_cache/{code}_kbars_{date}.csv` | UAT `kbar_archiver`, human inspection |
+| Kbars | `tick_cache/{code}_kbars_{date}.csv` | `param_sweep`, `structure_calibration`, UAT `kbar_archiver` |
 
-**Path discipline**: backfill is the bridge that writes **both** trees so sweep and UAT layouts stay aligned without manual copy.
+**Path discipline**: all on-disk market data lives under `tick_cache/` (`storage.cache_paths.DEFAULT_TICK_CACHE_DIR`).
 
 ---
 

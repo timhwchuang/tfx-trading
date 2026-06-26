@@ -4,18 +4,16 @@ from __future__ import annotations
 
 import datetime
 import logging
-import shutil
 from pathlib import Path
 
 from storage.cache_audit import aggregate_ticks_to_minute_bars
-from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR
 from storage.kbar_loader import (
     KBarRecord,
     dedupe_kbars,
-    kbars_cache_gz_path,
-    kbars_cache_path,
+    kbar_gz_path,
+    kbar_path,
     load_kbars_csv,
-    resolve_kbars_cache_path,
+    resolve_kbar_path,
     save_kbars_csv,
 )
 from storage.tick_loader import (
@@ -37,58 +35,30 @@ def _kbar_ts_for_tick_minute(minute: datetime.datetime) -> datetime.datetime:
 
 
 def _resolve_kbar_write_path(
-    tick_cache_dir: Path,
-    kbar_cache_dir: Path | None,
+    cache_dir: Path,
     code: str,
     date: datetime.date,
-    *,
-    mirror_to_tick_cache: bool = True,
 ) -> Path:
     """Resolve plain CSV write target (never ``*.csv.gz``)."""
-    roots: list[Path] = []
-    if mirror_to_tick_cache:
-        roots.append(tick_cache_dir)
-    if kbar_cache_dir is not None:
-        roots.append(kbar_cache_dir)
-    elif not mirror_to_tick_cache:
-        roots.append(tick_cache_dir)
-    for root in roots:
-        plain = kbars_cache_path(root, code, date)
-        gz = kbars_cache_gz_path(root, code, date)
-        if plain.is_file() or gz.is_file():
-            return plain
-    if mirror_to_tick_cache:
-        return kbars_cache_path(tick_cache_dir, code, date)
-    return kbars_cache_path(kbar_cache_dir or tick_cache_dir, code, date)
+    plain = kbar_path(cache_dir, code, date)
+    gz = kbar_gz_path(cache_dir, code, date)
+    if plain.is_file() or gz.is_file():
+        return plain
+    return plain
 
 
 def _load_existing_kbars(
-    tick_cache_dir: Path,
-    kbar_cache_dir: Path | None,
+    cache_dir: Path,
     code: str,
     date: datetime.date,
-    *,
-    mirror_to_tick_cache: bool = True,
 ) -> tuple[list[KBarRecord], Path]:
-    """Load existing bars; primary ``kbar_cache`` wins over tick mirror when both exist."""
-    write_path = _resolve_kbar_write_path(
-        tick_cache_dir, kbar_cache_dir, code, date, mirror_to_tick_cache=mirror_to_tick_cache
-    )
-    by_ts: dict[datetime.datetime, KBarRecord] = {}
-    roots: list[Path] = []
-    if mirror_to_tick_cache:
-        roots.append(tick_cache_dir)
-    if kbar_cache_dir is not None:
-        roots.append(kbar_cache_dir)
-    elif not mirror_to_tick_cache:
-        roots.append(tick_cache_dir)
-    for root in roots:
-        path = resolve_kbars_cache_path(root, code, date)
-        if path is None:
-            continue
-        for bar in dedupe_kbars(load_kbars_csv(path)):
-            by_ts[bar.ts] = bar
-    return sorted(by_ts.values(), key=lambda b: b.ts), write_path
+    """Load existing bars from tick_cache."""
+    write_path = _resolve_kbar_write_path(cache_dir, code, date)
+    path = resolve_kbar_path(cache_dir, code, date)
+    if path is None:
+        return [], write_path
+    bars = dedupe_kbars(load_kbars_csv(path))
+    return bars, write_path
 
 
 def kbar_gaps_from_ticks(
@@ -102,7 +72,7 @@ def kbar_gaps_from_ticks(
     if not ticks:
         return []
     minute_bars = aggregate_ticks_to_minute_bars(ticks)
-    existing_path = resolve_kbars_cache_path(cache_dir, code, date)
+    existing_path = resolve_kbar_path(cache_dir, code, date)
     existing_ts: set[datetime.datetime] = set()
     if existing_path is not None:
         existing_ts = {b.ts for b in load_kbars_csv(existing_path)}
@@ -122,25 +92,17 @@ def repair_kbars_from_ticks(
     code: str,
     date: datetime.date,
     *,
-    tick_cache_dir: Path,
-    kbar_cache_dir: Path | None = None,
-    mirror_to_tick_cache: bool = True,
+    cache_dir: Path,
     overwrite_from_tick_minute: datetime.time | None = None,
     rebuild_all_from_ticks: bool = False,
 ) -> int:
     """Insert or refresh kbar rows from ticks. Returns rows added or overwritten."""
-    ticks = load_merged_tick_cache(tick_cache_dir, code, date)
+    ticks = load_merged_tick_cache(cache_dir, code, date)
     if not ticks:
         return 0
     minute_bars = aggregate_ticks_to_minute_bars(ticks)
 
-    existing, write_path = _load_existing_kbars(
-        tick_cache_dir,
-        kbar_cache_dir,
-        code,
-        date,
-        mirror_to_tick_cache=mirror_to_tick_cache,
-    )
+    existing, write_path = _load_existing_kbars(cache_dir, code, date)
     if not existing and not rebuild_all_from_ticks:
         rebuild_all_from_ticks = True
     by_ts = {} if rebuild_all_from_ticks else {b.ts: b for b in existing}
@@ -193,7 +155,7 @@ def repair_kbars_from_ticks(
     merged = sorted(by_ts.values(), key=lambda b: b.ts)
     write_path.parent.mkdir(parents=True, exist_ok=True)
     save_kbars_csv(merged, write_path)
-    gz_path = kbars_cache_gz_path(write_path.parent, code, date)
+    gz_path = kbar_gz_path(write_path.parent, code, date)
     if gz_path.is_file():
         gz_path.unlink()
     logger.info(
@@ -205,24 +167,6 @@ def repair_kbars_from_ticks(
         len(merged),
     )
 
-    kdir = kbar_cache_dir or DEFAULT_KBAR_CACHE_DIR
-    if mirror_to_tick_cache:
-        tick_path = kbars_cache_path(tick_cache_dir, code, date)
-        if write_path != tick_path:
-            tick_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(write_path, tick_path)
-            tick_gz = kbars_cache_gz_path(tick_cache_dir, code, date)
-            if tick_gz.is_file():
-                tick_gz.unlink()
-    if kdir != write_path.parent:
-        dst = kbars_cache_path(kdir, code, date)
-        if write_path != dst:
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(write_path, dst)
-            dst_gz = kbars_cache_gz_path(kdir, code, date)
-            if dst_gz.is_file():
-                dst_gz.unlink()
-
     return changed
 
 
@@ -230,24 +174,16 @@ def afternoon_kbar_tick_mismatch_dates(
     code: str,
     dates: list[datetime.date],
     *,
-    tick_cache_dir: Path,
-    kbar_cache_dir: Path | None,
-    mirror_to_tick_cache: bool = True,
+    cache_dir: Path,
 ) -> set[datetime.date]:
     """Days where 13:30+ kbars disagree with tick-derived OHLC (post-rollover stale)."""
     mismatched: set[datetime.date] = set()
     for date in dates:
-        ticks = load_merged_tick_cache(tick_cache_dir, code, date)
+        ticks = load_merged_tick_cache(cache_dir, code, date)
         if not ticks:
             continue
         minute_bars = aggregate_ticks_to_minute_bars(ticks)
-        existing, write_path = _load_existing_kbars(
-            tick_cache_dir,
-            kbar_cache_dir,
-            code,
-            date,
-            mirror_to_tick_cache=mirror_to_tick_cache,
-        )
+        existing, write_path = _load_existing_kbars(cache_dir, code, date)
         if not existing and not write_path.is_file():
             continue
         by_ts = {b.ts: b for b in existing}
@@ -274,18 +210,14 @@ def repair_kbars_batch(
     code: str,
     dates: list[datetime.date],
     *,
-    tick_cache_dir: Path,
-    kbar_cache_dir: Path | None = DEFAULT_KBAR_CACHE_DIR,
-    mirror_to_tick_cache: bool = True,
+    cache_dir: Path,
     rollover_dates: set[datetime.date] | None = None,
 ) -> list[tuple[datetime.date, int]]:
     full_rebuild = set(rollover_dates or ())
     afternoon_fix = afternoon_kbar_tick_mismatch_dates(
         code,
         dates,
-        tick_cache_dir=tick_cache_dir,
-        kbar_cache_dir=kbar_cache_dir,
-        mirror_to_tick_cache=mirror_to_tick_cache,
+        cache_dir=cache_dir,
     ) - full_rebuild
     results: list[tuple[datetime.date, int]] = []
     for date in dates:
@@ -293,27 +225,21 @@ def repair_kbars_batch(
             n = repair_kbars_from_ticks(
                 code,
                 date,
-                tick_cache_dir=tick_cache_dir,
-                kbar_cache_dir=kbar_cache_dir,
-                mirror_to_tick_cache=mirror_to_tick_cache,
+                cache_dir=cache_dir,
                 rebuild_all_from_ticks=True,
             )
         elif date in afternoon_fix:
             n = repair_kbars_from_ticks(
                 code,
                 date,
-                tick_cache_dir=tick_cache_dir,
-                kbar_cache_dir=kbar_cache_dir,
-                mirror_to_tick_cache=mirror_to_tick_cache,
+                cache_dir=cache_dir,
                 overwrite_from_tick_minute=ROLLOVER_AFTERNOON_START,
             )
         else:
             n = repair_kbars_from_ticks(
                 code,
                 date,
-                tick_cache_dir=tick_cache_dir,
-                kbar_cache_dir=kbar_cache_dir,
-                mirror_to_tick_cache=mirror_to_tick_cache,
+                cache_dir=cache_dir,
             )
         if n > 0:
             results.append((date, n))

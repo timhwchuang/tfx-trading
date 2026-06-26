@@ -13,7 +13,7 @@ from unittest.mock import patch
 from backtest.engine import BacktestEngine
 from config import MIN_ATR_THRESHOLD
 from core.runtime_config import default_runtime_config
-from storage.kbar_loader import KBarRecord, kbars_cache_path, save_kbars_csv
+from storage.kbar_loader import KBarRecord, kbar_path, save_kbars_csv
 from sweep.determinism_check import (
     _run_with_audit_capture,
     canonical_audit_json,
@@ -62,7 +62,7 @@ def _patched_entry_when_atr_ready(original):
     return process
 
 
-def _seed_kbars_cache(cache_dir: Path, code: str = "TXFR1") -> None:
+def _seed_kbar_files(cache_dir: Path, code: str = "TXFR1") -> None:
     prev = datetime.date(2026, 6, 11)
     bars = [
         KBarRecord(
@@ -75,7 +75,7 @@ def _seed_kbars_cache(cache_dir: Path, code: str = "TXFR1") -> None:
         )
         for i in range(25)
     ]
-    save_kbars_csv(bars, kbars_cache_path(cache_dir, code, prev))
+    save_kbars_csv(bars, kbar_path(cache_dir, code, prev))
 
 
 class TestDeterminism(unittest.TestCase):
@@ -192,7 +192,7 @@ class TestDeterminism(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             cache_dir = Path(tmp)
-            _seed_kbars_cache(cache_dir)
+            _seed_kbar_files(cache_dir)
             with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
                 with patch.object(
                     TradingEngine,
@@ -225,7 +225,7 @@ class TestDeterminism(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             cache_dir = Path(tmp)
-            _seed_kbars_cache(cache_dir)
+            _seed_kbar_files(cache_dir)
             with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
                 with patch.object(
                     TradingEngine,
@@ -266,7 +266,7 @@ class TestDeterminism(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             cache_dir = Path(tmp)
-            _seed_kbars_cache(cache_dir)
+            _seed_kbar_files(cache_dir)
             with patch("trading_backtest.loader.iter_replay_ticks", fake_replay):
                 hashes = [run_once(cache_dir) for _ in range(3)]
         self.assertEqual(hashes[0], hashes[1])

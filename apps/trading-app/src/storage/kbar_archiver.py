@@ -9,7 +9,7 @@ from typing import Any
 from storage.kbar_loader import (
     DEFAULT_CACHE_DIR,
     KBarRecord,
-    kbars_cache_path,
+    kbar_path,
     kbars_raw_to_records,
     save_kbars_csv,
 )
@@ -30,7 +30,7 @@ def archive_kbars_snapshot(
         bars = [b for b in bars if b.ts.date() == trade_date]
     if not bars:
         return 0
-    path = kbars_cache_path(cache_dir, product_code, trade_date or bars[-1].ts.date())
+    path = kbar_path(cache_dir, product_code, trade_date or bars[-1].ts.date())
     count = save_kbars_csv(bars, path)
     logger.info(
         "Kbars 落盤 | code=%s date=%s bars=%d path=%s",

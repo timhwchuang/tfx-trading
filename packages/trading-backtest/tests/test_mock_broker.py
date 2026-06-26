@@ -17,8 +17,8 @@ from trading_engine.testing.helpers import make_host
 from trading_backtest.loader import (
     KBarRecord,
     ReplayTick,
-    kbars_cache_gz_path,
-    kbars_cache_path,
+    kbar_gz_path,
+    kbar_path,
     save_kbars_csv,
 )
 from trading_backtest.mock_broker import MockBroker
@@ -195,7 +195,7 @@ class TestMockBrokerMatching(unittest.TestCase):
                     100,
                 ),
             ]
-            save_kbars_csv(bars, kbars_cache_path(cache_dir, code, day))
+            save_kbars_csv(bars, kbar_path(cache_dir, code, day))
             broker = MockBroker(clock=lambda: 0.0, cache_dir=cache_dir)
             contract = broker.resolve_contract(code)
             broker.current_dt = datetime.datetime(2026, 6, 12, 9, 0, 30)
@@ -241,7 +241,7 @@ class TestMockBrokerMatching(unittest.TestCase):
                 )
                 for i in range(25)
             ]
-            save_kbars_csv(prev_bars, kbars_cache_path(cache_dir, code, prev))
+            save_kbars_csv(prev_bars, kbar_path(cache_dir, code, prev))
             clock_val = {"t": datetime.datetime(2026, 6, 12, 8, 45, 0).timestamp()}
             broker = MockBroker(clock=lambda: clock_val["t"], cache_dir=cache_dir)
             broker.current_dt = datetime.datetime(2026, 6, 12, 8, 45, 0)
@@ -267,8 +267,8 @@ class TestMockBrokerMatching(unittest.TestCase):
                 )
                 for i in range(25)
             ]
-            plain = kbars_cache_path(cache_dir, code, prev)
-            gz = kbars_cache_gz_path(cache_dir, code, prev)
+            plain = kbar_path(cache_dir, code, prev)
+            gz = kbar_gz_path(cache_dir, code, prev)
             save_kbars_csv(prev_bars, plain)
             gz.write_bytes(gzip.compress(plain.read_bytes()))
             plain.unlink()

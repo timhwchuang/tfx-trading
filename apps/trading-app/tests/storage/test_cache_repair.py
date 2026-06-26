@@ -12,8 +12,8 @@ from unittest.mock import MagicMock
 from storage.cache_audit import audit_day
 from storage.kbar_loader import (
     KBarRecord,
-    kbars_cache_gz_path,
-    kbars_cache_path,
+    kbar_gz_path,
+    kbar_path,
     load_kbars_csv,
     save_kbars_csv,
 )
@@ -123,9 +123,9 @@ class TestKbarRepair(unittest.TestCase):
                         Volume=10,
                     )
                 ],
-                kbars_cache_path(root, "TMFR1", day),
+                kbar_path(root, "TMFR1", day),
             )
-            n = repair_kbars_from_ticks("TMFR1", day, tick_cache_dir=root)
+            n = repair_kbars_from_ticks("TMFR1", day, cache_dir=root)
             self.assertGreaterEqual(n, 5)
             report = audit_day("TMFR1", day, cache_dir=root, max_examples=10)
             self.assertLess(report.missing_kbar_count, 14)
@@ -164,9 +164,9 @@ class TestKbarRepair(unittest.TestCase):
                     Volume=5,
                 ),
             ]
-            save_kbars_csv(afternoon_kbars, kbars_cache_path(root, "TMFR1", day))
-            repair_kbars_from_ticks("TMFR1", day, tick_cache_dir=root)
-            ts_set = {b.ts for b in load_kbars_csv(kbars_cache_path(root, "TMFR1", day))}
+            save_kbars_csv(afternoon_kbars, kbar_path(root, "TMFR1", day))
+            repair_kbars_from_ticks("TMFR1", day, cache_dir=root)
+            ts_set = {b.ts for b in load_kbars_csv(kbar_path(root, "TMFR1", day))}
             self.assertIn(datetime.datetime(2026, 1, 21, 13, 31), ts_set)
             self.assertIn(datetime.datetime(2026, 1, 21, 13, 40), ts_set)
 
@@ -207,9 +207,9 @@ class TestKbarRepair(unittest.TestCase):
                     Volume=5,
                 ),
             ]
-            save_kbars_csv(afternoon_kbars, kbars_cache_path(root, "TMFR1", day))
-            repair_kbars_from_ticks("TMFR1", day, tick_cache_dir=root)
-            ts_set = {b.ts for b in load_kbars_csv(kbars_cache_path(root, "TMFR1", day))}
+            save_kbars_csv(afternoon_kbars, kbar_path(root, "TMFR1", day))
+            repair_kbars_from_ticks("TMFR1", day, cache_dir=root)
+            ts_set = {b.ts for b in load_kbars_csv(kbar_path(root, "TMFR1", day))}
             self.assertIn(datetime.datetime(2026, 1, 21, 13, 31), ts_set)
             self.assertIn(datetime.datetime(2026, 1, 21, 13, 40), ts_set)
 
@@ -226,8 +226,8 @@ class TestKbarRepair(unittest.TestCase):
                 )
             ]
             save_ticks_csv(ticks, cache_path(root, "TMFR1", day))
-            plain = kbars_cache_path(root, "TMFR1", day)
-            gz = kbars_cache_gz_path(root, "TMFR1", day)
+            plain = kbar_path(root, "TMFR1", day)
+            gz = kbar_gz_path(root, "TMFR1", day)
             save_kbars_csv(
                 [
                     KBarRecord(
@@ -244,7 +244,7 @@ class TestKbarRepair(unittest.TestCase):
             with plain.open("rb") as src, gzip.open(gz, "wb") as dst:
                 dst.writelines(src)
             plain.unlink()
-            repair_kbars_from_ticks("TMFR1", day, tick_cache_dir=root)
+            repair_kbars_from_ticks("TMFR1", day, cache_dir=root)
             self.assertTrue(plain.is_file())
             self.assertFalse(gz.is_file())
 

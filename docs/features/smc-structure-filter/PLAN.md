@@ -36,7 +36,7 @@ blockers: []
 |------|------|
 | FT-001 audit | Landed |
 | `KBARS_ARCHIVE=1` | UAT 期必開 |
-| ≥5 日 kbar_cache | Phase 2+；不擋 Phase 1 |
+| ≥5 日 tick_cache kbars | Phase 2+；不擋 Phase 1 |
 | P6-1 trend（對照組） | 已有 |
 
 ---
@@ -92,7 +92,7 @@ blockers: []
 **目標**：真實 kbar 上回答 structure vs trend vs 無濾網。
 
 - [x] [`structure_calibration.py`](../../../apps/trading-app/src/reporting/structure_calibration.py)
-  - 讀 `kbar_cache/{code}_kbars_{date}.csv`
+  - 讀 `tick_cache/{code}_kbars_{date}.csv`
   - 逐決策點呼叫 `compute_structure(as_of_ts=...)`（**重算**，非讀 live 快取）
   - 輸出 `structure_events.csv` + `structure_armed_join.csv`
 - [x] armed join：UAT log `momentum_armed` → as-of structure + 30s forward conversion
@@ -105,7 +105,7 @@ blockers: []
 
 **驗收**
 
-- [ ] ≥5 日 kbar_cache 可重現報表（需 UAT 累積；harness 已就緒）
+- [ ] ≥5 日 `tick_cache/*_kbars_*` 可重現報表（需 UAT 累積；harness 已就緒）
 - [ ] **決策閘**：無正 `delta_expectancy` → Phase 3 暫緩 + CAL-8 No-Go 建議
 
 ### Phase 3 — Engine 接線

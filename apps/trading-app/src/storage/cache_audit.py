@@ -12,8 +12,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Iterator
 
-from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR, DEFAULT_TICK_CACHE_DIR
-from storage.kbar_loader import load_kbars_csv, resolve_kbars_cache_path
+from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
+from storage.kbar_loader import load_kbars_csv, resolve_kbar_path
 from storage.tick_loader import (
     DEFAULT_TICK_RANGE_END,
     DEFAULT_TICK_RANGE_START,
@@ -205,35 +205,17 @@ def _load_ticks_for_audit(cache_dir: Path, code: str, date: datetime.date) -> li
         return list(_iter_ticks_csv(path))
 
 
-def _resolve_kbar_path_for_audit(
-    tick_cache_dir: Path,
-    code: str,
-    date: datetime.date,
-    *,
-    kbar_cache_dir: Path | None = None,
-) -> Path | None:
-    """Prefer primary ``kbar_cache`` when configured; else tick_cache mirror."""
-    if kbar_cache_dir is not None:
-        path = resolve_kbars_cache_path(kbar_cache_dir, code, date)
-        if path is not None:
-            return path
-    return resolve_kbars_cache_path(tick_cache_dir, code, date)
-
-
 def audit_day(
     code: str,
     date: datetime.date,
     *,
     cache_dir: Path = DEFAULT_TICK_CACHE_DIR,
-    kbar_cache_dir: Path | None = None,
     max_examples: int = 5,
 ) -> DayAuditReport:
     """Compare tick-derived minute bars with on-disk kbars for one session day."""
     report = DayAuditReport(code=code, date=date)
     report.tick_path = resolve_tick_cache_path(cache_dir, code, date)
-    report.kbar_path = _resolve_kbar_path_for_audit(
-        cache_dir, code, date, kbar_cache_dir=kbar_cache_dir
-    )
+    report.kbar_path = resolve_kbar_path(cache_dir, code, date)
 
     if report.tick_path is None:
         report.issues.append("missing tick cache")
@@ -360,7 +342,6 @@ def scan_cache_dir(
     start: datetime.date | None = None,
     end: datetime.date | None = None,
     max_examples: int = 3,
-    kbar_cache_dir: Path | None = None,
 ) -> list[DayAuditReport]:
     pairs = discover_tick_cache_pairs(cache_dir, code=code, start=start, end=end)
     return [
@@ -368,7 +349,6 @@ def scan_cache_dir(
             c,
             d,
             cache_dir=cache_dir,
-            kbar_cache_dir=kbar_cache_dir,
             max_examples=max_examples,
         )
         for c, d in pairs
@@ -484,13 +464,7 @@ Use cache_repair to auto-merge rollover ticks and fill kbar gaps from ticks.
         "--cache-dir",
         type=Path,
         default=DEFAULT_TICK_CACHE_DIR,
-        help="tick_cache root (kbars read from same dir)",
-    )
-    parser.add_argument(
-        "--kbar-cache-dir",
-        type=Path,
-        default=DEFAULT_KBAR_CACHE_DIR,
-        help="Primary kbar_cache (used when mirror not under --cache-dir)",
+        help="tick_cache root (ticks and kbars)",
     )
     parser.add_argument("--code", help="Filter by contract code (e.g. TMFR1)")
     parser.add_argument("--date", type=_parse_optional_date, help="Single YYYY-MM-DD")
@@ -527,7 +501,6 @@ def main(argv: list[str] | None = None) -> int:
             code,
             args.date,
             cache_dir=cache_dir,
-            kbar_cache_dir=Path(args.kbar_cache_dir),
             max_examples=10,
         )
         print(format_day_report(report, verbose=True))
@@ -539,7 +512,6 @@ def main(argv: list[str] | None = None) -> int:
         start=args.from_date,
         end=args.to_date,
         max_examples=3,
-        kbar_cache_dir=Path(args.kbar_cache_dir),
     )
     if not reports:
         print(f"cache_audit: no tick files under {cache_dir}", file=sys.stderr)

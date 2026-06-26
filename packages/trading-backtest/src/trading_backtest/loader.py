@@ -168,20 +168,20 @@ def iter_replay_ticks(
         yield from load_ticks_csv(path)
 
 
-def kbars_cache_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
+def kbar_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
     return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv"
 
 
-def kbars_cache_gz_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
+def kbar_gz_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
     return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv.gz"
 
 
-def resolve_kbars_cache_path(
+def resolve_kbar_path(
     cache_dir: Path, code: str, date: datetime.date
 ) -> Path | None:
-    """Return on-disk kbar cache (plain preferred over gzip mirror)."""
-    plain = kbars_cache_path(cache_dir, code, date)
-    gz = kbars_cache_gz_path(cache_dir, code, date)
+    """Return on-disk kbar file (plain ``.csv`` preferred over ``.csv.gz``)."""
+    plain = kbar_path(cache_dir, code, date)
+    gz = kbar_gz_path(cache_dir, code, date)
     if plain.is_file():
         return plain
     if gz.is_file():
@@ -243,7 +243,7 @@ def iter_kbars_in_range(
 ) -> list[KBarRecord]:
     bars: list[KBarRecord] = []
     for date in date_range(start, end):
-        path = resolve_kbars_cache_path(cache_dir, code, date)
+        path = resolve_kbar_path(cache_dir, code, date)
         if path is None:
             continue
         bars.extend(load_kbars_csv(path))
@@ -257,11 +257,11 @@ __all__ = [
     "ReplayTick",
     "iter_kbars_in_range",
     "iter_replay_ticks",
-    "kbars_cache_gz_path",
-    "kbars_cache_path",
+    "kbar_gz_path",
+    "kbar_path",
     "load_kbars_csv",
     "load_ticks_csv",
-    "resolve_kbars_cache_path",
+    "resolve_kbar_path",
     "resolve_tick_cache_path",
     "save_kbars_csv",
 ]

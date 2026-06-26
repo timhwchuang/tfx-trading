@@ -10,10 +10,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, List, Sequence
 
-from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR, DEFAULT_TICK_CACHE_DIR
+from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
 from storage.kbar_loader import (
     download_and_cache_kbars,
-    kbar_cache_satisfies_request,
+    kbars_satisfy_request,
 )
 from storage.tick_loader import (
     DEFAULT_TICK_RANGE_END,
@@ -179,7 +179,7 @@ def _missing_kbar_dates(
     return [
         d
         for d in dates
-        if not kbar_cache_satisfies_request(
+        if not kbars_satisfy_request(
             cache_dir,
             code,
             d,
@@ -293,9 +293,7 @@ def backfill_dates(
     simulation: bool,
     fetch_ticks: bool = True,
     fetch_kbars: bool = True,
-    tick_cache_dir: Path = DEFAULT_TICK_CACHE_DIR,
-    kbar_cache_dir: Path = DEFAULT_KBAR_CACHE_DIR,
-    mirror_kbars_to_tick_cache: bool = True,
+    cache_dir: Path = DEFAULT_TICK_CACHE_DIR,
     overwrite: bool = False,
     tick_time_start: datetime.time | None = DEFAULT_TICK_RANGE_START,
     tick_time_end: datetime.time | None = DEFAULT_TICK_RANGE_END,
@@ -327,7 +325,7 @@ def backfill_dates(
                 api,
                 contract,
                 dates,
-                cache_dir=tick_cache_dir,
+                cache_dir=cache_dir,
                 overwrite=overwrite,
                 time_start=tick_time_start,
                 time_end=tick_time_end,
@@ -342,7 +340,7 @@ def backfill_dates(
                     api,
                     resolved_code,
                     list(dates),
-                    cache_dir=tick_cache_dir,
+                    cache_dir=cache_dir,
                     simulation=simulation,
                     resolve_contract=resolve_contract,
                 )
@@ -360,10 +358,9 @@ def backfill_dates(
                 api,
                 contract,
                 dates,
-                cache_dir=kbar_cache_dir,
+                cache_dir=cache_dir,
                 overwrite=overwrite,
                 simulation=simulation,
-                mirror_cache_dir=tick_cache_dir if mirror_kbars_to_tick_cache else None,
                 pace_sec=_REQUEST_PACE_SEC,
                 time_start=tick_time_start,
                 time_end=tick_time_end,
@@ -374,9 +371,7 @@ def backfill_dates(
             repair_kbars_batch(
                 resolved_code,
                 list(dates),
-                tick_cache_dir=tick_cache_dir,
-                kbar_cache_dir=kbar_cache_dir,
-                mirror_to_tick_cache=mirror_kbars_to_tick_cache,
+                cache_dir=cache_dir,
                 rollover_dates=rebuild_dates if rebuild_dates else None,
             )
     finally:
@@ -390,7 +385,7 @@ def backfill_dates(
         result.missing_tick_dates = _missing_tick_dates(
             resolved_code,
             dates,
-            cache_dir=tick_cache_dir,
+            cache_dir=cache_dir,
             time_start=tick_time_start,
             time_end=tick_time_end,
             simulation=simulation,
@@ -399,7 +394,7 @@ def backfill_dates(
         result.missing_kbar_dates = _missing_kbar_dates(
             resolved_code,
             dates,
-            cache_dir=kbar_cache_dir,
+            cache_dir=cache_dir,
             time_start=tick_time_start,
             time_end=tick_time_end,
         )

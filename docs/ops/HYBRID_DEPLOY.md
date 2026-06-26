@@ -18,7 +18,7 @@
 | 層 | 地端 | GCE |
 |----|------|-----|
 | **Live 連線** | 不建議（雙管模式） | **是**（Shioaji 長連線）；或 Windows 單機（§5） |
-| **tick_cache / kbar_cache 寫入** | 從 GCE sync 讀 | **是**（盤中 archive） |
+| **tick_cache 寫入** | 從 GCE sync 讀 | **是**（盤中 archive：ticks + kbars） |
 | **回測 / CAL** | **是** | 僅 smoke test |
 | **UAT 證據 git** | commit 分析結果 | commit 當日 `reports/`、`snapshots/` |
 | **config SSOT** | git `apps/trading-app/config/config.yaml` | 部署時 pull 同 commit |
@@ -106,8 +106,7 @@ python -m sweep.determinism_check --date 2026-06-12 --mode hash
 
 | 路徑 | 誰寫 | 同步 |
 |------|------|------|
-| `tick_cache/` | GCE live | rsync → 地端 |
-| `kbar_cache/` | GCE live（`KBARS_ARCHIVE=1`） | rsync → 地端 |
+| `tick_cache/` | GCE live（`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`） | rsync → 地端 |
 | `reports/day*.json` | GCE `post-session.sh` | rsync → 地端 |
 | `snapshots/determinism_*.txt` | GCE `post-session.sh` | rsync → 地端 |
 | `uat_evidence/` | 人類 | git |

@@ -23,7 +23,7 @@ from backfilldata.core import (
 from storage.kbar_loader import (
     KBarRecord,
     download_and_cache_kbars,
-    kbars_cache_path,
+    kbar_path,
     save_kbars_csv,
 )
 from storage.tick_loader import ReplayTick, cache_gz_path, cache_path, save_ticks_csv
@@ -176,70 +176,8 @@ class TestResolveContract(unittest.TestCase):
         self.assertIs(resolve_contract(api, "TXFR1"), tx)
 
 
-class TestDownloadAndCacheKbarsMirror(unittest.TestCase):
-    def test_mirror_copies_to_tick_cache(self):
-        api = MagicMock()
-        _mock_api_usage(api)
-        contract = MagicMock()
-        contract.code = "TXFR1"
-        date = datetime.date(2026, 6, 12)
-        api.kbars.return_value = MagicMock(
-            ts=[1],
-            Open=[100.0],
-            High=[101.0],
-            Low=[99.0],
-            Close=[100.5],
-            Volume=[10],
-        )
-        with tempfile.TemporaryDirectory() as kd, tempfile.TemporaryDirectory() as td:
-            kbar_dir = Path(kd)
-            tick_dir = Path(td)
-            paths = download_and_cache_kbars(
-                api,
-                contract,
-                [date],
-                cache_dir=kbar_dir,
-                mirror_cache_dir=tick_dir,
-                simulation=True,
-            )
-            primary = kbars_cache_path(kbar_dir, "TXFR1", date)
-            mirror = kbars_cache_path(tick_dir, "TXFR1", date)
-            self.assertTrue(primary.is_file())
-            self.assertTrue(mirror.is_file())
-            self.assertIn(primary, paths)
-            self.assertIn(mirror, paths)
-
-    def test_skip_path_keeps_existing_mirror_when_not_overwrite(self):
-        api = MagicMock()
-        _mock_api_usage(api)
-        contract = MagicMock()
-        contract.code = "TXFR1"
-        date = datetime.date(2026, 6, 12)
-        with tempfile.TemporaryDirectory() as kd, tempfile.TemporaryDirectory() as td:
-            kbar_dir = Path(kd)
-            tick_dir = Path(td)
-            save_kbars_csv(
-                _full_session_kbar_records(date),
-                kbars_cache_path(kbar_dir, "TXFR1", date),
-            )
-            stale = kbars_cache_path(tick_dir, "TXFR1", date)
-            stale.write_text("ts,Open,High,Low,Close,Volume\n", encoding="utf-8")
-            download_and_cache_kbars(
-                api,
-                contract,
-                [date],
-                cache_dir=kbar_dir,
-                mirror_cache_dir=tick_dir,
-                simulation=True,
-                time_start=datetime.time(8, 45),
-                time_end=datetime.time(13, 45),
-            )
-            api.kbars.assert_not_called()
-            self.assertEqual(stale.read_text(encoding="utf-8"), "ts,Open,High,Low,Close,Volume\n")
-
-
 class TestBackfillDates(unittest.TestCase):
-    def test_writes_ticks_and_mirrored_kbars(self):
+    def test_writes_ticks_and_kbars(self):
         api = MagicMock()
         _mock_api_usage(api)
         contract = MagicMock()
@@ -251,29 +189,24 @@ class TestBackfillDates(unittest.TestCase):
         api.ticks.return_value = tick_raw
         api.kbars.return_value = kbar_raw
 
-        with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as kd:
+        with tempfile.TemporaryDirectory() as td:
             tick_dir = Path(td)
-            kbar_dir = Path(kd)
             today = datetime.date(2026, 6, 15)
             dates = [datetime.date(2026, 6, 12)]
             result = backfill_dates(
                 dates,
                 code="TXFR1",
                 simulation=True,
-                tick_cache_dir=tick_dir,
-                kbar_cache_dir=kbar_dir,
-                mirror_kbars_to_tick_cache=True,
+                cache_dir=tick_dir,
                 api=api,
                 today=today,
             )
             tick_file = cache_path(tick_dir, "TXFR1", dates[0])
-            kbar_primary = kbars_cache_path(kbar_dir, "TXFR1", dates[0])
-            kbar_mirror = kbars_cache_path(tick_dir, "TXFR1", dates[0])
+            kbar_file = kbar_path(tick_dir, "TXFR1", dates[0])
             self.assertTrue(tick_file.is_file())
-            self.assertTrue(kbar_primary.is_file())
-            self.assertTrue(kbar_mirror.is_file())
+            self.assertTrue(kbar_file.is_file())
             self.assertEqual(len(result.ticks), 1)
-            self.assertGreaterEqual(len(result.kbars), 2)
+            self.assertGreaterEqual(len(result.kbars), 1)
             self.assertTrue(result.ok)
             _, kwargs = api.ticks.call_args
             self.assertEqual(kwargs["time_start"], "08:45:00")
@@ -286,9 +219,8 @@ class TestBackfillDates(unittest.TestCase):
         contract.code = "TXFR1"
         api.Contracts.Futures.TXF.TXFR1 = contract
 
-        with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as kd:
+        with tempfile.TemporaryDirectory() as td:
             tick_dir = Path(td)
-            kbar_dir = Path(kd)
             date = datetime.date(2026, 6, 12)
             save_ticks_csv(
                 [
@@ -314,7 +246,7 @@ class TestBackfillDates(unittest.TestCase):
                         Volume=1,
                     )
                 ],
-                kbars_cache_path(kbar_dir, "TXFR1", date),
+                kbar_path(tick_dir, "TXFR1", date),
             )
             today = datetime.date(2026, 6, 15)
             backfill_dates(
@@ -322,8 +254,7 @@ class TestBackfillDates(unittest.TestCase):
                 code="TXFR1",
                 simulation=True,
                 fetch_kbars=False,
-                tick_cache_dir=tick_dir,
-                kbar_cache_dir=kbar_dir,
+                cache_dir=tick_dir,
                 api=api,
                 today=today,
             )
@@ -350,9 +281,8 @@ class TestBackfillDates(unittest.TestCase):
             ask_price=[18001.0],
             tick_type=[1],
         )
-        with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as kd:
+        with tempfile.TemporaryDirectory() as td:
             tick_dir = Path(td)
-            kbar_dir = Path(kd)
             plain = cache_path(tick_dir, "TXFR1", date)
             save_ticks_csv(
                 [ReplayTick(datetime.datetime(2026, 6, 22, 11, 14), "1", 1, 0)],
@@ -368,8 +298,7 @@ class TestBackfillDates(unittest.TestCase):
                 code="TXFR1",
                 simulation=True,
                 fetch_kbars=False,
-                tick_cache_dir=tick_dir,
-                kbar_cache_dir=kbar_dir,
+                cache_dir=tick_dir,
                 api=api,
                 today=today,
             )
@@ -398,17 +327,15 @@ class TestBackfillDates(unittest.TestCase):
         download_ticks.return_value = [cache_path(Path("/tmp"), "TMFR1", date)]
         merge_batch.return_value = [date]
 
-        with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as kd:
+        with tempfile.TemporaryDirectory() as td:
             tick_dir = Path(td)
-            kbar_dir = Path(kd)
             today = datetime.date(2026, 1, 22)
             backfill_dates(
                 [date],
                 code="TMFR1",
                 simulation=True,
                 fetch_kbars=False,
-                tick_cache_dir=tick_dir,
-                kbar_cache_dir=kbar_dir,
+                cache_dir=tick_dir,
                 api=api,
                 today=today,
             )

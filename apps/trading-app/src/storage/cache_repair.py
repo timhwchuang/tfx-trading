@@ -19,7 +19,7 @@ from storage.cache_audit import (
     format_scan_summary,
     scan_cache_dir,
 )
-from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR, DEFAULT_TICK_CACHE_DIR
+from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
 from storage.kbar_repair import repair_kbars_batch, repair_kbars_from_ticks
 from storage.tick_loader import load_merged_tick_cache
 from storage.tick_rollover import (
@@ -43,8 +43,7 @@ def repair_cache(
     code: str,
     dates: list[datetime.date],
     *,
-    tick_cache_dir: Path,
-    kbar_cache_dir: Path,
+    cache_dir: Path,
     fetch_rollover: bool,
     fix_kbars: bool,
     api: object | None = None,
@@ -59,7 +58,7 @@ def repair_cache(
             d
             for d in dates
             if ticks_need_rollover_afternoon(
-                load_merged_tick_cache(tick_cache_dir, code, d), d
+                load_merged_tick_cache(cache_dir, code, d), d
             )
         ]
         if rollover_candidates:
@@ -76,7 +75,7 @@ def repair_cache(
                     api,
                     code,
                     rollover_candidates,
-                    cache_dir=tick_cache_dir,
+                    cache_dir=cache_dir,
                     simulation=simulation,
                     resolve_contract=resolve_contract,
                 )
@@ -92,8 +91,7 @@ def repair_cache(
         result.kbar_dates = repair_kbars_batch(
             code,
             dates,
-            tick_cache_dir=tick_cache_dir,
-            kbar_cache_dir=kbar_cache_dir,
+            cache_dir=cache_dir,
             rollover_dates=(
                 set(result.rollover_dates) if result.rollover_dates else None
             ),
@@ -126,13 +124,7 @@ Examples (from apps/trading-app/src):
         "--cache-dir",
         type=Path,
         default=DEFAULT_TICK_CACHE_DIR,
-        help="tick_cache root",
-    )
-    parser.add_argument(
-        "--kbar-cache-dir",
-        type=Path,
-        default=DEFAULT_KBAR_CACHE_DIR,
-        help="kbar_cache primary dir",
+        help="tick_cache root (ticks and kbars)",
     )
     parser.add_argument("--code", default="TMFR1", help="Contract code (default TMFR1)")
     parser.add_argument("--date", type=datetime.date.fromisoformat, help="Single day")
@@ -225,8 +217,7 @@ def main(argv: list[str] | None = None) -> int:
         repair = repair_cache(
             args.code,
             dates,
-            tick_cache_dir=cache_dir,
-            kbar_cache_dir=Path(args.kbar_cache_dir),
+            cache_dir=cache_dir,
             fetch_rollover=fetch_rollover,
             fix_kbars=True,
             simulation=_resolve_simulation(args),
@@ -252,7 +243,6 @@ def main(argv: list[str] | None = None) -> int:
             args.code,
             d,
             cache_dir=cache_dir,
-            kbar_cache_dir=Path(args.kbar_cache_dir),
             max_examples=3,
         )
         reports.append(report)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pull tick_cache, kbar_cache, reports, snapshots, logs from GCE live host to on-prem.
+# Pull tick_cache, reports, snapshots, logs from GCE live host to on-prem.
 # Usage: GCE_HOST=<deploy-user>@1.2.3.4 MONOREPO_ROOT=~/tfx-trading ./scripts/linux/sync-from-gce.sh
 # Example (see docs/ops/LinuxOps.md): GCE_HOST=you@static-ip bash scripts/linux/sync-from-gce.sh
 set -euo pipefail
@@ -20,7 +20,6 @@ _sync_dir() {
 }
 
 _sync_dir tick_cache
-_sync_dir kbar_cache
 _sync_dir reports
 _sync_dir snapshots
 
@@ -35,4 +34,4 @@ else
   echo "略過 logs：遠端尚無 $REMOTE_LOG_DIR/" >&2
 fi
 
-echo "Sync complete → $MONOREPO_ROOT (tick_cache, kbar_cache, reports, snapshots, logs-from-gce)"
+echo "Sync complete → $MONOREPO_ROOT (tick_cache, reports, snapshots, logs-from-gce)"

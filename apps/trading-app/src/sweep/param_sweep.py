@@ -18,8 +18,8 @@ from reporting.structure_calibration import (
     compute_regime_veto_calibration,
 )
 from reporting.trend_calibration import compute_trend_veto_calibration
-from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR
 from storage.kbar_loader import iter_kbars_in_range
+from storage.legacy_cache_migrate import ensure_legacy_kbars_migrated
 from storage.tick_loader import DEFAULT_CACHE_DIR
 from strategy_vwap_momentum.structure import StructureParams
 from trading_engine.core.runtime_config import normalize_overlay_key
@@ -150,11 +150,10 @@ def sweep(
     penalty: float = DEFAULT_PENALTY,
     output_path: Path | None = None,
     forward_policy: ForwardPnlPolicy | None = None,
-    kbar_cache_dir: Path | str = DEFAULT_KBAR_CACHE_DIR,
 ) -> list[dict[str, Any]]:
     """Cartesian grid sweep; ranking uses valid (out-of-sample) KPI only."""
     cache_path = Path(cache_dir)
-    kbar_path = Path(kbar_cache_dir)
+    ensure_legacy_kbars_migrated(cache_path)
     replay_fwd = _resolve_forward_pnl(code, dates_valid, cache_path, forward_policy)
     keys = list(grid.keys())
     combos = itertools.product(*(grid[k] for k in keys))
@@ -230,7 +229,7 @@ def sweep(
                             code,
                             min(dates_valid),
                             max(dates_valid),
-                            cache_dir=kbar_path,
+                            cache_dir=cache_path,
                         )
                     else:
                         bars_1m = []

@@ -16,7 +16,7 @@ fi
 
 id -u tfx &>/dev/null || useradd --system --home "$MONOREPO_ROOT" --shell /usr/sbin/nologin tfx
 mkdir -p /etc/tfx-trading /var/log/tfx-trading
-mkdir -p "$MONOREPO_ROOT"/{tick_cache,kbar_cache,reports,snapshots}
+mkdir -p "$MONOREPO_ROOT"/{tick_cache,reports,snapshots}
 chown -R tfx:tfx /var/log/tfx-trading
 if [[ -d "$MONOREPO_ROOT" ]]; then
   chown -R tfx:tfx "$MONOREPO_ROOT"

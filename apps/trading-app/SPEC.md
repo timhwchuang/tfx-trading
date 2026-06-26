@@ -79,7 +79,7 @@ TradingEngine(
 | `python -m storage` | Post-session tick gzip (`storage.compress` alias) |
 | `python -m storage.cache_audit` | Audit tick_cache: tick-derived 1m OHLCV vs kbars (scan dir or `--date`) |
 | `python -m storage.cache_repair` | Repair rollover tick tail + fill kbar gaps from ticks; re-audit |
-| `python -m backfilldata date YYYY-MM-DD` | Backfill past ticks/kbars into `tick_cache/` + `kbar_cache/` |
+| `python -m backfilldata date YYYY-MM-DD` | Backfill past ticks/kbars into `tick_cache/` |
 | `python -m backfilldata month YYYY-MM` | Backfill trading weekdays in month (skip weekends/holidays via pin-yi calendar) |
 
 ### Backtest CLI (`python -m backtest`)

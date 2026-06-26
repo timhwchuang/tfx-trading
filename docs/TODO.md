@@ -129,7 +129,7 @@
 
 **B 類（真實 UAT 資料）**
 
-- [ ] **1. 累積**：UAT 連續 **≥5 交易日**；`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`；`kbar_cache/` 可餵 harness；**開 filter 測試時** log 須含 `structure_veto`（預設 filter 關則無）
+- [ ] **1. 累積**：UAT 連續 **≥5 交易日**；`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`；`tick_cache/*_kbars_*` 可餵 harness；**開 filter 測試時** log 須含 `structure_veto`（預設 filter 關則無）
 - [x] **2. Harness**：`structure_calibration_cli`（見 ft PLAN Phase 2）
 - [x] **3. Sweep**：`structure_min_strength` grid（`structure_calibration_cli --sweep` + `param_sweep`）
 - [x] **4. Counterfactual**：分開跑 — 無濾網 / structure only / trend only（harness 內建；互斥，不得同時開）

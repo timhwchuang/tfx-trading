@@ -12,6 +12,10 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 ### [Unreleased]
 
+#### Changed
+
+- **tick_cache SSOT (breaking)**：`kbar_cache/` 目錄與 `--kbar-cache-dir` / `--mirror-kbars` CLI 已移除；tick 與 kbar 皆寫入/讀取 `tick_cache/`（`{code}_kbars_{date}.csv`）。路徑 API 更名：`kbar_path` / `kbar_gz_path` / `resolve_kbar_path` / `kbars_satisfy_request`（取代 `kbars_cache_*` / `kbar_cache_satisfies_request`）。舊目錄遷移：`scripts/linux/migrate-legacy-kbar-cache.sh`；`structure_calibration` / `param_sweep` 讀 kbar 前自動遷移（`ensure_legacy_kbars_migrated`）。
+
 #### Added
 
 - **GCE Live 運維 SSOT**：[`docs/ops/LinuxOps.md`](docs/ops/LinuxOps.md) §GCE（目錄、cron 13:50 stop → 13:54 post-session、sync）；[`HYBRID_DEPLOY.md`](docs/ops/HYBRID_DEPLOY.md) 已部署摘要；[`TODO.md`](docs/TODO.md) §GCP 營運（2026-07-23 帳單）。

@@ -92,55 +92,6 @@ class TestCacheAudit(unittest.TestCase):
         )
         self.assertEqual(r.severity, "FAIL")
 
-    def test_audit_prefers_kbar_cache_over_stale_tick_mirror(self):
-        day = datetime.date(2026, 6, 22)
-        with tempfile.TemporaryDirectory() as d:
-            tick_root = Path(d) / "tick_cache"
-            kbar_root = Path(d) / "kbar_cache"
-            tick_root.mkdir()
-            kbar_root.mkdir()
-            save_ticks_csv(
-                [
-                    ReplayTick(datetime.datetime(2026, 6, 22, 8, 45), "100.0", 10, 1),
-                ],
-                tick_root / "TMFR1_2026-06-22.csv",
-            )
-            save_kbars_csv(
-                [
-                    KBarRecord(
-                        ts=datetime.datetime(2026, 6, 22, 8, 46),
-                        Open=99.0,
-                        High=99.0,
-                        Low=99.0,
-                        Close=99.0,
-                        Volume=1,
-                    )
-                ],
-                tick_root / "TMFR1_kbars_2026-06-22.csv",
-            )
-            save_kbars_csv(
-                [
-                    KBarRecord(
-                        ts=datetime.datetime(2026, 6, 22, 8, 46),
-                        Open=100.0,
-                        High=100.0,
-                        Low=100.0,
-                        Close=100.0,
-                        Volume=10,
-                    )
-                ],
-                kbar_root / "TMFR1_kbars_2026-06-22.csv",
-            )
-            report = audit_day(
-                "TMFR1",
-                day,
-                cache_dir=tick_root,
-                kbar_cache_dir=kbar_root,
-                max_examples=10,
-            )
-            self.assertEqual(report.kbar_path, kbar_root / "TMFR1_kbars_2026-06-22.csv")
-            self.assertFalse(report.ohlc_mismatches)
-
     def test_audit_ignores_out_of_session_tick_minutes(self):
         day = datetime.date(2026, 6, 22)
         with tempfile.TemporaryDirectory() as d:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -60,13 +61,15 @@ class TestStructureCalibrationBClass(unittest.TestCase):
             ),
         ]
         with tempfile.TemporaryDirectory() as tmp:
-            out_dir = Path(tmp)
+            cache_dir = Path(tmp)
+            shutil.copy(_FIXTURE_TICKS / "TXFR1_2026-06-12.csv", cache_dir)
+            shutil.copy(_FIXTURE_KBARS / "TXFR1_kbars_2026-06-12.csv", cache_dir)
+            out_dir = Path(tmp) / "out"
             result = run_b_class_structure_calibration(
                 log_lines=log_lines,
                 code="TXFR1",
                 dates=[_DAY],
-                kbar_cache_dir=_FIXTURE_KBARS,
-                tick_cache_dir=_FIXTURE_TICKS,
+                cache_dir=cache_dir,
                 forward_policy=ForwardPnlPolicy(window_seconds=1800),
                 friction=FrictionSettings(enabled=True, round_trip_friction_points=2.0),
                 output_dir=out_dir,
@@ -127,8 +130,7 @@ class TestStructureCalibrationBClass(unittest.TestCase):
                 ],
                 code="TXFR1",
                 dates=[_DAY],
-                kbar_cache_dir=Path(tmp),
-                tick_cache_dir=_FIXTURE_TICKS,
+                cache_dir=Path(tmp),
             )
         self.assertEqual(result["status"], "no_kbars")
 

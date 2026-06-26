@@ -28,8 +28,7 @@
 │   ├── config/config.yaml
 │   └── src/                      # systemd WorkingDirectory；python -m live
 ├── packages/ · scripts/ · docs/
-├── tick_cache/                   # 盤中：TMFR1_YYYY-MM-DD.csv、TMFR1_kbars_*.csv
-├── kbar_cache/                   # backfill 等；live kbars 預設寫 tick_cache/
+├── tick_cache/                   # ticks + kbars（UAT archive / backfill）
 ├── reports/                      # post-session：dayYYYYMMDD.json
 └── snapshots/                    # post-session：determinism_YYYYMMDD.txt
 
@@ -80,6 +79,13 @@
 GCE_HOST=<deploy-user>@<GCE_STATIC_IP> REMOTE_ROOT=/opt/tfx-trading \
   bash scripts/linux/sync-from-gce.sh
 # 含 log：SYNC_LOGS=1 GCE_HOST=<deploy-user>@<GCE_STATIC_IP> ...
+```
+
+若本機仍殘留舊版 `kbar_cache/`（已廢棄），遷移 kbars 至 `tick_cache/` 後刪除：
+
+```bash
+bash scripts/linux/migrate-legacy-kbar-cache.sh
+# 預覽：bash scripts/linux/migrate-legacy-kbar-cache.sh --dry-run
 ```
 
 ### 基礎設施監控（VM 掛了 Telegram 不會響）

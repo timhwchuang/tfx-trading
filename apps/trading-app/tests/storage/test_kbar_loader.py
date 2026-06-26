@@ -16,9 +16,9 @@ from storage.kbar_loader import (
     _kbar_window_needs_fetch,
     download_and_cache_kbars,
     iter_kbars_in_range,
-    kbar_cache_satisfies_request,
-    kbars_cache_gz_path,
-    kbars_cache_path,
+    kbars_satisfy_request,
+    kbar_gz_path,
+    kbar_path,
     load_kbars_csv,
     kbar_ts_from_ns,
     save_kbars_csv,
@@ -41,8 +41,8 @@ def _session_kbars(date: datetime.date) -> list[KBarRecord]:
 def _write_gz_kbars_only(
     cache_dir: Path, code: str, date: datetime.date, bars: list[KBarRecord]
 ) -> Path:
-    plain = kbars_cache_path(cache_dir, code, date)
-    gz = kbars_cache_gz_path(cache_dir, code, date)
+    plain = kbar_path(cache_dir, code, date)
+    gz = kbar_gz_path(cache_dir, code, date)
     save_kbars_csv(bars, plain)
     gz.write_bytes(gzip.compress(plain.read_bytes()))
     plain.unlink()
@@ -165,47 +165,38 @@ class TestDownloadAndCacheKbarsTimeFilter(unittest.TestCase):
                 time_start=datetime.time(8, 45),
                 time_end=datetime.time(13, 45),
             )
-            from storage.kbar_loader import kbars_cache_path, load_kbars_csv
+            from storage.kbar_loader import kbar_path, load_kbars_csv
 
-            bars = load_kbars_csv(kbars_cache_path(cache_dir, "TXFR1", date))
+            bars = load_kbars_csv(kbar_path(cache_dir, "TXFR1", date))
             self.assertEqual(len(bars), 1)
             self.assertEqual(bars[0].ts, datetime.datetime(2026, 6, 18, 10, 0))
 
-    def test_skip_path_does_not_overwrite_existing_tick_cache_mirror(self):
+    def test_skip_path_does_not_refetch_when_cache_covers_window(self):
         api = MagicMock()
         api.usage.return_value = MagicMock(
             bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
         )
         contract = MagicMock(code="TXFR1")
         date = datetime.date(2026, 6, 18)
-        with tempfile.TemporaryDirectory() as kd, tempfile.TemporaryDirectory() as td:
-            kbar_dir = Path(kd)
-            tick_dir = Path(td)
+        with tempfile.TemporaryDirectory() as d:
+            cache_dir = Path(d)
             save_kbars_csv(
-                [KBarRecord(datetime.datetime(2026, 6, 18, 9, 0), 1, 1, 1, 1, 1)],
-                kbars_cache_path(kbar_dir, "TXFR1", date),
-            )
-            rich_tick_cache = kbars_cache_path(tick_dir, "TXFR1", date)
-            save_kbars_csv(
-                [KBarRecord(datetime.datetime(2026, 6, 18, 1, 0), 9, 9, 9, 9, 9)],
-                rich_tick_cache,
+                _session_kbars(date),
+                kbar_path(cache_dir, "TXFR1", date),
             )
             download_and_cache_kbars(
                 api,
                 contract,
                 [date],
-                cache_dir=kbar_dir,
-                mirror_cache_dir=tick_dir,
+                cache_dir=cache_dir,
                 overwrite=False,
                 simulation=True,
                 time_start=datetime.time(8, 45),
                 time_end=datetime.time(13, 45),
             )
-            bars = load_kbars_csv(rich_tick_cache)
-            self.assertEqual(len(bars), 1)
-            self.assertEqual(bars[0].ts, datetime.datetime(2026, 6, 18, 1, 0))
+            api.kbars.assert_not_called()
 
-    def test_all_day_refetches_session_only_kbar_cache(self):
+    def test_all_day_refetches_session_only_on_disk_kbars(self):
         api = MagicMock()
         api.usage.return_value = MagicMock(
             bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
@@ -219,7 +210,7 @@ class TestDownloadAndCacheKbarsTimeFilter(unittest.TestCase):
             cache_dir = Path(d)
             save_kbars_csv(
                 [KBarRecord(datetime.datetime(2026, 6, 18, 9, 0), 1, 1, 1, 1, 1)],
-                kbars_cache_path(cache_dir, "TXFR1", date),
+                kbar_path(cache_dir, "TXFR1", date),
             )
             download_and_cache_kbars(
                 api,
@@ -251,13 +242,13 @@ class TestKbarGzCache(unittest.TestCase):
             self.assertEqual(loaded[0].Close, 100.0)
             self.assertEqual(loaded[1].Close, 101.0)
 
-    def test_kbar_cache_satisfies_request_reads_gz_only(self):
+    def test_kbars_satisfy_request_reads_gz_only(self):
         date = datetime.date(2026, 6, 22)
         with tempfile.TemporaryDirectory() as d:
             cache_dir = Path(d)
             _write_gz_kbars_only(cache_dir, "TMFR1", date, _session_kbars(date))
             self.assertTrue(
-                kbar_cache_satisfies_request(
+                kbars_satisfy_request(
                     cache_dir,
                     "TMFR1",
                     date,

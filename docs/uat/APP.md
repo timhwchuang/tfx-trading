@@ -382,7 +382,7 @@ python -m reporting $env:LOG_FILE --episodes
 ## 執行環境統一（Phase 0 強制執行一次）
 
 - 強烈建議從 **monorepo 根** (`C:\tfx-trading`) 執行；`$env:PYTHONPATH="apps\trading-app\src"`。
-- 路徑 SSOT：`apps/trading-app/src/storage/cache_paths.py` 定義 `tick_cache/`、`kbar_cache/`、`reports/`、`snapshots/`、`uat_evidence/`（皆在 monorepo 根）。
+- 路徑 SSOT：`apps/trading-app/src/storage/cache_paths.py` 定義 `tick_cache/`（tick + kbar）、`reports/`、`snapshots/`、`uat_evidence/`（皆在 monorepo 根）。
 - Phase 0 確認目錄存在（clone 已含骨架，見強制規範）。
 
 ## 長期資料管理（從 Phase 3 開始遵守）
@@ -402,7 +402,7 @@ python -m reporting $env:LOG_FILE --episodes
 **文件修訂紀錄（資深交易人員 review 納入）**：
 - Phase 3：gross/net 並列 + 券商對帳摩擦追蹤（自 Phase 3 起，非 Phase 7 才開始）
 - Phase 4：tick 品質分層觀測 + 壓力情境 audit timeline 累積；**FT-002** `structure_veto` / `structure_stale` 演練（CAL-8 前置，預設 filter 關）
-- Phase 2：`kbar_cache` 累積列為 SMC harness 前置
+- Phase 2：`tick_cache/*_kbars_*` 累積列為 SMC harness 前置
 - Phase 5：樣本/密度/0 成交日定義、fidelity gap、≥3 壓力情境人類審閱（含 near-miss）
 - Phase 6：Ops 告警實機證據格式 + 角色協作表
 - determinism_check CLI、執行環境、rollback 清單（沿用）

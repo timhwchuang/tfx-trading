@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 from config import PRODUCT_CODE, SIMULATION
-from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR, DEFAULT_TICK_CACHE_DIR
+from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
 from storage.tick_loader import DEFAULT_TICK_RANGE_END, DEFAULT_TICK_RANGE_START
 
 from backfilldata.core import (
@@ -32,7 +32,7 @@ Examples (from apps/trading-app/src):
   python -m backfilldata month 2026-04 --dry-run
   python -m backfilldata date 2026-06-20 --code TMFR1 --ticks-only
   python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-end 13:45
-  python -m backfilldata date 2026-06-20 --kbars-only --no-mirror-kbars
+  python -m backfilldata date 2026-06-20 --kbars-only
   python -m backfilldata date 2026-06-20 --all-day-ticks
 
 Environment:
@@ -41,8 +41,7 @@ Environment:
 
 Cache layout (defaults):
   ticks  → <monorepo>/tick_cache/{code}_{date}.csv
-  kbars  → <monorepo>/kbar_cache/{code}_kbars_{date}.csv
-           (+ mirror to tick_cache when --mirror-kbars, matching UAT archiver)
+  kbars  → <monorepo>/tick_cache/{code}_kbars_{date}.csv
 
 Notes:
   Prefer running after day session close (13:45 Taipei); same-day backfill is allowed from 13:45 onward.
@@ -80,13 +79,7 @@ def _add_backfill_options(parser: argparse.ArgumentParser) -> None:
         "--tick-cache-dir",
         type=Path,
         default=DEFAULT_TICK_CACHE_DIR,
-        help="Directory for tick CSV cache",
-    )
-    parser.add_argument(
-        "--kbar-cache-dir",
-        type=Path,
-        default=DEFAULT_KBAR_CACHE_DIR,
-        help="Primary directory for kbar CSV cache (sweep / calibration consumers)",
+        help="Directory for tick and kbar CSV cache",
     )
     parser.add_argument(
         "--ticks-only",
@@ -97,19 +90,6 @@ def _add_backfill_options(parser: argparse.ArgumentParser) -> None:
         "--kbars-only",
         action="store_true",
         help="Fetch kbars only",
-    )
-    parser.add_argument(
-        "--mirror-kbars",
-        dest="mirror_kbars",
-        action="store_true",
-        default=True,
-        help="Also write kbars under tick_cache (UAT archiver layout; default on)",
-    )
-    parser.add_argument(
-        "--no-mirror-kbars",
-        dest="mirror_kbars",
-        action="store_false",
-        help="Keep kbars only under kbar_cache",
     )
     parser.add_argument(
         "--overwrite",
@@ -171,9 +151,7 @@ def _backfill_kwargs(args: argparse.Namespace, *, simulation: bool) -> dict:
         "simulation": simulation,
         "fetch_ticks": not args.kbars_only,
         "fetch_kbars": not args.ticks_only,
-        "tick_cache_dir": Path(args.tick_cache_dir),
-        "kbar_cache_dir": Path(args.kbar_cache_dir),
-        "mirror_kbars_to_tick_cache": args.mirror_kbars,
+        "cache_dir": Path(args.tick_cache_dir),
         "overwrite": args.overwrite,
         "tick_time_start": tick_time_start,
         "tick_time_end": tick_time_end,

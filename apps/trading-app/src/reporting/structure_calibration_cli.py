@@ -17,7 +17,6 @@ from reporting.structure_calibration import (
     run_b_class_structure_calibration,
     run_structure_sensitivity_sweep,
 )
-from storage.cache_paths import DEFAULT_KBAR_CACHE_DIR
 from storage.tick_loader import DEFAULT_CACHE_DIR
 from strategy_vwap_momentum.structure import StructureParams
 
@@ -91,7 +90,6 @@ def build_parser() -> argparse.ArgumentParser:
             "--dates 2026-06-12\n"
             "  python -m reporting.structure_calibration_cli logs/uat.log "
             "--dates 2026-06-10,2026-06-11,2026-06-12 "
-            "--kbar-cache-dir ~/tfx-trading/kbar_cache "
             "--cache-dir ~/tfx-trading/tick_cache "
             "--output-dir reports/smc-cal\n"
             "  python -m reporting.structure_calibration_cli logs/uat.log "
@@ -112,19 +110,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--dates",
         required=True,
-        help="Comma-separated YYYY-MM-DD for kbar_cache + tick_cache",
+        help="Comma-separated YYYY-MM-DD for tick_cache replay",
     )
     parser.add_argument(
         "--cache-dir",
         type=Path,
         default=DEFAULT_CACHE_DIR,
-        help="tick_cache directory",
-    )
-    parser.add_argument(
-        "--kbar-cache-dir",
-        type=Path,
-        default=DEFAULT_KBAR_CACHE_DIR,
-        help="kbar_cache directory",
+        help="tick_cache directory (ticks and kbars)",
     )
     parser.add_argument(
         "--output-dir",
@@ -203,8 +195,7 @@ def main(argv: list[str] | None = None) -> int:
         log_paths=args.log_files,
         code=args.code,
         dates=dates,
-        kbar_cache_dir=args.kbar_cache_dir,
-        tick_cache_dir=args.cache_dir,
+        cache_dir=args.cache_dir,
         forward_policy=policy,
         structure_params=structure_params,
         trend_cfg=trend_cfg,
@@ -217,8 +208,7 @@ def main(argv: list[str] | None = None) -> int:
             log_paths=args.log_files,
             code=args.code,
             dates=dates,
-            kbar_cache_dir=args.kbar_cache_dir,
-            tick_cache_dir=args.cache_dir,
+            cache_dir=args.cache_dir,
             forward_policy=policy,
             friction=friction,
             output_path=args.sweep_output,

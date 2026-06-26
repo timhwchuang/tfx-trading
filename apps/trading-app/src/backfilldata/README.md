@@ -4,7 +4,7 @@
 
 **Shioaji historical tick / 1m kbar backfill CLI** for the trading-app integrator.
 
-Fetches historical ticks/kbars for past trade days and **today after 13:45 Taipei** (day session close), writes CSV caches under monorepo `tick_cache/` and `kbar_cache/`, with optional mirror so UAT archiver layout and sweep/calibration consumers stay aligned. Tick backfill defaults to the day session `RangeTime` window `08:45:00`–`13:45:00`.
+Fetches historical ticks/kbars for past trade days and **today after 13:45 Taipei** (day session close), writes CSV caches under monorepo `tick_cache/` (ticks and kbars in one directory). Tick backfill defaults to the day session `RangeTime` window `08:45:00`–`13:45:00`.
 
 **本模組為作者個人研究與學習用途而公開，部分程式與文件在開發過程中借助 AI 協作撰寫與整理。**
 
@@ -64,10 +64,9 @@ python -m storage.cache_repair --code TMFR1 --fix-kbars-only   # 僅本地 ticks
 | Output | Path | Used by |
 |--------|------|---------|
 | Ticks | `tick_cache/{code}_{date}.csv` | backtest, replay |
-| Kbars (primary) | `kbar_cache/{code}_kbars_{date}.csv` | param_sweep, structure calibration |
-| Kbars (mirror) | `tick_cache/{code}_kbars_{date}.csv` | UAT `KBARS_ARCHIVE` layout |
+| Kbars | `tick_cache/{code}_kbars_{date}.csv` | ATR warmup, param_sweep, structure calibration, UAT `KBARS_ARCHIVE` |
 
-關閉 mirror：`--no-mirror-kbars`。
+若本機仍有舊版 `kbar_cache/`：`bash scripts/linux/migrate-legacy-kbar-cache.sh`（見 [`docs/ops/LinuxOps.md`](../../../../docs/ops/LinuxOps.md)）。
 
 ## Shioaji limits (摘要)
 

@@ -1,11 +1,10 @@
-"""K-bar cache I/O for backtest ATR warmup."""
+"""K-bar file I/O under ``tick_cache/`` (``{code}_kbars_{date}.csv``) for ATR warmup."""
 
 from __future__ import annotations
 
 import csv
 import datetime
 import logging
-import shutil
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -122,7 +121,7 @@ def _all_day_kbar_needs_fetch(bars: Sequence[KBarRecord]) -> bool:
     )
 
 
-def kbar_cache_satisfies_request(
+def kbars_satisfy_request(
     cache_dir: Path,
     code: str,
     date: datetime.date,
@@ -130,8 +129,8 @@ def kbar_cache_satisfies_request(
     time_start: datetime.time | None,
     time_end: datetime.time | None,
 ) -> bool:
-    """Whether on-disk kbar cache meets the requested backfill window."""
-    path = resolve_kbars_cache_path(cache_dir, code, date)
+    """Whether on-disk kbars in *cache_dir* meet the requested backfill window."""
+    path = resolve_kbar_path(cache_dir, code, date)
     if path is None:
         return False
     bars = load_kbars_csv(path)
@@ -170,47 +169,26 @@ def _default_simulation_mode() -> bool:
         return False
 
 
-def kbars_cache_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
+def kbar_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
+    """Plain ``{code}_kbars_{date}.csv`` under *cache_dir* (typically ``tick_cache/``)."""
     return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv"
 
 
-def kbars_cache_gz_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
+def kbar_gz_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
     return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv.gz"
 
 
-def resolve_kbars_cache_path(
+def resolve_kbar_path(
     cache_dir: Path, code: str, date: datetime.date
 ) -> Path | None:
-    """Return on-disk kbar cache (plain preferred over gzip mirror)."""
-    plain = kbars_cache_path(cache_dir, code, date)
-    gz = kbars_cache_gz_path(cache_dir, code, date)
+    """Return on-disk kbar file (plain ``.csv`` preferred over ``.csv.gz``)."""
+    plain = kbar_path(cache_dir, code, date)
+    gz = kbar_gz_path(cache_dir, code, date)
     if plain.is_file():
         return plain
     if gz.is_file():
         return gz
     return None
-
-
-def mirror_kbar_cache_file(
-    *,
-    code: str,
-    date: datetime.date,
-    source_dir: Path,
-    dest_dir: Path,
-    overwrite: bool,
-) -> Path | None:
-    """Copy ``{code}_kbars_{date}.csv`` from source_dir to dest_dir if present."""
-    src = kbars_cache_path(source_dir, code, date)
-    if not src.is_file():
-        return None
-    dest = kbars_cache_path(dest_dir, code, date)
-    if dest.is_file() and not overwrite:
-        logger.info("K 線 mirror 已存在，跳過 %s", dest.name)
-        return dest
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, dest)
-    logger.info("K 線 mirror %s → %s", src.name, dest.name)
-    return dest
 
 
 def save_kbars_csv(bars: Iterable[KBarRecord], path: Path) -> int:
@@ -315,14 +293,12 @@ def download_and_cache_kbars(
     overwrite: bool = False,
     preload_dates: Optional[Iterable[datetime.date]] = None,
     simulation: bool | None = None,
-    mirror_cache_dir: Path | None = None,
     pace_sec: float = 0.0,
     time_start: datetime.time | None = None,
     time_end: datetime.time | None = None,
 ) -> List[Path]:
     """逐日抓取 K 線並落地快取；preload_dates 供 ATR 熱身（6.5）預載前日/夜盤。
 
-    ``mirror_cache_dir``：主快取寫入 ``cache_dir`` 後，可選複製到第二目錄（如 tick_cache）。
     ``simulation``：覆寫 kbar ``ts`` 解碼（預設讀 ``config.SIMULATION``）。
     ``time_start`` / ``time_end``：API 仍取整日，落地前依交易所時間裁切（backfill 對齊 tick 視窗）。
     """
@@ -338,8 +314,8 @@ def download_and_cache_kbars(
     all_day = time_start is None and time_end is None
     _log_usage(api, "kbars_download_start")
     for date in all_dates:
-        path = kbars_cache_path(cache_dir, code, date)
-        cached_path = resolve_kbars_cache_path(cache_dir, code, date)
+        path = kbar_path(cache_dir, code, date)
+        cached_path = resolve_kbar_path(cache_dir, code, date)
         existing_bars: List[KBarRecord] = (
             load_kbars_csv(cached_path) if cached_path is not None else []
         )
@@ -355,16 +331,6 @@ def download_and_cache_kbars(
         if cached_path is not None and not needs_fetch:
             logger.info("K 線視窗已覆蓋，跳過 %s", cached_path.name)
             written.append(cached_path)
-            if mirror_cache_dir is not None:
-                mirrored = mirror_kbar_cache_file(
-                    code=code,
-                    date=date,
-                    source_dir=cache_dir,
-                    dest_dir=mirror_cache_dir,
-                    overwrite=overwrite,
-                )
-                if mirrored is not None:
-                    written.append(mirrored)
             continue
         try:
             bars = fetch_kbars_for_date(api, contract, date, simulation=simulation)
@@ -391,16 +357,6 @@ def download_and_cache_kbars(
         n = save_kbars_csv(bars, path)
         logger.info("已快取 K 線 %s | %d bars → %s", date.isoformat(), n, path.name)
         written.append(path)
-        if mirror_cache_dir is not None:
-            mirrored = mirror_kbar_cache_file(
-                code=code,
-                date=date,
-                source_dir=cache_dir,
-                dest_dir=mirror_cache_dir,
-                overwrite=overwrite,
-            )
-            if mirrored is not None:
-                written.append(mirrored)
         if pace_sec > 0:
             time.sleep(pace_sec)
     _log_usage(api, "kbars_download_end")
@@ -417,7 +373,7 @@ def iter_kbars_in_range(
     """讀取 [start, end] 日曆日範圍內所有已快取 K 線（缺檔略過）。"""
     bars: List[KBarRecord] = []
     for date in date_range(start, end):
-        path = resolve_kbars_cache_path(cache_dir, code, date)
+        path = resolve_kbar_path(cache_dir, code, date)
         if path is None:
             continue
         bars.extend(load_kbars_csv(path))
