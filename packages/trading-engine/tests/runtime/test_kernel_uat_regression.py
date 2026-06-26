@@ -133,10 +133,13 @@ class TestKernelUatRegression(unittest.TestCase):
         host._settle_since = host._clock() - host._cfg.settle_timeout_sec - 1
         host._settle_via_reconcile()
 
-        self.assertFalse(host.is_pending)
+        # Single-flight: the EXIT may still be working at the broker → HALT keeps
+        # its order_id (not dropped) and skips sync (so the settle loop's
+        # fill-detection math is not clobbered). Still fires a one-shot CRITICAL.
+        self.assertTrue(host.is_pending)
         self.assertTrue(host.block_new_entry)
         self.assertTrue(host._position_unconfirmed)
-        host.sync_positions.assert_called()
+        host.sync_positions.assert_not_called()
         alerts.send.assert_called()
         self.assertEqual(alerts.send.call_args.kwargs.get("level"), "CRITICAL")
 

@@ -625,14 +625,15 @@ class TestInjectedClock(unittest.TestCase):
         # not yet timed out → still in fast (callback) wait.
         host._check_pending_timeout()
         self.assertTrue(host.is_pending)
-        # advance past timeout → the injected clock drives the timeout. P0-5: the
-        # broker reconcile confirms it stayed flat (entry never filled), a clean
-        # no-fill resolution — pending cleared without HALT/block.
+        # advance past timeout → the injected clock drives the timeout. P0-5: an
+        # ENTRY is NEVER resolved as a clean no-fill from a flat snapshot (a stale
+        # flat read is not proof of non-fill). Timeout = UNKNOWN → enter SETTLING
+        # with the order still in flight (no re-arm). The settle-timeout later
+        # routes entry uncertainty to HALT, never back to a re-armable clear.
         clock_value["t"] = 1000.0 + PENDING_TIMEOUT_SEC + 1
         host._check_pending_timeout()
-        self.assertFalse(host.is_pending)
-        self.assertFalse(host._settling)
-        self.assertFalse(host.block_new_entry)
+        self.assertTrue(host.is_pending)
+        self.assertTrue(host._settling)
 
     def test_default_clock_is_time_time(self):
         import time

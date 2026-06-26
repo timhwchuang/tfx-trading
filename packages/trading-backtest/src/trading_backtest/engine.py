@@ -102,6 +102,7 @@ class BacktestEngine:
             # convergence / reconcile steps the live timeout loop runs every 1s.
             self.host._settle_via_reconcile()
             self.host._maybe_converge_flatten()
+            self.host._maybe_emergency_market_flatten()
             self.host._check_position_reconcile()
             if is_trading_session(
                 tick.datetime,

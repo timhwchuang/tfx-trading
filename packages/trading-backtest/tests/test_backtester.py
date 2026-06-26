@@ -41,14 +41,21 @@ class TestBacktestEngine(unittest.TestCase):
 
     def test_pending_timeout_before_tick_processing(self):
         t0 = datetime.datetime(2026, 6, 12, 9, 0, 0)
-        t1 = datetime.datetime(2026, 6, 12, 9, 0, 10)
+        # Gap must exceed pending_timeout_sec so the timeout fires on tick2.
+        t1 = t0 + datetime.timedelta(seconds=PENDING_TIMEOUT_SEC + 5)
         tick1 = ReplayTick(t0, 18000.0, 1, 0)
         tick2 = ReplayTick(t1, 18001.0, 1, 0)
         engine = _engine("TXFR1", [t0.date()])
+        # P0-5: an ENTRY pending that times out on a flat broker snapshot is NEVER
+        # cleared (a stale flat read is not proof of non-fill); instead it enters
+        # SETTLING. We assert that the timeout check ran *before* on_tick by
+        # observing _settling already set when on_tick fires.
+        settling_at_on_tick: list[bool] = []
         pending_at_on_tick: list[bool] = []
         original_on_tick = engine.host.on_tick
 
         def spy_on_tick(tick):
+            settling_at_on_tick.append(engine.host._settling)
             pending_at_on_tick.append(engine.host.is_pending)
             return original_on_tick(tick)
 
@@ -67,7 +74,10 @@ class TestBacktestEngine(unittest.TestCase):
 
         self.assertGreater(t1.timestamp() - t0.timestamp(), PENDING_TIMEOUT_SEC)
         self.assertEqual(len(pending_at_on_tick), 2)
-        self.assertFalse(pending_at_on_tick[1])
+        # Timeout ran before on_tick → entry transitioned to SETTLING, still pending
+        # (never re-armed / cleared from a flat snapshot).
+        self.assertTrue(settling_at_on_tick[1])
+        self.assertTrue(pending_at_on_tick[1])
 
     def test_premarket_ticks_are_filtered(self):
         ticks = [

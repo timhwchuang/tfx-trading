@@ -37,6 +37,8 @@ class MockBroker:
         session_force_flatten_time: datetime.time = datetime.time(13, 44),
         cache_dir=DEFAULT_CACHE_DIR,
         spread_calibration: bool = False,
+        position_report_delay_sec: float = 0.0,
+        deal_report_delay_sec: float = 0.0,
     ) -> None:
         self.clock = clock
         self.latency_ms = latency_ms
@@ -56,13 +58,40 @@ class MockBroker:
         self._net_qty = 0
         self._last_fill_price = 0.0
         self._position_code = "TMFR1"
+        # P0-5 fault injection: model the live venue's report latency so tests can
+        # reproduce the "stale flat list_positions while a fill is in flight" race.
+        # position_report_delay_sec: how long after a fill list_positions reflects it.
+        # deal_report_delay_sec: how long after a fill the FUTURES_DEAL callback fires.
+        self.position_report_delay_sec = position_report_delay_sec
+        self.deal_report_delay_sec = deal_report_delay_sec
+        # (apply_at, action, qty, price) position updates pending their report delay.
+        self._position_updates: list[tuple[float, str, int, float]] = []
+        # (deliver_at, msg) deal callbacks pending their report delay.
+        self._delayed_deals: list[tuple[float, dict]] = []
 
     def resolve_contract(self, code: str) -> SimpleNamespace:
         self._position_code = code
         return SimpleNamespace(code=code)
 
+    def _apply_due_position_updates(self) -> None:
+        now = self.clock()
+        due = [u for u in self._position_updates if u[0] <= now]
+        if not due:
+            return
+        self._position_updates = [u for u in self._position_updates if u[0] > now]
+        for _, action, qty, price in due:
+            delta = qty if action == "Buy" else -qty
+            self._net_qty += delta
+            if self._net_qty != 0:
+                self._last_fill_price = price
+
     def list_positions(self, account: Any = None) -> list[SimpleNamespace]:
-        """P0-5: broker position snapshot reflecting net fills (truth source)."""
+        """P0-5: broker position snapshot reflecting net fills (truth source).
+
+        Fills only become visible after ``position_report_delay_sec`` to model
+        the live broker's snapshot latency.
+        """
+        self._apply_due_position_updates()
         if self._net_qty == 0:
             return []
         direction = "Buy" if self._net_qty > 0 else "Sell"
@@ -76,11 +105,19 @@ class MockBroker:
         ]
 
     def _record_fill(self, action: str, qty: int, price: float) -> None:
-        """Update net broker position from a fill (mirror of what the kernel sees)."""
-        delta = qty if action == "Buy" else -qty
-        self._net_qty += delta
-        if self._net_qty != 0:
-            self._last_fill_price = price
+        """Schedule a net broker position update, delayed by the report latency."""
+        apply_at = self.clock() + self.position_report_delay_sec
+        self._position_updates.append((apply_at, action, qty, price))
+        self._apply_due_position_updates()
+
+    def _deliver_due_deals(self, host: Any) -> None:
+        now = self.clock()
+        due = [d for d in self._delayed_deals if d[0] <= now]
+        if not due:
+            return
+        self._delayed_deals = [d for d in self._delayed_deals if d[0] > now]
+        for _, msg in due:
+            host.handle_order_event(FUTURES_DEAL, msg)
 
     def place_order(self, contract: Any, order: Any, timeout: int = 0) -> SimpleNamespace:
         self._seq += 1
@@ -95,12 +132,16 @@ class MockBroker:
                 ),
                 "limit_price": float(order.price),
                 "quantity": int(order.quantity),
+                "market": bool(getattr(order, "market", False)),
                 "arrive_after": self.clock() + self.latency_ms / 1000.0,
             }
         )
         return SimpleNamespace(order=SimpleNamespace(id=order_id))
 
-    def update_status(self, trade: Any = None) -> None:
+    def update_status(self, trade: Any = None, **kwargs: Any) -> None:
+        # No-op: backtest resolves via list_positions. Accept **kwargs (e.g. the
+        # bounded ``timeout`` Layer 2 passes) so the call is harmless if the flag
+        # is ever enabled in a sim/backtest run.
         pass
 
     def order_deal_records(self) -> list:
@@ -162,6 +203,8 @@ class MockBroker:
 
     def process_matching_queue(self, tick: Any, host: Any) -> None:
         tick_ts = tick.datetime.timestamp()
+        # Deliver any deal callbacks whose report delay has now elapsed.
+        self._deliver_due_deals(host)
         for ord in list(self.inflight):
             if tick_ts < ord["arrive_after"]:
                 continue
@@ -171,7 +214,11 @@ class MockBroker:
             close = self._tick_close(tick)
             limit = ord["limit_price"]
             is_buy = ord["action"] == "Buy"
-            if is_buy:
+            if ord.get("market"):
+                # Emergency market order: guaranteed fill at close ± slippage
+                # (models paying the spread/impact to get out, no limit cross gate).
+                fill = close + slippage if is_buy else close - slippage
+            elif is_buy:
                 if close <= limit:
                     fill = min(limit, close + slippage)
                 else:
@@ -193,17 +240,21 @@ class MockBroker:
             else:
                 # Record the fill against the broker's own net position first so
                 # list_positions() reflects truth even if the kernel callback path
-                # drops/ignores it (P0-5 reconcile relies on this).
+                # drops/ignores it (P0-5 reconcile relies on this). Subject to the
+                # configured report delays.
                 self._record_fill(ord["action"], ord["quantity"], fill)
-                host.handle_order_event(
-                    FUTURES_DEAL,
-                    {
-                        "price": fill,
-                        "quantity": ord["quantity"],
-                        "action": ord["action"],
-                        "trade_id": ord["order_id"],
-                    },
-                )
+                msg = {
+                    "price": fill,
+                    "quantity": ord["quantity"],
+                    "action": ord["action"],
+                    "trade_id": ord["order_id"],
+                }
+                if self.deal_report_delay_sec > 0:
+                    self._delayed_deals.append(
+                        (self.clock() + self.deal_report_delay_sec, msg)
+                    )
+                else:
+                    host.handle_order_event(FUTURES_DEAL, msg)
 
 
 __all__ = ["MockBroker"]

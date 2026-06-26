@@ -32,5 +32,29 @@ class ShioajiOrderAdapter:
         )
         return self._api.place_order(contract, order, timeout=timeout)
 
+    def place_market(
+        self,
+        contract: Any,
+        *,
+        action: str,
+        qty: int,
+        account: Any,
+        timeout: int = 0,
+    ) -> Any:
+        import shioaji as sj
+
+        # MKP (範圍市價) is the TAIFEX market order type; IOC so any unfilled
+        # remainder is cancelled rather than resting. Emergency flatten only.
+        order = sj.FuturesOrder(
+            action=sj.Action.Buy if action == "Buy" else sj.Action.Sell,
+            price=0,
+            quantity=qty,
+            price_type=sj.FuturesPriceType.MKP,
+            order_type=sj.OrderType.IOC,
+            octype=sj.FuturesOCType.Auto,
+            account=account,
+        )
+        return self._api.place_order(contract, order, timeout=timeout)
+
 
 __all__ = ["ShioajiOrderAdapter"]

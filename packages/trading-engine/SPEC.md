@@ -140,16 +140,28 @@ engine.on_tick(TickSnapshot(ts=..., price=..., volume=..., tick_type=1, exchange
 5. **無法歸屬的成交（pending 已清或 `order_id` 不符）不得靜默丟棄（P0-2）**：觸發 `sync_positions` + `block_new_entry` + CRITICAL，以券商為準。
 6. 日內風控計數依 `trading_day_for_daily_reset` 重置。
 7. **`_api_connected`** 僅在「報價 subscribe 成功」**且「委託/成交回報通道重掛（`_resubscribe_trade`）成功」**且 `refresh_atr()` 成功（或 ATR 失敗非 session 錯誤）後由 `_on_reconnected` 設為 `True`；任一失敗 → 保持 disconnected，交由 session watchdog relogin（**P0-1**，見 [`LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md)）。重連只重訂報價而不重掛回報通道，是 24 口 phantom short 的主因。
-8. **週期對帳熔斷（P0-3）**：交易時段每 `position_reconcile_sec`（預設 60）以 `list_positions` 比對；qty/dir 與券商不一致 → 以券商為準更新 + `block_new_entry` + CRITICAL。`_position_unconfirmed`（HALT）時改 `reconcile_fast_sec`（預設 2）快節奏。「未確認持倉與券商一致前，禁止任何新進場」；對帳是 kernel 的權威來源，callback 僅為快路徑。
+8. **週期對帳熔斷（P0-3）**：交易時段每 `position_reconcile_sec`（預設 60）以 `list_positions` 比對；qty/dir 與券商不一致 → 以券商為準更新 + `block_new_entry` + CRITICAL。`_position_unconfirmed`（HALT）時改 `reconcile_fast_sec`（預設 1）快節奏。「未確認持倉與券商一致前，禁止任何新進場」；對帳是 kernel 的權威來源，callback 僅為快路徑。
 9. **硬部位上限（P0-4）**：`_validate_order_signal` 對 entry 於 `position_qty + signal.qty > max_position_qty`（預設 1）時拒單；對帳/結算發現 `broker_qty > max 且 > kernel_qty` → HALT + 收斂平倉（硬背板）。
-10. **部位真相驅動（P0-5）**：券商 `list_positions` 為唯一真相。
-    - **Timeout = UNKNOWN，非 FAILED**：`pending_timeout_sec` 後**不**清 pending 讓策略重下，而是進入 `_settling`（保留 `pending_order_id` 使遲到成交仍可歸屬），快節奏 poll 券商（`_settle_via_reconcile`），讀數經 `reconcile_confirm_reads` 次 debounce 後採信。
-    - **不確定即凍結**：`_settling` 或 `_position_unconfirmed` 期間，`_validate_order_signal` 與策略 `evaluate`/`manage_exit` **同時拒絕 entry 與 exit**（補掉舊版只擋 entry 的洞）。
-    - **逾時轉 HALT**：`settle_timeout_sec`（預設 30）內無法確認 → `_position_unconfirmed` + `block_new_entry` + CRITICAL。
-    - **收斂式復原**：HALT 且券商非 flat → kernel `_maybe_converge_flatten` 以真實 qty 送**唯一一張**平倉（節流），送後回 `_settling` 等確認；確認 flat 後解除 HALT（`block_new_entry` 維持至日切/人工）。
+10. **部位真相驅動（P0-5）＋實盤淨部位硬上限永不超過 `max_position_qty`（=1）**：券商 `list_positions` 為唯一真相。
+    - **Timeout = UNKNOWN，非 FAILED**：`pending_timeout_sec`（預設 1）後**不**清 pending 讓策略重下，而是進入 `_settling`（保留 `pending_order_id` 使遲到成交仍可歸屬），快節奏（`reconcile_fast_sec`，預設 1）poll 券商（`_settle_via_reconcile`），讀數經 `reconcile_confirm_reads`（預設 3）次 debounce 後採信。**未知視窗下限＝券商自身回報延遲**（`list_positions`/deal 皆會延遲），縮短本值無法壓到券商延遲以下；exit/停損時效改由緊急市價脫鉤（見下）。
+    - **entry 永不以「瞬間 flat 快照」判定未成交**：`_apply_pending_broker_truth` entry 分支**只有正向成交**才解析 pending；瞬間 flat 讀數不是未成交證據。時間門控的 **MISSED** 決策在 `_settle_via_reconcile`（`entry_miss_confirm_sec` 預設 5 + debounce）：穩定 readable-flat 逾窗 → 清 pending、記 WARNING、**恢復正常進場**（不 sticky HALT）。
+    - **雙層狀態機**：**SETTLING**（暫態、自動恢復）vs **HALT**（異常、sticky）。偶發 callback 靜默 / 單次 entry miss → SETTLING → NORMAL。HALT 僅用於：上限 breach、孤兒/非當前成交、券商不可讀、debounce 無法穩定、連續 miss 熔斷（`max_consecutive_missed_entries` 預設 3）。
+    - **單一在途（single-flight）涵蓋所有 kernel 委託**：`_halt_position_unconfirmed(clear_pending=...)` 只有在呼叫端確知在途委託已終結才 `clear_pending=True`；exit/平倉在途一律保留 `order_id`。
+    - **不確定即凍結**：`_settling` 凍結新 entry；`_position_unconfirmed`（HALT）凍結 entry+exit。
+    - **exit 逾時轉 HALT**：`settle_timeout_sec`（預設 45）內 exit 仍無法確認 → HALT（single-flight 保留在途單）。entry 不在此路徑 sticky-HALT（改 MISSED 恢復）。
+    - **收斂式復原（以新鮮 debounce 真相定量）**：HALT 且券商非 flat → kernel `_maybe_converge_flatten` **重新讀取並 debounce 券商真相**，以該確認 qty 送**唯一一張**平倉（`is_pending`/`_settling` 守門 + 節流），送後回 `_settling` 等確認；確認 flat 後解除 HALT（`block_new_entry` 維持至日切/人工）。HALT 期間**不得**以「未變動且一致」讀數清在途 exit/平倉（分鐘級延遲下該讀數只是尚未反映的舊部位），否則收斂會重複送 — HALT 中 exit 只認真實減倉或明確 Cancelled。
+    - **緊急市價單（`emergency_market_orders`，預設 True）**：停損 IOC（`stop_loss`/`stop_loss_vwap`）未成交（Cancelled 無 fill）→ kernel 送**唯一一張市價平倉**（`_maybe_emergency_market_flatten`，single-flight、`_kernel_converging` 繞過凍結）；收斂平倉亦改市價。保證成交、以滑價換時效，使 exit/停損「最慢多久平倉」自未知視窗脫鉤。entry 與獲利/移動停利出場維持限價 IOC 不變。
     - 孤兒/非當前委託成交 → `_position_unconfirmed`（全面凍結，非僅 `block_new_entry`）。
+    - **IOC live vs sim**：live IOC 為交易所內建單別（ms 級終結）；模擬環境回報延遲可達分鐘級（批次撮合、測試主機限制），**不得**用模擬延遲校準 live 行為。`entry_miss_confirm_sec=5` 對 live 保守；sim 可能觸發 orphan→收斂背板（預期、安全）。
+    - **回報延遲量測**：`CALLBACK_LATENCY` log（`exchange_ts` vs 本地接收時間）供 UAT 校準。
+    - **三層真相模型（Layer 1/2/3）**：
+      - **Layer 1（快路徑）**：callback（`handle_order_event`）— 不變。
+      - **Layer 2（精確終態）**：`update_status(trade)` 於 **order worker** 執行（`order_status_query_enabled`，預設 **False**）。涵蓋 Shioaji 8 種 `OrderStatus`（`Filled`/`PartFilled`/`Cancelled`/`Failed`/`Inactive`/`PendingSubmit`/`PreSubmitted`/`Submitted`）；無 `Timeout` 狀態 — kernel 的 `pending_timeout` 是觀測概念。`order_status_query_timeout_ms`（預設 1000）避免 Shioaji 預設 30s 卡住 order worker。終態與 `list_positions` 交叉驗證；不符 → HALT。
+      - **Layer 3（權威會計）**：`list_positions` debounce — 不變，為部位唯一真相。
+      - **HALT 期間 exit pending 何時可清（訊號分類）**：**推論（L3 unchanged read）不 clear** — 分鐘級延遲下「未變動一致」讀數可能只是尚未反映的在途平倉；**權威終態（L1 callback Cancelled / L2 query cancelled|failed|inactive）clear 並允許 convergence / 市價重試** — 交易所已確認單終結，與 callback 路徑一致。
+      - flag OFF 時行為與 inference 路徑完全相同；flag ON 時 `working`/`unknown` 仍 fallback 至 Layer 3。**由 flag 單獨控制（不看 `simulation`）**。flag ON 時 `_check_pending_timeout` 順序：L3 snapshot → `order_deal_records`（bg-safe）→ L2 enqueue。UAT 用真實 Shioaji 模擬帳戶（真實 Rust `Trade`），須在 UAT 開啟以驗 borrow 安全；backtest `MockBroker` 為 no-op 故無害。**滾動順序：UAT 先開 → 零 `PyBorrowMutError` → 正式才開**。`update_status` 拋例外 → 攔截、log、降級至 inference，永不破壞部位安全。UAT 驗證矩陣見 [`LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md)。
 
-實作參考：`order_executor.py`、`session.py`、`engine.py`。歷史設計稿見 [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md)。
+實作參考：`order_executor.py`（`_query_pending_status`、`_read_trade_terminal_state`、`_enqueue_query_status`）、`session.py`、`engine.py`。歷史設計稿見 [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md)。
 
 ### 4.3 BrokerPort
 

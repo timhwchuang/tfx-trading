@@ -88,13 +88,32 @@ class Settings:
     # P0-5 (truth-driven execution): after pending_timeout_sec the kernel stops
     # trusting the (possibly delayed) callback and treats the order as UNKNOWN,
     # actively reconciling against the broker position. ``settle_timeout_sec``
-    # bounds how long it stays in SETTLING before declaring the position
-    # UNCONFIRMED (HALT). ``reconcile_fast_sec`` is the poll cadence while any
+    # bounds how long SETTLING waits before HALT for exit/unreadable-broker paths.
+    # Entry miss uses entry_miss_confirm_sec (clean resume) instead of sticky HALT.
     # order is unresolved (pending/settling/unconfirmed); ``reconcile_confirm_reads``
     # debounces consecutive identical broker reads before adopting them as truth.
-    settle_timeout_sec: int = 30
-    reconcile_fast_sec: int = 2
-    reconcile_confirm_reads: int = 2
+    settle_timeout_sec: int = 45
+    reconcile_fast_sec: int = 1
+    reconcile_confirm_reads: int = 3
+    # P0-5: emergency market orders. When True (default), a missed STOP-LOSS IOC and
+    # the HALT convergence flatten escalate to a guaranteed-fill market order instead
+    # of chasing with limit IOCs. Bounds time-to-flat in fast/illiquid markets at the
+    # cost of slippage. Set False to keep the legacy limit-IOC-only behavior.
+    emergency_market_orders: bool = True
+    # P0-5: stable readable-flat duration before an entry IOC is declared MISSED
+    # (clean resume, no sticky HALT). Must exceed max live fill-report latency
+    # (live IOC is ms-level; 5s is conservative). Sim may mis-infer and trigger
+    # the ceiling/convergence backstop — that is intentional for UAT==live.
+    entry_miss_confirm_sec: int = 5
+    # Consecutive entry misses before HALT+CRITICAL (structural failure, e.g.
+    # orders not reaching the exchange). 0 = disable circuit breaker.
+    max_consecutive_missed_entries: int = 3
+    # Layer 2: IOC terminal-state query via update_status(trade) on the order
+    # worker (borrow-safe). Default OFF; inference path remains fallback.
+    order_status_query_enabled: bool = False
+    # Bounded timeout (ms) passed to update_status; Shioaji default is 30s which
+    # would stall the shared order-worker thread.
+    order_status_query_timeout_ms: int = 1000
 
     config_path: Path = Path("")
 

@@ -18,6 +18,23 @@ class OrderSignal:
     audit: SignalAudit | None = None
     slippage_points: int | None = None
     signal_id: str = ""  # assigned by kernel (FT-001 Phase 2)
+    # P0-5: emergency market order (guaranteed fill, no limit). Used by kernel for
+    # stop-loss IOC-miss escalation and HALT convergence flatten. Never set by the
+    # strategy for normal entries/profit exits.
+    market: bool = False
+
+
+@dataclass(frozen=True)
+class QueryStatusTask:
+    """Order-worker task: query IOC terminal state via update_status(trade).
+
+    ``generation`` snapshots the pending generation at enqueue time so a task that
+    outlives its pending (cleared + a new order armed) is rejected as stale even
+    when ``order_id`` was still empty at enqueue time.
+    """
+
+    order_id: str
+    generation: int = -1
 
 
 @dataclass

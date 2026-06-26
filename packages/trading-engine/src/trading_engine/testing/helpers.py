@@ -68,6 +68,7 @@ def arm_pending_entry(
     host.pending_ioc_slippage = 3
     host.pending_episode_id = ""
     host.pending_signal_id = ""
+    host._pending_action = "Buy"
 
 
 def arm_pending_exit(

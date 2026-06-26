@@ -17,5 +17,18 @@ class OrderAdapter(Protocol):
         timeout: int = 0,
     ) -> Any: ...
 
+    def place_market(
+        self,
+        contract: Any,
+        *,
+        action: str,
+        qty: int,
+        account: Any,
+        timeout: int = 0,
+    ) -> Any:
+        """Emergency market order (guaranteed fill, IOC). Used by the kernel for
+        stop-loss escalation and HALT convergence flatten."""
+        ...
+
 
 __all__ = ["OrderAdapter"]

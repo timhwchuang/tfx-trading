@@ -30,6 +30,7 @@ from trading_engine.core.types import (
     EngineStateSnapshot,
     OrderSignal,
     PositionSnapshot,
+    QueryStatusTask,
     RiskGate,
     TickSnapshot,
 )
@@ -123,6 +124,9 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.pending_limit_price = 0.0
         self.pending_exit_reason = ""
         self.pending_ioc_slippage = self._cfg.ioc_slippage_points
+        self.pending_market = False  # P0-5: current pending is an emergency market order
+        # P0-5: a stop-loss IOC missed → escalate to a kernel-owned market flatten.
+        self._stop_market_flatten_request = False
         self.pending_episode_id: str = ""
         self.pending_signal_id: str = ""
         self._next_signal_seq: int = 0
@@ -162,9 +166,17 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._reconcile_last_read: tuple[int, str] | None = None
         self._reconcile_read_streak = 0
         self._converge_flatten_at = 0.0
+        # P0-5: consecutive entry IOC misses (clean resume path); circuit breaker
+        # trips to HALT when max_consecutive_missed_entries is exceeded.
+        self._consecutive_missed_entries = 0
         # True only while the kernel arms its own convergence flatten (lets that
         # one order bypass the settling/unconfirmed freeze in _validate_order_signal).
         self._kernel_converging = False
+        # Layer 2: debounce concurrent update_status(trade) queries on order worker.
+        self._status_query_inflight = False
+        # Monotonic pending generation: bumped on every arm so a stale Layer-2
+        # query (enqueued for a prior pending, esp. with empty order_id) is rejected.
+        self._pending_generation = 0
 
         self.indicators = IndicatorState(
             vwap_window_min=self._cfg.vwap_window_min,
@@ -189,7 +201,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._reconnect_generation = 0
         self._connected_reconnect_generation = 0
         self._pending_intent_cancel_exchange_dt: datetime.datetime | None = None
-        self._order_queue: queue.Queue[OrderSignal | None] = queue.Queue()
+        self._order_queue: queue.Queue[OrderSignal | QueryStatusTask | None] = queue.Queue()
         self._order_sync_mode = False
         self._order_worker_started = False
 
@@ -901,6 +913,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 self._check_pending_timeout()
                 self._settle_via_reconcile()
                 self._maybe_converge_flatten()
+                self._maybe_emergency_market_flatten()
                 self._check_exit_order_retry()
                 self._check_session_watchdog()
                 self._check_no_tick_watchdog()
@@ -1063,6 +1076,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.pending_limit_price = 0.0
         self.pending_exit_reason = ""
         self.pending_ioc_slippage = self._cfg.ioc_slippage_points
+        self.pending_market = False
         self.pending_episode_id = ""
         self.pending_signal_id = ""
         self.filled_qty = 0
@@ -1077,6 +1091,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._settle_since = 0.0
         self._reconcile_last_read = None
         self._reconcile_read_streak = 0
+        self._status_query_inflight = False
 
     def handle_session_event(self, resp_code: int, event_code: int, info: str, event: str):
         if event_code == 12:

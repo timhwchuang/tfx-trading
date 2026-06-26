@@ -70,7 +70,10 @@ strategy:
   atr_kline_lookback_days: 10
 
   # IOC 委託 pending 超時（秒）；超時 = UNKNOWN（非失敗）→ 轉主動對帳確認（SETTLING），不解鎖讓策略重下
-  pending_timeout_sec: 8
+  # 設為 1：callback 不可信即 1s 內轉主動對帳（背景輪詢 1s）。注意「未知窗口」的下限是券商
+  # 自身回報延遲（list_positions / deal 也會延遲），單靠縮短本值無法壓到券商延遲以下；
+  # 出場/停損的時效改由市價升級（emergency_market_orders）保證，不依賴此窗口。
+  pending_timeout_sec: 1
 
   # IOC 限價讓價點數（買 = ref + N，賣 = ref - N）；全日固定，開盤不放大
   ioc_slippage_points: 3
@@ -204,9 +207,25 @@ operations:
   # P0-4：硬部位上限（Pilot 固定 1）；持倉+在途達此值即拒絕新進場，防回報遺失時無限累積
   max_position_qty: 1
   # P0-5（部位真相驅動）：pending_timeout_sec 後不再信任延遲 callback，改主動向券商對帳。
-  # settle_timeout_sec：SETTLING 確認上限（秒）；逾時 → 部位 UNCONFIRMED（凍結 entry+exit）
-  settle_timeout_sec: 30
-  # 未解決（pending/settling/unconfirmed）時的快速對帳節奏（秒）
-  reconcile_fast_sec: 2
+  # settle_timeout_sec：SETTLING 確認上限（秒）；逾時 → 部位 UNCONFIRMED（凍結 entry+exit）。
+  # 維持 45：entry 不確定不會出血（只是等待確認、永不重 arm），窗口大對 entry 安全；
+  # exit/停損的時效不再依賴此窗口（改由市價升級保證）。
+  settle_timeout_sec: 45
+  # 未解決（pending/settling/unconfirmed）時的快速對帳節奏（秒）；1s 背景輪詢
+  reconcile_fast_sec: 1
   # 採信券商讀數前需連續一致的次數（debounce），避免單次抖動誤判
-  reconcile_confirm_reads: 2
+  reconcile_confirm_reads: 3
+  # P0-5：緊急市價單。True（預設）：停損 IOC 未成交、HALT 收斂平倉 → 升級為市價（保證成交），
+  # 以滑價換取「最慢多久平倉」的時效；False = 維持只用限價 IOC 的舊行為。
+  emergency_market_orders: true
+  # entry IOC 穩定 flat 多久後視為 miss（恢復正常進場，不 sticky HALT）。live IOC ms 級，5s 保守。
+  entry_miss_confirm_sec: 5
+  # 連續 N 筆 entry miss → HALT+CRITICAL（結構性問題）。0 = 關閉熔斷。
+  max_consecutive_missed_entries: 3
+  # Layer 2：IOC 終態查詢（order worker 上 update_status(trade)）。由此 flag 單獨控制（不看 simulation）。
+  # 滾動順序（勿跳過 UAT）：先在 UAT（simulation: true，真實永豐模擬 API）開啟 → 跑真實 session → 確認零
+  # PyBorrowMutError → 才在正式（simulation: false）開啟。borrow panic 只在真實 Shioaji 物件上出現，UAT 即可驗。
+  # 失敗時自動降級：update_status 拋例外會被攔截並 fallback 至既有 inference（list_positions 真相），不影響部位安全。
+  order_status_query_enabled: true
+  # update_status 逾時（毫秒）；Shioaji 預設 30s 會卡住 order worker。
+  order_status_query_timeout_ms: 1000

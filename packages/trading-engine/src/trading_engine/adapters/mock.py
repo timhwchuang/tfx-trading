@@ -29,5 +29,24 @@ class MockOrderAdapter:
         )
         return self._api.place_order(contract, order, timeout=timeout)
 
+    def place_market(
+        self,
+        contract: Any,
+        *,
+        action: str,
+        qty: int,
+        account: Any,
+        timeout: int = 0,
+    ) -> Any:
+        if action not in ("Buy", "Sell"):
+            raise ValueError(f"action must be 'Buy' or 'Sell', got {action!r}")
+        order = SimpleNamespace(
+            action=action,
+            price=0.0,
+            quantity=qty,
+            market=True,
+        )
+        return self._api.place_order(contract, order, timeout=timeout)
+
 
 __all__ = ["MockOrderAdapter"]

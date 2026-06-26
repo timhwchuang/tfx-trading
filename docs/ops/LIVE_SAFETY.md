@@ -29,15 +29,76 @@ This document describes what the kernel does when things go wrong during live op
 
 ---
 
-### Pending timeout = UNKNOWN → settle → HALT (P0-5, truth-driven)
+### Pending timeout = UNKNOWN → SETTLING (transient) vs HALT (anomaly) (P0-5)
 
 | | |
 |---|---|
-| **Kernel behavior** | A `pending_timeout_sec` timeout means the order outcome is **UNKNOWN, not FAILED**. `_check_pending_timeout` does **not** clear pending and let the strategy re-issue. It keeps `pending_order_id` (so a late fill still attributes), tries a fast reconcile, then enters `_settling`: `_settle_via_reconcile` polls `list_positions` and adopts the truth after `reconcile_confirm_reads` consistent reads. A broker-confirmed fill / clean no-fill resolves cleanly (no block). If it cannot be confirmed within `settle_timeout_sec`, the kernel HALTs: `_position_unconfirmed = True` + `block_new_entry = True` + **CRITICAL**, and adopts broker truth. While `_settling` / `_position_unconfirmed`, **both entry and exit are frozen** (`_validate_order_signal` + strategy). |
-| **Expected outcome** | No cascade of re-issued orders, no >1-lot accumulation. The kernel either converges to the broker truth or freezes everything pending convergence/operator review. |
-| **Operator action** | On a HALT CRITICAL, inspect broker positions; do not assume flat. The kernel auto-converges (see below). Clear `block_new_entry` only after manual reconciliation (restart / next trading-day reset). |
+| **Kernel behavior** | A `pending_timeout_sec` (default 1) timeout means the order outcome is **UNKNOWN, not FAILED**. `_check_pending_timeout` does **not** clear pending and let the strategy re-issue. It keeps `pending_order_id`, tries `order_deal_records` / `list_positions`, then enters **`_settling`** (transient): fast poll via `_settle_via_reconcile` + `reconcile_confirm_reads` debounce. **Two-tier resolution:** (1) **SETTLING → NORMAL** when fill adopted, explicit `Cancelled` callback, or entry declared **MISSED** (stable readable-flat for `entry_miss_confirm_sec`, default 5s) → clean resume, **no sticky day-HALT**. (2) **SETTLING → HALT** only for genuine anomalies: broker unreadable past `settle_timeout_sec`, ceiling breach, orphan/mismatched fill, entry debounce never stabilizes, or `max_consecutive_missed_entries` circuit breaker. While `_settling`, new entries are frozen; while `_position_unconfirmed` (HALT), both entry and exit are frozen. |
+| **IOC live vs sim** | In **live**, IOC is exchange-native (ms-level terminal). Callback silence + stable flat for 5s ≈ genuinely missed → resume. In **sim**, report latency can be minutes (batch matching, low-spec hosts) — the same 5s window may mis-infer; the **ceiling + convergence backstop** catches any late fill as orphan → HALT → market flatten. Sim UAT validates safety paths, not live speed. |
+| **Expected outcome** | Occasional network jitter does **not** kill the trading day. **Live net position never exceeds `max_position_qty` (=1)** via freeze + ceiling + convergence, not via sticky HALT on every timeout. |
+| **Operator action** | `entry IOC 未成交 → 視為 miss` = normal resume (logged). `連續 N 筆 entry miss` or orphan HALT = investigate broker/API. `CALLBACK_LATENCY` logs quantify sim vs live delay. |
 
-**Code:** `order_executor.py:_check_pending_timeout`, `_settle_via_reconcile`, `_apply_pending_broker_truth`
+**Code:** `order_executor.py:_check_pending_timeout`, `_settle_via_reconcile`, `_resolve_entry_missed`, `_apply_pending_broker_truth`
+
+---
+
+### IOC terminal query — Layer 2 (`order_status_query_enabled`, default OFF)
+
+| | |
+|---|---|
+| **What** | On the **order worker** (the only Shioaji-borrow-safe thread), `update_status(trade, timeout=order_status_query_timeout_ms)` reads the IOC's definitive terminal state instead of waiting for callback silence + inference. |
+| **Why order worker** | `update_status(trade=...)` mutates the live Rust `Trade` object. Calling it from `_timeout_loop` or callback threads risks `PyBorrowMutError`. The order worker already owns `place_order` and serializes API calls under `_api_lock`. |
+| **Normalizer** | `_read_trade_terminal_state` maps all 8 verified `OrderStatus` values: `Filled`→filled, `PartFilled`→partial, `Cancelled`/`Failed`/`Inactive`→terminal-no-fill, `PendingSubmit`/`PreSubmitted`/`Submitted`→working. Snapshots to Python primitives immediately. No Shioaji `Timeout` status exists. |
+| **Resolution** | **filled** → adopt qty via Layer 3 (`list_positions`). **partial** → keep settling. **cancelled/failed/inactive** → cross-check `list_positions`; flat/consistent → clean resume (entry miss) or stop→market escalation; mismatch → HALT. **working/unknown** → fallback to existing inference (unchanged). **HALT + exit**: L3 unchanged read → keep pending (inference); L1/L2 authoritative terminal → clear pending and allow convergence retry (same as callback `Cancelled`). |
+| **Wire-in** | `_check_pending_timeout`: when flag ON, L3 snapshot → `order_deal_records` → debounced L2 enqueue. `_settle_via_reconcile` also enqueues L2. `place_order` does place-time refresh for oid backfill + early terminal. |
+| **Bounded timeout** | `order_status_query_timeout_ms` (default 1000). Shioaji default `timeout=30000` would stall the shared order worker. |
+| **Fallback** | Flag OFF = zero `update_status(trade=...)` calls; byte-for-byte current behavior. MockBroker `update_status` is a no-op → backtest always takes `unknown` fallback. **If `update_status` raises in production (e.g. a borrow panic), `_query_pending_status` / `_refresh_trade_after_place` catch it, log a warning, release `_status_query_inflight`, and the truth-driven settle loop continues with the existing inference path** — a Layer 2 failure degrades to current behavior, it never breaks position safety. |
+| **Gating** | Controlled by the **flag alone**, NOT by `simulation`. UAT runs the real Shioaji *simulation account* (real Rust `Trade` objects), so it MUST exercise `update_status` to validate borrow safety. Backtest's `MockBroker` is a no-op → harmless. |
+
+**Rollout order (do NOT skip UAT):** Enable in **UAT first** (`simulation: true` on a real Shioaji sim account) → run real sessions → confirm zero `PyBorrowMutError` → only then enable in production (`simulation: false`). Enabling in production without UAT validation would mean discovering a borrow panic with real money — this is the failure mode the OFF default exists to prevent. There is no "production-only" best practice; the borrow panic only surfaces against real Shioaji objects, which UAT already has.
+
+**UAT validation matrix (gate before default ON):**
+
+| Check | Pass criteria |
+|---|---|
+| Worker load | Repeated `update_status(trade=...)` on order worker → no `PyBorrowMutError` / Rust borrow panic |
+| Worker latency | Query never blocks `place_order` beyond `order_status_query_timeout_ms` |
+| Race safety | Callback + Layer-2 query on same `Trade` → no crash, consistent terminal |
+| Enum coverage | Each observed `OrderStatus` in UAT logs maps to expected normalized state |
+| Flag OFF regression | Prod-like run with flag OFF → zero `update_status(trade=...)` calls |
+
+**Signal taxonomy (HALT exit clear):** During `_position_unconfirmed`, do **not** clear exit pending on Layer 3 inference alone (unchanged broker read — the 30-lot residual-hole fix). **Do** clear on Layer 1 callback `Cancelled` or Layer 2 authoritative terminal (`cancelled`/`failed`/`inactive`), then convergence or market escalation may re-arm — equivalent to the non-HALT callback path.
+
+**Code:** `order_executor.py:_query_pending_status`, `_read_trade_terminal_state`, `_enqueue_query_status`, `_refresh_trade_after_place`; `core/types.py:QueryStatusTask`
+
+---
+
+### When HALT is necessary (anomaly-only)
+
+| Trigger | Sticky `block_new_entry`? | Why HALT |
+|---|---|---|
+| `broker_qty > max_position_qty` | Yes | Position model breach — must converge |
+| Orphan / mismatched fill | Yes | Unattributable lot — must converge |
+| `list_positions` unreadable past `settle_timeout_sec` | Yes | No source of truth |
+| `max_consecutive_missed_entries` reached | Yes | Structural failure (orders not reaching exchange) |
+| Entry debounce never stabilizes flat (45s) | Yes | Cannot safely infer missed vs late fill |
+| **Single entry miss** (stable flat 5s) | **No** | Transient — resume normally |
+| **Explicit `Cancelled` callback** | **No** | Authoritative terminal state |
+| **Fill adopted** (callback or poll) | **No** | Resolved |
+
+---
+
+### Emergency market orders — bounded time-to-flat (P0-5)
+
+| | |
+|---|---|
+| **Why** | A hard/loss stop must **get out**, not chase. A limit IOC stop in a fast/illiquid market keeps missing and re-issuing (chasing), and if the report channel goes silent it can fall into the unknown window — the worst place to freeze while a loss runs. |
+| **Kernel behavior** | With `emergency_market_orders=True` (default): **(a)** a STOP-LOSS exit IOC (`stop_loss` / `stop_loss_vwap`) that comes back Cancelled with **no fill** does not re-chase with a limit — the kernel arms exactly **one** guaranteed-fill **market** flatten sized to the held position (`_maybe_emergency_market_flatten`, single-flight, bypasses the freeze via `_kernel_converging`). **(b)** The HALT **convergence flatten** (`_maybe_converge_flatten`) is sent as a **market** order so a HALT actually converges to flat instead of chasing. Profit/trailing exits and entries are **unchanged** (limit IOC). Set `emergency_market_orders=False` to restore legacy limit-IOC-only behavior. |
+| **Tradeoff** | Market = guaranteed fill at the cost of slippage (acceptable, even required, for a stop). Bounds "最慢多久平倉" to ~tick-speed + one market order regardless of the unknown window. |
+| **Order type** | Shioaji `FuturesPriceType.MKP` (範圍市價) IOC; backtest `MockBroker` fills market orders at `close ± slippage` with no limit gate. |
+| **Operator action** | Watch for `停損市價平倉` and `HALT 收斂平倉` (market) logs. A market fill far from the signal price is expected under stress, not a bug. |
+
+**Code:** `order_executor.py:_maybe_emergency_market_flatten`, `_maybe_converge_flatten`, `place_order`; `adapters/*.py:place_market`
 
 ---
 
@@ -45,7 +106,7 @@ This document describes what the kernel does when things go wrong during live op
 
 | | |
 |---|---|
-| **Kernel behavior** | While `_position_unconfirmed` (HALT) and the broker-adopted position is **not flat**, `_maybe_converge_flatten` sends exactly **one** exit sized to the held qty (throttled by `reconcile_fast_sec`, bypassing the freeze via `_kernel_converging`), then returns to `_settling` to await confirmation. Once confirmed flat, HALT lifts; `block_new_entry` stays set until daily reset / manual clear. |
+| **Kernel behavior** | While `_position_unconfirmed` (HALT) and the broker-confirmed position is **not flat**, `_maybe_converge_flatten` **re-reads and debounces `list_positions`** and sends exactly **one** exit sized to that fresh broker truth (not the possibly-stale kernel belief), guarded by `is_pending`/`_settling` (single-flight) and throttled by `reconcile_fast_sec` (default 1), bypassing the freeze via `_kernel_converging`, then returns to `_settling` to await confirmation. The flatten is a **market** order when `emergency_market_orders=True` (guaranteed fill). Under multi-minute broker report latency the live flatten is **never** cleared by an "unchanged & consistent" read (that read is just the not-yet-reflected pre-flatten position) — only a real reduction or an explicit Cancelled resolves it, so convergence can never double-send. Once the broker is confirmed flat, HALT lifts; `block_new_entry` stays set until daily reset / manual clear. |
 | **Expected outcome** | A single, correctly-sized flatten brings the position to flat without the strategy ever re-issuing exits. |
 | **Operator action** | Watch for `HALT 收斂平倉` logs; confirm the broker reaches flat. Investigate the root cause before re-enabling entries. |
 
@@ -57,7 +118,7 @@ This document describes what the kernel does when things go wrong during live op
 
 | | |
 |---|---|
-| **Kernel behavior** | The timeout loop runs `_check_position_reconcile` every `position_reconcile_sec` (default 60, `<=0` disables) during the trading session — or every `reconcile_fast_sec` (default 2) while `_position_unconfirmed` (P0-5). Skipped while pending/settling (those windows are owned by `_settle_via_reconcile`). It reads `list_positions` and compares qty/dir to kernel state. On mismatch: log + CRITICAL alert + `block_new_entry=True`, then adopts broker truth via `sync_positions` and sets `_position_drift_detected`. If `broker_qty > max_position_qty` AND `> kernel_qty`, it escalates to HALT (P0-5) + convergence flatten. A clean reconcile clears the drift flag. |
+| **Kernel behavior** | The timeout loop runs `_check_position_reconcile` every `position_reconcile_sec` (default 60, `<=0` disables) during the trading session — or every `reconcile_fast_sec` (default 1) while `_position_unconfirmed` (P0-5). Skipped while pending/settling (those windows are owned by `_settle_via_reconcile`). It reads `list_positions` and compares qty/dir to kernel state. On mismatch: log + CRITICAL alert + `block_new_entry=True`, then adopts broker truth via `sync_positions` and sets `_position_drift_detected`. If `broker_qty > max_position_qty` AND `> kernel_qty`, it escalates to HALT (P0-5) + convergence flatten. A clean reconcile clears the drift flag. |
 | **Expected outcome** | Even if a fill callback is lost entirely, kernel state converges to the broker within ~60s and new entries are blocked until manual review. |
 | **Operator action** | Treat any `持倉漂移` CRITICAL as a real position discrepancy. Reconcile against the broker before clearing `block_new_entry`. |
 

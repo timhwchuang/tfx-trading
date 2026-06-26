@@ -7,6 +7,82 @@
 
 ---
 
+### 2026-06-26（Layer 2：IOC 終態查詢 — 完善交易環）
+
+**實作**
+- **三層真相**：Layer 1 callback（不變）→ Layer 2 `update_status(trade)` on order worker（新增）→ Layer 3 `list_positions` debounce（不變）。
+- **`order_status_query_enabled`**（預設 **False**）：flag OFF 行為與 inference 完全相同；ON 時 `working`/`unknown` 仍 fallback Layer 3。
+- **`order_status_query_timeout_ms`**（1000）：避免 Shioaji 預設 30s 卡住 order worker。
+- **8 種 OrderStatus 正規化** + place-time oid backfill / early terminal。
+- 測試：`test_order_status_query.py`（15 cases）；全套綠。
+
+**人類必做（UAT gate — 開預設前）**
+- [ ] order worker 重複 `update_status(trade)` 無 `PyBorrowMutError`
+- [ ] query 不阻塞 `place_order` 超過 timeout
+- [ ] callback + Layer 2 競態無 crash
+- [ ] flag OFF 零 `update_status(trade)` 呼叫
+
+見 SPEC §4.2.2 不變量 10、[`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md) Layer 2 節。
+
+---
+
+### 2026-06-26（雙層狀態機：SETTLING 暫態恢復 vs HALT 異常凍結 — 常駐穩定程式）
+
+**思路（IOC live vs sim + HALT 必要性）**
+- **Live**：IOC 為交易所撮合核心內建單別，ms 級終結（成交或 Cancelled）。callback timeout = 改用 polling 完成分散式交易，**不應**因偶發靜默 sticky 封鎖整天。
+- **Sim**：永豐模擬環境批次撮合/低規主機，回報延遲可達分鐘級 — **不是程式 bug**，不得用來校準 live 行為。UAT==live 設定下，sim 可能觸發 orphan→收斂背板（預期、驗證安全路徑）。
+- **HALT 僅用於部位模型異常**：上限 breach、孤兒/非當前成交、券商不可讀、debounce 無法穩定、連續 miss 熔斷。單次 entry miss / 網路抖動 → SETTLING → 恢復。
+
+**修復（已併入 code + 測試 + 文件）**
+- **`_resolve_entry_missed`**：entry 穩定 readable-flat 逾 `entry_miss_confirm_sec`（5s）+ debounce → 視為 miss、清 pending、記 WARNING、**恢復正常進場**（不 sticky HALT）。
+- **連續 miss 熔斷**：`max_consecutive_missed_entries`（預設 3）→ HALT+CRITICAL（結構性問題）。
+- **`CALLBACK_LATENCY` log**：委託/成交 callback 記 `exchange_ts` vs 本地接收延遲，供 UAT 校準。
+- 全套綠（trading-engine 173）。見 SPEC §4.2.2 不變量 10、[`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md)「SETTLING vs HALT」表。
+
+**人類必做（UAT gate）**
+- [ ] 用 `CALLBACK_LATENCY` 量測 live vs sim 延遲分佈；確認 live ms 級、5s miss 窗口安全。
+
+---
+
+### 2026-06-26（強化：緊急市價平倉 + 縮短未知視窗 + HALT 殘留漏洞封口 — 「最慢多久平倉」與時效）
+
+**問題（30 口 UAT log + 使用者提問）**
+- UAT log 玩到 30 口；分析顯示券商把成交/部位回報**延遲數分鐘**（遠超先前假設的 ~18s）。D1 修復可擋住「重 arm 連續進場」的主因，但暴露兩個時效問題：
+  1. **未知視窗對 exit 太致命**：硬停損若落入未知視窗（部位已知在虧、只是不知停損單成交與否），等 60s 才收斂 = 整段時間在出血（使用者：「hard stop 進入 60s 窗口 = 整天白賺」）。
+  2. **HALT 殘留漏洞**：極端延遲下，HALT 中「未變動且一致」的券商讀數其實只是「平倉單尚未反映的舊部位」，舊 `exit-consistent-clear` 會誤清在途平倉 → 收斂可能再送一張（雖已限 1 口/次，仍會慢速累積）。
+
+**修復（已併入 code + 測試 + 文件；「絕不超過一口」計畫之延伸，不改正常 entry/獲利出場路徑）**
+- **緊急市價單（新設定 `emergency_market_orders`，預設 True）**：停損 IOC（`stop_loss`/`stop_loss_vwap`）未成交（Cancelled、無 fill）→ 不再以限價追，kernel 直接送**唯一一張保證成交的市價平倉**（`_maybe_emergency_market_flatten`，單一在途、`_kernel_converging` 繞過凍結）。HALT **收斂平倉**亦改市價。新增 `OrderSignal.market`、adapter `place_market`（Shioaji `MKP` IOC）、`MockBroker` 市價必成交。→ exit/停損的「最慢多久平倉」自未知視窗**脫鉤**（≈ tick 速度 + 一張市價），代價是滑價（停損可接受）。
+- **縮短未知視窗**：`pending_timeout_sec` 15→1、`reconcile_fast_sec` 2→1（1s 背景輪詢）。`settle_timeout_sec` 維持 45（entry 不確定不出血，等待確認且永不 re-arm，視窗大對 entry 安全）。**誠實下限**：真正未知視窗由**券商自身回報延遲**決定（`list_positions`/deal callback 都會延遲），單靠縮短本值無法壓到券商延遲以下 — 故 exit 時效改靠市價升級保證。
+- **HALT 殘留漏洞封口**：`_apply_pending_broker_truth` 在 `_position_unconfirmed` 期間**不再**以「一致讀數」清在途 exit/平倉；HALT 中 exit 只認真實減倉或明確 Cancelled callback。收斂永不重複送。
+- 測試：停損→市價升級、收斂市價（含關閉變體）、HALT 不誤清、MockBroker 市價必成交；全套綠（trading-engine 169、backtest 37、app 252）。細節見 [`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md)、[`CHANGELOG.md`](../CHANGELOG.md)。
+
+**人類必做（Follow-up / UAT gate）**
+- [ ] **UAT 驗證市價升級**：實測停損 IOC miss → 市價平倉是否秒級到位；記錄市價滑價分佈（停損可接受但要量化）。
+- [ ] **UAT 量測券商回報延遲**：若 `list_positions`/deal 延遲常態為分鐘級，這是基礎設施問題（模擬 API 可能不正常）；正式環境需確認延遲在可接受範圍，否則 entry 會頻繁 HALT。結論回填本節。
+
+---
+
+### 2026-06-26（強化：實盤淨部位硬上限永不超過 1 口 — 杜絕「stale flat 快照」誤判）
+
+**事故（10:39 回放）**
+- truth-driven 重構後仍短暫出現 2 口空單。根因：券商把 entry（`100829`）的成交**延遲約 18 秒**才回報，期間 `list_positions` 仍讀到 flat；kernel 誤判「entry 未成交 → 清 pending」，**退出 SETTLING 並解凍策略**，於是重 arm 第二筆 entry（`10082E`），隨後原單遲到成交 + 新單成交 → 空 2。關鍵體悟：**回報延遲視窗內的 flat 快照不是「未成交」的證據**；不變量靠「不確定後永不 re-arm」維持，與券商讀數是否即時無關。
+
+**修復（已併入 code + 測試 + 文件；使用者選 halt_simple + 保守 timeout）**
+- **D1 entry 永不以 flat 快照判定未成交**：`_apply_pending_broker_truth` entry 分支移除「broker flat + kernel flat → 清 pending」路徑；entry **只認正向成交**，否則維持 settling，逾時一律 HALT（sticky `block_new_entry`，永不 re-arm）。
+- **D2 全 kernel 委託單一在途**：`_halt_position_unconfirmed` 新增 `clear_pending`（預設 False）且具冪等性 — 只有呼叫端確知在途委託已終結（entry IOC 確認 miss）才清 `order_id`；exit/平倉在途一律保留（不清、不 sync），收斂平倉永不重複送。
+- **D3 收斂以新鮮 debounce 真相定量**：`_maybe_converge_flatten` 重新讀取並 debounce `list_positions`，以確認 qty 送唯一一張平倉（非可能過時的 kernel belief），保留 `is_pending`/`_settling` 守門。
+- **D4 保守 timeout**：`pending_timeout_sec` 8→15、`settle_timeout_sec` 30→45、`reconcile_confirm_reads` 2→3，使常態遲到成交被採用、僅真正 miss/極端延遲才 HALT；正確性不依賴數值。
+- `MockBroker` 加 `position_report_delay_sec` / `deal_report_delay_sec` 重現 stale-flat。全套 `bash scripts/run-all-tests.sh` 綠（trading-engine 162、backtest 35、strategy 63、app 252）。細節見 SPEC §4.2.2 不變量 10、[`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md)、[`CHANGELOG.md`](../CHANGELOG.md)。
+
+**明確取捨**
+- 真正 miss 的 IOC entry 會 HALT 並**停止當日新進場**（無自動重試）。若 UAT 發現 miss 頻繁，未來增強為券商「依委託 id 查狀態」正向區分 Filled/Cancelled，確認 cancel 後再恢復（本版範圍外）。
+
+**人類必做（Follow-up / UAT gate）**
+- [ ] **UAT 量測真實回報延遲**：模擬 API 下單→量測 `list_positions` 與 deal callback 各自相對下單的延遲分佈；據實調 `pending_timeout_sec` / `settle_timeout_sec`（目前依實測 ~18s 設定，未知視窗 15+45=60s 遠大於之）。結論回填本節。
+
+---
+
 ### 2026-06-26（重構：部位真相驅動執行狀態機 — 杜絕「兩口以上」累積）
 
 **事故（延續）**

@@ -60,7 +60,9 @@ class TestReconnectRace(unittest.TestCase):
         host._settle_since = host._clock() - host._cfg.settle_timeout_sec - 1
         host._settle_via_reconcile()
 
-        self.assertFalse(host.is_pending)
+        # Single-flight: the EXIT order may still be live at the broker, so HALT
+        # keeps its order_id (it is not dropped) to avoid a convergence double-send.
+        self.assertTrue(host.is_pending)
         self.assertTrue(host.block_new_entry)
         self.assertTrue(host._position_unconfirmed)
 

@@ -34,6 +34,10 @@ def _make_sell_order(limit: float) -> SimpleNamespace:
     return SimpleNamespace(action="Sell", price=limit, quantity=1)
 
 
+def _make_market_order(action: str, qty: int = 1) -> SimpleNamespace:
+    return SimpleNamespace(action=action, price=0.0, quantity=qty, market=True)
+
+
 class _RecordingStrategy:
     def __init__(self) -> None:
         self.events: list[tuple] = []
@@ -163,6 +167,81 @@ class TestMockBrokerMatching(unittest.TestCase):
         broker.process_matching_queue(later_tick, strategy)
         deals = [e for e in strategy.events if e[0] == FUTURES_DEAL]
         self.assertEqual(len(deals), 1)
+
+    def test_position_report_delay_yields_stale_flat_read(self):
+        """P0-5 fault injection: list_positions() must lag a fill by
+        position_report_delay_sec so tests can reproduce the stale-flat race that
+        caused the >1-lot incident."""
+        base = datetime.datetime(2026, 6, 12, 9, 0, 0)
+        clock_val = {"t": base.timestamp()}
+        broker = MockBroker(
+            clock=lambda: clock_val["t"],
+            latency_ms=0,
+            position_report_delay_sec=18.0,
+        )
+        strategy = _RecordingStrategy()
+        tick = ReplayTick(base, 18000.0, 1, 1)
+        self._place_and_match(broker, strategy, _make_buy_order(18003), tick)
+
+        # The fill has happened but the position report still reads flat.
+        self.assertEqual(broker.list_positions(), [])
+
+        # After the report delay elapses, the fill becomes visible.
+        clock_val["t"] = base.timestamp() + 19.0
+        positions = broker.list_positions()
+        self.assertEqual(len(positions), 1)
+        self.assertEqual(positions[0].quantity, 1)
+        self.assertEqual(positions[0].direction, "Buy")
+
+    def test_deal_report_delay_defers_callback(self):
+        """The FUTURES_DEAL callback fires only after deal_report_delay_sec, via a
+        later process_matching_queue pump (models the live callback latency)."""
+        base = datetime.datetime(2026, 6, 12, 9, 0, 0)
+        clock_val = {"t": base.timestamp()}
+        broker = MockBroker(
+            clock=lambda: clock_val["t"],
+            latency_ms=0,
+            deal_report_delay_sec=18.0,
+        )
+        strategy = _RecordingStrategy()
+        tick = ReplayTick(base, 18000.0, 1, 1)
+        self._place_and_match(broker, strategy, _make_buy_order(18003), tick)
+        # Fill matched but the deal callback has not fired yet.
+        self.assertEqual([e for e in strategy.events if e[0] == FUTURES_DEAL], [])
+
+        # A later pump past the delay delivers the deal callback.
+        clock_val["t"] = base.timestamp() + 19.0
+        later = ReplayTick(base.replace(second=19), 18000.0, 1, 1)
+        broker.current_dt = later.datetime
+        broker.process_matching_queue(later, strategy)
+        deals = [e for e in strategy.events if e[0] == FUTURES_DEAL]
+        self.assertEqual(len(deals), 1)
+
+    def test_market_buy_fills_even_above_limit_cross(self):
+        """A market (emergency) order must fill regardless of price — unlike a
+        limit IOC, which would cancel when close is beyond the limit."""
+        epoch = datetime.datetime(2026, 6, 12, 9, 0, 0).timestamp()
+        broker = self._broker_at(epoch, latency_ms=0)
+        strategy = _RecordingStrategy()
+        # Close 18010 is far above any buy limit; a limit IOC would cancel here.
+        tick = ReplayTick(datetime.datetime(2026, 6, 12, 9, 0, 0), 18010.0, 1, 1)
+        events = self._place_and_match(broker, strategy, _make_market_order("Buy"), tick)
+        deals = [e for e in events if e[0] == FUTURES_DEAL]
+        cancels = [e for e in events if e[0] == FUTURES_ORDER]
+        self.assertEqual(len(deals), 1)
+        self.assertEqual(len(cancels), 0)
+        self.assertAlmostEqual(deals[0][1]["price"], 18010.5)  # close + slippage
+
+    def test_market_sell_fills_and_flattens(self):
+        epoch = datetime.datetime(2026, 6, 12, 9, 0, 0).timestamp()
+        broker = self._broker_at(epoch, latency_ms=0)
+        strategy = _RecordingStrategy()
+        tick = ReplayTick(datetime.datetime(2026, 6, 12, 9, 0, 0), 18000.0, 1, 1)
+        # Establish Long 1 then market-flatten it.
+        self._place_and_match(broker, strategy, _make_buy_order(18003), tick)
+        self.assertEqual(len(broker.list_positions()), 1)
+        self._place_and_match(broker, strategy, _make_market_order("Sell"), tick)
+        self.assertEqual(broker.list_positions(), [])
 
     def test_no_lookahead_kbars(self):
         with tempfile.TemporaryDirectory() as tmp:

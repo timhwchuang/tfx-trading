@@ -118,6 +118,11 @@ class Settings:
     settle_timeout_sec: int
     reconcile_fast_sec: int
     reconcile_confirm_reads: int
+    emergency_market_orders: bool
+    entry_miss_confirm_sec: int
+    max_consecutive_missed_entries: int
+    order_status_query_enabled: bool
+    order_status_query_timeout_ms: int
 
     config_path: Path
 
@@ -169,7 +174,7 @@ def load_config(path: str | Path | None = None) -> Settings:
         min_atr_threshold=float(strategy.get("min_atr_threshold", 25)),
         atr_refresh_sec=int(strategy.get("atr_refresh_sec", 300)),
         atr_kline_lookback_days=int(strategy.get("atr_kline_lookback_days", 10)),
-        pending_timeout_sec=int(strategy.get("pending_timeout_sec", 8)),
+        pending_timeout_sec=int(strategy.get("pending_timeout_sec", 1)),
         ioc_slippage_points=int(strategy.get("ioc_slippage_points", 3)),
         exit_grace_ticks=int(strategy.get("exit_grace_ticks", 60)),
         exit_grace_sec=int(strategy.get("exit_grace_sec", 30)),
@@ -255,9 +260,20 @@ def load_config(path: str | Path | None = None) -> Settings:
         ),
         position_reconcile_sec=int(operations.get("position_reconcile_sec", 60)),
         max_position_qty=int(operations.get("max_position_qty", 1)),
-        settle_timeout_sec=int(operations.get("settle_timeout_sec", 30)),
-        reconcile_fast_sec=int(operations.get("reconcile_fast_sec", 2)),
-        reconcile_confirm_reads=int(operations.get("reconcile_confirm_reads", 2)),
+        settle_timeout_sec=int(operations.get("settle_timeout_sec", 45)),
+        reconcile_fast_sec=int(operations.get("reconcile_fast_sec", 1)),
+        reconcile_confirm_reads=int(operations.get("reconcile_confirm_reads", 3)),
+        emergency_market_orders=bool(operations.get("emergency_market_orders", True)),
+        entry_miss_confirm_sec=int(operations.get("entry_miss_confirm_sec", 5)),
+        max_consecutive_missed_entries=int(
+            operations.get("max_consecutive_missed_entries", 3)
+        ),
+        order_status_query_enabled=bool(
+            operations.get("order_status_query_enabled", False)
+        ),
+        order_status_query_timeout_ms=int(
+            operations.get("order_status_query_timeout_ms", 1000)
+        ),
         config_path=config_path.resolve(),
     )
 
