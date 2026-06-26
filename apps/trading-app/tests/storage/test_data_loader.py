@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime
 import gzip
 import logging
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -750,22 +751,23 @@ class TestBacktestDatesFromCache(unittest.TestCase):
                 [ReplayTick(datetime.datetime(2026, 5, 2, 9), "18000", 1, 0)],
                 cache_path(month_dir, "TMFR1", dt),
             )
-            with patch("backtest.__main__.DEFAULT_TICK_CACHE_DIR", tick_root):
-                with patch("backtest.__main__.BacktestEngine"):
-                    with patch("backtest.__main__.emit_report") as emit_report:
-                        with patch(
-                            "backtest.__main__.configure_backtest_session_logging"
-                        ):
-                            rc = main(
-                                [
-                                    "--code",
-                                    "TMFR1",
-                                    "--dates-from-cache",
-                                    "--cache-dir",
-                                    str(month_dir),
-                                    "--report",
-                                ]
-                            )
+            with patch.dict(os.environ, {"FT003_HOLDOUT_UNSEAL": "1"}):
+                with patch("backtest.__main__.DEFAULT_TICK_CACHE_DIR", tick_root):
+                    with patch("backtest.__main__.BacktestEngine"):
+                        with patch("backtest.__main__.emit_report") as emit_report:
+                            with patch(
+                                "backtest.__main__.configure_backtest_session_logging"
+                            ):
+                                rc = main(
+                                    [
+                                        "--code",
+                                        "TMFR1",
+                                        "--dates-from-cache",
+                                        "--cache-dir",
+                                        str(month_dir),
+                                        "--report",
+                                    ]
+                                )
             self.assertEqual(rc, 0)
             emit_report.assert_called_once()
             log_path = emit_report.call_args[0][0]
@@ -823,26 +825,27 @@ class TestBacktestDatesFromCache(unittest.TestCase):
                     [ReplayTick(datetime.datetime(2026, 5, day, 9), "18000", 1, 0)],
                     cache_path(month_dir, "TMFR1", dt),
                 )
-            with patch("backtest.__main__.DEFAULT_TICK_CACHE_DIR", tick_root):
-                with patch("backtest.__main__.BacktestEngine"):
-                    with patch("backtest.__main__.emit_report") as emit_report:
-                        with patch(
-                            "backtest.__main__.configure_backtest_session_logging"
-                        ):
-                            rc = main(
-                                [
-                                    "--code",
-                                    "TMFR1",
-                                    "--dates-from-cache",
-                                    "--cache-dir",
-                                    str(month_dir),
-                                    "--from-date",
-                                    "2026-05-01",
-                                    "--to-date",
-                                    "2026-05-01",
-                                    "--report",
-                                ]
-                            )
+            with patch.dict(os.environ, {"FT003_HOLDOUT_UNSEAL": "1"}):
+                with patch("backtest.__main__.DEFAULT_TICK_CACHE_DIR", tick_root):
+                    with patch("backtest.__main__.BacktestEngine"):
+                        with patch("backtest.__main__.emit_report") as emit_report:
+                            with patch(
+                                "backtest.__main__.configure_backtest_session_logging"
+                            ):
+                                rc = main(
+                                    [
+                                        "--code",
+                                        "TMFR1",
+                                        "--dates-from-cache",
+                                        "--cache-dir",
+                                        str(month_dir),
+                                        "--from-date",
+                                        "2026-05-01",
+                                        "--to-date",
+                                        "2026-05-01",
+                                        "--report",
+                                    ]
+                                )
             self.assertEqual(rc, 0)
             emit_report.assert_called_once()
             log_path = emit_report.call_args[0][0]

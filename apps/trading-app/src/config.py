@@ -101,6 +101,8 @@ class Settings:
     sweep_score_metric: str
     sweep_dd_penalty: float
     sweep_sl_penalty: float
+    sweep_max_grid_combos: int
+    sweep_max_grid_keys: int
     initial_capital_points: float
     max_acceptable_mdd_points: float
 
@@ -237,6 +239,8 @@ def load_config(path: str | Path | None = None) -> Settings:
         sweep_score_metric=str(performance.get("sweep_score_metric", "expectancy_net")),
         sweep_dd_penalty=float(performance.get("sweep_dd_penalty", 0.0)),
         sweep_sl_penalty=float(performance.get("sweep_sl_penalty", 50.0)),
+        sweep_max_grid_combos=int(performance.get("sweep_max_grid_combos", 36)),
+        sweep_max_grid_keys=int(performance.get("sweep_max_grid_keys", 4)),
         initial_capital_points=float(performance.get("initial_capital_points", 0.0)),
         max_acceptable_mdd_points=float(
             performance.get("max_acceptable_mdd_points", 120.0)
@@ -347,6 +351,8 @@ SHARPE_PERIOD = settings.sharpe_period
 SWEEP_SCORE_METRIC = settings.sweep_score_metric
 SWEEP_DD_PENALTY = settings.sweep_dd_penalty
 SWEEP_SL_PENALTY = settings.sweep_sl_penalty
+SWEEP_MAX_GRID_COMBOS = settings.sweep_max_grid_combos
+SWEEP_MAX_GRID_KEYS = settings.sweep_max_grid_keys
 INITIAL_CAPITAL_POINTS = settings.initial_capital_points
 MAX_ACCEPTABLE_MDD_POINTS = settings.max_acceptable_mdd_points
 EXIT_ORDER_MAX_RETRIES = settings.exit_order_max_retries

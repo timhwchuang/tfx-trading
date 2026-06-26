@@ -49,6 +49,7 @@ def friction_per_round_trip(settings: FrictionSettings) -> float:
         pv = settings.point_value_ntd
         if pv <= 0:
             return 0.0
+        # tax_rate: round-trip tax in NTD (not a rate); see SHARED_ASSUMPTIONS §3.1
         ntd = 2.0 * settings.commission_per_side_ntd
         if settings.tax_rate:
             ntd += settings.tax_rate
@@ -231,8 +232,17 @@ def compute_performance_from_fills(
     )
 
     drawdown = compute_drawdown(cumulative_net)
-    sharpe_src = net_pnls if sharpe_period == "per_trade" else gross_pnls
-    risk_adj = compute_sharpe_sortino(sharpe_src, period=sharpe_period)
+    risk_net = compute_sharpe_sortino(net_pnls, period=sharpe_period)
+    risk_gross = compute_sharpe_sortino(gross_pnls, period=sharpe_period)
+    # per_trade KPI 以 net 為準；daily 模式仍以 gross 序列（向後相容）
+    primary = risk_net if sharpe_period == "per_trade" else risk_gross
+    risk_adj = {
+        **primary,
+        "sharpe_net": risk_net["sharpe"],
+        "sortino_net": risk_net["sortino"],
+        "sharpe_gross": risk_gross["sharpe"],
+        "sortino_gross": risk_gross["sortino"],
+    }
 
     return {
         "friction_enabled": friction.enabled,
@@ -404,12 +414,12 @@ def sweep_score_from_kpi(
     if metric == "pnl_net":
         base = float(pnl_net)
     elif metric == "sharpe_net":
-        sharpe_vals = [
-            float((s.get("performance") or {}).get("risk_adjusted", {}).get("sharpe"))
-            for s in kpi.get("_summaries", [])
-            if (s.get("performance") or {}).get("risk_adjusted", {}).get("sharpe")
-            is not None
-        ]
+        sharpe_vals = []
+        for s in kpi.get("_summaries", []):
+            risk = (s.get("performance") or {}).get("risk_adjusted", {})
+            val = risk.get("sharpe_net", risk.get("sharpe"))
+            if val is not None:
+                sharpe_vals.append(float(val))
         base = statistics.mean(sharpe_vals) if sharpe_vals else 0.0
     else:
         base = float(exp_net)

@@ -9,7 +9,13 @@ from pathlib import Path
 from typing import Any
 
 from backtest.engine import BacktestEngine
-from config import SWEEP_DD_PENALTY, SWEEP_SCORE_METRIC, SWEEP_SL_PENALTY
+from config import (
+    SWEEP_DD_PENALTY,
+    SWEEP_MAX_GRID_COMBOS,
+    SWEEP_MAX_GRID_KEYS,
+    SWEEP_SCORE_METRIC,
+    SWEEP_SL_PENALTY,
+)
 from core.runtime_config import default_runtime_config
 from reporting.performance_metrics import aggregate_daily_performance, sweep_score_from_kpi
 from reporting.forward_pnl import ForwardPnlPolicy, load_tick_series, make_replay_forward_pnl
@@ -25,8 +31,11 @@ from strategy_vwap_momentum.structure import StructureParams
 from trading_engine.core.runtime_config import normalize_overlay_key
 from strategy_vwap_momentum import apply_strategy_params, restore_strategy_params
 from sweep.determinism_check import _run_with_audit_capture
+from sweep.holdout_guard import assert_dates_unsealed
 
 DEFAULT_PENALTY = 50.0
+MAX_GRID_COMBOS = SWEEP_MAX_GRID_COMBOS
+MAX_GRID_KEYS = SWEEP_MAX_GRID_KEYS
 logger = logging.getLogger(__name__)
 
 # Backward-compatible aliases for tests
@@ -86,6 +95,7 @@ def _aggregate_kpi(summaries: list[dict[str, Any]]) -> dict[str, Any]:
         return {
             "daily_pnl_points": 0.0,
             "quick_stop_loss_rate": None,
+            "trade_count": 0,
             "day_count": 0,
             "performance_aggregate": aggregate_daily_performance([]),
             "_summaries": [],
@@ -106,6 +116,7 @@ def _aggregate_kpi(summaries: list[dict[str, Any]]) -> dict[str, Any]:
     kpi = {
         "daily_pnl_points": round(total_pnl, 2),
         "quick_stop_loss_rate": weighted_rate,
+        "trade_count": total_exits,
         "day_count": len(summaries),
         "performance_aggregate": perf_agg,
         "_summaries": summaries,
@@ -140,6 +151,15 @@ def _resolve_forward_pnl(
     return make_replay_forward_pnl(series, forward_policy)
 
 
+def grid_combo_count(grid: dict[str, list]) -> int:
+    if not grid:
+        return 0
+    count = 1
+    for values in grid.values():
+        count *= len(values)
+    return count
+
+
 def sweep(
     grid: dict[str, list],
     dates_train: list,
@@ -152,6 +172,16 @@ def sweep(
     forward_policy: ForwardPnlPolicy | None = None,
 ) -> list[dict[str, Any]]:
     """Cartesian grid sweep; ranking uses valid (out-of-sample) KPI only."""
+    assert_dates_unsealed(list(dates_train) + list(dates_valid))
+    if len(grid) > MAX_GRID_KEYS:
+        raise ValueError(
+            f"grid has {len(grid)} keys; max {MAX_GRID_KEYS} per FT-003 SPEC §4.4"
+        )
+    combo_count = grid_combo_count(grid)
+    if combo_count > MAX_GRID_COMBOS:
+        raise ValueError(
+            f"grid has {combo_count} combos; max {MAX_GRID_COMBOS} per FT-003 SPEC §4.4"
+        )
     cache_path = Path(cache_dir)
     ensure_legacy_kbars_migrated(cache_path)
     replay_fwd = _resolve_forward_pnl(code, dates_valid, cache_path, forward_policy)

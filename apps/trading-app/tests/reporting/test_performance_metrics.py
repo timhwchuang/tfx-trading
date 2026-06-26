@@ -71,6 +71,16 @@ class TestPerformanceMetrics(unittest.TestCase):
         f = FrictionSettings(enabled=True, round_trip_friction_points=2.5)
         self.assertEqual(friction_per_round_trip(f), 2.5)
 
+    def test_friction_ntd_tmfr1_round_trip(self):
+        f = FrictionSettings(
+            enabled=True,
+            mode="ntd",
+            commission_per_side_ntd=15.0,
+            tax_rate=20.0,
+            point_value_ntd=10.0,
+        )
+        self.assertEqual(friction_per_round_trip(f), 5.0)
+
     def test_friction_disabled(self):
         f = FrictionSettings(enabled=True, round_trip_friction_points=2.5)
         f_off = FrictionSettings(enabled=False, round_trip_friction_points=2.5)
@@ -102,6 +112,10 @@ class TestPerformanceMetrics(unittest.TestCase):
         perf = compute_performance_from_fills(fills, friction)
         self.assertEqual(perf["total_pnl_gross"], 5.0)
         self.assertEqual(perf["total_pnl_net"], 1.0)
+        risk = perf["risk_adjusted"]
+        self.assertEqual(risk["sharpe_net"], risk["sharpe"])
+        self.assertIsNotNone(risk["sharpe_gross"])
+        self.assertGreater(risk["sharpe_gross"], risk["sharpe_net"])
 
     def test_uat_report_includes_performance(self):
         lines = [

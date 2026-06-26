@@ -7,6 +7,7 @@ from typing import List
 
 from core.runtime_config import RuntimeConfig, default_runtime_config
 from integrations.engine_wiring import default_strategy, trading_app_engine_ports
+from sweep.holdout_guard import assert_dates_unsealed
 from trading_backtest import BacktestEngine as CoreBacktestEngine
 from trading_backtest import VirtualClock
 from storage.tick_loader import DEFAULT_CACHE_DIR
@@ -15,7 +16,10 @@ from trading_engine.core.strategy import Strategy
 
 
 class BacktestEngine:
-    """Thin wrapper: inject app ports + default strategy; delegate replay to trading-backtest."""
+    """Thin wrapper: inject app ports + default strategy; delegate replay to trading-backtest.
+
+    All replay paths enforce ``holdout_guard`` (2026-05 sealed unless ``FT003_HOLDOUT_UNSEAL=1``).
+    """
 
     def __init__(
         self,
@@ -25,6 +29,7 @@ class BacktestEngine:
         strategy: Strategy | None = None,
         runtime_config: RuntimeConfig | None = None,
     ) -> None:
+        assert_dates_unsealed(dates)
         cfg = runtime_config or default_runtime_config()
         self.clock = VirtualClock()
         self.broker = MockBroker(

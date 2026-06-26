@@ -18,6 +18,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-003**：SHARED_ASSUMPTIONS **v1.1** — TMFR1 摩擦 **5 點/趟**（手續費 30 + 稅 20 NTD）上線；`friction.enabled: true`（主 config + 各 workspace）
 - **GCE Live 運維 SSOT**：[`docs/ops/LinuxOps.md`](docs/ops/LinuxOps.md) §GCE（目錄、cron 13:50 stop → 13:54 post-session、sync）；[`HYBRID_DEPLOY.md`](docs/ops/HYBRID_DEPLOY.md) 已部署摘要；[`TODO.md`](docs/TODO.md) §GCP 營運（2026-07-23 帳單）。
 - **FT-002 Phase 4**：`regime_allows_entry` 接線；`structure_veto` / armed structure enrichment DECISION_AUDIT；`structure_stale` → `risk_blocked` audit；`record_structure_veto`；filter-on 3-run determinism；[`TODO.md`](docs/TODO.md) / [`WeeklyStatus.md`](docs/WeeklyStatus.md) / [`uat/APP.md`](docs/uat/APP.md) 同步 P6-SMC-CAL 指引。
 - **FT-002 Phase 3 + sweep（A1–A8）**：`StructureRefreshPort` / `structure_stale` / `refresh_atr` 掛載；`structure_refresh.py`；config + runtime 互斥；`structure_calibration_cli --sweep`；`param_sweep` structure grid；`test_structure_stale_guards`。
@@ -29,6 +30,10 @@ Historical standalone-repo release links are kept for archaeology only; developm
 ## trading-engine
 
 ### [Unreleased]
+
+#### Changed
+
+- **FT-003 sweep overlay keys**: `SWEEP_FIELD_TO_CONST` 補齊（含 `min_atr_threshold`、`ioc_slippage_points`、`pending_timeout_sec`、`momentum_vol_1s` 等）；`RuntimeConfig.__getattr__` overlay-aware；`apply_overlay` 對未知 key `raise ValueError`（杜絕靜默失效）。
 
 #### Added
 
@@ -290,7 +295,13 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 ### [Unreleased]
 
+#### Changed
+
+- **TMFR1 摩擦上線**：`friction.enabled: true`；`mode: ntd`（單邊手續費 15 NTD ×2 + 稅 20 NTD = **5 點/趟**）；SSOT [`workspaces/SHARED_ASSUMPTIONS.md`](workspaces/SHARED_ASSUMPTIONS.md) §3.1。DAILY_SUMMARY `expectancy_net` / sweep `valid_score` 以 net 為準。`observability` 每次 summary 自 `CONFIG_PATH` 重讀 friction。
+
 #### Added
+
+- **FT-003 調參硬化**：`sweep.holdout_guard`（2026-05 封印；`FT003_HOLDOUT_UNSEAL=1` 解封）已接線至 `param_sweep.sweep`、`backtest`、`overlay_smoke`；`sweep.overlay_smoke`（grid key 開工前驗證：KPI 變化或執行/計時 key 之 overlay 讀回）；`param_sweep` KPI 新增 `trade_count`；grid combo 硬上限 **36**、keys 上限 **4**（SPEC §4.4）。
 
 - **`storage.cache_audit` / `storage.cache_repair`**：`python -m storage.cache_audit --code TMFR1` 掃描 `tick_cache/` 逐日輸出 `差異vols` / `ohlc差` / `kbars:N/300`；`cache_repair --fix` 自動 TMFR1+TMFR2 跨月尾盤合併、從 ticks 補 kbar 缺口並重稽核。`backfilldata` 預設 `--merge-rollover`（`--no-merge-rollover` 關閉）。模組：`storage/tick_rollover.py`、`storage/kbar_repair.py`；`kbar_loader.dedupe_kbars`。
 

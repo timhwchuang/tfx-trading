@@ -1,4 +1,12 @@
-"""Trading-app bridge: YAML settings → trading_engine.RuntimeConfig."""
+"""Trading-app bridge: YAML settings → trading_engine.RuntimeConfig.
+
+``default_runtime_config()`` loads ``apps/trading-app/config/config.yaml`` into
+``TradingAppRuntimeConfig``. Param sweep overlays use ``apply_strategy_params`` /
+``restore_strategy_params`` (strategy-vwap-momentum) which write into
+``cfg._overlay``; reads via ``cfg.live_get(SWEEP_FIELD_TO_CONST[key], default)``
+or snake_case attributes must reflect overlay values — use ``overlay_smoke`` before
+sweeping a new grid key.
+"""
 
 from __future__ import annotations
 
@@ -41,8 +49,7 @@ class TradingAppRuntimeConfig(EngineRuntimeConfig):
 
 
 def default_runtime_config() -> TradingAppRuntimeConfig:
-    load_config()
-    return TradingAppRuntimeConfig(_to_engine_settings())
+    return TradingAppRuntimeConfig(_to_engine_settings(load_config()))
 
 
 __all__ = [

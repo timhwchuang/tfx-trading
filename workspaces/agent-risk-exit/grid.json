@@ -1,0 +1,5 @@
+{
+  "fixed_tp_points": [18, 22, 26],
+  "trail_points": [6, 8, 10],
+  "max_consecutive_loss": [3, 4, 5]
+}
