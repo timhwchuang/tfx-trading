@@ -33,7 +33,7 @@ import logging
 from pathlib import Path
 
 from storage.tick_loader import resolve_cli_tick_cache_dates
-from sweep.param_sweep import sweep, validate_sweep_inputs
+from sweep.param_sweep import assert_sweep_has_runnable_combos, sweep, validate_sweep_inputs
 from sweep.sweep_instance_lock import SweepInstanceLock
 from sweep.sweep_progress import MIN_HEARTBEAT_SEC, SweepProgressTracker
 
@@ -129,6 +129,7 @@ def main(argv: list[str] | None = None) -> int:
     sweep_started = False
     try:
         validate_sweep_inputs(grid, train, valid)
+        assert_sweep_has_runnable_combos(grid)
         tracker.start_sweep(
             agent=agent,
             code=args.code,

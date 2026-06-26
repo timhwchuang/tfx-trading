@@ -257,6 +257,10 @@ def validate_sweep_inputs(
         raise ValueError(
             f"grid has {combo_count} combos; max {MAX_GRID_COMBOS} per FT-003 SPEC §4.4"
         )
+
+
+def assert_sweep_has_runnable_combos(grid: dict[str, list]) -> None:
+    """CLI gate before truncating sweep artifacts; ``sweep()`` may still skip combos."""
     keys = list(grid.keys())
     combos = list(itertools.product(*(grid[k] for k in keys)))
     runnable, _ = _partition_combos(keys, combos)

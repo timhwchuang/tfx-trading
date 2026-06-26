@@ -21,6 +21,7 @@ from sweep.param_sweep import (
     _run_backtest_summaries,
     sweep,
     validate_sweep_inputs,
+    assert_sweep_has_runnable_combos,
 )
 from sweep.sweep_progress import SweepProgressTracker
 from integrations.engine_wiring import trading_app_engine_ports
@@ -426,14 +427,14 @@ class TestParamSweep(unittest.TestCase):
             )
         self.assertIn("no values", str(ctx.exception))
 
-    def test_validate_sweep_inputs_rejects_all_regime_skips(self):
+    def test_assert_sweep_has_runnable_combos_rejects_all_regime_skips(self):
         day = datetime.date(2026, 4, 1)
         grid = {
             "structure_filter_enabled": [True],
             "trend_filter_enabled": [True],
         }
         with self.assertRaises(ValueError) as ctx:
-            validate_sweep_inputs(grid, dates_train=[day], dates_valid=[day])
+            assert_sweep_has_runnable_combos(grid)
         self.assertIn("no runnable combos", str(ctx.exception))
 
     def test_capture_prefixes_conservative_grid(self):
