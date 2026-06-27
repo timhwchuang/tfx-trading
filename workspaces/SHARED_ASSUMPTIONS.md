@@ -2,8 +2,8 @@
 
 | 欄位 | 值 |
 |------|-----|
-| **版本** | **v1.1** |
-| **更新日期** | 2026-06-26 |
+| **版本** | **v1.3** |
+| **更新日期** | 2026-06-27 |
 
 > **SSOT**：所有調參 agent **開工前 MUST 讀**；`grid.json` 邊界與 `analysis.md` 假說須與本檔一致。  
 > 違反本檔假設的 grid 視為 **invalid**，不得進入 leaderboard。  
@@ -81,6 +81,57 @@ friction:
 | 平淡市況 | 微台低 ATR 日可能整天無交易 — **樣本不足** 不得宣稱勝利 |
 | Regime filter | Phase 6 旗標預設 **關**；regime agent 不得建議 Pilot 直接開 filter |
 
+### 4.1 停損停利尺度（MUST — Phase 3.6 診斷）
+
+固定點數出場 **MUST** 與當月波動對照表達為 **ATR 或 1 分振幅比例**，不得僅憑「6 點 / 8 點」直覺調參。
+
+| 比例 | 定義 | 用途 |
+|------|------|------|
+| `stop_ratio` | `hard_stop_points` ÷ ATR(20) p50 | 硬停是否在噪音內 |
+| `trail_ratio` | `trail_points` ÷ ATR(20) p50 | 移動停損尺度 |
+| `tp_ratio` | `fixed_tp_points` ÷ ATR(20) p50 | 止盈是否可達 |
+| `range_ratio` | `hard_stop_points` ÷ 1m range p50 | 相對分鐘振幅 |
+
+**常見誤讀**：tick `close` ~29000 或 `volume` 幾百～幾千 **不是** 分鐘振幅。診斷 SSOT：[`VOLATILITY_BASELINE.md`](VOLATILITY_BASELINE.md)（`ft003_volatility_baseline.py` 產出）。
+
+**2026-01～05 實證（TMFR1 kbars；腳本可重現）** — repo 預設 `hard_stop=6`、`trail=8`、`tp=20`：
+
+| 月 | 交易日 | Close med | 1m range p50 | ATR p50 | HS6/ATR |
+|----|--------|-----------|--------------|---------|---------|
+| 2026-01 | 21 | ~31301 | 15 | 15.7 | 38% |
+| 2026-02 | 11 | ~32648 | 20 | 21.8 | 28% |
+| 2026-03 | 22 | ~33507 | 32 | 34.0 | 18% |
+| 2026-04 valid | 20 | ~37250 | 25 | 25.7 | 23% |
+| 2026-05 holdout | 20 | ~41896 | 32 | 33.8 | 18% |
+
+指數走高、3/5 月 ATR 升高時，**固定 6 點硬停**相對 ATR **更緊** → 秒停損率偏高為合理症狀。第二輪 tune 優先 **尺度 redesign**（`hard_stop` 或 ATR×k），非盲目放大 grid。見 [`PLAN.md`](../docs/features/ai-backtest-tuning/PLAN.md) Phase 3.6。
+
+進場漏斗診斷（armed 順勢、回踩、vol 門檻）→ [`ENTRY_FUNNEL_METRICS.md`](../docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)（Methods SSOT）。
+
+### 4.2 進場量能與回踩（MUST — Phase 3.6 §C）
+
+兩段式進場：**武裝**（爆量 spike）→ **等待回踩**（貼 VWAP + 量能枯竭）→ 進場。完整指標定義見 [`ENTRY_FUNNEL_METRICS.md`](../docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)。
+
+| 符號 | 定義 | 單位 | 常見誤讀 |
+|------|------|------|----------|
+| `vol_1s` | 滾動 1 秒成交口數 | contracts | **≠** tick `close` 價位；**≠** 1m High−Low |
+| `threshold` | `momentum_vol_1s × session_multiplier` | contracts | 預設基礎 150；武裝 = 右尾 spike |
+| `exhaustion_vol` | 進場時 `vol_1s ≤` 此值視為枯竭 | contracts | 預設 15；與武裝門檻是 **兩道獨立門** |
+| `entry_band_points` | `\|price − VWAP\| ≤` 此值為 near_vwap | 點 | pullback 寬緊直接影響漏斗 |
+| `momentum_timeout_sec` | armed 後等待回踩上限 | 秒 | 預設 180；逾時 reset |
+
+**兩道門語意**：
+
+- **武裝**：`vol_1s ≥ threshold` 且 buy/sell ratio 通過 → 偵測罕見爆量秒（背景 p99 通常遠低於 150）。
+- **進場**：`vol_1s ≤ exhaustion_vol` 且 near_vwap → spike 後量能枯竭、價格回整理區。
+
+**診斷 MUST 區分**：
+
+- **脈衝延續性**（armed 後固定 Δt 順勢位移）≠ **策略 net edge**（設計不追價）。
+- **回踩漏斗**（episode 轉化率）優於僅看日彙總 `near_miss`；月報須 **sum** 可加總欄位（見 ENTRY_FUNNEL_METRICS §5.3）。
+
+**與 §4.1 並列**：出場尺度（stop÷ATR）與進場漏斗（vol 門檻、band、timeout）共同解釋 valid 淨負；合成敘事見 [`strategy_diagnosis.md`](_template/strategy_diagnosis.md) §3 + §6。
+
 ## 5. 流動性與微結構（台指期）
 
 - **開盤前 15 分鐘**：價差與 IOC 取消率較高；回測 fill 可能偏樂觀。
@@ -121,3 +172,5 @@ friction:
 |------|------|------|
 | v1.0 | 2026-06-26 | 初版 |
 | v1.1 | 2026-06-26 | TMFR1 摩擦 5 點/趟（手續費 30 + 稅 20 NTD）上線；KPI 以 net 為準 |
+| v1.2 | 2026-06-27 | §4.1 停損停利 ATR/range 尺度；2026-01～05 實證表；連結 Phase 3.6 診斷 |
+| v1.3 | 2026-06-27 | §4.2 進場量能與回踩（vol_1s 兩道門）；連結 ENTRY_FUNNEL_METRICS Methods SSOT |

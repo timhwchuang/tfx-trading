@@ -47,7 +47,7 @@
 | 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
 | MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
 | Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
-| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · [`workspaces/`](../workspaces/) |
+| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · [`workspaces/`](../workspaces/) · Phase 3.6 [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · 進場漏斗 Methods [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
 | 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
 | tick_cache 品質稽核 / 修復 | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit；`storage.cache_audit` / `storage.cache_repair` |
 

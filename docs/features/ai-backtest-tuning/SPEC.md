@@ -135,6 +135,19 @@ MVP 每 agent 算力預算（約）：
 
 詳見 **[`PLAN.md`](PLAN.md) Phase 6 / 6.5**（Gate、四風險、v1/v2 決策樹、算力 SOP）。
 
+### 4.6 市場尺度診斷（Phase 3.6）
+
+在 **四位 agent Phase 3 sweep 全部完成** 後執行；用於解釋固定點數停損與波動 regime 是否脫節。**硬規則**：
+
+- 產出 **禁止** 用於本輪 `leaderboard` 排名或修改已提交 `params`。
+- 2026-05 統計 **僅** 供 holdout **風險敘事**；**禁止** 依 5 月分布回頭改本輪 grid。
+- 診斷腳本 **MUST NOT** 輸出「建議參數」供直接寫入 config（描述統計與 ratio 除外）。
+- 第二輪 sweep 仍須 SPEC §4.4 人類書面批准。
+- 產物：`workspaces/VOLATILITY_BASELINE.md`（§A–§D 四平面）、`workspaces/strategy_diagnosis.md`；機器可讀 `workspaces/reports/volatility_baseline.json`、`workspaces/reports/entry_funnel.json`（§C，script pending）。
+- 進場漏斗（§C）操作定義、cohort、固定 Δt、解讀邊界 → **[`ENTRY_FUNNEL_METRICS.md`](ENTRY_FUNNEL_METRICS.md)**（Methods SSOT）。
+
+執行步驟、指標清單、Gate、第二輪提案 → **[`PLAN.md`](PLAN.md) Phase 3.6**。
+
 ## 5. Multi-Agent 競賽契約
 
 > **Agent 編制、職稱、假說、grid 邊界、copy-paste 開工 prompt**：[`AGENT_ROSTER.md`](AGENT_ROSTER.md)（**AI 必讀 SSOT**）。

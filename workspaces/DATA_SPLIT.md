@@ -50,6 +50,13 @@
 
 `param_sweep` 的 `dates_train` / `dates_valid` 應使用 **tick_cache 內實際存在的交易日 list**，不要用含週末的曆日 generator。
 
+## 市場尺度診斷（Phase 3.6）
+
+> **與上表競賽切分並行**：01～05 月 kbars/tick 可用於 **描述統計**（1m 振幅、ATR、量能）。  
+> **2026-05** 統計僅供 holdout **風險敘事** — **禁止** 依 5 月分布回頭改本輪 grid 或 leaderboard。  
+> **Gate**：四位 agent sweep 完成後才開 Phase 3.6。  
+> SSOT：[`VOLATILITY_BASELINE.md`](VOLATILITY_BASELINE.md) · 執行 [`PLAN.md`](../docs/features/ai-backtest-tuning/PLAN.md) Phase 3.6 · 契約 [`SPEC.md`](../docs/features/ai-backtest-tuning/SPEC.md) §4.6。
+
 ## 長歷史（Post-MVP，FT-003 Phase 6）
 
 > **現行競賽切分（上表）在 MVP 完成前為 SSOT。**  

@@ -9,7 +9,7 @@
 |----|------|--------|--------|--------|------|
 | FT-001 | [audit-event-replay](audit-event-replay/SPEC.md) | **Landed** | 2026-06-17 | UAT→Pilot | [SPEC](audit-event-replay/SPEC.md) · [PLAN](audit-event-replay/PLAN.md) · [REVIEW](audit-event-replay/REVIEW.md) · **`/audit-event-replay`** |
 | FT-002 | [smc-structure-filter](smc-structure-filter/SPEC.md) | **Draft** | 2026-06-18 | UAT | [SPEC](smc-structure-filter/SPEC.md) · [PLAN](smc-structure-filter/PLAN.md) · [REVIEW](smc-structure-filter/REVIEW.md) |
-| FT-003 | [ai-backtest-tuning](ai-backtest-tuning/SPEC.md) | **InProgress** | 2026-06-26 | Pilot-prep | [SPEC](ai-backtest-tuning/SPEC.md) · [PLAN](ai-backtest-tuning/PLAN.md) · [**ROSTER**](ai-backtest-tuning/AGENT_ROSTER.md) · [`workspaces/`](../../workspaces/) |
+| FT-003 | [ai-backtest-tuning](ai-backtest-tuning/SPEC.md) | **InProgress** | 2026-06-26 | Pilot-prep | [SPEC](ai-backtest-tuning/SPEC.md) · [PLAN](ai-backtest-tuning/PLAN.md) · [**ROSTER**](ai-backtest-tuning/AGENT_ROSTER.md) · [ENTRY_FUNNEL_METRICS](ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) · [`workspaces/`](../../workspaces/) |
 
 ## 狀態定義
 

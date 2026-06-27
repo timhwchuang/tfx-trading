@@ -130,6 +130,41 @@ flowchart TB
 - [ ] （擴充）`agent-risk-exit` → `peer_review_agent-regime.md`
 - [ ] （擴充）`agent-regime` → `peer_review_agent-risk-exit.md`
 
+### 1.7 Phase 3.6 — 市場尺度診斷（四位 sweep 完成後）
+
+**時序（MUST）**：四位 agent Phase 3 + 3.4 + 3.5 完成 → **Phase 3.6** →（建議）人類閱讀後 Phase 4 holdout。
+
+**執行者**：協調 agent 或人類指派（**非**四位調參 agent 之一代跑 sweep）。
+
+**必讀**：
+
+- [`PLAN.md`](PLAN.md) Phase 3.6
+- [`SPEC.md`](SPEC.md) §4.6
+- [`ENTRY_FUNNEL_METRICS.md`](ENTRY_FUNNEL_METRICS.md)（§C 進場漏斗 Methods SSOT）
+- [`SHARED_ASSUMPTIONS.md`](../../../workspaces/SHARED_ASSUMPTIONS.md) **v1.3** §4.1、§4.2
+- 四位 `analysis.md` + `sweep_result.jsonl`
+- [`VOLATILITY_BASELINE.md`](../../../workspaces/VOLATILITY_BASELINE.md)（產出後）
+
+**開工 Prompt（複製貼上）**：
+
+```markdown
+你是 FT-003 **Phase 3.6 — 市場尺度與進場漏斗診斷**（非調參 agent）。
+
+**身份 MUST**：`prompts/roles/senior-trading-professional.md`（診斷視角，非選參）。
+
+**必讀**：PLAN Phase 3.6、SPEC §4.6、ENTRY_FUNNEL_METRICS.md、SHARED_ASSUMPTIONS v1.3 §4.1–§4.2、四位 agent analysis + sweep_result.jsonl。
+
+**執行**：
+1. `python scripts/ft003_volatility_baseline.py --markdown-out workspaces/VOLATILITY_BASELINE.md`（§A/B）
+2. 進場漏斗 §C：`ft003_episode_diagnosis.py`（**待實作**）或依 ENTRY_FUNNEL_METRICS 手填/TBD
+3. `python scripts/ft003_exit_diagnosis.py --agent agent-conservative --markdown-append workspaces/VOLATILITY_BASELINE.md`（§D）
+4. 撰寫 `workspaces/strategy_diagnosis.md`（含 §6 進場漏斗；模板 `_template/strategy_diagnosis.md`）
+
+**禁止**：改 grid、append/修改 leaderboard 已提交 params、解封 holdout、宣稱 Pilot Ready、依 5 月統計回頭 tune。
+
+**產出**：VOLATILITY_BASELINE.md（§A–§D）、strategy_diagnosis.md、volatility_baseline.json、entry_funnel.json（script pending）；人類簽核 §Decision 後才可撰寫 round2_proposal.md。
+```
+
 ---
 
 ## 2. Agent #1 — `agent-conservative`（資本保全調參師）
@@ -275,6 +310,9 @@ flowchart TB
 | `fixed_tp_points` | 15–30 |
 | `trail_points` | 5–12 |
 | `max_consecutive_loss` | 3–5 |
+| `hard_stop_points` | 10–18 | **Round 2 only**（須 [`round2_proposal.md`](../../../workspaces/round2_proposal.md) 人類批准；Phase 3.6 尺度診斷後） |
+
+Round 1 grid 不含 `hard_stop`；Round 2 以出場尺度為主軸，進場／執行參數鎖定（見 `round2_proposal.md` §2）。
 
 ### 4.4 禁止 tune
 

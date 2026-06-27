@@ -219,6 +219,103 @@ Checklist：
 
 **禁止**：在 Phase 3 查看或討論 2026-05 holdout 結果。
 
+### Phase 3.6 — 市場尺度診斷（四位 sweep 完成後）
+
+> **定位**：在 **四位 agent Phase 3 sweep 全部完成** 之後、**建議在** Phase 4 holdout 解封 **之前**（人類閱讀；不強制 `holdout_guard` 擋）。  
+> **目的**：解釋「固定點數停損為何全 grid 淨負」、量化 **regime 漂移**（指數↑、ATR↑）、產出 **stop÷ATR** 建議帶，並診斷 **進場漏斗**（armed 順勢、回踩、vol 門檻）— **不是**再跑 sweep 選參。  
+> **四平面診斷**：尺度 §A/B + **進場 §C** + 出場 §D（合成敘事見 `strategy_diagnosis.md` §1–§6）。  
+> **產物 SSOT**：[`workspaces/VOLATILITY_BASELINE.md`](../../../workspaces/VOLATILITY_BASELINE.md)（數據）、[`workspaces/strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md)（合成敘事）。  
+> **進場漏斗 Methods SSOT**：[`ENTRY_FUNNEL_METRICS.md`](ENTRY_FUNNEL_METRICS.md)。  
+> **契約摘要**：[`SPEC.md`](SPEC.md) §4.6。
+
+#### 與 Phase 6（長歷史 WFO）的區別
+
+| | Phase 3.6 | Phase 6 |
+|--|-----------|---------|
+| 資料 | 現有 2026-01～05 `tick_cache` | 補檔後多年 + rolling fold |
+| 用途 | 尺度錯配診斷、holdout 風險敘事 | 跨年穩健性關卡 |
+| 產物 | `VOLATILITY_BASELINE.md`（§A–§D）、`entry_funnel.json`（§C，script pending）、`strategy_diagnosis.md` | `robustness_report.md` |
+
+#### 啟動 Gate（MUST — 四位都跑完）
+
+- [ ] `agent-conservative`、`agent-execution`、`agent-risk-exit`、`agent-regime` 各有 `sweep_result.jsonl` + `analysis.md` 五段式
+- [ ] MVP 雙向 `peer_review_*.md`；擴充 #3↔#4 `peer_review_*.md`
+- [ ] `leaderboard.jsonl` 四位各一筆 `valid_submitted`（或 documented `insufficient_sample`）
+- [ ] `python -m storage.cache_audit --code TMFR1` 覆蓋診斷月份無 FAIL
+
+#### 常見誤讀（MUST）
+
+tick `close` 價位 ~29000、或 `volume` 幾百～幾千，**不是**「一分鐘振幅 700–1000 點」。真實 1 分 High−Low 多為 **10–35 點**（劇烈分鐘可達 90–300）。診斷腳本以 **kbars High−Low** 與 **ATR(20)** 為準。
+
+#### 執行步驟（AI 照做）
+
+1. 跑市場尺度腳本 → `workspaces/reports/volatility_baseline.json` + 更新 `VOLATILITY_BASELINE.md` §A/B
+2. 跑進場漏斗診斷（baseline valid log + tick_cache）→ §C 寫入 `VOLATILITY_BASELINE.md`（`ft003_episode_diagnosis.py` **待實作**；腳本未就緒時依 [`ENTRY_FUNNEL_METRICS.md`](ENTRY_FUNNEL_METRICS.md) 手填或標 TBD）
+3. 跑出場診斷（baseline valid report + log）→ §D 寫入 `VOLATILITY_BASELINE.md`
+4. 撰寫 `strategy_diagnosis.md`（四平面結論含 §6 進場漏斗、摩擦 vs gross、尺度錯配、5 月 holdout 風險、是否 `grid_no_viable_solution`）
+5. 人類簽核 `strategy_diagnosis.md` §Decision 後，才可提案第二輪 sweep（SPEC §4.4）
+
+```bash
+cd apps/trading-app/src
+export PYTHONPATH=.
+python scripts/ft003_volatility_baseline.py \
+  --code TMFR1 \
+  --cache-dir ../../../tick_cache \
+  --from-date 2026-01-01 --to-date 2026-05-31 \
+  --markdown-out ../../../workspaces/VOLATILITY_BASELINE.md
+# 待實作 — 契約見 ENTRY_FUNNEL_METRICS.md §8
+python scripts/ft003_episode_diagnosis.py \
+  --agent agent-conservative \
+  --cache-dir ../../../tick_cache \
+  --from-date 2026-04-01 --to-date 2026-04-30 \
+  --markdown-append ../../../workspaces/VOLATILITY_BASELINE.md \
+  --json-out ../../../workspaces/reports/entry_funnel.json
+python scripts/ft003_exit_diagnosis.py \
+  --agent agent-conservative \
+  --markdown-append ../../../workspaces/VOLATILITY_BASELINE.md
+```
+
+#### 統計指標（腳本 MUST 覆蓋）
+
+**P0 — 波動（kbars，§A）**：1m High−Low（月 p50/p90/max）；ATR(20,1m) p50/p90；指數 Close 中位數；`stop_ratio`/`trail_ratio`/`tp_ratio`/`range_ratio`（對 repo 預設 `hard_stop=6`、`trail=8`、`tp=20`）。
+
+**P1 — 量能（tick，`--ticks`，§B）**：`vol_1s` p50/p90/p99；1m Volume；`ask−bid` spread（非 0）；對照 `momentum_vol_1s` / `exhaustion_vol` 百分位。
+
+**P0 — 進場漏斗（§C）** — 操作定義見 [`ENTRY_FUNNEL_METRICS.md`](ENTRY_FUNNEL_METRICS.md)：
+
+- **armed 順勢**：W30/W60/W180/W300 的 `MFE_delta`、`MAE_delta`、`close_delta`、`hit_entry_band`；按 outcome cohort（`entered` | `timeout` | `trend_veto` | `structure_veto` | `risk_blocked`）分層。
+- **回踩漏斗**：episode 級 `time_to_first_band`、`time_to_entry`、`pullback_depth_over_atr`；轉化率 `armed → ever_near_vwap → ever_vol_dried → both_same_tick → entered → timeout`。
+- **near_miss 月彙總**：`daily_summaries` 可加總欄位 **sum**、`closest_vwap_distance` **min**（不可僅取最後一日）。
+
+**P1 — timeout / vol（§C）**：`timeout_rate`；timeout 前是否曾 `ever_near_vwap`；`P(vol_1s ≥ threshold)` / `P(vol_1s ≤ exhaustion_vol)` 按月。
+
+**P0 — 交易結果（§D，`baseline_valid.json` + log）**：`exit_reasons`；`expectancy_by_reason`；QSL；exit `hold_ticks` / `in_grace`（log 解析）。
+
+**P2 — 時段**（可選 `--session-buckets`）：開盤 30m / 中盤 / 尾盤 1h；§C 指標 SHOULD 按 bucket 複表。
+
+#### 第二輪 grid 提案（非自動）
+
+僅在 `strategy_diagnosis.md` 人類批准後撰寫 [`workspaces/round2_proposal.md`](../../../workspaces/round2_proposal.md)：
+
+- **優先**：`hard_stop_points` 納入 risk-exit（例 10–18），或 `atr_trailing_enabled` + `trail_atr_k`（須 P6-2 CAL；見 [`TODO.md`](../../TODO.md)）
+- **禁止**：本輪 valid 全負時用更大笛卡爾積刷正期望
+- 提案須含預期 `stop_ratio` 帶
+
+#### 與 Phase 4 的關係
+
+- `election_report.md` **MUST** 引用 `strategy_diagnosis.md`
+- 四平面全負 + 尺度錯配成立 → 預設 **不產出** `elected_config.yaml`；holdout 可標 `diagnostic_only`
+
+#### Phase 3.6 驗收
+
+- [ ] [`ENTRY_FUNNEL_METRICS.md`](ENTRY_FUNNEL_METRICS.md) 存在且與模板 §C 欄位一致
+- [ ] `volatility_baseline.json` + `VOLATILITY_BASELINE.md` 含月表與 config ratio（§A/B）
+- [ ] `VOLATILITY_BASELINE.md` §C 含進場漏斗（至少 conservative valid 一 agent；script 未就緒可手填/TBD）
+- [ ] `VOLATILITY_BASELINE.md` §D 含 exit 診斷（至少 conservative baseline）
+- [ ] `strategy_diagnosis.md` 含 §6 進場漏斗 + §Decision（人類簽核欄）
+- [ ] 未用診斷結果修改本輪 leaderboard / grid
+- [ ] （script landed 後）`entry_funnel.json` + §C 由 `ft003_episode_diagnosis.py` 自動填入
+
 ### Phase 4 — Holdout 解封與選舉（人類觸發 + 獨立裁判）
 
 **僅人類宣布解封 holdout 後**執行（`export FT003_HOLDOUT_UNSEAL=1`）：

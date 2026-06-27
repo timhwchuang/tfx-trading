@@ -1,0 +1,401 @@
+{
+  "schema_version": 1,
+  "atr_method": "sma_tr",
+  "atr_period": 20,
+  "code": "TMFR1",
+  "from_date": "2026-01-01",
+  "to_date": "2026-05-31",
+  "months_role": {
+    "2026-01": "train_or_diagnostic",
+    "2026-02": "train_or_diagnostic",
+    "2026-03": "train_or_diagnostic",
+    "2026-04": "valid",
+    "2026-05": "holdout_narrative_only"
+  },
+  "config": {
+    "hard_stop_points": 6.0,
+    "trail_points": 8.0,
+    "fixed_tp_points": 20.0,
+    "min_atr_threshold": 25.0,
+    "momentum_vol_1s": 150.0,
+    "exhaustion_vol": 15.0
+  },
+  "kbar_months": {
+    "2026-01": {
+      "trading_days": 21,
+      "role": "train_or_diagnostic",
+      "close": {
+        "count": 6300,
+        "min": 29068.0,
+        "p50": 31301.0,
+        "p90": 32502.0,
+        "p99": 32880.0,
+        "max": 32989.0,
+        "mean": 31302.024285714284
+      },
+      "range_1m": {
+        "count": 6300,
+        "min": 2.0,
+        "p50": 15.0,
+        "p90": 32.0,
+        "p99": 58.0,
+        "max": 111.0,
+        "mean": 17.76936507936508
+      },
+      "volume_1m": {
+        "count": 6300,
+        "min": 13.0,
+        "p50": 195.5,
+        "p90": 638.0,
+        "p99": 1590.0,
+        "max": 3302.0,
+        "mean": 297.10603174603176
+      },
+      "atr20": {
+        "count": 5880,
+        "min": 5.1,
+        "p50": 15.65,
+        "p90": 28.65,
+        "p99": 40.8,
+        "max": 50.45,
+        "mean": 17.925535714285715
+      },
+      "ratios": {
+        "stop_ratio": 0.3834,
+        "trail_ratio": 0.5112,
+        "tp_ratio": 1.278,
+        "range_ratio": 0.4
+      }
+    },
+    "2026-02": {
+      "trading_days": 11,
+      "role": "train_or_diagnostic",
+      "close": {
+        "count": 3300,
+        "min": 31232.0,
+        "p50": 32648.5,
+        "p90": 35523.0,
+        "p99": 35693.0,
+        "max": 35760.0,
+        "mean": 33175.96636363636
+      },
+      "range_1m": {
+        "count": 3300,
+        "min": 2.0,
+        "p50": 20.0,
+        "p90": 42.0,
+        "p99": 72.0,
+        "max": 129.0,
+        "mean": 23.708787878787877
+      },
+      "volume_1m": {
+        "count": 3300,
+        "min": 18.0,
+        "p50": 268.0,
+        "p90": 784.0,
+        "p99": 1660.0,
+        "max": 4089.0,
+        "mean": 374.36121212121213
+      },
+      "atr20": {
+        "count": 3080,
+        "min": 8.45,
+        "p50": 21.7,
+        "p90": 36.75,
+        "p99": 53.45,
+        "max": 68.8,
+        "mean": 23.782386363636363
+      },
+      "ratios": {
+        "stop_ratio": 0.2765,
+        "trail_ratio": 0.3687,
+        "tp_ratio": 0.9217,
+        "range_ratio": 0.3
+      }
+    },
+    "2026-03": {
+      "trading_days": 22,
+      "role": "train_or_diagnostic",
+      "close": {
+        "count": 6600,
+        "min": 31173.0,
+        "p50": 33507.0,
+        "p90": 34356.0,
+        "p99": 35418.0,
+        "max": 35480.0,
+        "mean": 33407.760151515155
+      },
+      "range_1m": {
+        "count": 6600,
+        "min": 1.0,
+        "p50": 32.0,
+        "p90": 67.0,
+        "p99": 118.0,
+        "max": 313.0,
+        "mean": 37.482424242424244
+      },
+      "volume_1m": {
+        "count": 6600,
+        "min": 20.0,
+        "p50": 403.5,
+        "p90": 1140.0,
+        "p99": 2375.0,
+        "max": 7035.0,
+        "mean": 548.3843939393939
+      },
+      "atr20": {
+        "count": 6160,
+        "min": 6.1,
+        "p50": 33.875,
+        "p90": 58.35,
+        "p99": 85.5,
+        "max": 143.45,
+        "mean": 37.019659090909094
+      },
+      "ratios": {
+        "stop_ratio": 0.1771,
+        "trail_ratio": 0.2362,
+        "tp_ratio": 0.5904,
+        "range_ratio": 0.1875
+      }
+    },
+    "2026-04": {
+      "trading_days": 20,
+      "role": "valid",
+      "close": {
+        "count": 6000,
+        "min": 32501.0,
+        "p50": 37250.0,
+        "p90": 39775.0,
+        "p99": 40269.0,
+        "max": 40425.0,
+        "mean": 36869.055
+      },
+      "range_1m": {
+        "count": 6000,
+        "min": 1.0,
+        "p50": 25.0,
+        "p90": 58.0,
+        "p99": 121.0,
+        "max": 296.0,
+        "mean": 30.676333333333332
+      },
+      "volume_1m": {
+        "count": 6000,
+        "min": 25.0,
+        "p50": 299.0,
+        "p90": 1009.0,
+        "p99": 2526.0,
+        "max": 9320.0,
+        "mean": 460.0196666666667
+      },
+      "atr20": {
+        "count": 5600,
+        "min": 5.2,
+        "p50": 25.625,
+        "p90": 51.3,
+        "p99": 86.25,
+        "max": 117.7,
+        "mean": 30.552366071428573
+      },
+      "ratios": {
+        "stop_ratio": 0.2341,
+        "trail_ratio": 0.3122,
+        "tp_ratio": 0.7805,
+        "range_ratio": 0.24
+      }
+    },
+    "2026-05": {
+      "trading_days": 20,
+      "role": "holdout_narrative_only",
+      "close": {
+        "count": 6000,
+        "min": 39900.0,
+        "p50": 41896.0,
+        "p90": 44811.0,
+        "p99": 45313.0,
+        "max": 45460.0,
+        "mean": 42171.52366666667
+      },
+      "range_1m": {
+        "count": 6000,
+        "min": 2.0,
+        "p50": 32.0,
+        "p90": 69.0,
+        "p99": 128.0,
+        "max": 304.0,
+        "mean": 38.480666666666664
+      },
+      "volume_1m": {
+        "count": 6000,
+        "min": 33.0,
+        "p50": 377.5,
+        "p90": 1150.0,
+        "p99": 2491.0,
+        "max": 6423.0,
+        "mean": 541.0836666666667
+      },
+      "atr20": {
+        "count": 5600,
+        "min": 9.3,
+        "p50": 33.65,
+        "p90": 62.75,
+        "p99": 91.6,
+        "max": 152.75,
+        "mean": 38.29721428571428
+      },
+      "ratios": {
+        "stop_ratio": 0.1783,
+        "trail_ratio": 0.2377,
+        "tp_ratio": 0.5944,
+        "range_ratio": 0.1875
+      }
+    }
+  },
+  "tick_months": {
+    "2026-01": {
+      "role": "train_or_diagnostic",
+      "vol_1s": {
+        "count": 268710,
+        "min": 1.0,
+        "p50": 3.0,
+        "p90": 14.0,
+        "p99": 61.0,
+        "max": 1159.0,
+        "mean": 6.960567154181088
+      },
+      "spread": {
+        "count": 1056705,
+        "min": 1.0,
+        "p50": 2.0,
+        "p90": 3.0,
+        "p99": 5.0,
+        "max": 33.0,
+        "mean": 2.105748529627474
+      },
+      "threshold_coverage": {
+        "momentum_vol_1s_pct_gte": 0.2,
+        "exhaustion_vol_pct_lte": 91.2
+      }
+    },
+    "2026-02": {
+      "role": "train_or_diagnostic",
+      "vol_1s": {
+        "count": 156240,
+        "min": 1.0,
+        "p50": 4.0,
+        "p90": 17.0,
+        "p99": 61.0,
+        "max": 1614.0,
+        "mean": 7.908826164874552
+      },
+      "spread": {
+        "count": 737134,
+        "min": 1.0,
+        "p50": 2.0,
+        "p90": 3.0,
+        "p99": 5.0,
+        "max": 58.0,
+        "mean": 2.3624510604584783
+      },
+      "threshold_coverage": {
+        "momentum_vol_1s_pct_gte": 0.2,
+        "exhaustion_vol_pct_lte": 88.7
+      }
+    },
+    "2026-03": {
+      "role": "train_or_diagnostic",
+      "vol_1s": {
+        "count": 349123,
+        "min": 1.0,
+        "p50": 6.0,
+        "p90": 23.0,
+        "p99": 74.0,
+        "max": 1880.0,
+        "mean": 10.354972316346961
+      },
+      "spread": {
+        "count": 2294523,
+        "min": 1.0,
+        "p50": 3.0,
+        "p90": 4.0,
+        "p99": 10.0,
+        "max": 131.0,
+        "mean": 3.1797432407519994
+      },
+      "threshold_coverage": {
+        "momentum_vol_1s_pct_gte": 0.2,
+        "exhaustion_vol_pct_lte": 82.3
+      }
+    },
+    "2026-04": {
+      "role": "valid",
+      "vol_1s": {
+        "count": 295941,
+        "min": 1.0,
+        "p50": 4.0,
+        "p90": 20.0,
+        "p99": 77.0,
+        "max": 3180.0,
+        "mean": 9.326581987625913
+      },
+      "spread": {
+        "count": 1724934,
+        "min": 1.0,
+        "p50": 3.0,
+        "p90": 5.0,
+        "p99": 11.0,
+        "max": 180.0,
+        "mean": 3.3553556252007324
+      },
+      "threshold_coverage": {
+        "momentum_vol_1s_pct_gte": 0.3,
+        "exhaustion_vol_pct_lte": 85.7
+      }
+    },
+    "2026-05": {
+      "role": "holdout_narrative_only",
+      "vol_1s": {
+        "count": 313800,
+        "min": 1.0,
+        "p50": 5.0,
+        "p90": 22.0,
+        "p99": 80.0,
+        "max": 1992.0,
+        "mean": 10.345768005098789
+      },
+      "spread": {
+        "count": 2088789,
+        "min": 1.0,
+        "p50": 3.0,
+        "p90": 5.0,
+        "p99": 10.0,
+        "max": 137.0,
+        "mean": 3.4192764324208906
+      },
+      "threshold_coverage": {
+        "momentum_vol_1s_pct_gte": 0.3,
+        "exhaustion_vol_pct_lte": 82.9
+      }
+    }
+  },
+  "threshold_coverage": {
+    "sample_count": 1383814,
+    "momentum_vol_1s": {
+      "threshold": 150.0,
+      "pct_samples_gte": 0.2,
+      "pct_samples_lte": 99.8,
+      "note": "entry needs vol_1s >= threshold; gte = pass rate on random 1s bars"
+    },
+    "exhaustion_vol": {
+      "threshold": 15.0,
+      "pct_samples_lte": 85.6,
+      "note": "pullback exhaustion when vol_1s <= threshold"
+    }
+  },
+  "misread_reminder": "tick close price level is NOT minute range in points; volume is contracts not price amplitude",
+  "methodology": {
+    "atr": "sma_tr period=20 (matches IndicatorState.compute_atr)",
+    "holdout_month_usage": "2026-05 stats are narrative only; do not tune grid"
+  }
+}

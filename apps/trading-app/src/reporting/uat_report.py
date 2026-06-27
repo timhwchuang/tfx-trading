@@ -9,6 +9,7 @@ import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from observability import FillAudit
+from reporting.near_miss_aggregate import aggregate_near_miss
 from reporting.performance_metrics import (
     FrictionSettings,
     aggregate_daily_performance,
@@ -702,9 +703,7 @@ def compute_metrics(
         else None
     )
 
-    near_miss = None
-    if daily_summaries:
-        near_miss = daily_summaries[-1].get("near_miss")
+    near_miss = aggregate_near_miss(daily_summaries)
 
     friction, sharpe_period = resolve_friction_settings(friction)
     risk = resolve_risk_budget_settings(risk_budget)

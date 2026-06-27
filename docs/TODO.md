@@ -14,7 +14,7 @@
 | Phase 5 Pilot | 見 [`uat/APP.md`](uat/APP.md) Phase 5（量化 gate + 摩擦對帳 + 壓力情境審閱） |
 | Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（P6-1 + **P6-SMC-CAL** harness/sweep）；待 UAT tick 跑 CAL-8；P6-4/5 待做 |
 | **FT-002 SMC（工程）** | Phase 1–4 ✅（`REVIEW.md` PASS）；**Phase 5 Land + CAL-8** 待 ≥5 日 UAT |
-| **FT-003 回測調參** | **🟢 InProgress** — MVP Phase 3 sweep 進行中；Phase 4 holdout 待解封；**Phase 6 長歷史**見 [PLAN Phase 6](features/ai-backtest-tuning/PLAN.md#phase-6--長歷史穩健性驗證post-mvp2022) |
+| **FT-003 回測調參** | **🟢 Phase 3 完成** — 四位 sweep + analysis + peer_review + leaderboard；Phase 4 holdout 待解封；**Phase 6 長歷史**見 [PLAN Phase 6](features/ai-backtest-tuning/PLAN.md#phase-6--長歷史穩健性驗證post-mvp2022) |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
 | **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
@@ -75,12 +75,13 @@
 
 **MVP（2026-01～05，先做）**
 
-- [ ] Phase 1：`cache_audit` PASS、`determinism_check` PASS（各 agent）
-- [ ] Phase 2：MVP 兩位 baseline + `analysis.md` §Baseline
-- [ ] Phase 3：`ft003_run_sweep.py` + `sweep_result.jsonl` + 五段式 `analysis.md`
-- [ ] Phase 3.4：雙向 `peer_review_*.md`
-- [ ] Phase 3.5：`leaderboard.jsonl`
-- [ ] Phase 4：holdout 解封 + `election_report.md` + `judge_opinion.md`
+- [x] Phase 1：`cache_audit` PASS、`determinism_check` PASS（各 agent）
+- [x] Phase 2：MVP 兩位 baseline + `analysis.md` §Baseline
+- [x] Phase 3：`ft003_run_sweep.py` + `sweep_result.jsonl` + 五段式 `analysis.md`
+- [x] Phase 3.4：雙向 `peer_review_*.md`
+- [x] Phase 3.5：`leaderboard.jsonl`
+- [ ] **Phase 3.6**：四位 sweep 後 — [`PLAN Phase 3.6`](features/ai-backtest-tuning/PLAN.md#phase-36--市場尺度診斷四位-sweep-完成後) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)（Methods SSOT）· `ft003_volatility_baseline.py` / `ft003_exit_diagnosis.py` · `ft003_episode_diagnosis.py`（§C，**待實作**）· `strategy_diagnosis.md`
+- [ ] Phase 4：holdout 解封 + `election_report.md` + `judge_opinion.md`（須引用 `strategy_diagnosis.md`）
 
 **Post-MVP — Phase 6 長歷史（2022+，MVP holdout Gate 後）**
 
@@ -148,7 +149,7 @@
 
 ### P6-SMC-CAL（Live gate — 待 UAT tick）
 
-> **前提**：`structure_filter_enabled` 預設 **false**；與 `trend_filter_enabled` **互斥**（config fail-fast）。開啟前必過 **CAL-8** 人類簽核。  
+> **前提**：`structure_filter_enabled` 預設 **false**；與 `trend_filter_enabled` **互斥**（config fail-fast）。開啟前必過 **CAL-8** 人類簽核。
 > **設計真相**：[`docs/features/smc-structure-filter/SPEC.md`](features/smc-structure-filter/SPEC.md) · 實作計劃 [`PLAN.md`](features/smc-structure-filter/PLAN.md)
 
 **A 類（合成，已完成）**

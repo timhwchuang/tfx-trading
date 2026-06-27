@@ -90,6 +90,8 @@
 - VWAP stop / ATR dynamic stop：以當前 `market.vwap` 為基準（mean-reversion 觀點）。
 - 這兩個 stop 的參考價格故意不同，grace period 也只保護 hard stop。文件與 UAT 應明確區分這兩種意義。
 
+**Phase 3.6 進場漏斗診斷**（FT-003）：armed 後順勢窗口、回踩轉化率、`vol_1s` 門檻分位、timeout 診斷 — 操作定義與 cohort 分層見 [`docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md`](../../../docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)；產物模板 [`workspaces/_template/volatility_baseline.md`](../../../workspaces/_template/volatility_baseline.md) §C。
+
 ## 6. SMC Structure Filter（FT-002，Phase 1 離線模組）
 
 > **設計真相**：[`docs/features/smc-structure-filter/SPEC.md`](../../../docs/features/smc-structure-filter/SPEC.md)  

@@ -37,7 +37,12 @@ Phase 4：**新開獨立 AI 對話** 執行 **agent-election-judge** → [`judge
 | `logs/sweep_progress.log` | sweep JSONL 進度（預設 bulk + 60s heartbeat 含 `phase_elapsed_sec`；`--per-day` 才有逐日 `day` 事件）。`--heartbeat-sec` 最小 5s。勿 redirect |
 | `logs/sweep.lock` | 單實例鎖；第二個 sweep 會 `FAILED exit=2`；程序被強殺可能殘留，下次啟動若 PID 已死會自動替換 |
 | `sweep_result.jsonl` | 跑程中依 **完成順序** append（非排名）；`sweep_done` 後才依 `valid_score` 排序覆寫 |
-| `robustness_report.md` | **Phase 6 only**（Post-MVP）；模板 §1–§12（WFO Gate、擾動、市況、壓力、相關性、Phase 6.5 paper）[`_template/robustness_report.md`](_template/robustness_report.md) |
+| `robustness_report.md` | **Phase 6 only**（Post-MVP）；模板 [`_template/robustness_report.md`](_template/robustness_report.md) |
+| [`VOLATILITY_BASELINE.md`](VOLATILITY_BASELINE.md) | **Phase 3.6** 四平面診斷數據 SSOT（§A/B 尺度 · **§C 進場漏斗** · §D 出場） |
+| [`strategy_diagnosis.md`](strategy_diagnosis.md) | **Phase 3.6** 四 agent 合成診斷（含 §6 進場漏斗；四位 sweep 後） |
+| [`round2_proposal.md`](round2_proposal.md) | **Round 2** 出場尺度 sweep 提案（人類批准後執行） |
+| `reports/volatility_baseline.json` | Phase 3.6 §A/B 機器可讀 |
+| `reports/entry_funnel.json` | Phase 3.6 §C 機器可讀（`ft003_episode_diagnosis.py` pending） |
 | `_template/` | 範本（`analysis.md`、`peer_review.md`、`judge_opinion.md`、`election_report.md`、`robustness_report.md`） |
 
 ### Phase 3 sweep 啟動（`apps/trading-app/src`）
@@ -51,5 +56,23 @@ python scripts\ft003_run_sweep.py agent-conservative
 **驗收**：第一行應為 `{"event":"sweep_start","run_id":...}`；結束為 `sweep_done`。若仍是 `param_sweep combo 1/9` 純文字，代表舊跑法或 Tee-Object，不是新版 tracker。
 
 **強殺 / 中斷**：Task Manager 關閉可能無 `sweep_failed`——看最後一行 `event` 與 `sweep.lock` 是否殘留。中途 `sweep_result.jsonl` 勿當排名。
+
+### Phase 3.6 四平面診斷（四位 sweep 完成後）
+
+Methods SSOT：[`ENTRY_FUNNEL_METRICS.md`](../docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)
+
+```powershell
+cd apps\trading-app\src
+$env:PYTHONPATH="."
+python scripts\ft003_volatility_baseline.py --markdown-out ..\..\..\workspaces\VOLATILITY_BASELINE.md
+# §C pending: ft003_episode_diagnosis.py
+python scripts\ft003_exit_diagnosis.py --agent agent-conservative --markdown-append ..\..\..\workspaces\VOLATILITY_BASELINE.md
+```
+
+見 [`PLAN.md`](../docs/features/ai-backtest-tuning/PLAN.md) Phase 3.6 · [`SPEC.md`](../docs/features/ai-backtest-tuning/SPEC.md) §4.6 · SHARED_ASSUMPTIONS **v1.3** §4.1–§4.2
+
+### Round 2 出場尺度（人類批准後）
+
+見 [`round2_proposal.md`](round2_proposal.md)。批准後：`agent-risk-exit/grid.round2.json` → `grid.json`，再 `ft003_run_sweep.py agent-risk-exit`。
 
 **UAT `apps/trading-app/config/config.yaml` 凍結至 Phase 1 Pass**；只改 `workspaces/` 內 config。
