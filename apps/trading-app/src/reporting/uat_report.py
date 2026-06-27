@@ -20,7 +20,7 @@ from trading_engine.core.audit.decision_audit import DecisionAudit
 from trading_engine.core.audit.exec_audit import ExecAudit
 from trading_engine.core.audit.signal_audit import SignalAudit
 
-MOMENTUM_TRIGGER_RE = re.compile(r"MOMENTUM (Long|Short) 突破")
+MOMENTUM_TRIGGER_RE = re.compile(r"MOMENTUM (Long|Short) (?:突破|continuation entry)")
 DECISION_AUDIT_RE = re.compile(r"DECISION_AUDIT (.+)$")
 SIGNAL_AUDIT_RE = re.compile(r"SIGNAL_AUDIT (.+)$")
 EXEC_AUDIT_RE = re.compile(r"EXEC_AUDIT (.+)$")

@@ -25,6 +25,15 @@ class TestEngineWiring(unittest.TestCase):
         self.assertIs(strategy.obs, ports["obs"])
         self.assertIs(ports["telemetry"].underlying, ports["obs"])
 
+    def test_external_obs_reused_by_ports(self):
+        from observability import DailyObservability
+
+        api = MagicMock()
+        obs = DailyObservability()
+        ports = trading_app_engine_ports(api=api, use_mock_adapter=True, obs=obs)
+        self.assertIs(ports["obs"], obs)
+        self.assertIs(ports["telemetry"].underlying, obs)
+
     def test_log_file_env_writes_audit_lines(self):
         import integrations.engine_wiring as wiring
 

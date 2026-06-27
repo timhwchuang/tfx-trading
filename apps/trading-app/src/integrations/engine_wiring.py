@@ -13,6 +13,7 @@ from integrations.structure_refresh import TradingAppStructureRefresh
 from integrations.trend_refresh import TradingAppTrendRefresh
 from observability import DailyObservability
 from strategy_vwap_momentum import StrategyParams, VWAPMomentumStrategy
+from strategy_momentum_continuation import ContinuationParams, MomentumContinuationStrategy
 from trading_engine.adapters.mock import MockOrderAdapter
 from trading_engine.adapters.shioaji import ShioajiOrderAdapter
 from trading_engine.logging_setup import setup_async_logging
@@ -53,6 +54,11 @@ def load_named_strategy(
     """Load strategy via entry point; falls back to explicit default for vwap_momentum."""
     if name == "vwap_momentum":
         return default_strategy(cfg, obs)
+    if name == "momentum_continuation":
+        return MomentumContinuationStrategy(
+            params=ContinuationParams.from_runtime_config(cfg),
+            obs=obs,
+        )
     return load_strategy(
         name,
         params=StrategyParams.from_runtime_config(cfg),
@@ -67,18 +73,19 @@ def trading_app_engine_ports(
     runtime_config: RuntimeConfig | None = None,
     with_alerts: bool = False,
     with_archive: bool = False,
+    obs: DailyObservability | None = None,
 ) -> dict:
     """Return kwargs for ``TradingEngine(api=api, **trading_app_engine_ports(api=...))``."""
     _ensure_logging()
     cfg = runtime_config or default_runtime_config()
-    obs = DailyObservability()
+    shared_obs = obs if obs is not None else DailyObservability()
     ports: dict = {
         "runtime_config": cfg,
         "order_adapter": order_adapter_for(api, use_mock=use_mock_adapter),
-        "telemetry": TradingAppTelemetryPort(obs=obs, runtime_config=cfg),
+        "telemetry": TradingAppTelemetryPort(obs=shared_obs, runtime_config=cfg),
         "trend_refresh": TradingAppTrendRefresh(),
         "structure_refresh": TradingAppStructureRefresh(),
-        "obs": obs,
+        "obs": shared_obs,
     }
     if with_alerts:
         ports["alerts"] = TradingAppAlertPort()

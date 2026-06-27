@@ -7,6 +7,7 @@ from typing import List
 
 from core.runtime_config import RuntimeConfig, default_runtime_config
 from integrations.engine_wiring import default_strategy, trading_app_engine_ports
+from observability import DailyObservability
 from sweep.holdout_guard import assert_dates_unsealed
 from trading_backtest import BacktestEngine as CoreBacktestEngine
 from trading_backtest import VirtualClock
@@ -28,6 +29,7 @@ class BacktestEngine:
         cache_dir=DEFAULT_CACHE_DIR,
         strategy: Strategy | None = None,
         runtime_config: RuntimeConfig | None = None,
+        obs: DailyObservability | None = None,
     ) -> None:
         assert_dates_unsealed(dates)
         cfg = runtime_config or default_runtime_config()
@@ -42,6 +44,7 @@ class BacktestEngine:
             api=self.broker,
             use_mock_adapter=True,
             runtime_config=cfg,
+            obs=obs,
         )
         if strategy is None:
             strategy = default_strategy(cfg, ports["obs"])

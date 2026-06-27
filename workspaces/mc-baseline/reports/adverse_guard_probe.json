@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "r1b_arm": {
+    "vol": 165.0,
+    "buy": 0.85,
+    "sell": 0.78
+  },
+  "ranked": [
+    {
+      "max_adverse_atr_k": 0.25,
+      "armed_after": 76,
+      "gross_mean": 0.22,
+      "net_mean": -4.78,
+      "n": 76
+    },
+    {
+      "max_adverse_atr_k": 0.5,
+      "armed_after": 76,
+      "gross_mean": 0.22,
+      "net_mean": -4.78,
+      "n": 76
+    },
+    {
+      "max_adverse_atr_k": 0.75,
+      "armed_after": 76,
+      "gross_mean": 0.22,
+      "net_mean": -4.78,
+      "n": 76
+    },
+    {
+      "max_adverse_atr_k": 1.0,
+      "armed_after": 76,
+      "gross_mean": 0.22,
+      "net_mean": -4.78,
+      "n": 76
+    },
+    {
+      "max_adverse_atr_k": 0.0,
+      "armed_after": 77,
+      "gross_mean": 0.15,
+      "net_mean": -4.85,
+      "n": 77
+    }
+  ],
+  "recommended": {
+    "max_adverse_atr_k": 0.25,
+    "armed_after": 76,
+    "gross_mean": 0.22,
+    "net_mean": -4.78,
+    "n": 76
+  }
+}

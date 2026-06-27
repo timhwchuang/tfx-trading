@@ -19,6 +19,7 @@ run() {
 run packages/trading-engine
 run packages/trading-backtest
 run packages/strategies/vwap-momentum
+run packages/strategies/momentum-continuation
 run apps/trading-app
 
 echo "All package test suites passed."

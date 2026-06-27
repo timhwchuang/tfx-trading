@@ -73,6 +73,9 @@ class Settings:
     vwap_stop_points_floor: float
     atr_trailing_enabled: bool
     atr_vwap_stop_enabled: bool
+    hard_stop_atr_k: float
+    tp_atr_k: float
+    max_adverse_atr_k: float
 
     session_start: datetime.time
     session_end: datetime.time
@@ -209,6 +212,9 @@ def load_config(path: str | Path | None = None) -> Settings:
         ),
         atr_trailing_enabled=bool(strategy.get("atr_trailing_enabled", False)),
         atr_vwap_stop_enabled=bool(strategy.get("atr_vwap_stop_enabled", False)),
+        hard_stop_atr_k=float(strategy.get("hard_stop_atr_k", 0.75)),
+        tp_atr_k=float(strategy.get("tp_atr_k", 2.0)),
+        max_adverse_atr_k=float(strategy.get("max_adverse_atr_k", 0.0)),
         session_start=_parse_time(session.get("start", "08:45")),
         session_end=_parse_time(session.get("end", "13:45")),
         session_flatten_time=_parse_time(session.get("flatten_time", "13:40")),

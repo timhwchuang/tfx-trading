@@ -7,6 +7,53 @@
 
 ---
 
+### 2026-06-28（FT-004 本回合收尾 — Thesis A No-Go，MVPClosed）
+
+**決策**
+- 人類確認 **維持現狀、不 git checkout**；FT-004 以 **MVPClosed**（`thesis_a_no_go`）存檔。
+- **Thesis A 結論**：armed 當 tick **全 cohort 即時進場**非可行 Pilot alpha；G1 最佳 gross **+1.89** ≪ 5。
+- Plugin **`momentum_continuation` 凍結研究用**；UAT/Live 維持 **`strategy-vwap-momentum`**（已凍結）。
+
+**文件**
+- [`SPEC.md`](features/momentum-continuation/SPEC.md) §8 · [`PLAN.md`](features/momentum-continuation/PLAN.md) 收尾 · [`gate_report.md`](../workspaces/mc-baseline/gate_report.md)
+
+**下一方向（未開 ft）**
+- timeout-selective entry（只吃 v1 未回踩子集）— 見 [`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) §6–§7
+
+---
+
+### 2026-06-27（FT-004 No-Go — Arm tune round 1）
+
+**決策**
+- 人類確認 **No-Go**；從 gate 備註 **(a)** 開始：提高 `momentum_vol_1s` / ratio 門檻。
+- `ft004_arm_threshold_probe.py`（45 combo）→ 最佳 **vol=165** buy=0.80 sell=0.78；counterfactual n=81 gross **+2.33**/趟。
+- [`mc-baseline/config`](../../workspaces/mc-baseline/config/config.yaml) 已更新；baseline 重跑：gross **+1.39**、net **-3.61**、194 趟 — **G1/G2/G3 仍未過**。
+
+**Follow-up**
+- [ ] Round 1b：單軸 `buy_ratio≥0.85` 或 `vol≥180`（probe 已產物可複用）
+- [ ] 或進入選項 **(b)** `max_adverse_atr_k`
+- [ ] 更新 [`gate_report.md`](../../workspaces/mc-baseline/gate_report.md) §Decision 若改 thesis
+
+---
+
+### 2026-06-27（FT-004 Phase 0–2 交付 — G1 未過，建議 No-Go 調 arm）
+
+**交付**
+- 新 plugin `strategy-momentum-continuation`（武裝當 tick `continuation` 進場 + ATR 出場）。
+- Phase 0 counterfactual：235 episodes；全樣本 ATR barrier gross_mean **0.6**、net **-4.4**（摩擦 5 點）。
+- Phase 2 baseline（2026-04 valid）：201 趟；gross **-0.02**/趟、net **-5.02**/趟；QSL **0.5%**（G4 過）。
+- 產物：[`workspaces/mc-baseline/gate_report.md`](../workspaces/mc-baseline/gate_report.md)。
+
+**診斷**
+- v1 **timeout** 子集 counterfactual 強（gross +36/趟），**entered** 子集負（-19/趟）；即時進場全 cohort 仍無正毛 edge。
+- vs v1 hybrid（150 趟、QSL 33%）：FT-004 頻率更高、QSL 更低，但 G1/G2/G3 均未過。
+
+**人類必做（Phase 3）**
+- [ ] 審閱 `gate_report.md` + counterfactual JSON；填 **§Decision** 簽核欄。
+- [ ] 若確認 No-Go：調 arm 門檻 / `max_adverse_atr_k` 後重跑 counterfactual（**不 sweep**）。
+
+---
+
 ### 2026-06-27（FT-003 §Decision — Option A：策略層重設計，否決 round2）
 
 **決策**

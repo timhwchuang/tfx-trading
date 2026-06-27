@@ -14,7 +14,8 @@
 | Phase 5 Pilot | 見 [`uat/APP.md`](uat/APP.md) Phase 5（量化 gate + 摩擦對帳 + 壓力情境審閱） |
 | Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（P6-1 + **P6-SMC-CAL** harness/sweep）；待 UAT tick 跑 CAL-8；P6-4/5 待做 |
 | **FT-002 SMC（工程）** | Phase 1–4 ✅（`REVIEW.md` PASS）；**Phase 5 Land + CAL-8** 待 ≥5 日 UAT |
-| **FT-003 回測調參** | **✅ MVP 收尾（Option A）** — `grid_no_viable_solution` + `diagnostic_only`；[`election_report.md`](../workspaces/election_report.md) · **Strategy v2** 待開 |
+| **FT-003 回測調參** | **✅ MVP 收尾** — `grid_no_viable_solution`；[`election_report.md`](../workspaces/election_report.md) |
+| **FT-004 Momentum Continuation** | **✅ MVPClosed** — Thesis A **No-Go**；[`gate_report.md`](../workspaces/mc-baseline/gate_report.md) · [SPEC §8](features/momentum-continuation/SPEC.md) |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
 | **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
@@ -82,8 +83,16 @@
 - [x] Phase 3.5：`leaderboard.jsonl`
 - [x] **Phase 3.6**：四平面診斷 §A–§D 完成；`strategy_diagnosis.md` §1–§7 + **§Decision（Option A）** — 否決 round2、改策略層重設計
 - [x] **Phase 3.6 / Phase 4 收尾**：[`election_report.md`](../workspaces/election_report.md) — `grid_no_viable_solution` + `diagnostic_only`（holdout 未跑）
-- [ ] **Strategy v2**（Option A）：thesis 二選一設計 → 新 plugin / v2 分支 → baseline valid（毛期望/趟 > 5 再 sweep）
-- [x] ~~Phase 4 holdout 選舉~~ — **跳過**；本輪不產 `elected_config.yaml`
+- [x] **Strategy v2** → FT-004 **已收尾 No-Go**（[`SPEC §8`](features/momentum-continuation/SPEC.md)）；下一 thesis 見 `strategy_diagnosis.md` §7
+
+### FT-004 — Momentum Continuation（[`PLAN`](features/momentum-continuation/PLAN.md)）— **MVPClosed**
+
+- [x] Phase 0：counterfactual + `mc-baseline` 骨架
+- [x] Phase 1：`strategy-momentum-continuation` plugin + tests
+- [x] Phase 2：2026-04 baseline + `gate_report.md`（G1–G4）
+- [x] Phase 3：人類 **No-Go** — §a arm 調參 + §b adverse guard；見 [`gate_report.md`](../workspaces/mc-baseline/gate_report.md)
+- [x] ~~Phase 4 sweep / Phase 5 holdout~~ — **取消**（G1 未過）
+- [ ] **（未開 ft）** timeout-selective entry counterfactual — 若人類要續 Strategy v2
 
 **Post-MVP — Phase 6 長歷史（2022+，MVP holdout Gate 後）**
 

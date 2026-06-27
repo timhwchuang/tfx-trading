@@ -26,6 +26,7 @@ dependencies = [
   "trading-engine>=0.2.3,<1.0",
   "trading-backtest>=0.1.0,<1.0",
   "strategy-vwap-momentum>=0.1.2,<1.0",
+  "strategy-momentum-continuation>=0.1.0,<1.0",
   "shioaji",
   "PyYAML>=6.0",
 ]

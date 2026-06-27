@@ -44,6 +44,9 @@ SWEEP_FIELD_TO_CONST: dict[str, str] = {
     "structure_timeframe_min": "STRUCTURE_TIMEFRAME_MIN",
     "structure_swing_lookback": "STRUCTURE_SWING_LOOKBACK",
     "structure_min_strength": "STRUCTURE_MIN_STRENGTH",
+    "hard_stop_atr_k": "HARD_STOP_ATR_K",
+    "tp_atr_k": "TP_ATR_K",
+    "max_adverse_atr_k": "MAX_ADVERSE_ATR_K",
 }
 
 _CONST_TO_SNAKE = {
@@ -80,6 +83,9 @@ _CONST_TO_SNAKE = {
     "IOC_SLIPPAGE_POINTS": "ioc_slippage_points",
     "PENDING_TIMEOUT_SEC": "pending_timeout_sec",
     "MOMENTUM_VOL_1S": "momentum_vol_1s",
+    "HARD_STOP_ATR_K": "hard_stop_atr_k",
+    "TP_ATR_K": "tp_atr_k",
+    "MAX_ADVERSE_ATR_K": "max_adverse_atr_k",
 }
 
 

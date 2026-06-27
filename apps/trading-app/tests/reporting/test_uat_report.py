@@ -191,6 +191,13 @@ class TestUatReport(unittest.TestCase):
             metrics = compute_metrics(read_log_lines([path]))
             self.assertEqual(metrics["momentum_triggers"], 1)
 
+    def test_count_momentum_triggers_continuation_entry(self):
+        lines = [
+            "10:00:00 [INFO] MOMENTUM Long continuation entry | vol_1s=200 threshold=150",
+        ]
+        metrics = compute_metrics(lines)
+        self.assertEqual(metrics["momentum_triggers"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

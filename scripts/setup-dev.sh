@@ -17,4 +17,5 @@ fi
 "$PY" -m pip install -q -e "$ROOT/packages/trading-engine"
 "$PY" -m pip install -q -e "$ROOT/packages/trading-backtest"
 "$PY" -m pip install -q -e "$ROOT/packages/strategies/vwap-momentum"
+"$PY" -m pip install -q -e "$ROOT/packages/strategies/momentum-continuation"
 "$PY" -m pip install -q shioaji "PyYAML>=6.0"

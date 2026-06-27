@@ -68,6 +68,7 @@
 | FT-001 | audit-event-replay | Landed | [SPEC](features/audit-event-replay/SPEC.md) · [PLAN](features/audit-event-replay/PLAN.md) · [REVIEW](features/audit-event-replay/REVIEW.md) |
 | FT-002 | smc-structure-filter | Draft | [SPEC](features/smc-structure-filter/SPEC.md) · [PLAN](features/smc-structure-filter/PLAN.md) · [REVIEW](features/smc-structure-filter/REVIEW.md) |
 | FT-003 | ai-backtest-tuning | MVPClosed | [SPEC](features/ai-backtest-tuning/SPEC.md) · [PLAN](features/ai-backtest-tuning/PLAN.md) · [**ROSTER**](features/ai-backtest-tuning/AGENT_ROSTER.md) · [`election_report.md`](../workspaces/election_report.md) · [`workspaces/`](../workspaces/) |
+| FT-004 | momentum-continuation | **MVPClosed** | [SPEC](features/momentum-continuation/SPEC.md) §8 · [PLAN](features/momentum-continuation/PLAN.md) · [`mc-baseline/`](../workspaces/mc-baseline/) |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 

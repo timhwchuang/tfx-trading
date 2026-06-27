@@ -19,6 +19,7 @@ _SIBLING_PACKAGES = (
     _MONOREPO / "packages/trading-engine",
     _MONOREPO / "packages/trading-backtest",
     _MONOREPO / "packages/strategies/vwap-momentum",
+    _MONOREPO / "packages/strategies/momentum-continuation",
 )
 
 
@@ -27,6 +28,7 @@ def _ensure_packages() -> None:
     try:
         import trading_engine  # noqa: F401
         import strategy_vwap_momentum  # noqa: F401
+        import strategy_momentum_continuation  # noqa: F401
         import trading_backtest  # noqa: F401
         return
     except ImportError:

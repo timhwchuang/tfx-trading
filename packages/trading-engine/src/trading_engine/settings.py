@@ -115,6 +115,11 @@ class Settings:
     # would stall the shared order-worker thread.
     order_status_query_timeout_ms: int = 1000
 
+    # FT-004 momentum-continuation: ATR-scaled exit defaults
+    hard_stop_atr_k: float = 0.75
+    tp_atr_k: float = 2.0
+    max_adverse_atr_k: float = 0.0
+
     config_path: Path = Path("")
 
 

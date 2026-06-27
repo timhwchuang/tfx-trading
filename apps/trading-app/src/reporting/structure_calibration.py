@@ -98,6 +98,9 @@ class ArmedCandidate:
     price: float
     atr: float
     vwap: float = 0.0
+    vol_1s: int = 0
+    buy_ratio: float = 0.0
+    sell_ratio: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -124,6 +127,9 @@ def parse_momentum_armed(decisions: Iterable[DecisionAudit]) -> list[ArmedCandid
                 price=price,
                 atr=float(d.atr or 0.0),
                 vwap=float(d.vwap or 0.0),
+                vol_1s=int(d.vol_1s or 0),
+                buy_ratio=float(d.buy_ratio or 0.0),
+                sell_ratio=float(d.sell_ratio or 0.0),
             )
         )
     out.sort(key=lambda c: c.ts)

@@ -23,6 +23,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 - **FT-003 Phase 3.6 §C 進場漏斗 pipeline**：`reporting/entry_funnel.py`（`IndicatorState` tick 回放、armed forward W30/60/180/300、vol 分位、§C markdown merge）；`ft003_episode_diagnosis.py` CLI → `workspaces/reports/entry_funnel.json` + `VOLATILITY_BASELINE.md` §C。
 - **FT-003 Phase 3.6 四平面診斷收尾**：`VOLATILITY_BASELINE.md` §A–§D 數據填妥（conservative valid 進場漏斗 + 三 agent 出場診斷）；`cache_audit --code TMFR1` 無 FAIL；[`workspaces/strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §1–§6 合成敘事（armed 順勢≠net edge、回踩瓶頸、vol 門檻非綁定、與尺度錯配雙重 squeeze → `grid_no_viable_solution`）— **§Decision 待人類簽核**。
 - **FT-003 §Decision Option A**：人類否決 [`round2_proposal.md`](workspaces/round2_proposal.md) 出場 grid；改 **策略層重設計**（保留 infra、退役 hybrid alpha）；[`strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §7 下一步；[`TODO.md`](docs/TODO.md) / [`WeeklyStatus.md`](docs/WeeklyStatus.md) 同步。
+- **FT-004 Phase 0–2**：`strategy-momentum-continuation` plugin；`ft004_*` 腳本；[`mc-baseline/gate_report.md`](workspaces/mc-baseline/gate_report.md)。
+- **FT-004 MVPClosed（2026-06-28）**：Thesis A **No-Go**（`thesis_a_no_go`）；plugin 凍結研究用、不進 Live；見 [`SPEC §8`](docs/features/momentum-continuation/SPEC.md)。
 - **FT-003 Phase 3.6 市場尺度診斷**：[`PLAN.md`](docs/features/ai-backtest-tuning/PLAN.md) Phase 3.6（Gate、P0/P1/P2 指標、CLI、第二輪 grid 提案）；[`SPEC.md`](docs/features/ai-backtest-tuning/SPEC.md) §4.6；SHARED_ASSUMPTIONS **v1.2** §4.1；`ft003_volatility_baseline.py` / `ft003_exit_diagnosis.py`；[`workspaces/VOLATILITY_BASELINE.md`](workspaces/VOLATILITY_BASELINE.md) 模板與 [`strategy_diagnosis.md`](workspaces/_template/strategy_diagnosis.md)；AGENT_ROSTER §1.7。
 - **FT-003 Phase 6 交易員強化**：PLAN 多段滾動 WFO 殘酷 Gate（net Sharpe/MDD/trade_count）、§7–§10 穩健性檢查、**Phase 6.5 Shadow/Paper**、運維 kill switch / 對帳；`robustness_report.md` 模板擴至 §12；SPEC §4.5 / TODO / DATA_SPLIT 同步。
 - **FT-003 Phase 6 roadmap**：[`PLAN.md`](docs/features/ai-backtest-tuning/PLAN.md) 長歷史穩健性（Gate、四風險、v1/v2 決策樹、**GCE overnight 算力 MUST**、`robustness_report.md` 模板）；[`SPEC.md`](docs/features/ai-backtest-tuning/SPEC.md) §4.5；[`TODO.md`](docs/TODO.md)；[`workspaces/_template/robustness_report.md`](workspaces/_template/robustness_report.md)。
@@ -45,6 +47,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-004 ATR exit settings**: `hard_stop_atr_k`, `tp_atr_k`, `max_adverse_atr_k` on `Settings` + `SWEEP_FIELD_TO_CONST` + `testing/defaults.py`.
 - **Shioaji Time Contract** ([`SPEC.md`](packages/trading-engine/SPEC.md)): documents historical `ts` decode (equivalent to official polars cast), live `TickFOPv1.datetime`, and anti-patterns. Code SSOT: `trading_engine.calendar.shioaji_ts.shioaji_historical_ts_from_ns`. Legacy cache policy: read paths do no time correction; pre-2026-06-26 +8h files are deleted and re-fetched.
 - **Layer 2 IOC terminal query (`order_status_query_enabled`, default OFF)**: `update_status(trade)` on the order worker; `QueryStatusTask`; place-time refresh; flag-only gating; graceful fallback. Signal taxonomy fix: during HALT, L3 inference (unchanged broker read) does not clear exit pending; L1 callback / L2 authoritative terminal (`cancelled`/`failed`/`inactive`) clears and allows convergence retry. `_check_pending_timeout` when flag ON: L3 snapshot → `order_deal_records` → L2 enqueue. Tests: `test_order_status_query.py` (26 cases).
 - **P0-5 truth-driven execution — >1-lot accumulation RCA (2026-06-26)**: After repeated `Pending 超時` the kernel treated UNKNOWN order outcomes as FAILED, cleared pending, and let the strategy re-issue exits while delayed/orphan fills landed — accumulating a 2-lot short under a 1-lot strategy. Reworked the state machine so the **broker `list_positions` is the single source of truth**:
@@ -246,6 +249,16 @@ Initial public release of the deterministic tick replay driver for `trading-engi
 
 ---
 
+## strategy-momentum-continuation
+
+### [Unreleased]
+
+#### Added
+
+- **FT-004 Thesis A**: `MomentumContinuationStrategy` — vol-spike arm → same-tick `continuation` entry; ATR-scaled hard stop / trail / take-profit; no VWAP pullback path. Entry point `momentum_continuation`. Unit tests (`test_continuation.py`).
+
+---
+
 ## strategy-vwap-momentum
 
 ### [Unreleased]
@@ -317,6 +330,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Added
 
+- **FT-004**：`reporting/armed_forward_counterfactual.py`；`scripts/ft004_armed_forward_counterfactual.py`（Phase 0 counterfactual）；`scripts/ft004_run_baseline.py`（`momentum_continuation` 2026-04 baseline）；`integrations/engine_wiring.load_named_strategy("momentum_continuation")`；測試 `tests/reporting/test_armed_forward_counterfactual.py`。
 - **FT-003 Phase 3.6 §C 進場漏斗**：`reporting/entry_funnel.py`（`IndicatorState` tick 回放、armed forward W30/60/180/300、vol 分位、§C markdown merge）；`scripts/ft003_episode_diagnosis.py` → `workspaces/reports/entry_funnel.json` + `VOLATILITY_BASELINE.md` §C；測試 `tests/reporting/test_entry_funnel.py`、`tests/scripts/test_ft003_episode_diagnosis.py`。
 - **FT-003 Phase 3.6 市場尺度診斷**：`reporting/volatility_baseline.py`、`reporting/exit_diagnosis.py`；`scripts/ft003_volatility_baseline.py`（kbars P0 + 可選 tick P1 → `workspaces/reports/volatility_baseline.json`）；`scripts/ft003_exit_diagnosis.py`（baseline valid → `VOLATILITY_BASELINE.md` §D）；測試 `tests/scripts/test_ft003_volatility_baseline.py`、`test_ft003_exit_diagnosis.py`。
 - **FT-003 Phase 3.6 review fixes**：`near_miss_aggregate` 月累加；ATR TR 自 bar 1 對齊 engine；月級 `threshold_coverage`；markdown inject 不重複 `---`。

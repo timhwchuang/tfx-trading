@@ -1,0 +1,91 @@
+# FT-004 mc-baseline — momentum_continuation plugin
+simulation: true
+product_code: TMFR1
+
+strategy:
+  vwap_window_min: 5
+  # Arm tune round 1b (No-Go §a): single-axis buy_ratio from r1
+  momentum_vol_1s: 165
+  momentum_buy_ratio: 0.85
+  momentum_sell_ratio: 0.78
+  cooldown_sec: 10
+  max_daily_loss_points: 120
+  max_consecutive_loss: 4
+  min_atr_threshold: 25
+  atr_period: 20
+  atr_refresh_sec: 300
+  atr_kline_lookback_days: 10
+  pending_timeout_sec: 1
+  ioc_slippage_points: 3
+  exit_grace_ticks: 10
+  exit_grace_sec: 10
+  # FT-004 ATR-scaled exits (primary)
+  hard_stop_atr_k: 0.75
+  tp_atr_k: 2.0
+  trail_atr_k: 0.6
+  trail_points_floor: 6
+  atr_trailing_enabled: true
+  atr_vwap_stop_enabled: false
+  max_adverse_atr_k: 0.25
+  trend_filter_enabled: false
+  structure_filter_enabled: false
+  no_tick_timeout_sec: 45
+  clock_skew_warn_sec: 1.0
+
+session:
+  start: "08:45"
+  end: "13:45"
+  flatten_time: "13:40"
+  force_flatten_time: "13:44"
+  flatten_slippage_points: 8
+
+opening_volume:
+  base_vol: 165
+  atr_vol_mult: 1.0
+  mult_futures: 2.5
+  mult_spot: 1.5
+  mult_normal: 1.0
+
+logging:
+  level: INFO
+  file: ""
+
+friction:
+  enabled: true
+  mode: ntd
+  round_trip_friction_points: 5.0
+  commission_per_side_ntd: 15.0
+  tax_rate: 20.0
+  point_value_ntd: 10.0
+
+performance:
+  sharpe_period: per_trade
+  sweep_score_metric: expectancy_net
+  sweep_dd_penalty: 0.0
+  sweep_sl_penalty: 50.0
+  sweep_max_grid_combos: 16
+  sweep_max_grid_keys: 3
+  initial_capital_points: 0.0
+  max_acceptable_mdd_points: 120.0
+
+operations:
+  exit_order_max_retries: 3
+  exit_order_retry_delay_sec: 1.0
+  session_watchdog_sec: 30.0
+  session_relogin_max_attempts: 5
+  session_relogin_backoff_base_sec: 5.0
+  reconnect_warmup_sec: 300
+  max_disconnects_per_day: 3
+  alert_on_disconnect_with_position: true
+  no_tick_resubscribe_escalate_after: 3
+  atr_stale_multiplier: 2.0
+  position_reconcile_sec: 60
+  max_position_qty: 1
+  settle_timeout_sec: 45
+  reconcile_fast_sec: 1
+  reconcile_confirm_reads: 3
+  emergency_market_orders: true
+  entry_miss_confirm_sec: 5
+  max_consecutive_missed_entries: 3
+  order_status_query_enabled: false
+  order_status_query_timeout_ms: 1000

@@ -1,0 +1,3781 @@
+{
+  "schema_version": 1,
+  "thesis": "armed_forward_immediate_entry",
+  "from_date": "2026-04-01",
+  "to_date": "2026-04-30",
+  "code": "TMFR1",
+  "friction_points_per_round_trip": 5.0,
+  "sim_params": {
+    "hard_stop_atr_k": 0.75,
+    "tp_atr_k": 2.0,
+    "max_hold_sec": 180
+  },
+  "arm_filter": {
+    "min_vol_1s": 165.0,
+    "min_buy_ratio": 0.85,
+    "min_sell_ratio": null,
+    "armed_before_filter": 235,
+    "armed_after_filter": 77
+  },
+  "summary_all": {
+    "w180_horizon": {
+      "n": 77,
+      "gross_mean": -2.3,
+      "gross_median": -5.0,
+      "net_mean": -7.3,
+      "net_median": -10.0,
+      "gross_total": -177.0,
+      "net_total": -562.0
+    },
+    "atr_barrier_180s": {
+      "n": 77,
+      "gross_mean": 0.15,
+      "gross_median": -22.39,
+      "net_mean": -4.85,
+      "net_median": -27.39,
+      "gross_total": 11.6,
+      "net_total": -373.4
+    }
+  },
+  "summary_by_outcome_v1": {
+    "entered": {
+      "w180_horizon": {
+        "n": 46,
+        "gross_mean": -23.39,
+        "gross_median": -23.5,
+        "net_mean": -28.39,
+        "net_median": -28.5,
+        "gross_total": -1076.0,
+        "net_total": -1306.0
+      },
+      "atr_barrier_180s": {
+        "n": 46,
+        "gross_mean": -16.64,
+        "gross_median": -24.84,
+        "net_mean": -21.64,
+        "net_median": -29.84,
+        "gross_total": -765.3,
+        "net_total": -995.3
+      }
+    },
+    "timeout": {
+      "w180_horizon": {
+        "n": 31,
+        "gross_mean": 29.0,
+        "gross_median": 46.0,
+        "net_mean": 24.0,
+        "net_median": 41.0,
+        "gross_total": 899.0,
+        "net_total": 744.0
+      },
+      "atr_barrier_180s": {
+        "n": 31,
+        "gross_mean": 25.06,
+        "gross_median": 46.0,
+        "net_mean": 20.06,
+        "net_median": 41.0,
+        "gross_total": 776.9,
+        "net_total": 621.9
+      }
+    }
+  },
+  "episode_count": 77,
+  "episodes": [
+    {
+      "episode_id": "20260401-001",
+      "ts": 1775004300,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 33011.0,
+      "atr": 25.35,
+      "vol_1s": 574,
+      "buy_ratio": 1.0,
+      "sell_ratio": 0.0,
+      "forward": {
+        "W30": {
+          "MFE_delta": 109.0,
+          "MAE_delta": 1.0,
+          "close_delta": 95.0,
+          "signed_return_over_atr": 3.7475
+        },
+        "W60": {
+          "MFE_delta": 128.0,
+          "MAE_delta": 1.0,
+          "close_delta": 113.0,
+          "signed_return_over_atr": 4.4576
+        },
+        "W180": {
+          "MFE_delta": 154.0,
+          "MAE_delta": 1.0,
+          "close_delta": 112.0,
+          "signed_return_over_atr": 4.4181
+        },
+        "W300": {
+          "MFE_delta": 154.0,
+          "MAE_delta": 1.0,
+          "close_delta": 130.0,
+          "signed_return_over_atr": 5.1282
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 50.7,
+        "exit_reason": "take_profit",
+        "hold_sec": 0,
+        "mfe": 51.0,
+        "mae": 1.0
+      },
+      "gross_w180": 112.0,
+      "net_w180": 107.0,
+      "gross_atr_sim": 50.7,
+      "net_atr_sim": 45.7
+    },
+    {
+      "episode_id": "20260401-002",
+      "ts": 1775005209,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 33165.0,
+      "atr": 34.08,
+      "vol_1s": 225,
+      "buy_ratio": 0.8578,
+      "sell_ratio": 0.1244,
+      "forward": {
+        "W30": {
+          "MFE_delta": 17.0,
+          "MAE_delta": 69.0,
+          "close_delta": -57.0,
+          "signed_return_over_atr": -1.6725
+        },
+        "W60": {
+          "MFE_delta": 17.0,
+          "MAE_delta": 101.0,
+          "close_delta": -95.0,
+          "signed_return_over_atr": -2.7876
+        },
+        "W180": {
+          "MFE_delta": 17.0,
+          "MAE_delta": 105.0,
+          "close_delta": -85.0,
+          "signed_return_over_atr": -2.4941
+        },
+        "W300": {
+          "MFE_delta": 17.0,
+          "MAE_delta": 163.0,
+          "close_delta": -149.0,
+          "signed_return_over_atr": -4.3721
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -25.56,
+        "exit_reason": "stop_loss",
+        "hold_sec": 9,
+        "mfe": 17.0,
+        "mae": 26.0
+      },
+      "gross_w180": -85.0,
+      "net_w180": -90.0,
+      "gross_atr_sim": -25.56,
+      "net_atr_sim": -30.56
+    },
+    {
+      "episode_id": "20260401-003",
+      "ts": 1775005485,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 33038.0,
+      "atr": 34.08,
+      "vol_1s": 225,
+      "buy_ratio": 0.0933,
+      "sell_ratio": 0.7956,
+      "forward": {
+        "W30": {
+          "MFE_delta": 36.0,
+          "MAE_delta": 8.0,
+          "close_delta": 22.0,
+          "signed_return_over_atr": 0.6455
+        },
+        "W60": {
+          "MFE_delta": 72.0,
+          "MAE_delta": 8.0,
+          "close_delta": 65.0,
+          "signed_return_over_atr": 1.9073
+        },
+        "W180": {
+          "MFE_delta": 129.0,
+          "MAE_delta": 8.0,
+          "close_delta": 61.0,
+          "signed_return_over_atr": 1.7899
+        },
+        "W300": {
+          "MFE_delta": 129.0,
+          "MAE_delta": 8.0,
+          "close_delta": 52.0,
+          "signed_return_over_atr": 1.5258
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 68.16,
+        "exit_reason": "take_profit",
+        "hold_sec": 57,
+        "mfe": 69.0,
+        "mae": 8.0
+      },
+      "gross_w180": 61.0,
+      "net_w180": 56.0,
+      "gross_atr_sim": 68.16,
+      "net_atr_sim": 63.16
+    },
+    {
+      "episode_id": "20260401-007",
+      "ts": 1775006953,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 33179.0,
+      "atr": 51.95,
+      "vol_1s": 171,
+      "buy_ratio": 0.9708,
+      "sell_ratio": 0.0292,
+      "forward": {
+        "W30": {
+          "MFE_delta": 1.0,
+          "MAE_delta": 29.0,
+          "close_delta": -25.0,
+          "signed_return_over_atr": -0.4812
+        },
+        "W60": {
+          "MFE_delta": 30.0,
+          "MAE_delta": 36.0,
+          "close_delta": 23.0,
+          "signed_return_over_atr": 0.4427
+        },
+        "W180": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 36.0,
+          "close_delta": 20.0,
+          "signed_return_over_atr": 0.385
+        },
+        "W300": {
+          "MFE_delta": 53.0,
+          "MAE_delta": 36.0,
+          "close_delta": 22.0,
+          "signed_return_over_atr": 0.4235
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 20.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 35.0,
+        "mae": 36.0
+      },
+      "gross_w180": 20.0,
+      "net_w180": 15.0,
+      "gross_atr_sim": 20.0,
+      "net_atr_sim": 15.0
+    },
+    {
+      "episode_id": "20260401-014",
+      "ts": 1775011313,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 33250.0,
+      "atr": 27.7,
+      "vol_1s": 170,
+      "buy_ratio": 0.9941,
+      "sell_ratio": 0.0059,
+      "forward": {
+        "W30": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 6.0,
+          "close_delta": 6.0,
+          "signed_return_over_atr": 0.2166
+        },
+        "W60": {
+          "MFE_delta": 31.0,
+          "MAE_delta": 6.0,
+          "close_delta": 29.0,
+          "signed_return_over_atr": 1.0469
+        },
+        "W180": {
+          "MFE_delta": 32.0,
+          "MAE_delta": 6.0,
+          "close_delta": 11.0,
+          "signed_return_over_atr": 0.3971
+        },
+        "W300": {
+          "MFE_delta": 49.0,
+          "MAE_delta": 6.0,
+          "close_delta": 13.0,
+          "signed_return_over_atr": 0.4693
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 11.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 32.0,
+        "mae": 6.0
+      },
+      "gross_w180": 11.0,
+      "net_w180": 6.0,
+      "gross_atr_sim": 11.0,
+      "net_atr_sim": 6.0
+    },
+    {
+      "episode_id": "20260402-001",
+      "ts": 1775091640,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 33553.0,
+      "atr": 29.33,
+      "vol_1s": 225,
+      "buy_ratio": 0.08,
+      "sell_ratio": 0.8978,
+      "forward": {
+        "W30": {
+          "MFE_delta": 10.0,
+          "MAE_delta": 36.0,
+          "close_delta": -28.0,
+          "signed_return_over_atr": -0.9547
+        },
+        "W60": {
+          "MFE_delta": 10.0,
+          "MAE_delta": 44.0,
+          "close_delta": -30.0,
+          "signed_return_over_atr": -1.0228
+        },
+        "W180": {
+          "MFE_delta": 10.0,
+          "MAE_delta": 107.0,
+          "close_delta": -31.0,
+          "signed_return_over_atr": -1.0569
+        },
+        "W300": {
+          "MFE_delta": 45.0,
+          "MAE_delta": 107.0,
+          "close_delta": 36.0,
+          "signed_return_over_atr": 1.2274
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -22.0,
+        "exit_reason": "stop_loss",
+        "hold_sec": 22,
+        "mfe": 10.0,
+        "mae": 24.0
+      },
+      "gross_w180": -31.0,
+      "net_w180": -36.0,
+      "gross_atr_sim": -22.0,
+      "net_atr_sim": -27.0
+    },
+    {
+      "episode_id": "20260402-002",
+      "ts": 1775091951,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 33490.0,
+      "atr": 40.06,
+      "vol_1s": 225,
+      "buy_ratio": 0.0222,
+      "sell_ratio": 0.9778,
+      "forward": {
+        "W30": {
+          "MFE_delta": 27.0,
+          "MAE_delta": 17.0,
+          "close_delta": 12.0,
+          "signed_return_over_atr": 0.2996
+        },
+        "W60": {
+          "MFE_delta": 95.0,
+          "MAE_delta": 17.0,
+          "close_delta": 93.0,
+          "signed_return_over_atr": 2.3215
+        },
+        "W180": {
+          "MFE_delta": 111.0,
+          "MAE_delta": 17.0,
+          "close_delta": 34.0,
+          "signed_return_over_atr": 0.8487
+        },
+        "W300": {
+          "MFE_delta": 111.0,
+          "MAE_delta": 80.0,
+          "close_delta": -67.0,
+          "signed_return_over_atr": -1.6725
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 80.12,
+        "exit_reason": "take_profit",
+        "hold_sec": 51,
+        "mfe": 82.0,
+        "mae": 17.0
+      },
+      "gross_w180": 34.0,
+      "net_w180": 29.0,
+      "gross_atr_sim": 80.12,
+      "net_atr_sim": 75.12
+    },
+    {
+      "episode_id": "20260402-003",
+      "ts": 1775092262,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 33600.0,
+      "atr": 48.2,
+      "vol_1s": 232,
+      "buy_ratio": 0.9052,
+      "sell_ratio": 0.0948,
+      "forward": {
+        "W30": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 52.0,
+          "close_delta": -39.0,
+          "signed_return_over_atr": -0.8091
+        },
+        "W60": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 65.0,
+          "close_delta": -44.0,
+          "signed_return_over_atr": -0.9129
+        },
+        "W180": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 109.0,
+          "close_delta": -105.0,
+          "signed_return_over_atr": -2.1784
+        },
+        "W300": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 168.0,
+          "close_delta": -160.0,
+          "signed_return_over_atr": -3.3195
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -36.15,
+        "exit_reason": "stop_loss",
+        "hold_sec": 12,
+        "mfe": 20.0,
+        "mae": 38.0
+      },
+      "gross_w180": -105.0,
+      "net_w180": -110.0,
+      "gross_atr_sim": -36.15,
+      "net_atr_sim": -41.15
+    },
+    {
+      "episode_id": "20260407-001",
+      "ts": 1775523813,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 33250.0,
+      "atr": 38.17,
+      "vol_1s": 292,
+      "buy_ratio": 0.9589,
+      "sell_ratio": 0.0377,
+      "forward": {
+        "W30": {
+          "MFE_delta": 69.0,
+          "MAE_delta": 19.0,
+          "close_delta": 64.0,
+          "signed_return_over_atr": 1.6767
+        },
+        "W60": {
+          "MFE_delta": 72.0,
+          "MAE_delta": 19.0,
+          "close_delta": 49.0,
+          "signed_return_over_atr": 1.2837
+        },
+        "W180": {
+          "MFE_delta": 72.0,
+          "MAE_delta": 40.0,
+          "close_delta": -18.0,
+          "signed_return_over_atr": -0.4716
+        },
+        "W300": {
+          "MFE_delta": 72.0,
+          "MAE_delta": 40.0,
+          "close_delta": -29.0,
+          "signed_return_over_atr": -0.7598
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -28.63,
+        "exit_reason": "stop_loss",
+        "hold_sec": 116,
+        "mfe": 72.0,
+        "mae": 30.0
+      },
+      "gross_w180": -18.0,
+      "net_w180": -23.0,
+      "gross_atr_sim": -28.63,
+      "net_atr_sim": -33.629999999999995
+    },
+    {
+      "episode_id": "20260407-004",
+      "ts": 1775524935,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 33318.0,
+      "atr": 47.35,
+      "vol_1s": 275,
+      "buy_ratio": 0.9236,
+      "sell_ratio": 0.0582,
+      "forward": {
+        "W30": {
+          "MFE_delta": 3.0,
+          "MAE_delta": 17.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.0211
+        },
+        "W60": {
+          "MFE_delta": 26.0,
+          "MAE_delta": 17.0,
+          "close_delta": 6.0,
+          "signed_return_over_atr": 0.1267
+        },
+        "W180": {
+          "MFE_delta": 26.0,
+          "MAE_delta": 27.0,
+          "close_delta": -24.0,
+          "signed_return_over_atr": -0.5069
+        },
+        "W300": {
+          "MFE_delta": 26.0,
+          "MAE_delta": 38.0,
+          "close_delta": -21.0,
+          "signed_return_over_atr": -0.4435
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -24.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 26.0,
+        "mae": 27.0
+      },
+      "gross_w180": -24.0,
+      "net_w180": -29.0,
+      "gross_atr_sim": -24.0,
+      "net_atr_sim": -29.0
+    },
+    {
+      "episode_id": "20260407-007",
+      "ts": 1775526551,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 33150.0,
+      "atr": 41.55,
+      "vol_1s": 191,
+      "buy_ratio": 0.0681,
+      "sell_ratio": 0.9319,
+      "forward": {
+        "W30": {
+          "MFE_delta": 42.0,
+          "MAE_delta": 7.0,
+          "close_delta": 19.0,
+          "signed_return_over_atr": 0.4573
+        },
+        "W60": {
+          "MFE_delta": 42.0,
+          "MAE_delta": 7.0,
+          "close_delta": 19.0,
+          "signed_return_over_atr": 0.4573
+        },
+        "W180": {
+          "MFE_delta": 86.0,
+          "MAE_delta": 7.0,
+          "close_delta": 73.0,
+          "signed_return_over_atr": 1.7569
+        },
+        "W300": {
+          "MFE_delta": 119.0,
+          "MAE_delta": 7.0,
+          "close_delta": 81.0,
+          "signed_return_over_atr": 1.9495
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 83.1,
+        "exit_reason": "take_profit",
+        "hold_sec": 166,
+        "mfe": 84.0,
+        "mae": 7.0
+      },
+      "gross_w180": 73.0,
+      "net_w180": 68.0,
+      "gross_atr_sim": 83.1,
+      "net_atr_sim": 78.1
+    },
+    {
+      "episode_id": "20260408-001",
+      "ts": 1775609507,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 34602.0,
+      "atr": 95.2,
+      "vol_1s": 405,
+      "buy_ratio": 0.9457,
+      "sell_ratio": 0.0543,
+      "forward": {
+        "W30": {
+          "MFE_delta": 1.0,
+          "MAE_delta": 20.0,
+          "close_delta": -11.0,
+          "signed_return_over_atr": -0.1155
+        },
+        "W60": {
+          "MFE_delta": 3.0,
+          "MAE_delta": 20.0,
+          "close_delta": -6.0,
+          "signed_return_over_atr": -0.063
+        },
+        "W180": {
+          "MFE_delta": 3.0,
+          "MAE_delta": 50.0,
+          "close_delta": -46.0,
+          "signed_return_over_atr": -0.4832
+        },
+        "W300": {
+          "MFE_delta": 3.0,
+          "MAE_delta": 52.0,
+          "close_delta": -10.0,
+          "signed_return_over_atr": -0.105
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -46.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 3.0,
+        "mae": 50.0
+      },
+      "gross_w180": -46.0,
+      "net_w180": -51.0,
+      "gross_atr_sim": -46.0,
+      "net_atr_sim": -51.0
+    },
+    {
+      "episode_id": "20260408-002",
+      "ts": 1775610000,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 34605.0,
+      "atr": 36.33,
+      "vol_1s": 235,
+      "buy_ratio": 0.9745,
+      "sell_ratio": 0.0255,
+      "forward": {
+        "W30": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 41.0,
+          "close_delta": -28.0,
+          "signed_return_over_atr": -0.7707
+        },
+        "W60": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 85.0,
+          "close_delta": -51.0,
+          "signed_return_over_atr": -1.4038
+        },
+        "W180": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 96.0,
+          "close_delta": -83.0,
+          "signed_return_over_atr": -2.2846
+        },
+        "W300": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 129.0,
+          "close_delta": -96.0,
+          "signed_return_over_atr": -2.6424
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -27.25,
+        "exit_reason": "stop_loss",
+        "hold_sec": 24,
+        "mfe": 20.0,
+        "mae": 28.0
+      },
+      "gross_w180": -83.0,
+      "net_w180": -88.0,
+      "gross_atr_sim": -27.25,
+      "net_atr_sim": -32.25
+    },
+    {
+      "episode_id": "20260408-003",
+      "ts": 1775610271,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 34495.0,
+      "atr": 36.33,
+      "vol_1s": 226,
+      "buy_ratio": 0.0088,
+      "sell_ratio": 0.9912,
+      "forward": {
+        "W30": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 32.0,
+          "close_delta": -32.0,
+          "signed_return_over_atr": -0.8808
+        },
+        "W60": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 39.0,
+          "close_delta": -35.0,
+          "signed_return_over_atr": -0.9634
+        },
+        "W180": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 90.0,
+          "close_delta": -48.0,
+          "signed_return_over_atr": -1.3212
+        },
+        "W300": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 90.0,
+          "close_delta": -58.0,
+          "signed_return_over_atr": -1.5965
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -27.25,
+        "exit_reason": "stop_loss",
+        "hold_sec": 30,
+        "mfe": 19.0,
+        "mae": 28.0
+      },
+      "gross_w180": -48.0,
+      "net_w180": -53.0,
+      "gross_atr_sim": -27.25,
+      "net_atr_sim": -32.25
+    },
+    {
+      "episode_id": "20260408-004",
+      "ts": 1775610600,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 34588.0,
+      "atr": 39.9,
+      "vol_1s": 236,
+      "buy_ratio": 0.9873,
+      "sell_ratio": 0.0127,
+      "forward": {
+        "W30": {
+          "MFE_delta": 22.0,
+          "MAE_delta": 14.0,
+          "close_delta": 8.0,
+          "signed_return_over_atr": 0.2005
+        },
+        "W60": {
+          "MFE_delta": 22.0,
+          "MAE_delta": 27.0,
+          "close_delta": 5.0,
+          "signed_return_over_atr": 0.1253
+        },
+        "W180": {
+          "MFE_delta": 22.0,
+          "MAE_delta": 27.0,
+          "close_delta": 17.0,
+          "signed_return_over_atr": 0.4261
+        },
+        "W300": {
+          "MFE_delta": 28.0,
+          "MAE_delta": 27.0,
+          "close_delta": 13.0,
+          "signed_return_over_atr": 0.3258
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 17.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 22.0,
+        "mae": 27.0
+      },
+      "gross_w180": 17.0,
+      "net_w180": 12.0,
+      "gross_atr_sim": 17.0,
+      "net_atr_sim": 12.0
+    },
+    {
+      "episode_id": "20260409-001",
+      "ts": 1775696754,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 34900.0,
+      "atr": 35.47,
+      "vol_1s": 235,
+      "buy_ratio": 0.0128,
+      "sell_ratio": 0.9872,
+      "forward": {
+        "W30": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 25.0,
+          "close_delta": -10.0,
+          "signed_return_over_atr": -0.2819
+        },
+        "W60": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 26.0,
+          "close_delta": -16.0,
+          "signed_return_over_atr": -0.4511
+        },
+        "W180": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 55.0,
+          "close_delta": -23.0,
+          "signed_return_over_atr": -0.6484
+        },
+        "W300": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 55.0,
+          "close_delta": 5.0,
+          "signed_return_over_atr": 0.141
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -26.6,
+        "exit_reason": "stop_loss",
+        "hold_sec": 74,
+        "mfe": 12.0,
+        "mae": 27.0
+      },
+      "gross_w180": -23.0,
+      "net_w180": -28.0,
+      "gross_atr_sim": -26.6,
+      "net_atr_sim": -31.6
+    },
+    {
+      "episode_id": "20260409-002",
+      "ts": 1775697097,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 34882.0,
+      "atr": 36.0,
+      "vol_1s": 227,
+      "buy_ratio": 0.163,
+      "sell_ratio": 0.837,
+      "forward": {
+        "W30": {
+          "MFE_delta": 7.0,
+          "MAE_delta": 13.0,
+          "close_delta": 6.0,
+          "signed_return_over_atr": 0.1667
+        },
+        "W60": {
+          "MFE_delta": 23.0,
+          "MAE_delta": 13.0,
+          "close_delta": 19.0,
+          "signed_return_over_atr": 0.5278
+        },
+        "W180": {
+          "MFE_delta": 39.0,
+          "MAE_delta": 44.0,
+          "close_delta": -39.0,
+          "signed_return_over_atr": -1.0833
+        },
+        "W300": {
+          "MFE_delta": 39.0,
+          "MAE_delta": 82.0,
+          "close_delta": -57.0,
+          "signed_return_over_atr": -1.5833
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -27.0,
+        "exit_reason": "stop_loss",
+        "hold_sec": 175,
+        "mfe": 39.0,
+        "mae": 27.0
+      },
+      "gross_w180": -39.0,
+      "net_w180": -44.0,
+      "gross_atr_sim": -27.0,
+      "net_atr_sim": -32.0
+    },
+    {
+      "episode_id": "20260409-007",
+      "ts": 1775700770,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 34800.0,
+      "atr": 29.85,
+      "vol_1s": 208,
+      "buy_ratio": 0.0048,
+      "sell_ratio": 0.9952,
+      "forward": {
+        "W30": {
+          "MFE_delta": 40.0,
+          "MAE_delta": 10.0,
+          "close_delta": 20.0,
+          "signed_return_over_atr": 0.67
+        },
+        "W60": {
+          "MFE_delta": 40.0,
+          "MAE_delta": 10.0,
+          "close_delta": 2.0,
+          "signed_return_over_atr": 0.067
+        },
+        "W180": {
+          "MFE_delta": 40.0,
+          "MAE_delta": 36.0,
+          "close_delta": 10.0,
+          "signed_return_over_atr": 0.335
+        },
+        "W300": {
+          "MFE_delta": 40.0,
+          "MAE_delta": 36.0,
+          "close_delta": -26.0,
+          "signed_return_over_atr": -0.871
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -22.39,
+        "exit_reason": "stop_loss",
+        "hold_sec": 76,
+        "mfe": 40.0,
+        "mae": 23.0
+      },
+      "gross_w180": 10.0,
+      "net_w180": 5.0,
+      "gross_atr_sim": -22.39,
+      "net_atr_sim": -27.39
+    },
+    {
+      "episode_id": "20260410-001",
+      "ts": 1775782671,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 35366.0,
+      "atr": 27.86,
+      "vol_1s": 375,
+      "buy_ratio": 0.9573,
+      "sell_ratio": 0.0293,
+      "forward": {
+        "W30": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 22.0,
+          "close_delta": -2.0,
+          "signed_return_over_atr": -0.0718
+        },
+        "W60": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 22.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.1077
+        },
+        "W180": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 45.0,
+          "close_delta": -21.0,
+          "signed_return_over_atr": -0.7538
+        },
+        "W300": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 45.0,
+          "close_delta": -14.0,
+          "signed_return_over_atr": -0.5025
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -20.89,
+        "exit_reason": "stop_loss",
+        "hold_sec": 0,
+        "mfe": 0.0,
+        "mae": 22.0
+      },
+      "gross_w180": -21.0,
+      "net_w180": -26.0,
+      "gross_atr_sim": -20.89,
+      "net_atr_sim": -25.89
+    },
+    {
+      "episode_id": "20260410-002",
+      "ts": 1775783022,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 35380.0,
+      "atr": 29.25,
+      "vol_1s": 232,
+      "buy_ratio": 0.9871,
+      "sell_ratio": 0.0129,
+      "forward": {
+        "W30": {
+          "MFE_delta": 58.0,
+          "MAE_delta": 11.0,
+          "close_delta": 26.0,
+          "signed_return_over_atr": 0.8889
+        },
+        "W60": {
+          "MFE_delta": 58.0,
+          "MAE_delta": 11.0,
+          "close_delta": 22.0,
+          "signed_return_over_atr": 0.7521
+        },
+        "W180": {
+          "MFE_delta": 58.0,
+          "MAE_delta": 37.0,
+          "close_delta": -8.0,
+          "signed_return_over_atr": -0.2735
+        },
+        "W300": {
+          "MFE_delta": 58.0,
+          "MAE_delta": 37.0,
+          "close_delta": -5.0,
+          "signed_return_over_atr": -0.1709
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -21.94,
+        "exit_reason": "stop_loss",
+        "hold_sec": 123,
+        "mfe": 58.0,
+        "mae": 24.0
+      },
+      "gross_w180": -8.0,
+      "net_w180": -13.0,
+      "gross_atr_sim": -21.94,
+      "net_atr_sim": -26.94
+    },
+    {
+      "episode_id": "20260410-006",
+      "ts": 1775785201,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 35500.0,
+      "atr": 39.75,
+      "vol_1s": 192,
+      "buy_ratio": 0.9583,
+      "sell_ratio": 0.0417,
+      "forward": {
+        "W30": {
+          "MFE_delta": 0.0,
+          "MAE_delta": 39.0,
+          "close_delta": -39.0,
+          "signed_return_over_atr": -0.9811
+        },
+        "W60": {
+          "MFE_delta": 0.0,
+          "MAE_delta": 39.0,
+          "close_delta": -26.0,
+          "signed_return_over_atr": -0.6541
+        },
+        "W180": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 43.0,
+          "close_delta": 14.0,
+          "signed_return_over_atr": 0.3522
+        },
+        "W300": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 43.0,
+          "close_delta": -31.0,
+          "signed_return_over_atr": -0.7799
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -29.81,
+        "exit_reason": "stop_loss",
+        "hold_sec": 18,
+        "mfe": 0.0,
+        "mae": 30.0
+      },
+      "gross_w180": 14.0,
+      "net_w180": 9.0,
+      "gross_atr_sim": -29.81,
+      "net_atr_sim": -34.81
+    },
+    {
+      "episode_id": "20260410-007",
+      "ts": 1775785374,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 35500.0,
+      "atr": 39.75,
+      "vol_1s": 166,
+      "buy_ratio": 0.988,
+      "sell_ratio": 0.012,
+      "forward": {
+        "W30": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 10.0,
+          "close_delta": 5.0,
+          "signed_return_over_atr": 0.1258
+        },
+        "W60": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 14.0,
+          "close_delta": 2.0,
+          "signed_return_over_atr": 0.0503
+        },
+        "W180": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 58.0,
+          "close_delta": -49.0,
+          "signed_return_over_atr": -1.2327
+        },
+        "W300": {
+          "MFE_delta": 20.0,
+          "MAE_delta": 58.0,
+          "close_delta": -21.0,
+          "signed_return_over_atr": -0.5283
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -29.81,
+        "exit_reason": "stop_loss",
+        "hold_sec": 89,
+        "mfe": 20.0,
+        "mae": 30.0
+      },
+      "gross_w180": -49.0,
+      "net_w180": -54.0,
+      "gross_atr_sim": -29.81,
+      "net_atr_sim": -34.81
+    },
+    {
+      "episode_id": "20260410-012",
+      "ts": 1775787577,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 35300.0,
+      "atr": 27.45,
+      "vol_1s": 177,
+      "buy_ratio": 0.0056,
+      "sell_ratio": 0.9887,
+      "forward": {
+        "W30": {
+          "MFE_delta": 10.0,
+          "MAE_delta": 11.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.1093
+        },
+        "W60": {
+          "MFE_delta": 42.0,
+          "MAE_delta": 11.0,
+          "close_delta": 32.0,
+          "signed_return_over_atr": 1.1658
+        },
+        "W180": {
+          "MFE_delta": 42.0,
+          "MAE_delta": 20.0,
+          "close_delta": -15.0,
+          "signed_return_over_atr": -0.5464
+        },
+        "W300": {
+          "MFE_delta": 42.0,
+          "MAE_delta": 44.0,
+          "close_delta": -41.0,
+          "signed_return_over_atr": -1.4936
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -15.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 42.0,
+        "mae": 20.0
+      },
+      "gross_w180": -15.0,
+      "net_w180": -20.0,
+      "gross_atr_sim": -15.0,
+      "net_atr_sim": -20.0
+    },
+    {
+      "episode_id": "20260413-001",
+      "ts": 1776042578,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 35395.0,
+      "atr": 36.06,
+      "vol_1s": 225,
+      "buy_ratio": 0.0756,
+      "sell_ratio": 0.9022,
+      "forward": {
+        "W30": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 27.0,
+          "close_delta": -27.0,
+          "signed_return_over_atr": -0.7488
+        },
+        "W60": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 64.0,
+          "close_delta": -60.0,
+          "signed_return_over_atr": -1.6639
+        },
+        "W180": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 95.0,
+          "close_delta": -63.0,
+          "signed_return_over_atr": -1.7471
+        },
+        "W300": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 154.0,
+          "close_delta": -149.0,
+          "signed_return_over_atr": -4.132
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -27.05,
+        "exit_reason": "stop_loss",
+        "hold_sec": 40,
+        "mfe": 13.0,
+        "mae": 28.0
+      },
+      "gross_w180": -63.0,
+      "net_w180": -68.0,
+      "gross_atr_sim": -27.05,
+      "net_atr_sim": -32.05
+    },
+    {
+      "episode_id": "20260413-002",
+      "ts": 1776042846,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 35507.0,
+      "atr": 36.2,
+      "vol_1s": 225,
+      "buy_ratio": 0.9733,
+      "sell_ratio": 0.0267,
+      "forward": {
+        "W30": {
+          "MFE_delta": 42.0,
+          "MAE_delta": 14.0,
+          "close_delta": 37.0,
+          "signed_return_over_atr": 1.0221
+        },
+        "W60": {
+          "MFE_delta": 47.0,
+          "MAE_delta": 14.0,
+          "close_delta": 41.0,
+          "signed_return_over_atr": 1.1326
+        },
+        "W180": {
+          "MFE_delta": 47.0,
+          "MAE_delta": 50.0,
+          "close_delta": -38.0,
+          "signed_return_over_atr": -1.0497
+        },
+        "W300": {
+          "MFE_delta": 47.0,
+          "MAE_delta": 50.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.0829
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -27.15,
+        "exit_reason": "stop_loss",
+        "hold_sec": 161,
+        "mfe": 47.0,
+        "mae": 29.0
+      },
+      "gross_w180": -38.0,
+      "net_w180": -43.0,
+      "gross_atr_sim": -27.15,
+      "net_atr_sim": -32.15
+    },
+    {
+      "episode_id": "20260416-001",
+      "ts": 1776301708,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 37135.0,
+      "atr": 32.18,
+      "vol_1s": 225,
+      "buy_ratio": 0.0444,
+      "sell_ratio": 0.9067,
+      "forward": {
+        "W30": {
+          "MFE_delta": 29.0,
+          "MAE_delta": 43.0,
+          "close_delta": -33.0,
+          "signed_return_over_atr": -1.0255
+        },
+        "W60": {
+          "MFE_delta": 29.0,
+          "MAE_delta": 62.0,
+          "close_delta": -35.0,
+          "signed_return_over_atr": -1.0876
+        },
+        "W180": {
+          "MFE_delta": 29.0,
+          "MAE_delta": 72.0,
+          "close_delta": -63.0,
+          "signed_return_over_atr": -1.9577
+        },
+        "W300": {
+          "MFE_delta": 29.0,
+          "MAE_delta": 99.0,
+          "close_delta": -99.0,
+          "signed_return_over_atr": -3.0764
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -24.13,
+        "exit_reason": "stop_loss",
+        "hold_sec": 19,
+        "mfe": 29.0,
+        "mae": 25.0
+      },
+      "gross_w180": -63.0,
+      "net_w180": -68.0,
+      "gross_atr_sim": -24.13,
+      "net_atr_sim": -29.13
+    },
+    {
+      "episode_id": "20260416-002",
+      "ts": 1776302042,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 37251.0,
+      "atr": 34.85,
+      "vol_1s": 225,
+      "buy_ratio": 0.1556,
+      "sell_ratio": 0.8356,
+      "forward": {
+        "W30": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 17.0,
+          "close_delta": -14.0,
+          "signed_return_over_atr": -0.4017
+        },
+        "W60": {
+          "MFE_delta": 21.0,
+          "MAE_delta": 17.0,
+          "close_delta": 15.0,
+          "signed_return_over_atr": 0.4304
+        },
+        "W180": {
+          "MFE_delta": 26.0,
+          "MAE_delta": 24.0,
+          "close_delta": -5.0,
+          "signed_return_over_atr": -0.1435
+        },
+        "W300": {
+          "MFE_delta": 26.0,
+          "MAE_delta": 29.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.0861
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -5.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 26.0,
+        "mae": 24.0
+      },
+      "gross_w180": -5.0,
+      "net_w180": -10.0,
+      "gross_atr_sim": -5.0,
+      "net_atr_sim": -10.0
+    },
+    {
+      "episode_id": "20260417-001",
+      "ts": 1776387380,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 37295.0,
+      "atr": 31.57,
+      "vol_1s": 377,
+      "buy_ratio": 0.8939,
+      "sell_ratio": 0.0875,
+      "forward": {
+        "W30": {
+          "MFE_delta": 6.0,
+          "MAE_delta": 7.0,
+          "close_delta": 0.0,
+          "signed_return_over_atr": 0.0
+        },
+        "W60": {
+          "MFE_delta": 6.0,
+          "MAE_delta": 10.0,
+          "close_delta": -5.0,
+          "signed_return_over_atr": -0.1584
+        },
+        "W180": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 45.0,
+          "close_delta": -30.0,
+          "signed_return_over_atr": -0.9503
+        },
+        "W300": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 59.0,
+          "close_delta": -28.0,
+          "signed_return_over_atr": -0.8869
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -23.68,
+        "exit_reason": "stop_loss",
+        "hold_sec": 121,
+        "mfe": 13.0,
+        "mae": 24.0
+      },
+      "gross_w180": -30.0,
+      "net_w180": -35.0,
+      "gross_atr_sim": -23.68,
+      "net_atr_sim": -28.68
+    },
+    {
+      "episode_id": "20260417-002",
+      "ts": 1776388114,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 37308.0,
+      "atr": 31.12,
+      "vol_1s": 225,
+      "buy_ratio": 0.8933,
+      "sell_ratio": 0.1067,
+      "forward": {
+        "W30": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 12.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.0321
+        },
+        "W60": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 18.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.0964
+        },
+        "W180": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 82.0,
+          "close_delta": -76.0,
+          "signed_return_over_atr": -2.4422
+        },
+        "W300": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 100.0,
+          "close_delta": -58.0,
+          "signed_return_over_atr": -1.8638
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -23.34,
+        "exit_reason": "stop_loss",
+        "hold_sec": 65,
+        "mfe": 35.0,
+        "mae": 24.0
+      },
+      "gross_w180": -76.0,
+      "net_w180": -81.0,
+      "gross_atr_sim": -23.34,
+      "net_atr_sim": -28.34
+    },
+    {
+      "episode_id": "20260417-003",
+      "ts": 1776388354,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 37210.0,
+      "atr": 31.05,
+      "vol_1s": 225,
+      "buy_ratio": 0.0178,
+      "sell_ratio": 0.9822,
+      "forward": {
+        "W30": {
+          "MFE_delta": 2.0,
+          "MAE_delta": 42.0,
+          "close_delta": -39.0,
+          "signed_return_over_atr": -1.256
+        },
+        "W60": {
+          "MFE_delta": 2.0,
+          "MAE_delta": 42.0,
+          "close_delta": -40.0,
+          "signed_return_over_atr": -1.2882
+        },
+        "W180": {
+          "MFE_delta": 2.0,
+          "MAE_delta": 88.0,
+          "close_delta": -78.0,
+          "signed_return_over_atr": -2.5121
+        },
+        "W300": {
+          "MFE_delta": 2.0,
+          "MAE_delta": 103.0,
+          "close_delta": -91.0,
+          "signed_return_over_atr": -2.9308
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -23.29,
+        "exit_reason": "stop_loss",
+        "hold_sec": 0,
+        "mfe": 0.0,
+        "mae": 24.0
+      },
+      "gross_w180": -78.0,
+      "net_w180": -83.0,
+      "gross_atr_sim": -23.29,
+      "net_atr_sim": -28.29
+    },
+    {
+      "episode_id": "20260420-001",
+      "ts": 1776646997,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 37478.0,
+      "atr": 36.83,
+      "vol_1s": 225,
+      "buy_ratio": 0.9467,
+      "sell_ratio": 0.0489,
+      "forward": {
+        "W30": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 28.0,
+          "close_delta": -9.0,
+          "signed_return_over_atr": -0.2444
+        },
+        "W60": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 53.0,
+          "close_delta": -12.0,
+          "signed_return_over_atr": -0.3258
+        },
+        "W180": {
+          "MFE_delta": 46.0,
+          "MAE_delta": 53.0,
+          "close_delta": -8.0,
+          "signed_return_over_atr": -0.2172
+        },
+        "W300": {
+          "MFE_delta": 46.0,
+          "MAE_delta": 53.0,
+          "close_delta": 37.0,
+          "signed_return_over_atr": 1.0046
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -27.62,
+        "exit_reason": "stop_loss",
+        "hold_sec": 17,
+        "mfe": 12.0,
+        "mae": 28.0
+      },
+      "gross_w180": -8.0,
+      "net_w180": -13.0,
+      "gross_atr_sim": -27.62,
+      "net_atr_sim": -32.620000000000005
+    },
+    {
+      "episode_id": "20260420-002",
+      "ts": 1776647303,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 37528.0,
+      "atr": 41.47,
+      "vol_1s": 225,
+      "buy_ratio": 0.88,
+      "sell_ratio": 0.1111,
+      "forward": {
+        "W30": {
+          "MFE_delta": 7.0,
+          "MAE_delta": 12.0,
+          "close_delta": -2.0,
+          "signed_return_over_atr": -0.0482
+        },
+        "W60": {
+          "MFE_delta": 7.0,
+          "MAE_delta": 12.0,
+          "close_delta": 2.0,
+          "signed_return_over_atr": 0.0482
+        },
+        "W180": {
+          "MFE_delta": 84.0,
+          "MAE_delta": 12.0,
+          "close_delta": 61.0,
+          "signed_return_over_atr": 1.4709
+        },
+        "W300": {
+          "MFE_delta": 84.0,
+          "MAE_delta": 12.0,
+          "close_delta": 40.0,
+          "signed_return_over_atr": 0.9646
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 82.94,
+        "exit_reason": "take_profit",
+        "hold_sec": 135,
+        "mfe": 83.0,
+        "mae": 12.0
+      },
+      "gross_w180": 61.0,
+      "net_w180": 56.0,
+      "gross_atr_sim": 82.94,
+      "net_atr_sim": 77.94
+    },
+    {
+      "episode_id": "20260420-006",
+      "ts": 1776649400,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 37610.0,
+      "atr": 35.45,
+      "vol_1s": 174,
+      "buy_ratio": 0.9885,
+      "sell_ratio": 0.0115,
+      "forward": {
+        "W30": {
+          "MFE_delta": 34.0,
+          "MAE_delta": 11.0,
+          "close_delta": 28.0,
+          "signed_return_over_atr": 0.7898
+        },
+        "W60": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 11.0,
+          "close_delta": 13.0,
+          "signed_return_over_atr": 0.3667
+        },
+        "W180": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 21.0,
+          "close_delta": 8.0,
+          "signed_return_over_atr": 0.2257
+        },
+        "W300": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 21.0,
+          "close_delta": -20.0,
+          "signed_return_over_atr": -0.5642
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 8.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 35.0,
+        "mae": 21.0
+      },
+      "gross_w180": 8.0,
+      "net_w180": 3.0,
+      "gross_atr_sim": 8.0,
+      "net_atr_sim": 3.0
+    },
+    {
+      "episode_id": "20260420-008",
+      "ts": 1776650096,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 37650.0,
+      "atr": 35.95,
+      "vol_1s": 196,
+      "buy_ratio": 0.9796,
+      "sell_ratio": 0.0204,
+      "forward": {
+        "W30": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 8.0,
+          "close_delta": 12.0,
+          "signed_return_over_atr": 0.3338
+        },
+        "W60": {
+          "MFE_delta": 38.0,
+          "MAE_delta": 8.0,
+          "close_delta": 34.0,
+          "signed_return_over_atr": 0.9458
+        },
+        "W180": {
+          "MFE_delta": 38.0,
+          "MAE_delta": 21.0,
+          "close_delta": -15.0,
+          "signed_return_over_atr": -0.4172
+        },
+        "W300": {
+          "MFE_delta": 38.0,
+          "MAE_delta": 42.0,
+          "close_delta": -17.0,
+          "signed_return_over_atr": -0.4729
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -15.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 38.0,
+        "mae": 21.0
+      },
+      "gross_w180": -15.0,
+      "net_w180": -20.0,
+      "gross_atr_sim": -15.0,
+      "net_atr_sim": -20.0
+    },
+    {
+      "episode_id": "20260421-001",
+      "ts": 1776733159,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 37800.0,
+      "atr": 26.57,
+      "vol_1s": 375,
+      "buy_ratio": 0.928,
+      "sell_ratio": 0.056,
+      "forward": {
+        "W30": {
+          "MFE_delta": 1.0,
+          "MAE_delta": 23.0,
+          "close_delta": -16.0,
+          "signed_return_over_atr": -0.6022
+        },
+        "W60": {
+          "MFE_delta": 23.0,
+          "MAE_delta": 26.0,
+          "close_delta": 18.0,
+          "signed_return_over_atr": 0.6775
+        },
+        "W180": {
+          "MFE_delta": 169.0,
+          "MAE_delta": 26.0,
+          "close_delta": 169.0,
+          "signed_return_over_atr": 6.3606
+        },
+        "W300": {
+          "MFE_delta": 206.0,
+          "MAE_delta": 26.0,
+          "close_delta": 190.0,
+          "signed_return_over_atr": 7.1509
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -19.93,
+        "exit_reason": "stop_loss",
+        "hold_sec": 12,
+        "mfe": 1.0,
+        "mae": 21.0
+      },
+      "gross_w180": 169.0,
+      "net_w180": 164.0,
+      "gross_atr_sim": -19.93,
+      "net_atr_sim": -24.93
+    },
+    {
+      "episode_id": "20260421-002",
+      "ts": 1776733209,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 37809.0,
+      "atr": 25.42,
+      "vol_1s": 225,
+      "buy_ratio": 0.8756,
+      "sell_ratio": 0.0756,
+      "forward": {
+        "W30": {
+          "MFE_delta": 34.0,
+          "MAE_delta": 5.0,
+          "close_delta": 25.0,
+          "signed_return_over_atr": 0.9835
+        },
+        "W60": {
+          "MFE_delta": 34.0,
+          "MAE_delta": 5.0,
+          "close_delta": 21.0,
+          "signed_return_over_atr": 0.8261
+        },
+        "W180": {
+          "MFE_delta": 177.0,
+          "MAE_delta": 5.0,
+          "close_delta": 167.0,
+          "signed_return_over_atr": 6.5696
+        },
+        "W300": {
+          "MFE_delta": 217.0,
+          "MAE_delta": 5.0,
+          "close_delta": 211.0,
+          "signed_return_over_atr": 8.3006
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 50.84,
+        "exit_reason": "take_profit",
+        "hold_sec": 79,
+        "mfe": 51.0,
+        "mae": 5.0
+      },
+      "gross_w180": 167.0,
+      "net_w180": 162.0,
+      "gross_atr_sim": 50.84,
+      "net_atr_sim": 45.84
+    },
+    {
+      "episode_id": "20260421-003",
+      "ts": 1776733421,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 37989.0,
+      "atr": 25.42,
+      "vol_1s": 233,
+      "buy_ratio": 0.9828,
+      "sell_ratio": 0.0129,
+      "forward": {
+        "W30": {
+          "MFE_delta": 17.0,
+          "MAE_delta": 15.0,
+          "close_delta": 13.0,
+          "signed_return_over_atr": 0.5114
+        },
+        "W60": {
+          "MFE_delta": 17.0,
+          "MAE_delta": 15.0,
+          "close_delta": -4.0,
+          "signed_return_over_atr": -0.1574
+        },
+        "W180": {
+          "MFE_delta": 83.0,
+          "MAE_delta": 15.0,
+          "close_delta": 52.0,
+          "signed_return_over_atr": 2.0456
+        },
+        "W300": {
+          "MFE_delta": 83.0,
+          "MAE_delta": 15.0,
+          "close_delta": 35.0,
+          "signed_return_over_atr": 1.3769
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 50.84,
+        "exit_reason": "take_profit",
+        "hold_sec": 100,
+        "mfe": 51.0,
+        "mae": 15.0
+      },
+      "gross_w180": 52.0,
+      "net_w180": 47.0,
+      "gross_atr_sim": 50.84,
+      "net_atr_sim": 45.84
+    },
+    {
+      "episode_id": "20260421-004",
+      "ts": 1776733907,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 37931.0,
+      "atr": 38.85,
+      "vol_1s": 225,
+      "buy_ratio": 0.1644,
+      "sell_ratio": 0.7956,
+      "forward": {
+        "W30": {
+          "MFE_delta": 54.0,
+          "MAE_delta": 11.0,
+          "close_delta": 54.0,
+          "signed_return_over_atr": 1.39
+        },
+        "W60": {
+          "MFE_delta": 111.0,
+          "MAE_delta": 11.0,
+          "close_delta": 101.0,
+          "signed_return_over_atr": 2.5997
+        },
+        "W180": {
+          "MFE_delta": 136.0,
+          "MAE_delta": 11.0,
+          "close_delta": 90.0,
+          "signed_return_over_atr": 2.3166
+        },
+        "W300": {
+          "MFE_delta": 206.0,
+          "MAE_delta": 11.0,
+          "close_delta": 164.0,
+          "signed_return_over_atr": 4.2214
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 77.7,
+        "exit_reason": "take_profit",
+        "hold_sec": 35,
+        "mfe": 78.0,
+        "mae": 11.0
+      },
+      "gross_w180": 90.0,
+      "net_w180": 85.0,
+      "gross_atr_sim": 77.7,
+      "net_atr_sim": 72.7
+    },
+    {
+      "episode_id": "20260421-005",
+      "ts": 1776734100,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 37826.0,
+      "atr": 49.85,
+      "vol_1s": 166,
+      "buy_ratio": 0.1446,
+      "sell_ratio": 0.8012,
+      "forward": {
+        "W30": {
+          "MFE_delta": 78.0,
+          "MAE_delta": 14.0,
+          "close_delta": 74.0,
+          "signed_return_over_atr": 1.4845
+        },
+        "W60": {
+          "MFE_delta": 94.0,
+          "MAE_delta": 14.0,
+          "close_delta": 52.0,
+          "signed_return_over_atr": 1.0431
+        },
+        "W180": {
+          "MFE_delta": 101.0,
+          "MAE_delta": 14.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.0602
+        },
+        "W300": {
+          "MFE_delta": 101.0,
+          "MAE_delta": 36.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.0602
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 99.7,
+        "exit_reason": "take_profit",
+        "hold_sec": 76,
+        "mfe": 100.0,
+        "mae": 14.0
+      },
+      "gross_w180": -3.0,
+      "net_w180": -8.0,
+      "gross_atr_sim": 99.7,
+      "net_atr_sim": 94.7
+    },
+    {
+      "episode_id": "20260421-007",
+      "ts": 1776734583,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 37768.0,
+      "atr": 65.35,
+      "vol_1s": 226,
+      "buy_ratio": 0.0398,
+      "sell_ratio": 0.7832,
+      "forward": {
+        "W30": {
+          "MFE_delta": 5.0,
+          "MAE_delta": 19.0,
+          "close_delta": -0.0,
+          "signed_return_over_atr": -0.0
+        },
+        "W60": {
+          "MFE_delta": 5.0,
+          "MAE_delta": 28.0,
+          "close_delta": -0.0,
+          "signed_return_over_atr": -0.0
+        },
+        "W180": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 28.0,
+          "close_delta": 22.0,
+          "signed_return_over_atr": 0.3366
+        },
+        "W300": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 30.0,
+          "close_delta": -11.0,
+          "signed_return_over_atr": -0.1683
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 22.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 35.0,
+        "mae": 28.0
+      },
+      "gross_w180": 22.0,
+      "net_w180": 17.0,
+      "gross_atr_sim": 22.0,
+      "net_atr_sim": 17.0
+    },
+    {
+      "episode_id": "20260421-008",
+      "ts": 1776735007,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 37715.0,
+      "atr": 60.75,
+      "vol_1s": 166,
+      "buy_ratio": 0.0301,
+      "sell_ratio": 0.9699,
+      "forward": {
+        "W30": {
+          "MFE_delta": 4.0,
+          "MAE_delta": 63.0,
+          "close_delta": -51.0,
+          "signed_return_over_atr": -0.8395
+        },
+        "W60": {
+          "MFE_delta": 4.0,
+          "MAE_delta": 71.0,
+          "close_delta": -70.0,
+          "signed_return_over_atr": -1.1523
+        },
+        "W180": {
+          "MFE_delta": 4.0,
+          "MAE_delta": 116.0,
+          "close_delta": -105.0,
+          "signed_return_over_atr": -1.7284
+        },
+        "W300": {
+          "MFE_delta": 4.0,
+          "MAE_delta": 116.0,
+          "close_delta": -87.0,
+          "signed_return_over_atr": -1.4321
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -45.56,
+        "exit_reason": "stop_loss",
+        "hold_sec": 20,
+        "mfe": 4.0,
+        "mae": 48.0
+      },
+      "gross_w180": -105.0,
+      "net_w180": -110.0,
+      "gross_atr_sim": -45.56,
+      "net_atr_sim": -50.56
+    },
+    {
+      "episode_id": "20260421-013",
+      "ts": 1776736949,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 37850.0,
+      "atr": 38.6,
+      "vol_1s": 170,
+      "buy_ratio": 0.9882,
+      "sell_ratio": 0.0118,
+      "forward": {
+        "W30": {
+          "MFE_delta": 56.0,
+          "MAE_delta": 11.0,
+          "close_delta": 39.0,
+          "signed_return_over_atr": 1.0104
+        },
+        "W60": {
+          "MFE_delta": 56.0,
+          "MAE_delta": 11.0,
+          "close_delta": 31.0,
+          "signed_return_over_atr": 0.8031
+        },
+        "W180": {
+          "MFE_delta": 75.0,
+          "MAE_delta": 11.0,
+          "close_delta": 47.0,
+          "signed_return_over_atr": 1.2176
+        },
+        "W300": {
+          "MFE_delta": 92.0,
+          "MAE_delta": 11.0,
+          "close_delta": 92.0,
+          "signed_return_over_atr": 2.3834
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 47.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 75.0,
+        "mae": 11.0
+      },
+      "gross_w180": 47.0,
+      "net_w180": 42.0,
+      "gross_atr_sim": 47.0,
+      "net_atr_sim": 42.0
+    },
+    {
+      "episode_id": "20260421-016",
+      "ts": 1776737686,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 38000.0,
+      "atr": 46.45,
+      "vol_1s": 213,
+      "buy_ratio": 0.9577,
+      "sell_ratio": 0.0423,
+      "forward": {
+        "W30": {
+          "MFE_delta": 15.0,
+          "MAE_delta": 4.0,
+          "close_delta": -4.0,
+          "signed_return_over_atr": -0.0861
+        },
+        "W60": {
+          "MFE_delta": 15.0,
+          "MAE_delta": 15.0,
+          "close_delta": -14.0,
+          "signed_return_over_atr": -0.3014
+        },
+        "W180": {
+          "MFE_delta": 25.0,
+          "MAE_delta": 29.0,
+          "close_delta": 4.0,
+          "signed_return_over_atr": 0.0861
+        },
+        "W300": {
+          "MFE_delta": 55.0,
+          "MAE_delta": 29.0,
+          "close_delta": 52.0,
+          "signed_return_over_atr": 1.1195
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 4.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 25.0,
+        "mae": 29.0
+      },
+      "gross_w180": 4.0,
+      "net_w180": -1.0,
+      "gross_atr_sim": 4.0,
+      "net_atr_sim": -1.0
+    },
+    {
+      "episode_id": "20260422-001",
+      "ts": 1776819871,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 38083.0,
+      "atr": 35.92,
+      "vol_1s": 225,
+      "buy_ratio": 0.9778,
+      "sell_ratio": 0.0178,
+      "forward": {
+        "W30": {
+          "MFE_delta": 8.0,
+          "MAE_delta": 14.0,
+          "close_delta": -7.0,
+          "signed_return_over_atr": -0.1949
+        },
+        "W60": {
+          "MFE_delta": 8.0,
+          "MAE_delta": 32.0,
+          "close_delta": -30.0,
+          "signed_return_over_atr": -0.8352
+        },
+        "W180": {
+          "MFE_delta": 8.0,
+          "MAE_delta": 79.0,
+          "close_delta": -52.0,
+          "signed_return_over_atr": -1.4477
+        },
+        "W300": {
+          "MFE_delta": 8.0,
+          "MAE_delta": 88.0,
+          "close_delta": -19.0,
+          "signed_return_over_atr": -0.529
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -26.94,
+        "exit_reason": "stop_loss",
+        "hold_sec": 56,
+        "mfe": 8.0,
+        "mae": 27.0
+      },
+      "gross_w180": -52.0,
+      "net_w180": -57.0,
+      "gross_atr_sim": -26.94,
+      "net_atr_sim": -31.94
+    },
+    {
+      "episode_id": "20260422-002",
+      "ts": 1776820528,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 38100.0,
+      "atr": 43.05,
+      "vol_1s": 165,
+      "buy_ratio": 0.9939,
+      "sell_ratio": 0.0061,
+      "forward": {
+        "W30": {
+          "MFE_delta": 4.0,
+          "MAE_delta": 45.0,
+          "close_delta": -35.0,
+          "signed_return_over_atr": -0.813
+        },
+        "W60": {
+          "MFE_delta": 4.0,
+          "MAE_delta": 45.0,
+          "close_delta": -14.0,
+          "signed_return_over_atr": -0.3252
+        },
+        "W180": {
+          "MFE_delta": 4.0,
+          "MAE_delta": 45.0,
+          "close_delta": -32.0,
+          "signed_return_over_atr": -0.7433
+        },
+        "W300": {
+          "MFE_delta": 4.0,
+          "MAE_delta": 45.0,
+          "close_delta": -23.0,
+          "signed_return_over_atr": -0.5343
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -32.29,
+        "exit_reason": "stop_loss",
+        "hold_sec": 18,
+        "mfe": 4.0,
+        "mae": 34.0
+      },
+      "gross_w180": -32.0,
+      "net_w180": -37.0,
+      "gross_atr_sim": -32.29,
+      "net_atr_sim": -37.29
+    },
+    {
+      "episode_id": "20260423-001",
+      "ts": 1776905701,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 38577.0,
+      "atr": 42.0,
+      "vol_1s": 375,
+      "buy_ratio": 0.0453,
+      "sell_ratio": 0.952,
+      "forward": {
+        "W30": {
+          "MFE_delta": 17.0,
+          "MAE_delta": 12.0,
+          "close_delta": 13.0,
+          "signed_return_over_atr": 0.3095
+        },
+        "W60": {
+          "MFE_delta": 18.0,
+          "MAE_delta": 12.0,
+          "close_delta": 7.0,
+          "signed_return_over_atr": 0.1667
+        },
+        "W180": {
+          "MFE_delta": 18.0,
+          "MAE_delta": 21.0,
+          "close_delta": -5.0,
+          "signed_return_over_atr": -0.119
+        },
+        "W300": {
+          "MFE_delta": 18.0,
+          "MAE_delta": 57.0,
+          "close_delta": -38.0,
+          "signed_return_over_atr": -0.9048
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -5.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 18.0,
+        "mae": 21.0
+      },
+      "gross_w180": -5.0,
+      "net_w180": -10.0,
+      "gross_atr_sim": -5.0,
+      "net_atr_sim": -10.0
+    },
+    {
+      "episode_id": "20260423-003",
+      "ts": 1776906430,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 38880.0,
+      "atr": 45.65,
+      "vol_1s": 225,
+      "buy_ratio": 0.9422,
+      "sell_ratio": 0.0356,
+      "forward": {
+        "W30": {
+          "MFE_delta": 14.0,
+          "MAE_delta": 20.0,
+          "close_delta": -4.0,
+          "signed_return_over_atr": -0.0876
+        },
+        "W60": {
+          "MFE_delta": 14.0,
+          "MAE_delta": 48.0,
+          "close_delta": -30.0,
+          "signed_return_over_atr": -0.6572
+        },
+        "W180": {
+          "MFE_delta": 53.0,
+          "MAE_delta": 50.0,
+          "close_delta": 11.0,
+          "signed_return_over_atr": 0.241
+        },
+        "W300": {
+          "MFE_delta": 53.0,
+          "MAE_delta": 50.0,
+          "close_delta": 24.0,
+          "signed_return_over_atr": 0.5257
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -34.24,
+        "exit_reason": "stop_loss",
+        "hold_sec": 54,
+        "mfe": 14.0,
+        "mae": 35.0
+      },
+      "gross_w180": 11.0,
+      "net_w180": 6.0,
+      "gross_atr_sim": -34.24,
+      "net_atr_sim": -39.24
+    },
+    {
+      "episode_id": "20260423-004",
+      "ts": 1776906525,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 38900.0,
+      "atr": 45.65,
+      "vol_1s": 225,
+      "buy_ratio": 0.9644,
+      "sell_ratio": 0.0311,
+      "forward": {
+        "W30": {
+          "MFE_delta": 25.0,
+          "MAE_delta": 16.0,
+          "close_delta": 0.0,
+          "signed_return_over_atr": 0.0
+        },
+        "W60": {
+          "MFE_delta": 25.0,
+          "MAE_delta": 33.0,
+          "close_delta": 4.0,
+          "signed_return_over_atr": 0.0876
+        },
+        "W180": {
+          "MFE_delta": 33.0,
+          "MAE_delta": 33.0,
+          "close_delta": -4.0,
+          "signed_return_over_atr": -0.0876
+        },
+        "W300": {
+          "MFE_delta": 33.0,
+          "MAE_delta": 33.0,
+          "close_delta": -13.0,
+          "signed_return_over_atr": -0.2848
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -4.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 33.0,
+        "mae": 33.0
+      },
+      "gross_w180": -4.0,
+      "net_w180": -9.0,
+      "gross_atr_sim": -4.0,
+      "net_atr_sim": -9.0
+    },
+    {
+      "episode_id": "20260423-005",
+      "ts": 1776906898,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 38940.0,
+      "atr": 55.9,
+      "vol_1s": 225,
+      "buy_ratio": 0.9956,
+      "sell_ratio": 0.0044,
+      "forward": {
+        "W30": {
+          "MFE_delta": 32.0,
+          "MAE_delta": 22.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.0179
+        },
+        "W60": {
+          "MFE_delta": 32.0,
+          "MAE_delta": 22.0,
+          "close_delta": 26.0,
+          "signed_return_over_atr": 0.4651
+        },
+        "W180": {
+          "MFE_delta": 41.0,
+          "MAE_delta": 22.0,
+          "close_delta": 11.0,
+          "signed_return_over_atr": 0.1968
+        },
+        "W300": {
+          "MFE_delta": 63.0,
+          "MAE_delta": 22.0,
+          "close_delta": 36.0,
+          "signed_return_over_atr": 0.644
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 11.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 41.0,
+        "mae": 22.0
+      },
+      "gross_w180": 11.0,
+      "net_w180": 6.0,
+      "gross_atr_sim": 11.0,
+      "net_atr_sim": 6.0
+    },
+    {
+      "episode_id": "20260423-007",
+      "ts": 1776907271,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 39010.0,
+      "atr": 58.95,
+      "vol_1s": 165,
+      "buy_ratio": 0.9818,
+      "sell_ratio": 0.0121,
+      "forward": {
+        "W30": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 13.0,
+          "close_delta": 21.0,
+          "signed_return_over_atr": 0.3562
+        },
+        "W60": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 13.0,
+          "close_delta": 3.0,
+          "signed_return_over_atr": 0.0509
+        },
+        "W180": {
+          "MFE_delta": 44.0,
+          "MAE_delta": 22.0,
+          "close_delta": 30.0,
+          "signed_return_over_atr": 0.5089
+        },
+        "W300": {
+          "MFE_delta": 72.0,
+          "MAE_delta": 22.0,
+          "close_delta": 3.0,
+          "signed_return_over_atr": 0.0509
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 30.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 44.0,
+        "mae": 22.0
+      },
+      "gross_w180": 30.0,
+      "net_w180": 25.0,
+      "gross_atr_sim": 30.0,
+      "net_atr_sim": 25.0
+    },
+    {
+      "episode_id": "20260423-011",
+      "ts": 1776908202,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 38800.0,
+      "atr": 53.6,
+      "vol_1s": 222,
+      "buy_ratio": 0.0811,
+      "sell_ratio": 0.9189,
+      "forward": {
+        "W30": {
+          "MFE_delta": 24.0,
+          "MAE_delta": 14.0,
+          "close_delta": 10.0,
+          "signed_return_over_atr": 0.1866
+        },
+        "W60": {
+          "MFE_delta": 24.0,
+          "MAE_delta": 14.0,
+          "close_delta": 14.0,
+          "signed_return_over_atr": 0.2612
+        },
+        "W180": {
+          "MFE_delta": 31.0,
+          "MAE_delta": 14.0,
+          "close_delta": 5.0,
+          "signed_return_over_atr": 0.0933
+        },
+        "W300": {
+          "MFE_delta": 59.0,
+          "MAE_delta": 34.0,
+          "close_delta": 2.0,
+          "signed_return_over_atr": 0.0373
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 5.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 31.0,
+        "mae": 14.0
+      },
+      "gross_w180": 5.0,
+      "net_w180": 0.0,
+      "gross_atr_sim": 5.0,
+      "net_atr_sim": 0.0
+    },
+    {
+      "episode_id": "20260423-014",
+      "ts": 1776908847,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 38600.0,
+      "atr": 66.1,
+      "vol_1s": 197,
+      "buy_ratio": 0.0254,
+      "sell_ratio": 0.9746,
+      "forward": {
+        "W30": {
+          "MFE_delta": 29.0,
+          "MAE_delta": 12.0,
+          "close_delta": 17.0,
+          "signed_return_over_atr": 0.2572
+        },
+        "W60": {
+          "MFE_delta": 77.0,
+          "MAE_delta": 12.0,
+          "close_delta": 65.0,
+          "signed_return_over_atr": 0.9834
+        },
+        "W180": {
+          "MFE_delta": 94.0,
+          "MAE_delta": 12.0,
+          "close_delta": 4.0,
+          "signed_return_over_atr": 0.0605
+        },
+        "W300": {
+          "MFE_delta": 140.0,
+          "MAE_delta": 12.0,
+          "close_delta": 114.0,
+          "signed_return_over_atr": 1.7247
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 4.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 94.0,
+        "mae": 12.0
+      },
+      "gross_w180": 4.0,
+      "net_w180": -1.0,
+      "gross_atr_sim": 4.0,
+      "net_atr_sim": -1.0
+    },
+    {
+      "episode_id": "20260423-020",
+      "ts": 1776910070,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 38250.0,
+      "atr": 71.45,
+      "vol_1s": 183,
+      "buy_ratio": 0.0874,
+      "sell_ratio": 0.8962,
+      "forward": {
+        "W30": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 31.0,
+          "close_delta": -6.0,
+          "signed_return_over_atr": -0.084
+        },
+        "W60": {
+          "MFE_delta": 18.0,
+          "MAE_delta": 31.0,
+          "close_delta": 14.0,
+          "signed_return_over_atr": 0.1959
+        },
+        "W180": {
+          "MFE_delta": 59.0,
+          "MAE_delta": 31.0,
+          "close_delta": 29.0,
+          "signed_return_over_atr": 0.4059
+        },
+        "W300": {
+          "MFE_delta": 283.0,
+          "MAE_delta": 31.0,
+          "close_delta": 277.0,
+          "signed_return_over_atr": 3.8768
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 29.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 59.0,
+        "mae": 31.0
+      },
+      "gross_w180": 29.0,
+      "net_w180": 24.0,
+      "gross_atr_sim": 29.0,
+      "net_atr_sim": 24.0
+    },
+    {
+      "episode_id": "20260423-027",
+      "ts": 1776911836,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 37700.0,
+      "atr": 106.2,
+      "vol_1s": 207,
+      "buy_ratio": 0.0676,
+      "sell_ratio": 0.913,
+      "forward": {
+        "W30": {
+          "MFE_delta": 46.0,
+          "MAE_delta": 10.0,
+          "close_delta": 40.0,
+          "signed_return_over_atr": 0.3766
+        },
+        "W60": {
+          "MFE_delta": 124.0,
+          "MAE_delta": 10.0,
+          "close_delta": 119.0,
+          "signed_return_over_atr": 1.1205
+        },
+        "W180": {
+          "MFE_delta": 127.0,
+          "MAE_delta": 66.0,
+          "close_delta": -60.0,
+          "signed_return_over_atr": -0.565
+        },
+        "W300": {
+          "MFE_delta": 127.0,
+          "MAE_delta": 92.0,
+          "close_delta": 55.0,
+          "signed_return_over_atr": 0.5179
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -60.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 127.0,
+        "mae": 66.0
+      },
+      "gross_w180": -60.0,
+      "net_w180": -65.0,
+      "gross_atr_sim": -60.0,
+      "net_atr_sim": -65.0
+    },
+    {
+      "episode_id": "20260424-001",
+      "ts": 1776992265,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 38440.0,
+      "atr": 41.71,
+      "vol_1s": 388,
+      "buy_ratio": 0.9433,
+      "sell_ratio": 0.0361,
+      "forward": {
+        "W30": {
+          "MFE_delta": 28.0,
+          "MAE_delta": 16.0,
+          "close_delta": -4.0,
+          "signed_return_over_atr": -0.0959
+        },
+        "W60": {
+          "MFE_delta": 28.0,
+          "MAE_delta": 16.0,
+          "close_delta": 11.0,
+          "signed_return_over_atr": 0.2637
+        },
+        "W180": {
+          "MFE_delta": 69.0,
+          "MAE_delta": 29.0,
+          "close_delta": 46.0,
+          "signed_return_over_atr": 1.1029
+        },
+        "W300": {
+          "MFE_delta": 69.0,
+          "MAE_delta": 29.0,
+          "close_delta": 44.0,
+          "signed_return_over_atr": 1.0549
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 46.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 69.0,
+        "mae": 29.0
+      },
+      "gross_w180": 46.0,
+      "net_w180": 41.0,
+      "gross_atr_sim": 46.0,
+      "net_atr_sim": 41.0
+    },
+    {
+      "episode_id": "20260424-002",
+      "ts": 1776992570,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 38505.0,
+      "atr": 39.58,
+      "vol_1s": 234,
+      "buy_ratio": 0.9444,
+      "sell_ratio": 0.0556,
+      "forward": {
+        "W30": {
+          "MFE_delta": 28.0,
+          "MAE_delta": 17.0,
+          "close_delta": 13.0,
+          "signed_return_over_atr": 0.3284
+        },
+        "W60": {
+          "MFE_delta": 35.0,
+          "MAE_delta": 17.0,
+          "close_delta": 23.0,
+          "signed_return_over_atr": 0.5811
+        },
+        "W180": {
+          "MFE_delta": 75.0,
+          "MAE_delta": 17.0,
+          "close_delta": 65.0,
+          "signed_return_over_atr": 1.6422
+        },
+        "W300": {
+          "MFE_delta": 120.0,
+          "MAE_delta": 17.0,
+          "close_delta": 105.0,
+          "signed_return_over_atr": 2.6529
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 65.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 75.0,
+        "mae": 17.0
+      },
+      "gross_w180": 65.0,
+      "net_w180": 60.0,
+      "gross_atr_sim": 65.0,
+      "net_atr_sim": 60.0
+    },
+    {
+      "episode_id": "20260424-011",
+      "ts": 1776995451,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 39000.0,
+      "atr": 55.35,
+      "vol_1s": 213,
+      "buy_ratio": 0.9765,
+      "sell_ratio": 0.0235,
+      "forward": {
+        "W30": {
+          "MFE_delta": 9.0,
+          "MAE_delta": 45.0,
+          "close_delta": -42.0,
+          "signed_return_over_atr": -0.7588
+        },
+        "W60": {
+          "MFE_delta": 9.0,
+          "MAE_delta": 51.0,
+          "close_delta": -15.0,
+          "signed_return_over_atr": -0.271
+        },
+        "W180": {
+          "MFE_delta": 40.0,
+          "MAE_delta": 51.0,
+          "close_delta": 29.0,
+          "signed_return_over_atr": 0.5239
+        },
+        "W300": {
+          "MFE_delta": 46.0,
+          "MAE_delta": 51.0,
+          "close_delta": -16.0,
+          "signed_return_over_atr": -0.2891
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -41.51,
+        "exit_reason": "stop_loss",
+        "hold_sec": 27,
+        "mfe": 9.0,
+        "mae": 42.0
+      },
+      "gross_w180": 29.0,
+      "net_w180": 24.0,
+      "gross_atr_sim": -41.51,
+      "net_atr_sim": -46.51
+    },
+    {
+      "episode_id": "20260424-016",
+      "ts": 1776996796,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 38800.0,
+      "atr": 61.85,
+      "vol_1s": 181,
+      "buy_ratio": 0.0497,
+      "sell_ratio": 0.9503,
+      "forward": {
+        "W30": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 54.0,
+          "close_delta": -41.0,
+          "signed_return_over_atr": -0.6629
+        },
+        "W60": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 80.0,
+          "close_delta": -73.0,
+          "signed_return_over_atr": -1.1803
+        },
+        "W180": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 80.0,
+          "close_delta": -51.0,
+          "signed_return_over_atr": -0.8246
+        },
+        "W300": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 80.0,
+          "close_delta": -37.0,
+          "signed_return_over_atr": -0.5982
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -46.39,
+        "exit_reason": "stop_loss",
+        "hold_sec": 29,
+        "mfe": 19.0,
+        "mae": 47.0
+      },
+      "gross_w180": -51.0,
+      "net_w180": -56.0,
+      "gross_atr_sim": -46.39,
+      "net_atr_sim": -51.39
+    },
+    {
+      "episode_id": "20260424-019",
+      "ts": 1776997514,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 38550.0,
+      "atr": 64.75,
+      "vol_1s": 166,
+      "buy_ratio": 0.1265,
+      "sell_ratio": 0.8614,
+      "forward": {
+        "W30": {
+          "MFE_delta": 56.0,
+          "MAE_delta": 19.0,
+          "close_delta": 50.0,
+          "signed_return_over_atr": 0.7722
+        },
+        "W60": {
+          "MFE_delta": 60.0,
+          "MAE_delta": 19.0,
+          "close_delta": 29.0,
+          "signed_return_over_atr": 0.4479
+        },
+        "W180": {
+          "MFE_delta": 150.0,
+          "MAE_delta": 19.0,
+          "close_delta": 76.0,
+          "signed_return_over_atr": 1.1737
+        },
+        "W300": {
+          "MFE_delta": 150.0,
+          "MAE_delta": 19.0,
+          "close_delta": -12.0,
+          "signed_return_over_atr": -0.1853
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 129.5,
+        "exit_reason": "take_profit",
+        "hold_sec": 85,
+        "mfe": 130.0,
+        "mae": 19.0
+      },
+      "gross_w180": 76.0,
+      "net_w180": 71.0,
+      "gross_atr_sim": 129.5,
+      "net_atr_sim": 124.5
+    },
+    {
+      "episode_id": "20260427-001",
+      "ts": 1777251019,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 40000.0,
+      "atr": 61.2,
+      "vol_1s": 386,
+      "buy_ratio": 0.9793,
+      "sell_ratio": 0.0155,
+      "forward": {
+        "W30": {
+          "MFE_delta": 14.0,
+          "MAE_delta": 8.0,
+          "close_delta": 14.0,
+          "signed_return_over_atr": 0.2288
+        },
+        "W60": {
+          "MFE_delta": 53.0,
+          "MAE_delta": 8.0,
+          "close_delta": 53.0,
+          "signed_return_over_atr": 0.866
+        },
+        "W180": {
+          "MFE_delta": 58.0,
+          "MAE_delta": 49.0,
+          "close_delta": -36.0,
+          "signed_return_over_atr": -0.5882
+        },
+        "W300": {
+          "MFE_delta": 58.0,
+          "MAE_delta": 49.0,
+          "close_delta": -36.0,
+          "signed_return_over_atr": -0.5882
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -45.9,
+        "exit_reason": "stop_loss",
+        "hold_sec": 168,
+        "mfe": 58.0,
+        "mae": 46.0
+      },
+      "gross_w180": -36.0,
+      "net_w180": -41.0,
+      "gross_atr_sim": -45.9,
+      "net_atr_sim": -50.9
+    },
+    {
+      "episode_id": "20260427-002",
+      "ts": 1777251600,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 40010.0,
+      "atr": 47.83,
+      "vol_1s": 225,
+      "buy_ratio": 0.9778,
+      "sell_ratio": 0.0222,
+      "forward": {
+        "W30": {
+          "MFE_delta": 98.0,
+          "MAE_delta": 18.0,
+          "close_delta": 73.0,
+          "signed_return_over_atr": 1.5262
+        },
+        "W60": {
+          "MFE_delta": 98.0,
+          "MAE_delta": 100.0,
+          "close_delta": -64.0,
+          "signed_return_over_atr": -1.3381
+        },
+        "W180": {
+          "MFE_delta": 120.0,
+          "MAE_delta": 100.0,
+          "close_delta": 62.0,
+          "signed_return_over_atr": 1.2963
+        },
+        "W300": {
+          "MFE_delta": 239.0,
+          "MAE_delta": 100.0,
+          "close_delta": 232.0,
+          "signed_return_over_atr": 4.8505
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 95.66,
+        "exit_reason": "take_profit",
+        "hold_sec": 12,
+        "mfe": 96.0,
+        "mae": 18.0
+      },
+      "gross_w180": 62.0,
+      "net_w180": 57.0,
+      "gross_atr_sim": 95.66,
+      "net_atr_sim": 90.66
+    },
+    {
+      "episode_id": "20260427-004",
+      "ts": 1777252025,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 40177.0,
+      "atr": 68.59,
+      "vol_1s": 225,
+      "buy_ratio": 0.0844,
+      "sell_ratio": 0.9067,
+      "forward": {
+        "W30": {
+          "MFE_delta": 119.0,
+          "MAE_delta": 36.0,
+          "close_delta": 101.0,
+          "signed_return_over_atr": 1.4725
+        },
+        "W60": {
+          "MFE_delta": 119.0,
+          "MAE_delta": 36.0,
+          "close_delta": 67.0,
+          "signed_return_over_atr": 0.9768
+        },
+        "W180": {
+          "MFE_delta": 119.0,
+          "MAE_delta": 36.0,
+          "close_delta": 47.0,
+          "signed_return_over_atr": 0.6852
+        },
+        "W300": {
+          "MFE_delta": 119.0,
+          "MAE_delta": 37.0,
+          "close_delta": -15.0,
+          "signed_return_over_atr": -0.2187
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 47.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 119.0,
+        "mae": 36.0
+      },
+      "gross_w180": 47.0,
+      "net_w180": 42.0,
+      "gross_atr_sim": 47.0,
+      "net_atr_sim": 42.0
+    },
+    {
+      "episode_id": "20260427-012",
+      "ts": 1777254633,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 40100.0,
+      "atr": 70.7,
+      "vol_1s": 227,
+      "buy_ratio": 0.0308,
+      "sell_ratio": 0.9648,
+      "forward": {
+        "W30": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 75.0,
+          "close_delta": -45.0,
+          "signed_return_over_atr": -0.6365
+        },
+        "W60": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 98.0,
+          "close_delta": -97.0,
+          "signed_return_over_atr": -1.372
+        },
+        "W180": {
+          "MFE_delta": 12.0,
+          "MAE_delta": 118.0,
+          "close_delta": -34.0,
+          "signed_return_over_atr": -0.4809
+        },
+        "W300": {
+          "MFE_delta": 32.0,
+          "MAE_delta": 118.0,
+          "close_delta": 28.0,
+          "signed_return_over_atr": 0.396
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -53.03,
+        "exit_reason": "stop_loss",
+        "hold_sec": 24,
+        "mfe": 12.0,
+        "mae": 58.0
+      },
+      "gross_w180": -34.0,
+      "net_w180": -39.0,
+      "gross_atr_sim": -53.03,
+      "net_atr_sim": -58.03
+    },
+    {
+      "episode_id": "20260428-001",
+      "ts": 1777338009,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 39975.0,
+      "atr": 39.58,
+      "vol_1s": 240,
+      "buy_ratio": 0.9667,
+      "sell_ratio": 0.0292,
+      "forward": {
+        "W30": {
+          "MFE_delta": 16.0,
+          "MAE_delta": 84.0,
+          "close_delta": -67.0,
+          "signed_return_over_atr": -1.6928
+        },
+        "W60": {
+          "MFE_delta": 16.0,
+          "MAE_delta": 98.0,
+          "close_delta": -49.0,
+          "signed_return_over_atr": -1.238
+        },
+        "W180": {
+          "MFE_delta": 16.0,
+          "MAE_delta": 146.0,
+          "close_delta": -74.0,
+          "signed_return_over_atr": -1.8696
+        },
+        "W300": {
+          "MFE_delta": 16.0,
+          "MAE_delta": 146.0,
+          "close_delta": -13.0,
+          "signed_return_over_atr": -0.3284
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -29.68,
+        "exit_reason": "stop_loss",
+        "hold_sec": 20,
+        "mfe": 16.0,
+        "mae": 30.0
+      },
+      "gross_w180": -74.0,
+      "net_w180": -79.0,
+      "gross_atr_sim": -29.68,
+      "net_atr_sim": -34.68
+    },
+    {
+      "episode_id": "20260428-002",
+      "ts": 1777338085,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 39869.0,
+      "atr": 39.58,
+      "vol_1s": 225,
+      "buy_ratio": 0.0356,
+      "sell_ratio": 0.9644,
+      "forward": {
+        "W30": {
+          "MFE_delta": 17.0,
+          "MAE_delta": 35.0,
+          "close_delta": -18.0,
+          "signed_return_over_atr": -0.4548
+        },
+        "W60": {
+          "MFE_delta": 17.0,
+          "MAE_delta": 57.0,
+          "close_delta": 10.0,
+          "signed_return_over_atr": 0.2527
+        },
+        "W180": {
+          "MFE_delta": 40.0,
+          "MAE_delta": 60.0,
+          "close_delta": -59.0,
+          "signed_return_over_atr": -1.4907
+        },
+        "W300": {
+          "MFE_delta": 40.0,
+          "MAE_delta": 139.0,
+          "close_delta": -80.0,
+          "signed_return_over_atr": -2.0212
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -29.68,
+        "exit_reason": "stop_loss",
+        "hold_sec": 0,
+        "mfe": 0.0,
+        "mae": 30.0
+      },
+      "gross_w180": -59.0,
+      "net_w180": -64.0,
+      "gross_atr_sim": -29.68,
+      "net_atr_sim": -34.68
+    },
+    {
+      "episode_id": "20260428-003",
+      "ts": 1777338157,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 39842.0,
+      "atr": 39.58,
+      "vol_1s": 225,
+      "buy_ratio": 0.0311,
+      "sell_ratio": 0.96,
+      "forward": {
+        "W30": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 66.0,
+          "close_delta": -49.0,
+          "signed_return_over_atr": -1.238
+        },
+        "W60": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 68.0,
+          "close_delta": -40.0,
+          "signed_return_over_atr": -1.0106
+        },
+        "W180": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 156.0,
+          "close_delta": -155.0,
+          "signed_return_over_atr": -3.9161
+        },
+        "W300": {
+          "MFE_delta": 13.0,
+          "MAE_delta": 166.0,
+          "close_delta": -130.0,
+          "signed_return_over_atr": -3.2845
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -29.68,
+        "exit_reason": "stop_loss",
+        "hold_sec": 14,
+        "mfe": 13.0,
+        "mae": 31.0
+      },
+      "gross_w180": -155.0,
+      "net_w180": -160.0,
+      "gross_atr_sim": -29.68,
+      "net_atr_sim": -34.68
+    },
+    {
+      "episode_id": "20260428-004",
+      "ts": 1777338272,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 39951.0,
+      "atr": 39.58,
+      "vol_1s": 225,
+      "buy_ratio": 0.9644,
+      "sell_ratio": 0.0267,
+      "forward": {
+        "W30": {
+          "MFE_delta": 22.0,
+          "MAE_delta": 41.0,
+          "close_delta": 12.0,
+          "signed_return_over_atr": 0.3032
+        },
+        "W60": {
+          "MFE_delta": 36.0,
+          "MAE_delta": 41.0,
+          "close_delta": 28.0,
+          "signed_return_over_atr": 0.7074
+        },
+        "W180": {
+          "MFE_delta": 57.0,
+          "MAE_delta": 41.0,
+          "close_delta": 12.0,
+          "signed_return_over_atr": 0.3032
+        },
+        "W300": {
+          "MFE_delta": 57.0,
+          "MAE_delta": 69.0,
+          "close_delta": -65.0,
+          "signed_return_over_atr": -1.6422
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -29.68,
+        "exit_reason": "stop_loss",
+        "hold_sec": 13,
+        "mfe": 10.0,
+        "mae": 30.0
+      },
+      "gross_w180": 12.0,
+      "net_w180": 7.0,
+      "gross_atr_sim": -29.68,
+      "net_atr_sim": -34.68
+    },
+    {
+      "episode_id": "20260428-005",
+      "ts": 1777338883,
+      "outcome_v1": "timeout",
+      "direction": "Long",
+      "trigger_price": 40000.0,
+      "atr": 52.5,
+      "vol_1s": 228,
+      "buy_ratio": 0.9825,
+      "sell_ratio": 0.0044,
+      "forward": {
+        "W30": {
+          "MFE_delta": 36.0,
+          "MAE_delta": 9.0,
+          "close_delta": 31.0,
+          "signed_return_over_atr": 0.5905
+        },
+        "W60": {
+          "MFE_delta": 44.0,
+          "MAE_delta": 9.0,
+          "close_delta": 32.0,
+          "signed_return_over_atr": 0.6095
+        },
+        "W180": {
+          "MFE_delta": 178.0,
+          "MAE_delta": 9.0,
+          "close_delta": 156.0,
+          "signed_return_over_atr": 2.9714
+        },
+        "W300": {
+          "MFE_delta": 178.0,
+          "MAE_delta": 9.0,
+          "close_delta": 130.0,
+          "signed_return_over_atr": 2.4762
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 105.0,
+        "exit_reason": "take_profit",
+        "hold_sec": 77,
+        "mfe": 105.0,
+        "mae": 9.0
+      },
+      "gross_w180": 156.0,
+      "net_w180": 151.0,
+      "gross_atr_sim": 105.0,
+      "net_atr_sim": 100.0
+    },
+    {
+      "episode_id": "20260428-015",
+      "ts": 1777341174,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 40150.0,
+      "atr": 49.35,
+      "vol_1s": 174,
+      "buy_ratio": 0.046,
+      "sell_ratio": 0.9483,
+      "forward": {
+        "W30": {
+          "MFE_delta": 27.0,
+          "MAE_delta": 31.0,
+          "close_delta": 12.0,
+          "signed_return_over_atr": 0.2432
+        },
+        "W60": {
+          "MFE_delta": 45.0,
+          "MAE_delta": 31.0,
+          "close_delta": 34.0,
+          "signed_return_over_atr": 0.689
+        },
+        "W180": {
+          "MFE_delta": 92.0,
+          "MAE_delta": 31.0,
+          "close_delta": 76.0,
+          "signed_return_over_atr": 1.54
+        },
+        "W300": {
+          "MFE_delta": 110.0,
+          "MAE_delta": 31.0,
+          "close_delta": 84.0,
+          "signed_return_over_atr": 1.7021
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 76.0,
+        "exit_reason": "horizon",
+        "hold_sec": 180,
+        "mfe": 92.0,
+        "mae": 31.0
+      },
+      "gross_w180": 76.0,
+      "net_w180": 71.0,
+      "gross_atr_sim": 76.0,
+      "net_atr_sim": 71.0
+    },
+    {
+      "episode_id": "20260428-017",
+      "ts": 1777341695,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 39900.0,
+      "atr": 56.55,
+      "vol_1s": 172,
+      "buy_ratio": 0.0233,
+      "sell_ratio": 0.9767,
+      "forward": {
+        "W30": {
+          "MFE_delta": 7.0,
+          "MAE_delta": 55.0,
+          "close_delta": -25.0,
+          "signed_return_over_atr": -0.4421
+        },
+        "W60": {
+          "MFE_delta": 7.0,
+          "MAE_delta": 55.0,
+          "close_delta": -34.0,
+          "signed_return_over_atr": -0.6012
+        },
+        "W180": {
+          "MFE_delta": 7.0,
+          "MAE_delta": 132.0,
+          "close_delta": -129.0,
+          "signed_return_over_atr": -2.2812
+        },
+        "W300": {
+          "MFE_delta": 7.0,
+          "MAE_delta": 176.0,
+          "close_delta": -151.0,
+          "signed_return_over_atr": -2.6702
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -42.41,
+        "exit_reason": "stop_loss",
+        "hold_sec": 12,
+        "mfe": 7.0,
+        "mae": 44.0
+      },
+      "gross_w180": -129.0,
+      "net_w180": -134.0,
+      "gross_atr_sim": -42.41,
+      "net_atr_sim": -47.41
+    },
+    {
+      "episode_id": "20260429-001",
+      "ts": 1777424400,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 39345.0,
+      "atr": 74.5,
+      "vol_1s": 230,
+      "buy_ratio": 0.1435,
+      "sell_ratio": 0.8565,
+      "forward": {
+        "W30": {
+          "MFE_delta": 38.0,
+          "MAE_delta": 24.0,
+          "close_delta": 33.0,
+          "signed_return_over_atr": 0.443
+        },
+        "W60": {
+          "MFE_delta": 38.0,
+          "MAE_delta": 24.0,
+          "close_delta": 9.0,
+          "signed_return_over_atr": 0.1208
+        },
+        "W180": {
+          "MFE_delta": 38.0,
+          "MAE_delta": 85.0,
+          "close_delta": -69.0,
+          "signed_return_over_atr": -0.9262
+        },
+        "W300": {
+          "MFE_delta": 38.0,
+          "MAE_delta": 85.0,
+          "close_delta": -2.0,
+          "signed_return_over_atr": -0.0268
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -55.88,
+        "exit_reason": "stop_loss",
+        "hold_sec": 81,
+        "mfe": 38.0,
+        "mae": 58.0
+      },
+      "gross_w180": -69.0,
+      "net_w180": -74.0,
+      "gross_atr_sim": -55.88,
+      "net_atr_sim": -60.88
+    },
+    {
+      "episode_id": "20260429-002",
+      "ts": 1777424746,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 39300.0,
+      "atr": 76.06,
+      "vol_1s": 227,
+      "buy_ratio": 0.1013,
+      "sell_ratio": 0.8943,
+      "forward": {
+        "W30": {
+          "MFE_delta": 59.0,
+          "MAE_delta": 18.0,
+          "close_delta": 58.0,
+          "signed_return_over_atr": 0.7626
+        },
+        "W60": {
+          "MFE_delta": 68.0,
+          "MAE_delta": 18.0,
+          "close_delta": -9.0,
+          "signed_return_over_atr": -0.1183
+        },
+        "W180": {
+          "MFE_delta": 174.0,
+          "MAE_delta": 63.0,
+          "close_delta": 150.0,
+          "signed_return_over_atr": 1.9721
+        },
+        "W300": {
+          "MFE_delta": 174.0,
+          "MAE_delta": 63.0,
+          "close_delta": 37.0,
+          "signed_return_over_atr": 0.4865
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -57.05,
+        "exit_reason": "stop_loss",
+        "hold_sec": 82,
+        "mfe": 68.0,
+        "mae": 58.0
+      },
+      "gross_w180": 150.0,
+      "net_w180": 145.0,
+      "gross_atr_sim": -57.05,
+      "net_atr_sim": -62.05
+    },
+    {
+      "episode_id": "20260429-003",
+      "ts": 1777424864,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 39220.0,
+      "atr": 76.06,
+      "vol_1s": 227,
+      "buy_ratio": 0.0529,
+      "sell_ratio": 0.9383,
+      "forward": {
+        "W30": {
+          "MFE_delta": 94.0,
+          "MAE_delta": 10.0,
+          "close_delta": 66.0,
+          "signed_return_over_atr": 0.8677
+        },
+        "W60": {
+          "MFE_delta": 94.0,
+          "MAE_delta": 10.0,
+          "close_delta": 74.0,
+          "signed_return_over_atr": 0.9729
+        },
+        "W180": {
+          "MFE_delta": 94.0,
+          "MAE_delta": 65.0,
+          "close_delta": -53.0,
+          "signed_return_over_atr": -0.6968
+        },
+        "W300": {
+          "MFE_delta": 94.0,
+          "MAE_delta": 86.0,
+          "close_delta": -42.0,
+          "signed_return_over_atr": -0.5522
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -57.05,
+        "exit_reason": "stop_loss",
+        "hold_sec": 175,
+        "mfe": 94.0,
+        "mae": 58.0
+      },
+      "gross_w180": -53.0,
+      "net_w180": -58.0,
+      "gross_atr_sim": -57.05,
+      "net_atr_sim": -62.05
+    },
+    {
+      "episode_id": "20260430-001",
+      "ts": 1777510632,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 39665.0,
+      "atr": 48.86,
+      "vol_1s": 375,
+      "buy_ratio": 0.0267,
+      "sell_ratio": 0.9733,
+      "forward": {
+        "W30": {
+          "MFE_delta": 10.0,
+          "MAE_delta": 30.0,
+          "close_delta": -21.0,
+          "signed_return_over_atr": -0.4298
+        },
+        "W60": {
+          "MFE_delta": 10.0,
+          "MAE_delta": 30.0,
+          "close_delta": -17.0,
+          "signed_return_over_atr": -0.3479
+        },
+        "W180": {
+          "MFE_delta": 10.0,
+          "MAE_delta": 125.0,
+          "close_delta": -122.0,
+          "signed_return_over_atr": -2.4969
+        },
+        "W300": {
+          "MFE_delta": 10.0,
+          "MAE_delta": 256.0,
+          "close_delta": -127.0,
+          "signed_return_over_atr": -2.5993
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -36.64,
+        "exit_reason": "stop_loss",
+        "hold_sec": 84,
+        "mfe": 10.0,
+        "mae": 37.0
+      },
+      "gross_w180": -122.0,
+      "net_w180": -127.0,
+      "gross_atr_sim": -36.64,
+      "net_atr_sim": -41.64
+    },
+    {
+      "episode_id": "20260430-002",
+      "ts": 1777510822,
+      "outcome_v1": "entered",
+      "direction": "Long",
+      "trigger_price": 39816.0,
+      "atr": 49.0,
+      "vol_1s": 225,
+      "buy_ratio": 0.9467,
+      "sell_ratio": 0.0444,
+      "forward": {
+        "W30": {
+          "MFE_delta": 74.0,
+          "MAE_delta": 10.0,
+          "close_delta": 48.0,
+          "signed_return_over_atr": 0.9796
+        },
+        "W60": {
+          "MFE_delta": 86.0,
+          "MAE_delta": 10.0,
+          "close_delta": 80.0,
+          "signed_return_over_atr": 1.6327
+        },
+        "W180": {
+          "MFE_delta": 105.0,
+          "MAE_delta": 76.0,
+          "close_delta": -13.0,
+          "signed_return_over_atr": -0.2653
+        },
+        "W300": {
+          "MFE_delta": 105.0,
+          "MAE_delta": 76.0,
+          "close_delta": 9.0,
+          "signed_return_over_atr": 0.1837
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": 98.0,
+        "exit_reason": "take_profit",
+        "hold_sec": 69,
+        "mfe": 98.0,
+        "mae": 10.0
+      },
+      "gross_w180": -13.0,
+      "net_w180": -18.0,
+      "gross_atr_sim": 98.0,
+      "net_atr_sim": 93.0
+    },
+    {
+      "episode_id": "20260430-003",
+      "ts": 1777511256,
+      "outcome_v1": "timeout",
+      "direction": "Short",
+      "trigger_price": 39692.0,
+      "atr": 60.47,
+      "vol_1s": 225,
+      "buy_ratio": 0.0356,
+      "sell_ratio": 0.9644,
+      "forward": {
+        "W30": {
+          "MFE_delta": 8.0,
+          "MAE_delta": 51.0,
+          "close_delta": -47.0,
+          "signed_return_over_atr": -0.7772
+        },
+        "W60": {
+          "MFE_delta": 8.0,
+          "MAE_delta": 62.0,
+          "close_delta": -37.0,
+          "signed_return_over_atr": -0.6119
+        },
+        "W180": {
+          "MFE_delta": 90.0,
+          "MAE_delta": 62.0,
+          "close_delta": 84.0,
+          "signed_return_over_atr": 1.3891
+        },
+        "W300": {
+          "MFE_delta": 97.0,
+          "MAE_delta": 62.0,
+          "close_delta": 29.0,
+          "signed_return_over_atr": 0.4796
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -45.35,
+        "exit_reason": "stop_loss",
+        "hold_sec": 30,
+        "mfe": 8.0,
+        "mae": 46.0
+      },
+      "gross_w180": 84.0,
+      "net_w180": 79.0,
+      "gross_atr_sim": -45.35,
+      "net_atr_sim": -50.35
+    },
+    {
+      "episode_id": "20260430-004",
+      "ts": 1777511438,
+      "outcome_v1": "entered",
+      "direction": "Short",
+      "trigger_price": 39603.0,
+      "atr": 64.35,
+      "vol_1s": 225,
+      "buy_ratio": 0.0222,
+      "sell_ratio": 0.9778,
+      "forward": {
+        "W30": {
+          "MFE_delta": 8.0,
+          "MAE_delta": 65.0,
+          "close_delta": -61.0,
+          "signed_return_over_atr": -0.9479
+        },
+        "W60": {
+          "MFE_delta": 8.0,
+          "MAE_delta": 92.0,
+          "close_delta": -81.0,
+          "signed_return_over_atr": -1.2587
+        },
+        "W180": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 92.0,
+          "close_delta": -15.0,
+          "signed_return_over_atr": -0.2331
+        },
+        "W300": {
+          "MFE_delta": 19.0,
+          "MAE_delta": 92.0,
+          "close_delta": -8.0,
+          "signed_return_over_atr": -0.1243
+        }
+      },
+      "atr_barrier_sim": {
+        "gross_pnl": -48.26,
+        "exit_reason": "stop_loss",
+        "hold_sec": 7,
+        "mfe": 8.0,
+        "mae": 49.0
+      },
+      "gross_w180": -15.0,
+      "net_w180": -20.0,
+      "gross_atr_sim": -48.26,
+      "net_atr_sim": -53.26
+    }
+  ]
+}
