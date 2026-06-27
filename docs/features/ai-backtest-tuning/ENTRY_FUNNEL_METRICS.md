@@ -281,14 +281,14 @@ armed
 | `tick_cache/{code}_{date}.csv` | MFE/MAE/close_delta、vol 分布 |
 | `workspaces/<agent>/config/config.yaml` | `entry_band_points`, `momentum_timeout_sec`, vol 門檻 |
 
-### 8.2 產出（script pending）
+### 8.2 產出（implemented）
 
 | 產物 | 說明 |
 |------|------|
 | `workspaces/reports/entry_funnel.json` | 機器可讀；含 schema_version、policy、cohort 表 |
 | `VOLATILITY_BASELINE.md` §C | 人類可讀；由 `ft003_episode_diagnosis.py` 填入 |
 
-**Future CLI**（契約預定）：
+**CLI**：
 
 ```bash
 cd apps/trading-app/src

@@ -80,7 +80,7 @@
 - [x] Phase 3：`ft003_run_sweep.py` + `sweep_result.jsonl` + 五段式 `analysis.md`
 - [x] Phase 3.4：雙向 `peer_review_*.md`
 - [x] Phase 3.5：`leaderboard.jsonl`
-- [ ] **Phase 3.6**：四位 sweep 後 — [`PLAN Phase 3.6`](features/ai-backtest-tuning/PLAN.md#phase-36--市場尺度診斷四位-sweep-完成後) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)（Methods SSOT）· `ft003_volatility_baseline.py` / `ft003_exit_diagnosis.py` · `ft003_episode_diagnosis.py`（§C，**待實作**）· `strategy_diagnosis.md`
+- [ ] **Phase 3.6**：四位 sweep 後 — [`PLAN Phase 3.6`](features/ai-backtest-tuning/PLAN.md#phase-36--市場尺度診斷四位-sweep-完成後) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)（Methods SSOT）· `ft003_volatility_baseline.py` / `ft003_exit_diagnosis.py` / `ft003_episode_diagnosis.py`（§C）· `strategy_diagnosis.md`
 - [ ] Phase 4：holdout 解封 + `election_report.md` + `judge_opinion.md`（須引用 `strategy_diagnosis.md`）
 
 **Post-MVP — Phase 6 長歷史（2022+，MVP holdout Gate 後）**

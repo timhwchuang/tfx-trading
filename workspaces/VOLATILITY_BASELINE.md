@@ -45,6 +45,67 @@
 
 ---
 
+---
+
+## C. 進場漏斗（P0 — baseline valid log + tick）
+
+**Agent / log / 區間**：`agent-conservative` / `workspaces/agent-conservative/logs/baseline_valid.log` / 2026-04-01～2026-04-30
+
+### C.1 vol_1s 門檻分位
+
+| 指標 | 值 | 備註 |
+|------|-----|------|
+| P(vol_1s ≥ threshold) | 0.3% | threshold=150.0 |
+| P(vol_1s ≤ exhaustion_vol) | 85.7% | exhaustion=15.0 |
+| vol_1s_at_arm p50 / p90 | 153.0 / 227.0 | armed cohort |
+
+### C.2 armed 順勢窗口（固定 Δt：30 / 60 / 180 秒）
+
+> armed 後順勢位移 ≠ 策略 net edge（設計為等回踩，不追價）。見 ENTRY_FUNNEL_METRICS §1.3。
+
+| Outcome | N | W30 close_delta med | W60 | W180 | MFE_180 med | MAE_180 med |
+|---------|---|---------------------|-----|------|-------------|-------------|
+| entered | 150 | -5.00 | -7.00 | -15.00 | 28.00 | 41.50 |
+| timeout | 85 | 10.00 | 13.00 | 35.00 | 69.00 | 23.00 |
+
+### C.3 回踩漏斗轉化率
+
+> 回踩漏斗以 `IndicatorState` tick 回放（與 engine VWAP/vol_1s 語意一致）。
+
+| 階段 | count | % of armed |
+|------|-------|------------|
+| armed | 235 | 100.0% |
+| ever_near_vwap | 178 | 75.7% |
+| ever_vol_dried | 235 | 100.0% |
+| both_same_tick | 152 | 64.7% |
+| entered | 150 | 63.8% |
+| timeout | 85 | 36.2% |
+
+### C.4 timeout 與 time_to_first_band
+
+| 指標 | 值 |
+|------|-----|
+| timeout_rate | 36.2% |
+| timeout 前從未 near_vwap 占比 | 67.1% |
+| time_to_first_band p50（秒） | 72.0 |
+| time_to_entry p50（entered 子集） | 78.5 |
+| pullback_depth p50 | 25.0 |
+
+### C.5 near_miss（valid 月 **累計**）
+
+> `blocked_*` / `momentum_*` 對 daily_summaries **sum**；`closest_vwap_distance` 取 **min**。 跨 **20** 個交易日。
+
+| 指標 | 值 |
+|------|-----|
+| momentum_episodes | 235 |
+| momentum_timeout | 85 |
+| blocked_both | 309164 |
+| blocked_vwap_only | 56619 |
+| blocked_vol_only | 2130 |
+| closest_vwap_distance | 0.0 |
+
+---
+
 ## D. 出場診斷（P0 — baseline valid）
 
 **Agent / report**：`agent-conservative` / `workspaces/agent-conservative/reports/baseline_valid.json`

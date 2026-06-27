@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "agent": "agent-conservative",
+  "from_date": "2026-04-01",
+  "to_date": "2026-04-30",
+  "code": "TMFR1",
+  "config": {
+    "entry_band_points": 2.0,
+    "momentum_vol_1s": 150.0,
+    "exhaustion_vol": 15.0,
+    "momentum_timeout_sec": 180,
+    "vwap_window_min": 5
+  },
+  "forward_policy": {
+    "windows_sec": [
+      30,
+      60,
+      180,
+      300
+    ],
+    "replay_engine": "IndicatorState"
+  },
+  "vol_threshold_coverage": {
+    "pct_vol_gte_threshold": 0.3,
+    "pct_vol_lte_exhaustion": 85.7,
+    "vol_1s_at_arm_p50": 153.0,
+    "vol_1s_at_arm_p90": 227.0,
+    "buy_ratio_at_arm_p50": 0.81
+  },
+  "pullback_funnel": {
+    "counts": {
+      "armed": 235,
+      "ever_near_vwap": 178,
+      "ever_vol_dried": 235,
+      "both_same_tick": 152,
+      "entered": 150,
+      "timeout": 85
+    },
+    "rates_pct_of_armed": {
+      "armed": 100.0,
+      "ever_near_vwap": 75.7,
+      "ever_vol_dried": 100.0,
+      "both_same_tick": 64.7,
+      "entered": 63.8,
+      "timeout": 36.2
+    }
+  },
+  "armed_forward_by_outcome": {
+    "entered": {
+      "W30": {
+        "count": 150,
+        "close_delta_median": -5.0,
+        "MFE_median": 15.0,
+        "MAE_median": 19.0
+      },
+      "W60": {
+        "count": 150,
+        "close_delta_median": -7.0,
+        "MFE_median": 19.5,
+        "MAE_median": 24.5
+      },
+      "W180": {
+        "count": 150,
+        "close_delta_median": -15.0,
+        "MFE_median": 28.0,
+        "MAE_median": 41.5
+      },
+      "W300": {
+        "count": 150,
+        "close_delta_median": -11.5,
+        "MFE_median": 35.0,
+        "MAE_median": 51.5
+      }
+    },
+    "timeout": {
+      "W30": {
+        "count": 85,
+        "close_delta_median": 10.0,
+        "MFE_median": 22.0,
+        "MAE_median": 17.0
+      },
+      "W60": {
+        "count": 85,
+        "close_delta_median": 13.0,
+        "MFE_median": 29.0,
+        "MAE_median": 19.0
+      },
+      "W180": {
+        "count": 85,
+        "close_delta_median": 35.0,
+        "MFE_median": 69.0,
+        "MAE_median": 23.0
+      },
+      "W300": {
+        "count": 85,
+        "close_delta_median": 27.0,
+        "MFE_median": 83.0,
+        "MAE_median": 26.0
+      }
+    }
+  },
+  "timeout_diagnostics": {
+    "timeout_rate": 36.2,
+    "timeout_before_ever_band_pct": 67.1,
+    "timeout_after_band_no_vol_pct": 0.0,
+    "time_to_first_band_p50": 72.0,
+    "time_to_entry_p50": 78.5,
+    "pullback_depth_p50": 25.0
+  },
+  "near_miss_month_aggregate": {
+    "momentum_episodes": 235,
+    "momentum_timeout": 85,
+    "blocked_vwap_only": 56619,
+    "blocked_vol_only": 2130,
+    "blocked_both": 309164,
+    "closest_vwap_distance": 0.0,
+    "_aggregated_from_days": 20
+  },
+  "episode_count": 235
+}

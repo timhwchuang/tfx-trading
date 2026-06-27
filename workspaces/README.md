@@ -42,7 +42,7 @@ Phase 4：**新開獨立 AI 對話** 執行 **agent-election-judge** → [`judge
 | [`strategy_diagnosis.md`](strategy_diagnosis.md) | **Phase 3.6** 四 agent 合成診斷（含 §6 進場漏斗；四位 sweep 後） |
 | [`round2_proposal.md`](round2_proposal.md) | **Round 2** 出場尺度 sweep 提案（人類批准後執行） |
 | `reports/volatility_baseline.json` | Phase 3.6 §A/B 機器可讀 |
-| `reports/entry_funnel.json` | Phase 3.6 §C 機器可讀（`ft003_episode_diagnosis.py` pending） |
+| `reports/entry_funnel.json` | Phase 3.6 §C 機器可讀（`ft003_episode_diagnosis.py`） |
 | `_template/` | 範本（`analysis.md`、`peer_review.md`、`judge_opinion.md`、`election_report.md`、`robustness_report.md`） |
 
 ### Phase 3 sweep 啟動（`apps/trading-app/src`）
@@ -65,7 +65,7 @@ Methods SSOT：[`ENTRY_FUNNEL_METRICS.md`](../docs/features/ai-backtest-tuning/E
 cd apps\trading-app\src
 $env:PYTHONPATH="."
 python scripts\ft003_volatility_baseline.py --markdown-out ..\..\..\workspaces\VOLATILITY_BASELINE.md
-# §C pending: ft003_episode_diagnosis.py
+python scripts\ft003_episode_diagnosis.py --agent agent-conservative --from-date 2026-04-01 --to-date 2026-04-30 --markdown-append ..\..\..\workspaces\VOLATILITY_BASELINE.md --json-out ..\..\..\workspaces\reports\entry_funnel.json
 python scripts\ft003_exit_diagnosis.py --agent agent-conservative --markdown-append ..\..\..\workspaces\VOLATILITY_BASELINE.md
 ```
 

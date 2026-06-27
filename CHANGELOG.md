@@ -19,6 +19,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 #### Added
 
 - **FT-003 Phase 3.6 進場漏斗 Methods SSOT**：[`ENTRY_FUNNEL_METRICS.md`](docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)（armed 順勢窗口、回踩漏斗、timeout、vol_1s 操作定義）；PLAN Phase 3.6 四平面 §A–§D；SPEC §4.6 產物 `entry_funnel.json`；SHARED_ASSUMPTIONS **v1.3** §4.2；模板 `volatility_baseline.md` §C、`strategy_diagnosis.md` §6；AGENT_ROSTER §1.7 更新。
+- **FT-003 Phase 3.6 §C 進場漏斗 pipeline**：`reporting/entry_funnel.py`（`IndicatorState` tick 回放、armed forward W30/60/180/300、vol 分位、§C markdown merge）；`ft003_episode_diagnosis.py` CLI → `workspaces/reports/entry_funnel.json` + `VOLATILITY_BASELINE.md` §C。
 - **FT-003 Phase 3.6 市場尺度診斷**：[`PLAN.md`](docs/features/ai-backtest-tuning/PLAN.md) Phase 3.6（Gate、P0/P1/P2 指標、CLI、第二輪 grid 提案）；[`SPEC.md`](docs/features/ai-backtest-tuning/SPEC.md) §4.6；SHARED_ASSUMPTIONS **v1.2** §4.1；`ft003_volatility_baseline.py` / `ft003_exit_diagnosis.py`；[`workspaces/VOLATILITY_BASELINE.md`](workspaces/VOLATILITY_BASELINE.md) 模板與 [`strategy_diagnosis.md`](workspaces/_template/strategy_diagnosis.md)；AGENT_ROSTER §1.7。
 - **FT-003 Phase 6 交易員強化**：PLAN 多段滾動 WFO 殘酷 Gate（net Sharpe/MDD/trade_count）、§7–§10 穩健性檢查、**Phase 6.5 Shadow/Paper**、運維 kill switch / 對帳；`robustness_report.md` 模板擴至 §12；SPEC §4.5 / TODO / DATA_SPLIT 同步。
 - **FT-003 Phase 6 roadmap**：[`PLAN.md`](docs/features/ai-backtest-tuning/PLAN.md) 長歷史穩健性（Gate、四風險、v1/v2 決策樹、**GCE overnight 算力 MUST**、`robustness_report.md` 模板）；[`SPEC.md`](docs/features/ai-backtest-tuning/SPEC.md) §4.5；[`TODO.md`](docs/TODO.md)；[`workspaces/_template/robustness_report.md`](workspaces/_template/robustness_report.md)。
@@ -313,6 +314,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Added
 
+- **FT-003 Phase 3.6 §C 進場漏斗**：`reporting/entry_funnel.py`（`IndicatorState` tick 回放、armed forward W30/60/180/300、vol 分位、§C markdown merge）；`scripts/ft003_episode_diagnosis.py` → `workspaces/reports/entry_funnel.json` + `VOLATILITY_BASELINE.md` §C；測試 `tests/reporting/test_entry_funnel.py`、`tests/scripts/test_ft003_episode_diagnosis.py`。
 - **FT-003 Phase 3.6 市場尺度診斷**：`reporting/volatility_baseline.py`、`reporting/exit_diagnosis.py`；`scripts/ft003_volatility_baseline.py`（kbars P0 + 可選 tick P1 → `workspaces/reports/volatility_baseline.json`）；`scripts/ft003_exit_diagnosis.py`（baseline valid → `VOLATILITY_BASELINE.md` §D）；測試 `tests/scripts/test_ft003_volatility_baseline.py`、`test_ft003_exit_diagnosis.py`。
 - **FT-003 Phase 3.6 review fixes**：`near_miss_aggregate` 月累加；ATR TR 自 bar 1 對齊 engine；月級 `threshold_coverage`；markdown inject 不重複 `---`。
 - **FT-003 調參硬化**：`sweep.holdout_guard`（2026-05 封印；`FT003_HOLDOUT_UNSEAL=1` 解封）已接線至 `param_sweep.sweep`、`backtest`、`overlay_smoke`；`sweep.overlay_smoke`（grid key 開工前驗證：KPI 變化或執行/計時 key 之 overlay 讀回）；`param_sweep` KPI 新增 `trade_count`；grid combo 硬上限 **36**、keys 上限 **4**（SPEC §4.4）。
