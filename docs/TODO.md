@@ -16,6 +16,7 @@
 | **FT-002 SMC（工程）** | Phase 1–4 ✅（`REVIEW.md` PASS）；**Phase 5 Land + CAL-8** 待 ≥5 日 UAT |
 | **FT-003 回測調參** | **✅ MVP 收尾** — `grid_no_viable_solution`；[`election_report.md`](../workspaces/election_report.md) |
 | **FT-004 Momentum Continuation** | **✅ MVPClosed** — Thesis A **No-Go**；[`gate_report.md`](../workspaces/mc-baseline/gate_report.md) · [SPEC §8](features/momentum-continuation/SPEC.md) |
+| **FT-005 Timeout Continuation** | **✅ MVPClosed** — Thesis B **No-Go at Phase 0**；[`gate_report.md`](../workspaces/tc-baseline/gate_report.md) · [SPEC §8](features/timeout-continuation/SPEC.md) |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
 | **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
@@ -92,7 +93,12 @@
 - [x] Phase 2：2026-04 baseline + `gate_report.md`（G1–G4）
 - [x] Phase 3：人類 **No-Go** — §a arm 調參 + §b adverse guard；見 [`gate_report.md`](../workspaces/mc-baseline/gate_report.md)
 - [x] ~~Phase 4 sweep / Phase 5 holdout~~ — **取消**（G1 未過）
-- [ ] **（未開 ft）** timeout-selective entry counterfactual — 若人類要續 Strategy v2
+### FT-005 — Timeout Continuation（[`PLAN`](features/timeout-continuation/PLAN.md)）— **MVPClosed at Phase 0**
+
+- [x] Phase 0：counterfactual + `tc-baseline/reports/counterfactual_timeout_entry.json`
+- [x] Phase 0 決策：**No-Go** — `timeout_tick` gross **4.10**、net **-0.90**（見 [`gate_report.md`](../workspaces/tc-baseline/gate_report.md)）
+- [x] ~~Phase 1 plugin~~ / ~~Phase 2 baseline~~ — **取消**
+- [ ] **（未開 ft）** 下一 thesis：mean-reversion 或結構性早進
 
 **Post-MVP — Phase 6 長歷史（2022+，MVP holdout Gate 後）**
 

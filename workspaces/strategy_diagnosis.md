@@ -123,7 +123,9 @@
 5. **實作路徑**：新 strategy plugin（建議 `strategy-vwap-v2` 或新 slug）或 vwap-momentum **v2 分支**；舊 plugin 凍結為研究參考。
 6. **驗證**：沿用 FT-003 流程（baseline → valid → 一次 holdout）或精簡版；**新** workspace / grid，不併入本輪 leaderboard。
 
-**FT-004 結論（2026-06-28）**：Thesis A（`momentum_continuation`、armed 當 tick 全進）**No-Go** — 最佳 valid gross **+1.89**/趟（G1 未過）；counterfactual 證實 timeout 子集有 edge、entered 子集負，全進場稀釋。Plugin **凍結**；見 [`mc-baseline/gate_report.md`](mc-baseline/gate_report.md)、[`docs/features/momentum-continuation/SPEC.md`](../docs/features/momentum-continuation/SPEC.md) §8。若續 Strategy v2 → **timeout-selective entry**（新 thesis，非 arm knob）。
+**FT-004 結論（2026-06-28）**：Thesis A（`momentum_continuation`、armed 當 tick 全進）**No-Go** — 最佳 valid gross **+1.89**/趟（G1 未過）；counterfactual 證實 timeout 子集有 edge、entered 子集負，全進場稀釋。Plugin **凍結**；見 [`mc-baseline/gate_report.md`](mc-baseline/gate_report.md)、[`docs/features/momentum-continuation/SPEC.md`](../docs/features/momentum-continuation/SPEC.md) §8。
+
+**FT-005 結論（2026-06-28）**：Thesis B（timeout 當 tick 進場）**No-Go at Phase 0** — timeout cohort `timeout_tick` CF gross **+4.10**/趟、net **-0.90**；延遲 180s 摧毀 armed 時點 edge（同子集 armed tick **+36**/趟）。Plugin **未實作**；見 [`tc-baseline/gate_report.md`](tc-baseline/gate_report.md)、[`docs/features/timeout-continuation/SPEC.md`](../docs/features/timeout-continuation/SPEC.md) §8。Strategy v2 breakout 路徑（armed / timeout 雙 thesis）**均否決** → 下一 thesis：**均值回歸**或結構性早進。
 
 ---
 

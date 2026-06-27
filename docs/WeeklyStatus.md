@@ -7,6 +7,21 @@
 
 ---
 
+### 2026-06-28（FT-005 收尾 — Thesis B No-Go at Phase 0，MVPClosed）
+
+**決策**
+- FT-005 **timeout-selective** Phase 0 counterfactual 完成；**未過預檢** → **MVPClosed**（`thesis_b_phase0_no_go`）。
+- **Thesis B 結論**：v1 timeout 子集在 **armed tick** 仍強（CF gross **+36**/趟），但 **timeout 當 tick 進場** gross **+4.10**、net **-0.90** — 「等回踩失敗再追」不可行。
+- **Plugin 未實作**；UAT/Live 維持 **`strategy-vwap-momentum`**。
+
+**文件**
+- [`SPEC.md`](features/timeout-continuation/SPEC.md) §8 · [`PLAN.md`](features/timeout-continuation/PLAN.md) · [`gate_report.md`](../workspaces/tc-baseline/gate_report.md)
+
+**下一方向（未開 ft）**
+- 純均值回歸，或結構性早進（非 timeout 尾端）— 見 [`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) §7
+
+---
+
 ### 2026-06-28（FT-004 本回合收尾 — Thesis A No-Go，MVPClosed）
 
 **決策**
