@@ -9,7 +9,7 @@
 |----|------|--------|--------|--------|------|
 | FT-001 | [audit-event-replay](audit-event-replay/SPEC.md) | **Landed** | 2026-06-17 | UAT→Pilot | [SPEC](audit-event-replay/SPEC.md) · [PLAN](audit-event-replay/PLAN.md) · [REVIEW](audit-event-replay/REVIEW.md) · **`/audit-event-replay`** |
 | FT-002 | [smc-structure-filter](smc-structure-filter/SPEC.md) | **Draft** | 2026-06-18 | UAT | [SPEC](smc-structure-filter/SPEC.md) · [PLAN](smc-structure-filter/PLAN.md) · [REVIEW](smc-structure-filter/REVIEW.md) |
-| FT-003 | [ai-backtest-tuning](ai-backtest-tuning/SPEC.md) | **InProgress** | 2026-06-26 | Pilot-prep | [SPEC](ai-backtest-tuning/SPEC.md) · [PLAN](ai-backtest-tuning/PLAN.md) · [**ROSTER**](ai-backtest-tuning/AGENT_ROSTER.md) · [ENTRY_FUNNEL_METRICS](ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) · [`workspaces/`](../../workspaces/) |
+| FT-003 | [ai-backtest-tuning](ai-backtest-tuning/SPEC.md) | **MVPClosed** | 2026-06-26 | Strategy v2 | [SPEC](ai-backtest-tuning/SPEC.md) · [PLAN](ai-backtest-tuning/PLAN.md) · [**ROSTER**](ai-backtest-tuning/AGENT_ROSTER.md) · [`election_report.md`](../../workspaces/election_report.md) · [`workspaces/`](../../workspaces/) |
 
 ## 狀態定義
 
@@ -17,6 +17,7 @@
 |--------|------|
 | **Draft** | 僅文件；SPEC/PLAN 審閱中 |
 | **InProgress** | 至少一個 Phase 已開程式 PR |
+| **MVPClosed** | MVP 目標達成或 documented 收尾（如 `grid_no_viable_solution`）；後續可另開 v2 |
 | **Landed** | 全 Phase 完成；穩定契約已併入 app/package SPEC |
 | **Archived** | 可選；僅保留設計考古 |
 

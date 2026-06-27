@@ -7,6 +7,45 @@
 
 ---
 
+### 2026-06-27（FT-003 §Decision — Option A：策略層重設計，否決 round2）
+
+**決策**
+- 人類確認 **Option A**：不跑 `round2_proposal.md` 出場 grid；接受 `grid_no_viable_solution`。
+- 根因：valid 毛期望 ≈ **0**（conservative 冠軍 +0.06/趟）、淨虧幾乎全為摩擦；§6 **逆向選擇**（成交在回踩、順勢行情 timeout 不進場）。
+- [`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) §7 記錄下一步；[`round2_proposal.md`](../workspaces/round2_proposal.md) 標 **已否決**。
+
+**不是打掉重來**
+- **保留**：engine、backtest、app、FT-003 診斷工具、`tick_cache`、UAT 骨架。
+- **退役**：現 vwap-momentum hybrid 作 Pilot 候選；本輪不產 `elected_config.yaml`。
+
+**人類必做（Follow-up）**
+- [ ] **Thesis 二選一**（一頁即可）：breakout 延續 vs 純均值回歸 — 禁止再混 momentum arm + VWAP 回踩。
+- [ ] 決定實作殼：新 `strategy-*` plugin vs vwap-momentum v2 分支。
+- [x] [`election_report.md`](../workspaces/election_report.md) — `grid_no_viable_solution` + `diagnostic_only`；FT-003 MVP 正式關閉。
+- [ ] v2 baseline：valid 毛期望/趟 **> 5** 才進 grid sweep。
+
+---
+
+### 2026-06-27（FT-003 Phase 3.6 四平面診斷收尾 — 待人類簽核）
+
+**狀態**
+- Phase 3.6 啟動 Gate 通過：四位 agent `sweep_result.jsonl` + `analysis.md` + 雙向 `peer_review` + `leaderboard.jsonl`（四筆）齊全；`cache_audit --code TMFR1` 診斷月份**無 FAIL**（僅零成交量 tick WARN）。
+- 四平面產物齊全：`VOLATILITY_BASELINE.md` §A/B（尺度）、§C（進場漏斗，`ft003_episode_diagnosis.py` 自動填、`entry_funnel.json` 已產）、§D（出場，conservative/execution/risk-exit）。
+- 新模組/腳本測試全綠：`test_entry_funnel.py` + `test_ft003_episode_diagnosis.py`（12 項）。
+- [`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) §1–§6 合成完成。
+
+**§6 進場漏斗主要結論**
+- armed 後「順勢」由 **timeout 子集**貢獻（脈衝單邊跑掉、不回 VWAP）；實際 **entered 子集逆勢回踩成交**（W180 close_delta −15、MAE>MFE）→ armed 順勢 **≠ net edge**。
+- 漏斗瓶頸在「價格回到 VWAP band」：`blocked_both` 30.9 萬 ≫ `blocked_vwap_only` 5.7 萬 ≫ `blocked_vol_only` 2.1 千；vol 兩道門非綁定（`ever_vol_dried` 100%）。timeout 67% 從未近 VWAP。
+- 回踩深度 p50 ≈ 25 點（≈1×ATR）vs `hard_stop=6`（0.23×ATR）→ **雙重 squeeze**，非單一 knob 可解 → 強化 `grid_no_viable_solution`。
+
+**人類必做（Follow-up — 解鎖 Phase 4）**
+- [ ] 閱讀 [`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md)（尤其 §5 建議 + §6）後，填寫 **§Decision（簽核人 / 日期 / 採納·部分採納·推翻）**。
+- [ ] 決策後二選一：(a) 提案第二輪 grid → 完成 [`round2_proposal.md`](../workspaces/round2_proposal.md) §Approval；或 (b) 觸發 Phase 4 holdout 解封（`export FT003_HOLDOUT_UNSEAL=1`，標 `diagnostic_only`）。
+- 註：Phase 3.6 診斷產出 **禁止**用於本輪 leaderboard 選參（[`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) §9）。
+
+---
+
 ### 2026-06-26（Layer 2：IOC 終態查詢 — 完善交易環）
 
 **實作**

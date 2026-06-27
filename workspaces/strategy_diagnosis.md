@@ -1,11 +1,12 @@
 # Strategy Diagnosis — FT-003 Phase 3.6
 
-**撰寫日期**：2026-06-27  
-**Phase 3**：四位 sweep + analysis + peer_review + leaderboard — ✅ 完成  
-**Phase 3.6**：市場尺度診斷 — 進行中（`cache_audit`、§C 進場漏斗待補）  
-**資料 SSOT**：[`VOLATILITY_BASELINE.md`](VOLATILITY_BASELINE.md)
+**撰寫日期**：2026-06-27
+**Phase 3**：四位 sweep + analysis + peer_review + leaderboard — ✅ 完成
+**Phase 3.6**：四平面診斷（尺度 §A/B、進場 §C、出場 §D）— ✅ 完成
+**Phase 4 MVP 收尾**：✅ [`election_report.md`](election_report.md) — `grid_no_viable_solution` + `diagnostic_only`（2026-06-27）
+**資料 SSOT**：[`VOLATILITY_BASELINE.md`](VOLATILITY_BASELINE.md) · Methods：[`ENTRY_FUNNEL_METRICS.md`](../docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)
 
-> 本檔合成四 agent sweep + 市場尺度診斷；**不是** leaderboard、**不是** `elected_config`。  
+> 本檔合成四 agent sweep + 市場尺度診斷；**不是** leaderboard、**不是** `elected_config`。
 > 契約：[`SPEC.md`](../docs/features/ai-backtest-tuning/SPEC.md) §4.6 · [`PLAN.md`](../docs/features/ai-backtest-tuning/PLAN.md) Phase 3.6
 
 ---
@@ -59,14 +60,68 @@
 ## 5. 建議
 
 - [x] **不推薦** `elected_config` / 標 `grid_no_viable_solution`
-- [ ] 仍跑 Phase 4 holdout（`diagnostic_only`）— 待人類決策
-- [ ] 申請第二輪 grid → 見 [`round2_proposal.md`](round2_proposal.md)（**草案已備**；待人類 §Approval）
+- [x] ~~仍跑 Phase 4 holdout~~ — **跳過**（`diagnostic_only`；見 [`election_report.md`](election_report.md)）
+- [x] ~~申請第二輪 grid~~ → **否決**（§Decision：Option A，改策略層重設計）
 
-**第二輪方向（草案 → [`round2_proposal.md`](round2_proposal.md)）**：
+**主瓶頸**：☑ 進場漏斗（結構性回踩不可達）　☑ 出場結構（QSL 高）　☑ 摩擦　☑ 尺度錯配 — 四者交互，**非單一 knob 可解**（見 §6.4）。
 
-1. `agent-risk-exit`：`hard_stop_points` 10–16 × `trail_points` 6/8 × `fixed_tp_points` 20/24（16 combos）
-2. 鎖定 conservative 進場 + execution IOC；不併入 regime
-3. 否證標準見 proposal §4；批准後才替換 `grid.json` 並 sweep
+---
+
+## 6. 進場漏斗（armed / 回踩 / vol）
+
+引用 [`VOLATILITY_BASELINE.md`](VOLATILITY_BASELINE.md) §C（`agent-conservative` valid 2026-04，235 episodes）；Methods：[`ENTRY_FUNNEL_METRICS.md`](../docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)。
+
+### 6.1 脈衝是否順勢
+
+| cohort | N | W30 close_delta | W180 close_delta | MFE_180 | MAE_180 |
+|--------|---|-----------------|------------------|---------|---------|
+| entered | 150 | -5.0 | -15.0 | 28.0 | 41.5 |
+| timeout | 85 | +10.0 | +35.0 | 69.0 | 23.0 |
+
+- **entered** 子集 armed 後 **逆**武裝方向漂移（W180 close_delta **-15**），且 MAE(41.5) > MFE(28) — 符合設計：策略**等回踩、不追價**，成交發生在脈衝回吐後。
+- **timeout** 子集反而**順勢**走（W180 **+35**，MFE 69）：脈衝單邊延續、價格未回 VWAP → timeout。
+- **結論**：armed 後「順勢」統計由 timeout 子集貢獻，**≠ 策略 net edge**（[`ENTRY_FUNNEL_METRICS.md`](../docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) §1.3）。實際成交者進在逆勢回踩、不利偏移大於有利偏移，與 §2 淨期望為負一致。
+
+### 6.2 漏斗瓶頸
+
+轉化率：armed 235 → ever_near_vwap **75.7%** → ever_vol_dried **100%** → both_same_tick **64.7%** → entered **63.8%** / timeout **36.2%**。
+
+- 一旦 near_vwap ∧ vol_dried 同 tick（64.7%），幾乎必成交（63.8%）→ **瓶頸不在進場觸發**，而在「價格回到 VWAP band」。
+- near_miss 月累計：`blocked_both` **309,164** ≫ `blocked_vwap_only` **56,619** ≫ `blocked_vol_only` **2,130** → vol-only 阻擋極罕見；主阻擋為 both / vwap_only（**價格遠離 VWAP**）。
+- timeout 中 **67.1%** 從未 near_vwap；`time_to_first_band` p50 **72s**、`time_to_entry` p50 **78.5s**（貼近 `momentum_timeout_sec` 邊緣）→ 對應 [`ENTRY_FUNNEL_METRICS.md`](../docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) §5.4「timeout 高且不回 VWAP → 結構性不匹配、非單一 knob」。
+
+### 6.3 vol_1s 門檻是否合理
+
+- `P(vol_1s ≥ 150)` = **0.3%** → 武裝門檻落在分布**極右尾**（事件型 spike，符合設計）；`vol_1s_at_arm` p50/p90 = **153 / 227** 確認武裝確實命中 spike。
+- `P(vol_1s ≤ 15)` = **85.7%**、`ever_vol_dried` = **100%** → 枯竭門檻幾乎恆真，**非綁定限制**；調 `exhaustion_vol` 對漏斗影響有限。
+- **判讀**：vol 兩道門不是瓶頸；放寬 vol knob 無法解決「價格不回 VWAP」的結構問題。
+
+### 6.4 與 §3 尺度錯配是否一致
+
+- `pullback_depth` p50 = **25 點** ≈ 4 月 1m range p50（25）≈ ATR20 p50（25.7）→ 回踩深度約 **1×ATR**。
+- 但 `hard_stop_points=6` 僅 **0.23×ATR**（§3）→ 進場後極易被分鐘噪音掃損：與 §D `quick_stop_loss_rate` 28–33%、`stop_loss in_grace` 100% 一致。
+- **雙重 squeeze**：策略要求約 1×ATR 的回踩才進場，卻只給 0.23×ATR 的停損空間 → 進場結構與出場尺度互相擠壓，**確認非單一 knob 可解**，強化 §5 `grid_no_viable_solution` 結論。
+
+---
+
+## 7. 下一步（Option A — 策略層重設計，非 round2 grid）
+
+> **不是 monorepo 打掉重來**。保留 engine / backtest / app / FT-003 診斷工具 / `tick_cache` / UAT；**退役**現有 vwap-momentum「爆量武裝 + VWAP 回踩」hybrid 作為 Pilot 候選。
+
+| 保留 | 退役 / 凍結 |
+|------|-------------|
+| `trading-engine` 狀態機、回測、reporting、sweep 框架 | 本輪 `leaderboard` 冠軍 → **不產** `elected_config.yaml` |
+| Phase 3.6 診斷產物（§A–§D、`entry_funnel`）作為 v2 設計輸入 | `round2_proposal.md` 出場 grid（否決） |
+| UAT 累積 tick（Live gate 仍獨立） | 在現有 hybrid 上繼續 sweep / tune knob |
+
+**建議順序**（見 [`docs/TODO.md`](../docs/TODO.md) §FT-003 收尾 + §Strategy v2）：
+
+1. ~~**FT-003 正式收尾**~~ — ✅ [`election_report.md`](election_report.md)（2026-06-27）
+2. **Thesis 二選一**（人類 + 一頁設計）：**breakout 延續**（吃 timeout 子集 MFE）vs **純均值回歸**（不用 momentum arm）— 禁止再混。
+3. **出場從第一天 ATR-scaled**（`stop ≈ 0.5–1×ATR`、trail/TP 同尺度）；固定點數僅作研究對照。
+4. **降頻目標**：valid 毛期望/趟 **> 5**（壓過摩擦）再談淨正；否則不進 sweep。
+5. **實作路徑**：新 strategy plugin（建議 `strategy-vwap-v2` 或新 slug）或 vwap-momentum **v2 分支**；舊 plugin 凍結為研究參考。
+6. **驗證**：沿用 FT-003 流程（baseline → valid → 一次 holdout）或精簡版；**新** workspace / grid，不併入本輪 leaderboard。
 
 ---
 
@@ -74,7 +129,7 @@
 
 | 欄位 | 值 |
 |------|-----|
-| 簽核人 | _待 Phase 3.6 診斷補全後填寫_ |
-| 日期 | |
-| 決策 | 採納 / 部分採納 / 推翻 |
-| 備註 | Phase 3.6 診斷產出禁止用於本輪 leaderboard 選參 |
+| 簽核人 | Tim（對話確認） |
+| 日期 | 2026-06-27 |
+| 決策 | **已收尾** — `grid_no_viable_solution` + `diagnostic_only`；**否決** round2；改開 **Option A 策略層重設計** |
+| 備註 | 根因：gross edge ≈ 0 + 進場逆向選擇（§6.1）+ 摩擦 5 點/趟。Phase 4 holdout **未跑**。見 [`election_report.md`](election_report.md)。 |

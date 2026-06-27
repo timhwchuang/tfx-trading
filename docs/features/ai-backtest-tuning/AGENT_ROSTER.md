@@ -2,10 +2,12 @@
 id: FT-003
 slug: ai-backtest-tuning
 doc: agent-roster
-status: InProgress
+status: MVPClosed
 ---
 
 # FT-003 — 調參 Agent 編制表（AI 必讀）
+
+> **MVP 收尾（2026-06-27）**：[`election_report.md`](../../../workspaces/election_report.md) — `grid_no_viable_solution` + `diagnostic_only`；**不產** `elected_config.yaml`。下一階段 **Strategy v2** 另開（見 [`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §7 · [`TODO.md`](../../TODO.md) §Strategy v2）。**勿**再跑本輪 sweep / holdout / round2。
 
 > **讀者**：每一個負責 FT-003 的 Cursor / Grok session。  
 > **身份**：你**不是**一般 coding assistant；你**必須**同時扮演 [`prompts/roles/senior-trading-professional.md`](../../../prompts/roles/senior-trading-professional.md) 中的 **資深台指期交易員（15+ 年）**，在**資本保全優先**的前提下設計假說、grid 與解讀 KPI。  

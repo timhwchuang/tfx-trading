@@ -1,5 +1,7 @@
 # Workspaces — AI 回測調參（FT-003）
 
+> **MVP 狀態（2026-06-27）**：**已收尾** — [`election_report.md`](election_report.md) 標 `grid_no_viable_solution` + `diagnostic_only`；**不產** `elected_config.yaml`。下一階段：**Strategy v2**（見 [`strategy_diagnosis.md`](strategy_diagnosis.md) §7 · [`docs/TODO.md`](../docs/TODO.md)）。
+
 > **AI 第一份文件**：[`docs/features/ai-backtest-tuning/AGENT_ROSTER.md`](../docs/features/ai-backtest-tuning/AGENT_ROSTER.md)（你是哪位、開工 prompt）  
 > **執行步驟**：[`PLAN.md`](../docs/features/ai-backtest-tuning/PLAN.md)
 
@@ -17,7 +19,7 @@
 每位 session：**MUST** `@prompts/roles/senior-trading-professional.md` + [`SHARED_ASSUMPTIONS.md`](SHARED_ASSUMPTIONS.md) + `@workspaces/<slug>/BRIEF.md`。
 
 Phase 3.4：**analysis 完成後、leaderboard 之前** — 雙向 `peer_review_*.md`（MVP：#1↔#2；擴充：#3↔#4；見 ROSTER §1.6）。  
-Phase 4：**新開獨立 AI 對話** 執行 **agent-election-judge** → [`judge_opinion.md`](judge_opinion.md)（首選 **Claude 4.8**；fallback ROSTER §8.2）；人類填 `election_report.md` **§5**。
+Phase 4（MVP）：**已收尾** — [`election_report.md`](election_report.md)（`diagnostic_only`；holdout 未跑）。Strategy v2 另開 workspace / grid。
 
 ## 如何新增調參 Agent
 
@@ -39,8 +41,9 @@ Phase 4：**新開獨立 AI 對話** 執行 **agent-election-judge** → [`judge
 | `sweep_result.jsonl` | 跑程中依 **完成順序** append（非排名）；`sweep_done` 後才依 `valid_score` 排序覆寫 |
 | `robustness_report.md` | **Phase 6 only**（Post-MVP）；模板 [`_template/robustness_report.md`](_template/robustness_report.md) |
 | [`VOLATILITY_BASELINE.md`](VOLATILITY_BASELINE.md) | **Phase 3.6** 四平面診斷數據 SSOT（§A/B 尺度 · **§C 進場漏斗** · §D 出場） |
-| [`strategy_diagnosis.md`](strategy_diagnosis.md) | **Phase 3.6** 四 agent 合成診斷（含 §6 進場漏斗；四位 sweep 後） |
-| [`round2_proposal.md`](round2_proposal.md) | **Round 2** 出場尺度 sweep 提案（人類批准後執行） |
+| [`strategy_diagnosis.md`](strategy_diagnosis.md) | **Phase 3.6** 四 agent 合成診斷（含 §6 進場漏斗；§Decision Option A） |
+| [`election_report.md`](election_report.md) | **Phase 4 MVP 收尾** — `grid_no_viable_solution` + `diagnostic_only` |
+| [`round2_proposal.md`](round2_proposal.md) | Round 2 出場 grid — **已否決**（2026-06-27） |
 | `reports/volatility_baseline.json` | Phase 3.6 §A/B 機器可讀 |
 | `reports/entry_funnel.json` | Phase 3.6 §C 機器可讀（`ft003_episode_diagnosis.py`） |
 | `_template/` | 範本（`analysis.md`、`peer_review.md`、`judge_opinion.md`、`election_report.md`、`robustness_report.md`） |
@@ -71,8 +74,8 @@ python scripts\ft003_exit_diagnosis.py --agent agent-conservative --markdown-app
 
 見 [`PLAN.md`](../docs/features/ai-backtest-tuning/PLAN.md) Phase 3.6 · [`SPEC.md`](../docs/features/ai-backtest-tuning/SPEC.md) §4.6 · SHARED_ASSUMPTIONS **v1.3** §4.1–§4.2
 
-### Round 2 出場尺度（人類批准後）
+### Round 2 出場尺度
 
-見 [`round2_proposal.md`](round2_proposal.md)。批准後：`agent-risk-exit/grid.round2.json` → `grid.json`，再 `ft003_run_sweep.py agent-risk-exit`。
+**已否決** — 見 [`round2_proposal.md`](round2_proposal.md) · [`election_report.md`](election_report.md)。勿執行 `agent-risk-exit` round2 sweep。
 
 **UAT `apps/trading-app/config/config.yaml` 凍結至 Phase 1 Pass**；只改 `workspaces/` 內 config。

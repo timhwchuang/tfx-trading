@@ -1,6 +1,6 @@
 # Round 2 提案 — 出場尺度（FT-003）
 
-**狀態**：草案 · **待人類批准**（SPEC §4.4）  
+**狀態**：**已否決**（2026-06-27 · [`strategy_diagnosis.md`](strategy_diagnosis.md) §Decision Option A）— 不執行 sweep  
 **依據**：[`strategy_diagnosis.md`](strategy_diagnosis.md) · [`VOLATILITY_BASELINE.md`](VOLATILITY_BASELINE.md) · Phase 3.6  
 **執行 agent**：`agent-risk-exit`（出場主導；進場／執行鎖定）
 
@@ -114,5 +114,5 @@ python scripts\ft003_run_sweep.py agent-risk-exit
 |------|-----|
 | 簽核人 | |
 | 日期 | |
-| 決策 | 批准 / 修改後批准 / 驳回 |
-| 備註 | |
+| 決策 | **驳回** |
+| 備註 | gross ≈ 0、§6 逆向選擇；出場 grid 無法解題。改策略 thesis 重設計。 |
