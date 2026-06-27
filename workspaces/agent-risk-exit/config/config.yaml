@@ -25,7 +25,8 @@ strategy:
   vwap_window_min: 5
 
   # 動量觸發後 pullback 進場帶寬（點數）；價格與 VWMA 距離 ≤ 此值視為 near_vwap
-  entry_band_points: 2.0
+  # Round 2 鎖定：conservative 冠軍 2.5（見 workspaces/round2_proposal.md）
+  entry_band_points: 2.5
 
   # 1 秒內總成交量門檻；觸發動量突破偵測（P1-2 完成後改由 vol_threshold 動態計算）
   momentum_vol_1s: 150
@@ -76,6 +77,7 @@ strategy:
   pending_timeout_sec: 1
 
   # IOC 限價讓價點數（買 = ref + N，賣 = ref - N）；全日固定，開盤不放大
+  # Round 2 鎖定：execution 冠軍 3（見 workspaces/round2_proposal.md）
   ioc_slippage_points: 3
 
   # 進場後亂流保護：未滿足 tick 數且未滿秒數前，僅硬停損、不啟用 VWAP 停損
