@@ -12,6 +12,7 @@
 | FT-003 | [ai-backtest-tuning](ai-backtest-tuning/SPEC.md) | **MVPClosed** | 2026-06-26 | Strategy v2 | [SPEC](ai-backtest-tuning/SPEC.md) · [PLAN](ai-backtest-tuning/PLAN.md) · [**ROSTER**](ai-backtest-tuning/AGENT_ROSTER.md) · [`election_report.md`](../../workspaces/election_report.md) · [`workspaces/`](../../workspaces/) |
 | FT-004 | [momentum-continuation](momentum-continuation/SPEC.md) | **MVPClosed** | 2026-06-27 | Pilot-prep | [SPEC](momentum-continuation/SPEC.md) §8 · [PLAN](momentum-continuation/PLAN.md) · [`gate_report`](../../workspaces/mc-baseline/gate_report.md) |
 | FT-005 | [timeout-continuation](timeout-continuation/SPEC.md) | **MVPClosed** | 2026-06-28 | Pilot-prep | [SPEC](timeout-continuation/SPEC.md) §8 · [PLAN](timeout-continuation/PLAN.md) · [`gate_report`](../../workspaces/tc-baseline/gate_report.md) |
+| FT-006 | [vwap-stretch-fade](vwap-stretch-fade/SPEC.md) | **Holdout 未過** | 2026-06-28 | Pilot-prep | [SPEC](vwap-stretch-fade/SPEC.md) §8 · [`gate_report`](../../workspaces/vsf-baseline/gate_report.md) |
 
 ## 狀態定義
 

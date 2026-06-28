@@ -17,6 +17,7 @@
 | **FT-003 回測調參** | **✅ MVP 收尾** — `grid_no_viable_solution`；[`election_report.md`](../workspaces/election_report.md) |
 | **FT-004 Momentum Continuation** | **✅ MVPClosed** — Thesis A **No-Go**；[`gate_report.md`](../workspaces/mc-baseline/gate_report.md) · [SPEC §8](features/momentum-continuation/SPEC.md) |
 | **FT-005 Timeout Continuation** | **✅ MVPClosed** — Thesis B **No-Go at Phase 0**；[`gate_report.md`](../workspaces/tc-baseline/gate_report.md) · [SPEC §8](features/timeout-continuation/SPEC.md) |
+| **FT-006 VWAP Stretch Fade** | **🟡 Holdout 未過** — valid 過、2026-05 overfit suspect；[`gate_report`](../workspaces/vsf-baseline/gate_report.md) |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
 | **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
@@ -98,7 +99,18 @@
 - [x] Phase 0：counterfactual + `tc-baseline/reports/counterfactual_timeout_entry.json`
 - [x] Phase 0 決策：**No-Go** — `timeout_tick` gross **4.10**、net **-0.90**（見 [`gate_report.md`](../workspaces/tc-baseline/gate_report.md)）
 - [x] ~~Phase 1 plugin~~ / ~~Phase 2 baseline~~ — **取消**
-- [ ] **（未開 ft）** 下一 thesis：mean-reversion 或結構性早進
+- [x] 下一 thesis → **FT-006** VWAP Stretch Fade
+
+### FT-006 — VWAP Stretch Fade（[`PLAN`](features/vwap-stretch-fade/PLAN.md)）— **Go Pilot-prep**
+
+- [x] Phase 0：counterfactual + `vsf-baseline/reports/counterfactual_vwap_stretch_fade.json`
+- [x] Phase 0 決策：**通過** — k=2.0×mid gross **+7.13**、net **+2.13**（n=48）
+- [x] Phase 1 plugin：`strategy-vwap-stretch-fade`
+- [x] Phase 2 baseline + G1–G4（82 趟 gross **+5.43**、net **+0.43**、QSL **6.1%**）
+- [x] Phase 3 文件收尾（[`gate_report.md`](../workspaces/vsf-baseline/gate_report.md) §Decision **Go — Pilot-prep**）
+- [x] holdout 2026-05 — **未過**（gross +4.26、net −0.74、123 趟）；overfit suspect
+- [ ] ~~人類簽核後 UAT 切換~~ — **凍結**（holdout 未過）
+- [ ] ~~可選 sweep~~ — **取消**（勿在 valid 上 tune）
 
 **Post-MVP — Phase 6 長歷史（2022+，MVP holdout Gate 後）**
 

@@ -14,6 +14,7 @@ from integrations.trend_refresh import TradingAppTrendRefresh
 from observability import DailyObservability
 from strategy_vwap_momentum import StrategyParams, VWAPMomentumStrategy
 from strategy_momentum_continuation import ContinuationParams, MomentumContinuationStrategy
+from strategy_vwap_stretch_fade import StretchFadeParams, VwapStretchFadeStrategy
 from trading_engine.adapters.mock import MockOrderAdapter
 from trading_engine.adapters.shioaji import ShioajiOrderAdapter
 from trading_engine.logging_setup import setup_async_logging
@@ -57,6 +58,11 @@ def load_named_strategy(
     if name == "momentum_continuation":
         return MomentumContinuationStrategy(
             params=ContinuationParams.from_runtime_config(cfg),
+            obs=obs,
+        )
+    if name == "vwap_stretch_fade":
+        return VwapStretchFadeStrategy(
+            params=StretchFadeParams.from_runtime_config(cfg),
             obs=obs,
         )
     return load_strategy(

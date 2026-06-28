@@ -88,6 +88,8 @@ def default_test_settings() -> Settings:
         hard_stop_atr_k=0.75,
         tp_atr_k=2.0,
         max_adverse_atr_k=0.0,
+        stretch_k=2.0,
+        reset_z=0.5,
         config_path=Path("config/config.yaml"),
     )
 

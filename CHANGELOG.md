@@ -25,7 +25,9 @@ Historical standalone-repo release links are kept for archaeology only; developm
 - **FT-003 §Decision Option A**：人類否決 [`round2_proposal.md`](workspaces/round2_proposal.md) 出場 grid；改 **策略層重設計**（保留 infra、退役 hybrid alpha）；[`strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §7 下一步；[`TODO.md`](docs/TODO.md) / [`WeeklyStatus.md`](docs/WeeklyStatus.md) 同步。
 - **FT-004 Phase 0–2**：`strategy-momentum-continuation` plugin；`ft004_*` 腳本；[`mc-baseline/gate_report.md`](workspaces/mc-baseline/gate_report.md)。
 - **FT-004 MVPClosed（2026-06-28）**：Thesis A **No-Go**（`thesis_a_no_go`）；plugin 凍結研究用、不進 Live；見 [`SPEC §8`](docs/features/momentum-continuation/SPEC.md)。
-- **FT-005 MVPClosed（2026-06-28）**：Thesis B **No-Go at Phase 0**（`thesis_b_phase0_no_go`）；`timeout_tick` CF 未過；plugin 未實作；見 [`SPEC §8`](docs/features/timeout-continuation/SPEC.md)。
+- **FT-005 MVPClosed（2026-06-28）**：Thesis B **No-Go at Phase 0**（`thesis_b_phase0_no_go`）；見 [`SPEC §8`](docs/features/timeout-continuation/SPEC.md)。
+- **FT-006 holdout（2026-06-28）**：2026-05 plugin baseline **未過** G1/G2/G3（123 趟、net **−0.74**）；valid 仍過 → overfit suspect；見 [`gate_report`](workspaces/vsf-baseline/gate_report.md)。
+- **FT-006 Go Pilot-prep（2026-06-28）**：`strategy-vwap-stretch-fade` plugin + Phase 0–2；valid G1–G4 全過；見 [`SPEC §8`](docs/features/vwap-stretch-fade/SPEC.md)。
 - **FT-003 Phase 3.6 市場尺度診斷**：[`PLAN.md`](docs/features/ai-backtest-tuning/PLAN.md) Phase 3.6（Gate、P0/P1/P2 指標、CLI、第二輪 grid 提案）；[`SPEC.md`](docs/features/ai-backtest-tuning/SPEC.md) §4.6；SHARED_ASSUMPTIONS **v1.2** §4.1；`ft003_volatility_baseline.py` / `ft003_exit_diagnosis.py`；[`workspaces/VOLATILITY_BASELINE.md`](workspaces/VOLATILITY_BASELINE.md) 模板與 [`strategy_diagnosis.md`](workspaces/_template/strategy_diagnosis.md)；AGENT_ROSTER §1.7。
 - **FT-003 Phase 6 交易員強化**：PLAN 多段滾動 WFO 殘酷 Gate（net Sharpe/MDD/trade_count）、§7–§10 穩健性檢查、**Phase 6.5 Shadow/Paper**、運維 kill switch / 對帳；`robustness_report.md` 模板擴至 §12；SPEC §4.5 / TODO / DATA_SPLIT 同步。
 - **FT-003 Phase 6 roadmap**：[`PLAN.md`](docs/features/ai-backtest-tuning/PLAN.md) 長歷史穩健性（Gate、四風險、v1/v2 決策樹、**GCE overnight 算力 MUST**、`robustness_report.md` 模板）；[`SPEC.md`](docs/features/ai-backtest-tuning/SPEC.md) §4.5；[`TODO.md`](docs/TODO.md)；[`workspaces/_template/robustness_report.md`](workspaces/_template/robustness_report.md)。
@@ -257,6 +259,16 @@ Initial public release of the deterministic tick replay driver for `trading-engi
 #### Added
 
 - **FT-004 Thesis A**: `MomentumContinuationStrategy` — vol-spike arm → same-tick `continuation` entry; ATR-scaled hard stop / trail / take-profit; no VWAP pullback path. Entry point `momentum_continuation`. Unit tests (`test_continuation.py`).
+
+---
+
+## strategy-vwap-stretch-fade
+
+### [Unreleased]
+
+#### Added
+
+- **FT-006 Thesis C**: `VwapStretchFadeStrategy` — VWAP z-score stretch fade (`stretch_k` / `reset_z` / `cooldown_sec`); no momentum arm; ATR-scaled exits (FT-004 semantics). Entry point `vwap_stretch_fade`. Unit tests (`test_stretch_fade.py`).
 
 ---
 

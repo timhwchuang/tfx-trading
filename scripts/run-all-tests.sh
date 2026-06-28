@@ -20,6 +20,7 @@ run packages/trading-engine
 run packages/trading-backtest
 run packages/strategies/vwap-momentum
 run packages/strategies/momentum-continuation
+run packages/strategies/vwap-stretch-fade
 run apps/trading-app
 
 echo "All package test suites passed."

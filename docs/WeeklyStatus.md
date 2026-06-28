@@ -7,6 +7,36 @@
 
 ---
 
+### 2026-06-28（FT-006 holdout — 2026-05 未過，overfit suspect）
+
+**結果**
+- Holdout plugin baseline：123 趟；gross **+4.26**/趟（G1 未過）、net **−0.74**/趟（G2 未過）、trade_count **123**（G3 未過）；QSL **8.9%**（G4 過）。
+- Valid（4 月）仍過 G1–G4，但 5 月 edge 消失且頻率超標 → **overfit suspect**。
+
+**決策**
+- **維持 Pilot-prep 凍結**；勿在 valid 上 sweep、勿切 UAT/Live。
+- 產物：[`baseline_holdout.json`](../workspaces/vsf-baseline/reports/baseline_holdout.json) · [`gate_report.md`](../workspaces/vsf-baseline/gate_report.md)
+
+---
+
+### 2026-06-28（FT-006 交付 — Thesis C Go Pilot-prep，valid G1–G4 全過）
+
+**決策**
+- FT-006 **VWAP Stretch Fade** Phase 0–3 完成；**首個 thesis 過 valid G1+G2**。
+- Phase 0 CF：k=2.0×mid gross **+7.13**、net **+2.13**（n=48）。
+- Plugin baseline（2026-04）：82 趟；gross **+5.43**/趟、net **+0.43**/趟；QSL **6.1%**（G1–G4 全過）。
+- UAT/Live **維持** `strategy-vwap-momentum`；切換須 holdout + 人類簽核。
+
+**文件**
+- [`SPEC.md`](features/vwap-stretch-fade/SPEC.md) §8 · [`PLAN.md`](features/vwap-stretch-fade/PLAN.md) · [`gate_report.md`](../workspaces/vsf-baseline/gate_report.md)
+
+**Follow-up**
+- [ ] holdout 2026-05（G1+G2 再驗）
+- [ ] 可選 sweep：`stretch_k` / 時段過濾（出場非瓶頸）
+- [ ] 人類簽核 gate_report §Decision
+
+---
+
 ### 2026-06-28（FT-005 收尾 — Thesis B No-Go at Phase 0，MVPClosed）
 
 **決策**

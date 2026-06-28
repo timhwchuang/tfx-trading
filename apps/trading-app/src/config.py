@@ -76,6 +76,8 @@ class Settings:
     hard_stop_atr_k: float
     tp_atr_k: float
     max_adverse_atr_k: float
+    stretch_k: float
+    reset_z: float
 
     session_start: datetime.time
     session_end: datetime.time
@@ -215,6 +217,8 @@ def load_config(path: str | Path | None = None) -> Settings:
         hard_stop_atr_k=float(strategy.get("hard_stop_atr_k", 0.75)),
         tp_atr_k=float(strategy.get("tp_atr_k", 2.0)),
         max_adverse_atr_k=float(strategy.get("max_adverse_atr_k", 0.0)),
+        stretch_k=float(strategy.get("stretch_k", 2.0)),
+        reset_z=float(strategy.get("reset_z", 0.5)),
         session_start=_parse_time(session.get("start", "08:45")),
         session_end=_parse_time(session.get("end", "13:45")),
         session_flatten_time=_parse_time(session.get("flatten_time", "13:40")),

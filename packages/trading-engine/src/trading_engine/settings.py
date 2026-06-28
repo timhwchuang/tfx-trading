@@ -120,6 +120,10 @@ class Settings:
     tp_atr_k: float = 2.0
     max_adverse_atr_k: float = 0.0
 
+    # FT-006 vwap-stretch-fade
+    stretch_k: float = 2.0
+    reset_z: float = 0.5
+
     config_path: Path = Path("")
 
 

@@ -47,6 +47,8 @@ SWEEP_FIELD_TO_CONST: dict[str, str] = {
     "hard_stop_atr_k": "HARD_STOP_ATR_K",
     "tp_atr_k": "TP_ATR_K",
     "max_adverse_atr_k": "MAX_ADVERSE_ATR_K",
+    "stretch_k": "STRETCH_K",
+    "reset_z": "RESET_Z",
 }
 
 _CONST_TO_SNAKE = {
@@ -86,6 +88,8 @@ _CONST_TO_SNAKE = {
     "HARD_STOP_ATR_K": "hard_stop_atr_k",
     "TP_ATR_K": "tp_atr_k",
     "MAX_ADVERSE_ATR_K": "max_adverse_atr_k",
+    "STRETCH_K": "stretch_k",
+    "RESET_Z": "reset_z",
 }
 
 
