@@ -1,7 +1,7 @@
 ---
 id: ALPHA-PLAYBOOK
 slug: alpha-research-playbook
-version: 1.3
+version: 1.5
 status: Active
 opened: 2026-06-28
 owner: human+agent
@@ -21,8 +21,9 @@ applies_to: FT-012+
 | 步驟 | 人類（Tim） | Agent |
 |------|-------------|--------|
 | **Thesis 來源** | **Pick / Reject / 改寫** 一個提案；寫 §Decision 簽名 | **可**從診斷產出 **2–3 份草稿** 放入 [`THESIS_QUEUE.md`](../../../workspaces/THESIS_QUEUE.md) |
-| **Pre-register** | **Must 批准** grid 邊界與進出定義後，才准實作 CF | 撰寫 `SPEC.md` 草稿、撞車檢查（對照 §4 負面圖書館） |
-| **CF 程式** | **Code review 通過**（Bugbot 或人類）後才准跑 train | 實作 `*_counterfactual.py` + 單元測試；**禁止**未審查即跑 2025 train |
+| **Pre-register** | **Must 批准** grid 邊界與進出定義後，才准寫 SPEC/PLAN | 撰寫 `SPEC.md` + `PLAN.md` 草稿、撞車檢查（對照 §4 負面圖書館） |
+| **SPEC/PLAN 審閱** | **設計審閱 PASS**（§2 Phase 0-design）後才准 CF 實作 | 依審閱意見修 SPEC/PLAN（P0/P1）；**禁止**審閱前寫 `*_counterfactual.py` |
+| **CF 程式** | **Code review 通過**（Bugbot 或人類 · Phase 0b）後才准跑 train | 實作 `*_counterfactual.py` + 單元測試；**禁止**未審查即跑 2025 train |
 | **Phase 0 train** | 看 `gate_report.md`、決定 Go / MVPClosed | 跑 train JSON + funnel（`cache_audit` 見 §2 快取政策） |
 | **Plugin** | train 過 + 人類 Go 才開工 | 實作 `packages/strategies/...` |
 | **Holdout** | **一次**封印後簽 Go / No-Go | 跑 baseline、不得依結果改參 |
@@ -34,18 +35,21 @@ applies_to: FT-012+
 
 - Agent 的強項：讀遍 `strategy_diagnosis`、`gate_report`、funnel，**系統性避開已死路徑**，產出可 falsify 的假說草稿。
 - Agent 的弱項：沒有你的盤感與風險偏好；回測外推 ≠ 真實 queue；容易在已知族內變形（ORB+1 條件）而非新 thesis。
-- **規則**：任何 CF / 程式碼之前，queue 裡該列狀態 MUST 為 **`human-approved`**，且 `docs/features/<slug>/SPEC.md` 頂部 `owner` 含人類簽核日期。
+- **規則**：任何 CF / 程式碼之前，queue 該列 MUST **`human-approved`**，且 **Phase 0-design 審閱 PASS**（SPEC §8 + PLAN 勾選）；`owner` 含人類簽核日期。
 
 ```mermaid
 flowchart LR
   A[Agent 草稿提案] --> B[THESIS_QUEUE]
   B --> C{人類 Pick?}
   C -->|否| D[rejected 歸檔]
-  C -->|是| E[human-approved SPEC]
-  E --> F[實作 CF + tests]
-  F --> R{Code review?}
+  C -->|是| E[SPEC + PLAN 草稿]
+  E --> DR{Phase 0-design<br/>審閱 PASS?}
+  DR -->|Revise| E
+  DR -->|否| D2[blocked]
+  DR -->|是| F[Phase 0a CF + tests]
+  F --> R{Phase 0b<br/>Code review?}
   R -->|未過| F
-  R -->|過| T[train CF]
+  R -->|過| T[0c train CF]
   T --> G{2025 train}
   G -->|未過| H[MVPClosed]
   G -->|過| I[valid 對照 → plugin → holdout]
@@ -68,15 +72,54 @@ flowchart LR
 - [ ] **撞車檢查**：與 §4 負面圖書館 + §8.2 策略表；寫明「不是 FT-00x 因為…」
 - [ ] 人類狀態 → **`human-approved`**
 
+### Phase 0-design — SPEC/PLAN 審閱（**MUST 先於 0a 實作**）
+
+> **目的**：在寫 CF 前封印 MUST、grid、funnel、outcome codes；避免「程式寫完才發現 SPEC 漏項」或 train 後才補 post_entry hook。  
+> **教訓**：FT-014 資深 TXF 審閱補 P0/P1（post_entry、outcome、`max_hold_sec`）— 若跳過此步，0a 常需整段重寫。
+
+**Agent 產出（Pick 後 · 不得跑 train）**
+
+- [ ] `docs/features/<slug>/SPEC.md`（含 THESIS_BRIEF §A–§G · pre-register §5 · falsify）
+- [ ] `docs/features/<slug>/PLAN.md`（Phase 0a/0b/0c 勾選 · 測試 case 表 · 產物路徑）
+- [ ] 更新 [`features/README.md`](../README.md) · [`DOC_MAP.md`](../../DOC_MAP.md) 列 **Draft**
+- [ ] SPEC 頂部 YAML：`thesis_class` · `proposal_id` · `design_review: pending`
+
+**審閱方式**（擇一或組合 · 人類點頭才算 PASS）
+
+| 方式 | 審什麼 |
+|------|--------|
+| **人類** | Tim 讀 SPEC §1–§5 + PLAN Phase 0 |
+| **資深 TXF** | [`prompts/roles/senior-trading-professional.md`](../../../prompts/roles/senior-trading-professional.md) 對照 MUST / edge 經濟學 / falsify |
+| **Bugbot** | 只審 SPEC+PLAN（**非** CF 程式）— 撞車、lookahead 語意、grid 封印 |
+
+**審閱 MUST 對照（Alpha CF）**
+
+- [ ] 進場觸發可程式化、無 lookahead 歧義
+- [ ] Pre-register grid **僅** train 窗；valid/holdout 日期封印
+- [ ] Phase 0 exit sim（variant · `max_hold_sec` · 摩擦）寫死
+- [ ] Fingerprint / grid 兩段路徑與 outcome codes
+- [ ] `post_entry_diagnosis` hook 列為 MUST（非 gate）
+- [ ] `thesis_class` 與 HOLDOUT §3.1 / §3.2 一致
+- [ ] PLAN 含 Phase 0b **先於** 0c 的明確禁令
+
+**PASS 後 Agent MUST**
+
+- [ ] SPEC §8（或同等節）填審閱結論 · P0/P1 修正已併入
+- [ ] SPEC YAML `design_review:` 改為 `PASS` + 日期 + 審閱者
+- [ ] PLAN 新增 **Phase 0-design** 勾選 `[x]`
+- [ ] **此時才准** 進入 Phase 0a
+
+**MUST NOT**：審閱 PASS 前實作 `*_counterfactual.py`、跑 0c train、或將 queue 標 `in-cf`。
+
 ### Phase 0 — Counterfactual only（主戰場）
 
-分 **三步**；**不可**跳過 code review 直接跑 train（帶 bug 的 CF 會污染 gate 結論）。
+分 **三步**（0a → **0b** → 0c）；**不可**跳過 **0-design** 或 **0b** 直接跑 train。
 
-#### Phase 0a — 實作（不得跑 train）
+#### Phase 0a — 實作（**0-design PASS 後** · 不得跑 train）
 
 - [ ] `reporting/<slug>_counterfactual.py` + `scripts/ftNNN_*_counterfactual.py`
-- [ ] `tests/reporting/test_<slug>_counterfactual.py`（觸發邏輯、邊界、與 SPEC 對齊的最小案例）
-- [ ] SPEC §3 進出規則與程式 **逐條對照**（可在 PR / review 備註）
+- [ ] `tests/reporting/test_<slug>_counterfactual.py`（觸發邏輯、邊界、與 SPEC §5.1 對齊）
+- [ ] SPEC §5.1 MUST 與程式 **逐條對照**（PLAN 或 review 備註）
 
 #### Phase 0b — Code review（**MUST 先於 train**）
 
@@ -154,6 +197,34 @@ PASS 後更新 `CACHE_AUDIT.md` stamp。
 
 **設計日檢**：mean_robust 粗算 n≥30；skew 粗算 n≥15 且寫清 payoff 故事。**禁止**用 skew 標籤復活 MVPClosed FT（§11）。
 
+### 3.1b Fingerprint 契約（v1.5 · FT-012+ 0c-1）
+
+**SSOT**：SPEC §5.0c · [`THESIS_BRIEF`](../_template/THESIS_BRIEF.md) §F.1。
+
+| 項目 | 規則 |
+|------|------|
+| **`fingerprint_window_sec`** | **MUST** pre-register（秒）；gate 讀 `W{fingerprint_window_sec}` 的 `close_delta_median` |
+| **對齊 `max_hold_sec`** | **SHOULD** 相等或接近（例：hold **900** → 主 fingerprint **W900**；W1800 僅 post_entry 附錄） |
+| **Legacy 預設** | 未宣告窗格之舊 CF 視為 **W1800**（30 分鐘）；**新 FT MUST 顯式宣告** |
+| **通過線** | skew：`close_delta_median > 0` + G3S **n≥15**；mean_robust：同左 + **n≥30** |
+| **禁止** | 依屍体 post_entry **回頭**改窗格；依 valid 改 train fingerprint |
+
+**Outcome 拆分**（gate_report §Decision · SPEC §5.4）：
+
+| Outcome | 條件 |
+|---------|------|
+| `*_fingerprint_fail_direction` | n 達 class 下限 · 封印窗 `close_delta_median ≤ 0` |
+| `*_fingerprint_fail_n` | 方向指紋可正 · **n 未達** G3/G3S（**MVHP 型**） |
+| `*_fingerprint_pass_g1_fail` | 0c-1 通過 · grid G1/G2 不過 |
+| `*_fingerprint_fail` | **deprecated alias** — 新 FT 改用上表細分 |
+
+**post_entry 附錄（非 gate · MUST 出現在 gate_report）**：
+
+- **`exit_gap`** ≈ `MFE_median − barrier_gross_median`（路徑空間 vs 契約 PnL）
+- **`pct_mfe_ge_1atr`**（0a 實作後）：進場後 MFE ≥ 1×ATR 的筆數占比 — 診斷 trail/BE 是否常觸發
+
+屍体指紋審計索引：[`CORPSE_ATLAS.md`](../../../workspaces/CORPSE_ATLAS.md) §Fingerprint 審計。
+
 ---
 
 ## 4. 負面圖書館（禁止變形重跑）
@@ -195,28 +266,46 @@ SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.m
 5. **人類 Pick 前**：Agent 自評每案 `collision_risk: low|med|high`；high 預設不進 queue 或標 `draft-hold`
 6. **Thesis class**：低頻厚尾 MUST 標 `skew` + THESIS_BRIEF §E.3；其餘預設 `mean_robust`（v2.2）
 
+### 5.2 Exit-led thesis（v1.5 · 新 FT 編號）
+
+當 **post_entry 顯示 `exit_kills_edge`**（W30 順向 · barrier gross 負 · MFE 深）且進場 thesis **未 falsify** 時，**不得**在同一 FT 內改 exit 重跑 grid。
+
+| 步驟 | 規則 |
+|------|------|
+| **新 FT** | **MUST** 開新 slug + 新 `FT-0NN`（例：FT-016 barrier → **FT-018 trail**） |
+| **進場** | **MAY** 重用已封印 P0 MUST（import / 共用 builder）；**MUST** 在 SPEC 寫清與母 FT 差異 |
+| **出場** | **MUST** 新 `EXIT_VARIANT` + 新 `simulate_*`（例：`atr_trail_skew_900s`） |
+| **Grid** | exit k **可** tune；**禁止**同時改進場 + 出場（雙變形） |
+| **CAL-8 / trend filter** | **禁止** 以 EMA/趨勢濾網「救」exit_kills_edge — CAL-8 已放棄；vwap-momentum host 失效 ≠ EMA 普適 |
+
+**gate_report 附錄（非 gate）**：`exit_gap` · `pct_mfe_ge_1atr` — 診斷 trail/BE 觸發率 vs barrier 契約落差。
+
 ---
 
 ## 6. 開新 ft 的檔案 SOP
 
-1. 人類批准 queue 列 → 指定 `FT-012` slug
+1. 人類批准 queue 列 → 指定 `FT-0NN` slug
 2. 複製 [`docs/features/_template/`](../_template/) → `docs/features/<slug>/`
-3. 合併 THESIS_BRIEF → `SPEC.md`
-4. 更新 [`features/README.md`](../README.md) · [`DOC_MAP.md`](../../DOC_MAP.md) · [`TODO.md`](../../TODO.md)
-5. Phase 0 結束 → `CHANGELOG.md` + `gate_report.md`
+3. 合併 THESIS_BRIEF → `SPEC.md` + 撰寫 `PLAN.md`
+4. **Phase 0-design 審閱 PASS** → 更新 SPEC §8 · `design_review` YAML
+5. Phase 0a 實作 CF + tests
+6. 更新 [`features/README.md`](../README.md) · [`DOC_MAP.md`](../../DOC_MAP.md) · [`TODO.md`](../../TODO.md)
+7. Phase 0 結束 → `CHANGELOG.md` + `gate_report.md`
 
 ---
 
 ## 7. 給 Agent 的開工 prompt（複製用）
 
+**新 FT（寫 SPEC/PLAN）** — 複製下方。**0-design 完成後接 Phase 0a** → 用該 FT 的 [`PLAN.md`](../<slug>/PLAN.md) 內 **「給 Agent 的 Phase 0a 開工 prompt」**（例：[`gap-up-drive-trail/PLAN.md`](../gap-up-drive-trail/PLAN.md)）。
+
 ```text
 讀 ALPHA_RESEARCH_PLAYBOOK.md + strategy_diagnosis §8 + HOLDOUT_CONTRACT_v2 §2.1–§2.2。
-任務：<proposal-id> 已 human-approved → 寫 SPEC/PLAN + Phase 0a 實作 CF + tests。
+任務：<proposal-id> 已 human-approved → 寫 SPEC/PLAN → **停等 Phase 0-design 審閱 PASS** → Phase 0a CF + tests。
 MUST：SPEC 宣告 thesis_class（mean_robust | skew）；skew 須 §E.3 pre-register。
-MUST：Phase 0b code review PASS 後才跑 0c train。
-MUST NOT：每次 CF 前全庫 cache_audit（見 CACHE_AUDIT.md；僅 backfill/修復後增量掃）。
+MUST：0-design PASS 後才寫 *_counterfactual.py；Phase 0b code review PASS 後才跑 0c train。
+MUST NOT：SPEC/PLAN 未審即實作 CF、未 0b 即 train、每次 CF 前全庫 cache_audit（見 CACHE_AUDIT.md）。
 MUST：grid 僅 2025 train；產 gate_report + funnel + Long/Short + **post_entry_diagnosis 附錄**。
-MUST NOT：未 review 即 train、plugin、valid tune、重跑負面圖書館家族。
+MUST NOT：plugin、valid tune、重跑負面圖書館家族。
 ```
 
 ---
@@ -224,8 +313,9 @@ MUST NOT：未 review 即 train、plugin、valid tune、重跑負面圖書館家
 ## 8. 給人類的每週 15 分鐘
 
 1. 看 [`THESIS_QUEUE.md`](../../../workspaces/THESIS_QUEUE.md) — Pick / Reject / 改
-2. 若有 CF 跑完 — 只看 `gate_report.md` 第一頁決策表
-3. UAT 照跑；**不因 alpha 進度改 UAT 設定**
+2. 若有新 **SPEC/PLAN** — 做 Phase **0-design** 審閱（或委派資深 TXF / Bugbot）再准 Agent 寫 CF
+3. 若有 CF 跑完 — 只看 `gate_report.md` 第一頁決策表
+4. UAT 照跑；**不因 alpha 進度改 UAT 設定**
 
 ---
 

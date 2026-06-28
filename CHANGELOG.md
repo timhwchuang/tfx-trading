@@ -14,6 +14,10 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **Alpha Playbook v1.5（2026-06-28）**：§3.1b fingerprint 窗對齊 · outcome 拆分 · §5.2 exit-led 路徑；[`THESIS_BRIEF`](docs/features/_template/THESIS_BRIEF.md) §D.1/F.1/G；[`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §Fingerprint 審計。
+- **FT-017 MVPClosed 驗屍（2026-06-28）**：compress 錨點錯位 — 全年 0 compress bar · [`gate_report`](workspaces/cfa-baseline/gate_report.md) · [`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §FT-017。
+- **FT-017 Phase 0b（2026-06-28）**：Bugbot 5 findings 修復 — attack_signal 與 compress/regime 解耦 · 僅合格 entry 停止掃描 · entry_ts<12:30 · per-second vol_1s p50/p60 · quiet 窗含零量秒。Gap drive continuation skew — fingerprint W30 med **+13**（n=79）· grid 36/36 G1 fail · valid net **−9.28** → `gdc_fingerprint_pass_g1_fail`；[`gate_report`](workspaces/gdc-baseline/gate_report.md)。
+- **Alpha Playbook v1.4（2026-06-28）**：新增 **Phase 0-design** — SPEC/PLAN 產出後 MUST 審閱 PASS，才准 Phase 0a CF；THESIS_BRIEF §H.1。
 - **FT-014 MVPClosed（2026-06-28）**：Morning VWAP hold pullback — train 2025 fingerprint **n=7**（W30 med +38 · vol_shrink 瓶頸）→ `mvhp_fingerprint_fail`；grid 跳過；[`gate_report`](workspaces/mvhp-baseline/gate_report.md)。
 - **FT-014 SPEC/PLAN（2026-06-28）**：資深 TXF 設計審閱 — post_entry §5.3、outcome codes、`max_hold_sec=900`、valid 參考產物、gate_report 分節。
 - **FT-013 MVPClosed（2026-06-28）**：SuperTrend flip — train 2025 fingerprint W30 stop-less med **−10.0**（`stf_fingerprint_fail`）；grid 跳過；[`gate_report`](workspaces/stf-baseline/gate_report.md)。
@@ -27,6 +31,14 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-019 Draft（2026-06-29）**：P-012 Sweep FVG breakout trail — long-only · sweep→reclaim→5m FVG breakout · `fvg_mid_trail_skew_900s` · W900 fingerprint · [`sweep-fvg-breakout-trail/SPEC.md`](docs/features/sweep-fvg-breakout-trail/SPEC.md) · [`PLAN`](docs/features/sweep-fvg-breakout-trail/PLAN.md) · **0-design Conditional PASS**（2026-06-29 · 資深 TXF · P0 封印）。
+- **FT-018 Draft（2026-06-28）**：P-011 Gap up drive trail — **exit-led** · reuse FT-016 entry · `atr_trail_skew_900s` · long-only · W900 fingerprint · [`gap-up-drive-trail/SPEC.md`](docs/features/gap-up-drive-trail/SPEC.md) · [`PLAN`](docs/features/gap-up-drive-trail/PLAN.md) · **0-design Conditional PASS**（2026-06-29 · 資深 TXF · P0 封印）。
+- **FT-017 Phase 0a（2026-06-28）**：`compression_flow_attack_counterfactual.py` · `ft017_cfa_counterfactual.py` · 13 unit tests · `cfa-baseline/` 預留。
+- **FT-017 0-design PASS（2026-06-28）**：P-010 Compression flow attack — 資深 TXF 封印 A/B · `human-approved` → Phase 0a。
+- **FT-017 Draft（2026-06-28）**：P-010 Compression flow attack — **skew** · 死魚盤 30m compress + tick quiet/attack 追價 · [`compression-flow-attack/SPEC.md`](docs/features/compression-flow-attack/SPEC.md) · [`PLAN`](docs/features/compression-flow-attack/PLAN.md) · 0-design pending。
+- **FT-016 Phase 0（2026-06-28）**：`gap_drive_continuation_counterfactual.py` · `ft016_gdc_counterfactual.py` · `gdc-baseline/` fingerprint + grid JSON。
+- **FT-016 0-design PASS（2026-06-28）**：Gap drive continuation — 資深 TXF P0 封印（prior_close · open_0845 · retrace · skew valid 硬擋）→ 准 Phase 0a。
+- **FT-016 Draft（2026-06-28）**：P-005 Gap drive continuation — **skew** · Tim Pick · 0-design pending。
 - **FT-015 MVPClosed（2026-06-28）**：FVG retest pullback skew — train 2025 fingerprint **n=211** · W30 med **−0.0** → `frp_fingerprint_fail`；[`gate_report`](workspaces/fvg-baseline/gate_report.md)。
 - **FT-015 Draft（2026-06-28）**：P-009 FVG retest pullback — **skew** · Tim GO。
 - **FT-014 Phase 0（2026-06-28）**：`morning_vwap_hold_pullback_counterfactual.py` · `ft014_mvhp_counterfactual.py` · `mvhp-baseline/` fingerprint JSON。

@@ -139,6 +139,21 @@
       "mfe_median": 8.0,
       "mae_median": 7.0,
       "verdict": "direction_weak"
+    },
+    {
+      "ft": "017-cfa",
+      "file": "workspaces/cfa-baseline/reports/counterfactual_cfa_fingerprint.json",
+      "champion_key": "ck0p45_rc0p75_ar0p68_ms0p75_tp2",
+      "n": 0,
+      "barrier_gross_median": null,
+      "barrier_net_median": null,
+      "w5_median": null,
+      "w30_median": null,
+      "w30_net_median": null,
+      "mfe_median": null,
+      "mae_median": null,
+      "verdict": "spec_anchor_mismatch",
+      "notes": "compress_bars_0_of_36391; funnel attack=236 entry=0; see gate_report autopsy"
     }
   ],
   "errors": []

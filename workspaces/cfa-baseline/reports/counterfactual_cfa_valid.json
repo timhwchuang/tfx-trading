@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "thesis": "compression_flow_attack",
+  "thesis_class": "skew",
+  "variant": "cfa_fingerprint_v1",
+  "mode": "fingerprint",
+  "from_date": "2026-01-01",
+  "to_date": "2026-03-31",
+  "code": "TMFR1",
+  "friction_points_per_round_trip": 5.0,
+  "entry_model": "tick_chase_on_attack",
+  "sim_params": {
+    "entry_window": "10:00:00–12:30:00",
+    "compress_lookback_min": 30,
+    "quiet_window_sec": 60,
+    "attack_window_sec": 60,
+    "max_trades_per_day": 1,
+    "atr_period": 20,
+    "atr_compress_floor": 10.0,
+    "min_atr_pts": 25.0,
+    "min_stop_pts": 8.0,
+    "exit_variant": "atr_barrier_900s",
+    "max_hold_sec": 900
+  },
+  "fingerprint_params": {
+    "compress_k": 0.45,
+    "atr_regime_cap": 0.75,
+    "attack_ratio_min": 0.68,
+    "min_stop_atr_k": 0.75,
+    "tp_atr_k": 2.0
+  },
+  "fingerprint_gate": {
+    "pass": false,
+    "min_n": 15,
+    "w30_stop_less_gross_median_min": 0,
+    "w30_stop_less_gross_median": null,
+    "n": 0
+  },
+  "phase0_gate": {
+    "pass": false,
+    "gross_mean_min": 5.0,
+    "net_mean_min": 0.0,
+    "min_n": 15,
+    "thesis_class": "skew",
+    "best_passing": null
+  },
+  "skew_gate_by_param": {
+    "ck0p45_rc0p75_ar0p68_ms0p75_tp2": {
+      "disqualified": true,
+      "reasons": [
+        "no_rows"
+      ]
+    }
+  },
+  "entry_slippage_sensitivity_by_param": {
+    "ck0p45_rc0p75_ar0p68_ms0p75_tp2": {
+      "extra_0": null,
+      "extra_1": null,
+      "extra_2": null
+    }
+  },
+  "outcome_hint": "cfa_fingerprint_fail",
+  "summary_by_param": {
+    "ck0p45_rc0p75_ar0p68_ms0p75_tp2": {
+      "atr_barrier_900s": {
+        "n": 0,
+        "gross_mean": null,
+        "gross_median": null,
+        "net_mean": null,
+        "net_median": null,
+        "gross_total": 0,
+        "net_total": 0
+      }
+    }
+  },
+  "post_entry_diagnosis_by_param": {
+    "ck0p45_rc0p75_ar0p68_ms0p75_tp2": {
+      "n": 0,
+      "by_direction": {},
+      "interpretation": {
+        "verdict": "insufficient_n",
+        "notes": [
+          "n < 5"
+        ]
+      }
+    }
+  },
+  "funnel_by_param": {
+    "ck0p45_rc0p75_ar0p68_ms0p75_tp2": {
+      "totals": {
+        "days_with_session": 54,
+        "compress_pass": 0,
+        "regime_pass": 36,
+        "quiet_pass": 45,
+        "attack_signal": 37,
+        "entry": 0,
+        "compress_to_entry_rate": null
+      }
+    }
+  },
+  "entry_count_by_param": {
+    "ck0p45_rc0p75_ar0p68_ms0p75_tp2": 0
+  }
+}
