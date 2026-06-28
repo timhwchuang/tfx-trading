@@ -18,7 +18,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
-- **Holdout 契約 v2（2026-06-28）**：[`HOLDOUT_CONTRACT_v2.md`](docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) — train 01–03 / valid 04 / holdout **05+06 合併**；冠軍 median·方向門檻；2025 WFO backfill。 [`DATA_SPLIT.md`](workspaces/DATA_SPLIT.md) 同步。
+- **Holdout 契約 v2.1（2026-06-28）**：[`HOLDOUT_CONTRACT_v2.md`](docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) — **2025 全年 train**（247 日）· **2026 Q1 valid** · **2026 Q2 holdout**（04–06）；§2.0 legacy 封存 FT-006～010。[`DATA_SPLIT.md`](workspaces/DATA_SPLIT.md) 同步。
 - **FT-003 Phase 3.6 進場漏斗 Methods SSOT**：[`ENTRY_FUNNEL_METRICS.md`](docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)（armed 順勢窗口、回踩漏斗、timeout、vol_1s 操作定義）；PLAN Phase 3.6 四平面 §A–§D；SPEC §4.6 產物 `entry_funnel.json`；SHARED_ASSUMPTIONS **v1.3** §4.2；模板 `volatility_baseline.md` §C、`strategy_diagnosis.md` §6；AGENT_ROSTER §1.7 更新。
 - **FT-003 Phase 3.6 §C 進場漏斗 pipeline**：`reporting/entry_funnel.py`（`IndicatorState` tick 回放、armed forward W30/60/180/300、vol 分位、§C markdown merge）；`ft003_episode_diagnosis.py` CLI → `workspaces/reports/entry_funnel.json` + `VOLATILITY_BASELINE.md` §C。
 - **FT-003 Phase 3.6 四平面診斷收尾**：`VOLATILITY_BASELINE.md` §A–§D 數據填妥（conservative valid 進場漏斗 + 三 agent 出場診斷）；`cache_audit --code TMFR1` 無 FAIL；[`workspaces/strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §1–§6 合成敘事（armed 順勢≠net edge、回踩瓶頸、vol 門檻非綁定、與尺度錯配雙重 squeeze → `grid_no_viable_solution`）— **§Decision 待人類簽核**。

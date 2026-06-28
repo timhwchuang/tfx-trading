@@ -58,23 +58,25 @@ audit_schema_version: null
 
 調參與 AI 競賽 **MUST** 遵守下列切分；違反的 run **不得** 進入 leaderboard 或「當選 config」。
 
-### 4.1 日期切分（2026-01～06 · 見 HOLDOUT v2）
+### 4.1 日期切分（v2.1 · 2025 train 落地後）
 
-> **策略 thesis（FT-004+）完整門檻**：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md)（train 01–03 / valid 04 / holdout **05–06 合併** / 冠軍 median·方向規則）。
+> **策略 thesis（FT-011+）**：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md) **§2.1**（2025 train · 2026 Q1 valid · 2026 Q2 holdout）。  
+> **已結案 FT**：同檔 **§2.0 legacy** — 不重跑。
 
-| 區間 | 建議月份 | 用途 |
-|------|----------|------|
-| **Train** | 2026-01、02、03 | Grid search、`param_sweep` 內 in-sample 觀察 |
-| **Valid** | 2026-04 | **唯一** 用於 agent 競賽排名與迭代 |
-| **Holdout** | 2026-05、**06** | **封印**（v2：**兩月合併**評估；單月僅參考） |
-| **WFO 歷史** | 2025-01～12 | backfill 後滾動穩健性（**禁止**事後 tune 已結案 thesis） |
+| 區間 | 日曆 | 用途 |
+|------|------|------|
+| **Train** | **2025-01～12**（247 日） | Phase 0 主判 G1–G3 |
+| **Valid** | **2026-01～03** | overfit 探測 |
+| **Holdout** | **2026-04～06** | 封印（三月合併） |
+| **Confirm** | 2026-07+ | Paper |
 
 ```text
-Jan Feb Mar  →  train
-Apr          →  valid
-May Jun      →  holdout （v2 合併；06 落地後啟用）
-2025         →  WFO only
+2025 全年     →  train
+2026 Q1       →  valid
+2026 Q2       →  holdout
 ```
+
+**FT-003 競賽**（不變）：2026-01～03 train · 2026-04 valid · 2026-05 holdout。
 
 ### 4.2 其他防過擬合
 

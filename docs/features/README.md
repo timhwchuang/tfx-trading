@@ -53,7 +53,7 @@ stateDiagram-v2
 4. 更新 [`DOC_MAP.md`](../DOC_MAP.md) §Features
 5. 可選：在 [`TODO.md`](../TODO.md) 加一行連結至 PLAN
 6. Phase 0 結束時 commit；`CHANGELOG.md` 記 docs 條目
-7. 新 **策略 thesis**（FT-004+）**MUST** 連結 [`HOLDOUT_CONTRACT_v2.md`](ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)
+7. 新 **策略 thesis**（**FT-011+**）**MUST** 連結 [`HOLDOUT_CONTRACT_v2.md`](ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) **§2.1**
 
 **命名**：slug 用 kebab-case、描述能力（例：`audit-event-replay`），不要用 `misc` 或日期。
 
