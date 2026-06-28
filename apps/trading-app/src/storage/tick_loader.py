@@ -138,7 +138,7 @@ def fetch_ticks_for_date(
             )
         )
     ticks.sort(key=lambda t: t.datetime)
-    return ticks
+    return [t for t in ticks if t.datetime.date() == date]
 
 
 def _tick_in_window(

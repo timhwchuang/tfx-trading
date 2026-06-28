@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "thesis": "session_confluence_breakout",
+  "variant": "v1_scb_long_only",
+  "from_date": "2026-01-01",
+  "to_date": "2026-03-31",
+  "code": "TMFR1",
+  "direction": "Long",
+  "friction_points_per_round_trip": 5.0,
+  "sim_params": {
+    "opening_range_minutes": [
+      20,
+      30
+    ],
+    "volume_mult": 1.4,
+    "min_atr_threshold_points": 20.0,
+    "hard_stop_atr_k": 1.2,
+    "hard_stop_floor_pts": 10.0,
+    "tp_atr_k": 1.8,
+    "max_hold_sec": 1200,
+    "vwap_slope_bars": 3,
+    "morning_window": "08:55:00..10:30:00",
+    "close_window": "13:00:00..13:35:00",
+    "exit_variant": "atr_barrier_1200s"
+  },
+  "phase0_gate": {
+    "pass": true,
+    "gross_mean_min": 5.0,
+    "net_mean_min": 0.0,
+    "min_n": 30,
+    "best_passing": {
+      "param": "rm30",
+      "n": 31,
+      "gross_mean": 33.47,
+      "net_mean": 28.47,
+      "gross_median": 51.04,
+      "disqualify": [],
+      "unstable_months": []
+    },
+    "candidates": [
+      {
+        "param": "rm20",
+        "n": 35,
+        "gross_mean": 0.69,
+        "net_mean": -4.31,
+        "gross_median": -24.51,
+        "disqualify": [
+          "gross_median_le_neg5",
+          "Long_net_mean_lt_neg3"
+        ],
+        "unstable_months": [
+          "2026-03"
+        ]
+      },
+      {
+        "param": "rm30",
+        "n": 31,
+        "gross_mean": 33.47,
+        "net_mean": 28.47,
+        "gross_median": 51.04,
+        "disqualify": [],
+        "unstable_months": []
+      }
+    ]
+  },
+  "phase0_gate_primary": "v2.1_train_2025",
+  "summary_by_param": {
+    "rm20": {
+      "atr_barrier_1200s": {
+        "n": 35,
+        "gross_mean": 0.69,
+        "gross_median": -24.51,
+        "net_mean": -4.31,
+        "net_median": -29.51,
+        "gross_total": 24.1,
+        "net_total": -150.9,
+        "quick_stop_loss_rate": 0.2286
+      }
+    },
+    "rm30": {
+      "atr_barrier_1200s": {
+        "n": 31,
+        "gross_mean": 33.47,
+        "gross_median": 51.04,
+        "net_mean": 28.47,
+        "net_median": 46.04,
+        "gross_total": 1037.5,
+        "net_total": 882.5,
+        "quick_stop_loss_rate": 0.0323
+      }
+    }
+  },
+  "summary_by_session_bucket": {
+    "rm20": {
+      "close": {
+        "atr_barrier_1200s": {
+          "n": 1,
+          "gross_mean": 42.94,
+          "gross_median": 42.94,
+          "net_mean": 37.94,
+          "net_median": 37.94,
+          "gross_total": 42.9,
+          "net_total": 37.9,
+          "quick_stop_loss_rate": 0.0
+        }
+      },
+      "morning": {
+        "atr_barrier_1200s": {
+          "n": 34,
+          "gross_mean": -0.55,
+          "gross_median": -25.24,
+          "net_mean": -5.55,
+          "net_median": -30.24,
+          "gross_total": -18.8,
+          "net_total": -188.8,
+          "quick_stop_loss_rate": 0.2353
+        }
+      }
+    },
+    "rm30": {
+      "close": {
+        "atr_barrier_1200s": {
+          "n": 1,
+          "gross_mean": 65.57,
+          "gross_median": 65.57,
+          "net_mean": 60.57,
+          "net_median": 60.57,
+          "gross_total": 65.6,
+          "net_total": 60.6,
+          "quick_stop_loss_rate": 0.0
+        }
+      },
+      "morning": {
+        "atr_barrier_1200s": {
+          "n": 30,
+          "gross_mean": 32.4,
+          "gross_median": 49.69,
+          "net_mean": 27.4,
+          "net_median": 44.69,
+          "gross_total": 971.9,
+          "net_total": 821.9,
+          "quick_stop_loss_rate": 0.0333
+        }
+      }
+    }
+  },
+  "entry_count_by_param": {
+    "rm20": 35,
+    "rm30": 31
+  },
+  "funnel_by_param": {
+    "rm20": {
+      "days": 54,
+      "in_session_window": 54,
+      "post_range": 54,
+      "trend_ok": 53,
+      "breakout_ok": 41,
+      "vol_ok": 35,
+      "entry": 35,
+      "in_session_window_rate": 1.0,
+      "post_range_rate": 1.0,
+      "trend_ok_rate": 0.9815,
+      "breakout_ok_rate": 0.7593,
+      "vol_ok_rate": 0.6481,
+      "entry_rate": 0.6481
+    },
+    "rm30": {
+      "days": 54,
+      "in_session_window": 54,
+      "post_range": 54,
+      "trend_ok": 53,
+      "breakout_ok": 37,
+      "vol_ok": 31,
+      "entry": 31,
+      "in_session_window_rate": 1.0,
+      "post_range_rate": 1.0,
+      "trend_ok_rate": 0.9815,
+      "breakout_ok_rate": 0.6852,
+      "vol_ok_rate": 0.5741,
+      "entry_rate": 0.5741
+    }
+  }
+}

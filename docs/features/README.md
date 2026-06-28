@@ -17,6 +17,7 @@
 | FT-008 | [short-breakout](short-breakout/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §8](short-breakout/SPEC.md) · [`gate_report`](../../workspaces/sb-baseline/gate_report.md) |
 | FT-009 | [opening-range-breakout](opening-range-breakout/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §8](opening-range-breakout/SPEC.md) · [PLAN](opening-range-breakout/PLAN.md) · [`gate_report`](../../workspaces/orb-baseline/gate_report.md) |
 | FT-010 | [vwap-trend-pullback](vwap-trend-pullback/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §11](vwap-trend-pullback/SPEC.md) · [PLAN](vwap-trend-pullback/PLAN.md) · [`gate_report`](../../workspaces/vtp-baseline/gate_report.md) |
+| FT-011 | [session-confluence-breakout](session-confluence-breakout/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §10](session-confluence-breakout/SPEC.md) · [PLAN](session-confluence-breakout/PLAN.md) · [`gate_report`](../../workspaces/scb-baseline/gate_report.md) |
 
 ## 狀態定義
 

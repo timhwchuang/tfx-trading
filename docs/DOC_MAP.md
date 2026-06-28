@@ -77,6 +77,7 @@
 | FT-008 | short-breakout | MVPClosed | [SPEC §8](features/short-breakout/SPEC.md) · [`gate_report`](../workspaces/sb-baseline/gate_report.md) |
 | FT-009 | opening-range-breakout | **MVPClosed** | [SPEC §8](features/opening-range-breakout/SPEC.md) · [`orb-baseline/`](../workspaces/orb-baseline/) |
 | FT-010 | vwap-trend-pullback | **MVPClosed** | [SPEC §11](features/vwap-trend-pullback/SPEC.md) · [`vtp-baseline/`](../workspaces/vtp-baseline/) |
+| FT-011 | session-confluence-breakout | **MVPClosed** | [SPEC §10](features/session-confluence-breakout/SPEC.md) · [`scb-baseline/`](../workspaces/scb-baseline/) |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 

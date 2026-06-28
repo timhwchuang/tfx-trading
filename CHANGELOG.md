@@ -18,6 +18,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-011 MVPClosed（2026-06-28）**：Session Confluence Breakout — 2025 train 未過（rm30 net −3.01、median 負）；valid Q1 rm30 overfit_suspect；見 [`SPEC §10`](docs/features/session-confluence-breakout/SPEC.md)、[`gate_report`](workspaces/scb-baseline/gate_report.md)。
+- **FT-011 Draft（2026-06-28）**：Session Confluence Breakout（Thesis H）— [`SPEC`](docs/features/session-confluence-breakout/SPEC.md) · [`PLAN`](docs/features/session-confluence-breakout/PLAN.md)；Holdout v2.1（2025 train · 2026 Q1 valid · 2026 Q2 holdout）；Phase 0 long-only；`workspaces/scb-baseline/`。
 - **Holdout 契約 v2.1（2026-06-28）**：[`HOLDOUT_CONTRACT_v2.md`](docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) — **2025 全年 train**（247 日）· **2026 Q1 valid** · **2026 Q2 holdout**（04–06）；§2.0 legacy 封存 FT-006～010。[`DATA_SPLIT.md`](workspaces/DATA_SPLIT.md) 同步。
 - **FT-003 Phase 3.6 進場漏斗 Methods SSOT**：[`ENTRY_FUNNEL_METRICS.md`](docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)（armed 順勢窗口、回踩漏斗、timeout、vol_1s 操作定義）；PLAN Phase 3.6 四平面 §A–§D；SPEC §4.6 產物 `entry_funnel.json`；SHARED_ASSUMPTIONS **v1.3** §4.2；模板 `volatility_baseline.md` §C、`strategy_diagnosis.md` §6；AGENT_ROSTER §1.7 更新。
 - **FT-003 Phase 3.6 §C 進場漏斗 pipeline**：`reporting/entry_funnel.py`（`IndicatorState` tick 回放、armed forward W30/60/180/300、vol 分位、§C markdown merge）；`ft003_episode_diagnosis.py` CLI → `workspaces/reports/entry_funnel.json` + `VOLATILITY_BASELINE.md` §C。

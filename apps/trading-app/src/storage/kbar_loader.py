@@ -269,7 +269,8 @@ def fetch_kbars_for_date(
         end=date.isoformat(),
         timeout=_KBARS_API_TIMEOUT_MS,
     )
-    return kbars_raw_to_records(raw)
+    bars = kbars_raw_to_records(raw)
+    return [b for b in bars if b.ts.date() == date]
 
 
 def download_and_cache_kbars(

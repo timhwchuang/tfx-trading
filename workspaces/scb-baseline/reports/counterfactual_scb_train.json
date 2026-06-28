@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "thesis": "session_confluence_breakout",
+  "variant": "v1_scb_long_only",
+  "from_date": "2025-01-01",
+  "to_date": "2025-12-31",
+  "code": "TMFR1",
+  "direction": "Long",
+  "friction_points_per_round_trip": 5.0,
+  "sim_params": {
+    "opening_range_minutes": [
+      20,
+      30
+    ],
+    "volume_mult": 1.4,
+    "min_atr_threshold_points": 20.0,
+    "hard_stop_atr_k": 1.2,
+    "hard_stop_floor_pts": 10.0,
+    "tp_atr_k": 1.8,
+    "max_hold_sec": 1200,
+    "vwap_slope_bars": 3,
+    "morning_window": "08:55:00..10:30:00",
+    "close_window": "13:00:00..13:35:00",
+    "exit_variant": "atr_barrier_1200s"
+  },
+  "phase0_gate": {
+    "pass": false,
+    "gross_mean_min": 5.0,
+    "net_mean_min": 0.0,
+    "min_n": 30,
+    "best_passing": null,
+    "candidates": [
+      {
+        "param": "rm20",
+        "n": 72,
+        "gross_mean": 0.39,
+        "net_mean": -4.61,
+        "gross_median": -24.65,
+        "disqualify": [
+          "gross_median_le_neg5",
+          "Long_net_mean_lt_neg3"
+        ],
+        "unstable_months": [
+          "2025-01",
+          "2025-03",
+          "2025-04",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10"
+        ]
+      },
+      {
+        "param": "rm30",
+        "n": 46,
+        "gross_mean": 1.99,
+        "net_mean": -3.01,
+        "gross_median": -24.05,
+        "disqualify": [
+          "gross_median_le_neg5",
+          "Long_net_mean_lt_neg3"
+        ],
+        "unstable_months": [
+          "2025-01",
+          "2025-03",
+          "2025-04",
+          "2025-07"
+        ]
+      }
+    ]
+  },
+  "phase0_gate_primary": "v2.1_train_2025",
+  "summary_by_param": {
+    "rm20": {
+      "atr_barrier_1200s": {
+        "n": 72,
+        "gross_mean": 0.39,
+        "gross_median": -24.65,
+        "net_mean": -4.61,
+        "net_median": -29.65,
+        "gross_total": 27.9,
+        "net_total": -332.1,
+        "quick_stop_loss_rate": 0.0694
+      }
+    },
+    "rm30": {
+      "atr_barrier_1200s": {
+        "n": 46,
+        "gross_mean": 1.99,
+        "gross_median": -24.05,
+        "net_mean": -3.01,
+        "net_median": -29.05,
+        "gross_total": 91.5,
+        "net_total": -138.5,
+        "quick_stop_loss_rate": 0.0217
+      }
+    }
+  },
+  "summary_by_session_bucket": {
+    "rm20": {
+      "morning": {
+        "atr_barrier_1200s": {
+          "n": 72,
+          "gross_mean": 0.39,
+          "gross_median": -24.65,
+          "net_mean": -4.61,
+          "net_median": -29.65,
+          "gross_total": 27.9,
+          "net_total": -332.1,
+          "quick_stop_loss_rate": 0.0694
+        }
+      }
+    },
+    "rm30": {
+      "morning": {
+        "atr_barrier_1200s": {
+          "n": 46,
+          "gross_mean": 1.99,
+          "gross_median": -24.05,
+          "net_mean": -3.01,
+          "net_median": -29.05,
+          "gross_total": 91.5,
+          "net_total": -138.5,
+          "quick_stop_loss_rate": 0.0217
+        }
+      }
+    }
+  },
+  "entry_count_by_param": {
+    "rm20": 72,
+    "rm30": 46
+  },
+  "funnel_by_param": {
+    "rm20": {
+      "days": 241,
+      "in_session_window": 241,
+      "post_range": 241,
+      "trend_ok": 228,
+      "breakout_ok": 162,
+      "vol_ok": 72,
+      "entry": 72,
+      "in_session_window_rate": 1.0,
+      "post_range_rate": 1.0,
+      "trend_ok_rate": 0.9461,
+      "breakout_ok_rate": 0.6722,
+      "vol_ok_rate": 0.2988,
+      "entry_rate": 0.2988
+    },
+    "rm30": {
+      "days": 241,
+      "in_session_window": 241,
+      "post_range": 241,
+      "trend_ok": 222,
+      "breakout_ok": 143,
+      "vol_ok": 46,
+      "entry": 46,
+      "in_session_window_rate": 1.0,
+      "post_range_rate": 1.0,
+      "trend_ok_rate": 0.9212,
+      "breakout_ok_rate": 0.5934,
+      "vol_ok_rate": 0.1909,
+      "entry_rate": 0.1909
+    }
+  }
+}

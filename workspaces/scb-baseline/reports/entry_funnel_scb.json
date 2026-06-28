@@ -1,0 +1,66 @@
+{
+  "train": {
+    "rm20": {
+      "days": 241,
+      "in_session_window": 241,
+      "post_range": 241,
+      "trend_ok": 228,
+      "breakout_ok": 162,
+      "vol_ok": 72,
+      "entry": 72,
+      "in_session_window_rate": 1.0,
+      "post_range_rate": 1.0,
+      "trend_ok_rate": 0.9461,
+      "breakout_ok_rate": 0.6722,
+      "vol_ok_rate": 0.2988,
+      "entry_rate": 0.2988
+    },
+    "rm30": {
+      "days": 241,
+      "in_session_window": 241,
+      "post_range": 241,
+      "trend_ok": 222,
+      "breakout_ok": 143,
+      "vol_ok": 46,
+      "entry": 46,
+      "in_session_window_rate": 1.0,
+      "post_range_rate": 1.0,
+      "trend_ok_rate": 0.9212,
+      "breakout_ok_rate": 0.5934,
+      "vol_ok_rate": 0.1909,
+      "entry_rate": 0.1909
+    }
+  },
+  "valid": {
+    "rm20": {
+      "days": 54,
+      "in_session_window": 54,
+      "post_range": 54,
+      "trend_ok": 53,
+      "breakout_ok": 41,
+      "vol_ok": 35,
+      "entry": 35,
+      "in_session_window_rate": 1.0,
+      "post_range_rate": 1.0,
+      "trend_ok_rate": 0.9815,
+      "breakout_ok_rate": 0.7593,
+      "vol_ok_rate": 0.6481,
+      "entry_rate": 0.6481
+    },
+    "rm30": {
+      "days": 54,
+      "in_session_window": 54,
+      "post_range": 54,
+      "trend_ok": 53,
+      "breakout_ok": 37,
+      "vol_ok": 31,
+      "entry": 31,
+      "in_session_window_rate": 1.0,
+      "post_range_rate": 1.0,
+      "trend_ok_rate": 0.9815,
+      "breakout_ok_rate": 0.6852,
+      "vol_ok_rate": 0.5741,
+      "entry_rate": 0.5741
+    }
+  }
+}
