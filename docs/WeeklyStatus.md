@@ -7,6 +7,33 @@
 
 ---
 
+### 2026-06-28（FT-007 放棄 — Thesis D MVPClosed）
+
+**決策**
+- 人類 **放棄** Thesis D（1m 衰竭 / tick flow flip / v3 過濾）。
+- v2 pilot：108 筆 net **−3.75**；v3_all 最佳 net **−0.07**（n=15）— 仍未過 Phase 0。
+- **不**跑 01–04 baseline、**不**開 plugin。
+
+**文件**
+- [`SPEC.md`](features/momentum-exhaustion-reversal/SPEC.md) §8 · [`gate_report.md`](../workspaces/mer-baseline/gate_report.md)
+
+---
+
+### 2026-06-28（FT-007 開案 — Thesis D 1m 衰竭吸收反轉）
+
+**開案**
+- **Thesis D**：1m 連續強勢 K → 衰竭 climax → tick 吸收 → 短線 fade（scalp TP/SL）。
+- Phase 0：5 日 pilot counterfactual；通過才開 plugin。
+- Gate 設計：**01–04 合計** + 分月診斷 + **05 holdout**。
+
+**文件**
+- [`SPEC.md`](features/momentum-exhaustion-reversal/SPEC.md) §8 · [`gate_report.md`](../workspaces/mer-baseline/gate_report.md)
+
+**Phase 0 結果**
+- Pilot 5 日僅 **2** 個事件（impulse_bars 3/4 各 1）；gross **−10**/趟（全停損）→ **No-Go**，不開 plugin、不跑 01–04 baseline。
+
+---
+
 ### 2026-06-28（FT-006 holdout — 2026-05 未過，overfit suspect）
 
 **結果**

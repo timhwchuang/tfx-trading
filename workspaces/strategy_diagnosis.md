@@ -127,7 +127,9 @@
 
 **FT-005 結論（2026-06-28）**：Thesis B（timeout 當 tick 進場）**No-Go at Phase 0** — timeout cohort `timeout_tick` CF gross **+4.10**/趟、net **-0.90**；延遲 180s 摧毀 armed 時點 edge（同子集 armed tick **+36**/趟）。Plugin **未實作**；見 [`tc-baseline/gate_report.md`](tc-baseline/gate_report.md)、[`docs/features/timeout-continuation/SPEC.md`](../docs/features/timeout-continuation/SPEC.md) §8。Strategy v2 breakout 路徑（armed / timeout 雙 thesis）**均否決** → 下一 thesis：**均值回歸**。
 
-**FT-006 結論（2026-06-28）**：Thesis C（`vwap_stretch_fade`）valid **G1–G4 全過**（4 月 gross **+5.43**、net **+0.43**、82 趟）；**holdout 2026-05 未過**（123 趟 gross **+4.26**、net **−0.74**、G3 超頻）→ **overfit suspect**。Plugin **凍結研究用**；UAT 維持 v1。見 [`vsf-baseline/gate_report.md`](vsf-baseline/gate_report.md)、[`docs/features/vwap-stretch-fade/SPEC.md`](../docs/features/vwap-stretch-fade/SPEC.md) §8。
+**FT-006 結論（2026-06-28）**：Thesis C（`vwap_stretch_fade`）valid **G1–G4 全過**（4 月 gross **+5.43**、net **+0.43**、82 趟）；**holdout 2026-05 未過**（123 趟 gross **+4.26**、net **−0.74**）→ **overfit suspect**。Plugin **凍結研究用**；UAT 維持 v1。見 [`vsf-baseline/gate_report.md`](vsf-baseline/gate_report.md)。
+
+**FT-007 結論（2026-06-28）**：Thesis D（flow flip / 吸收反轉）**人類放棄** — v1/v2/v3 Phase 0 均未過 gate；v3_all 最佳 net **−0.07**（n=15）。Plugin **未實作**。見 [`mer-baseline/gate_report.md`](mer-baseline/gate_report.md)。
 
 ---
 

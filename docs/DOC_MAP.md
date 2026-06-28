@@ -71,6 +71,7 @@
 | FT-004 | momentum-continuation | **MVPClosed** | [SPEC](features/momentum-continuation/SPEC.md) §8 · [PLAN](features/momentum-continuation/PLAN.md) · [`mc-baseline/`](../workspaces/mc-baseline/) |
 | FT-005 | timeout-continuation | **MVPClosed** | [SPEC](features/timeout-continuation/SPEC.md) §8 · [PLAN](features/timeout-continuation/PLAN.md) · [`tc-baseline/`](../workspaces/tc-baseline/) |
 | FT-006 | vwap-stretch-fade | Holdout 未過 | [SPEC §8](features/vwap-stretch-fade/SPEC.md) · [`gate_report`](../workspaces/vsf-baseline/gate_report.md) |
+| FT-007 | momentum-exhaustion-reversal | MVPClosed | [SPEC §8](features/momentum-exhaustion-reversal/SPEC.md) · [`gate_report`](../workspaces/mer-baseline/gate_report.md) |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 

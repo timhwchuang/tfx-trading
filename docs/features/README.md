@@ -13,6 +13,7 @@
 | FT-004 | [momentum-continuation](momentum-continuation/SPEC.md) | **MVPClosed** | 2026-06-27 | Pilot-prep | [SPEC](momentum-continuation/SPEC.md) §8 · [PLAN](momentum-continuation/PLAN.md) · [`gate_report`](../../workspaces/mc-baseline/gate_report.md) |
 | FT-005 | [timeout-continuation](timeout-continuation/SPEC.md) | **MVPClosed** | 2026-06-28 | Pilot-prep | [SPEC](timeout-continuation/SPEC.md) §8 · [PLAN](timeout-continuation/PLAN.md) · [`gate_report`](../../workspaces/tc-baseline/gate_report.md) |
 | FT-006 | [vwap-stretch-fade](vwap-stretch-fade/SPEC.md) | **Holdout 未過** | 2026-06-28 | Pilot-prep | [SPEC](vwap-stretch-fade/SPEC.md) §8 · [`gate_report`](../../workspaces/vsf-baseline/gate_report.md) |
+| FT-007 | [momentum-exhaustion-reversal](momentum-exhaustion-reversal/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC](momentum-exhaustion-reversal/SPEC.md) §8 · [`gate_report`](../../workspaces/mer-baseline/gate_report.md) |
 
 ## 狀態定義
 

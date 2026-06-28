@@ -26,6 +26,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 - **FT-004 Phase 0–2**：`strategy-momentum-continuation` plugin；`ft004_*` 腳本；[`mc-baseline/gate_report.md`](workspaces/mc-baseline/gate_report.md)。
 - **FT-004 MVPClosed（2026-06-28）**：Thesis A **No-Go**（`thesis_a_no_go`）；plugin 凍結研究用、不進 Live；見 [`SPEC §8`](docs/features/momentum-continuation/SPEC.md)。
 - **FT-005 MVPClosed（2026-06-28）**：Thesis B **No-Go at Phase 0**（`thesis_b_phase0_no_go`）；見 [`SPEC §8`](docs/features/timeout-continuation/SPEC.md)。
+- **FT-007 放棄（2026-06-28）**：Thesis D MVPClosed — v1/v2/v3 Phase 0 未過；見 [`SPEC §8`](docs/features/momentum-exhaustion-reversal/SPEC.md)、[`mer-baseline/gate_report`](workspaces/mer-baseline/gate_report.md)。
+- **FT-007 v2 flow flip pilot（2026-06-28）**：108 筆 / 153 flips；net 仍負；close_1h buy-fade 子集 gross +5.5（n=14）；見 [`counterfactual_flow_flip_pilot.json`](workspaces/mer-baseline/reports/counterfactual_flow_flip_pilot.json)。
 - **FT-006 holdout（2026-06-28）**：2026-05 plugin baseline **未過** G1/G2/G3（123 趟、net **−0.74**）；valid 仍過 → overfit suspect；見 [`gate_report`](workspaces/vsf-baseline/gate_report.md)。
 - **FT-006 Go Pilot-prep（2026-06-28）**：`strategy-vwap-stretch-fade` plugin + Phase 0–2；valid G1–G4 全過；見 [`SPEC §8`](docs/features/vwap-stretch-fade/SPEC.md)。
 - **FT-003 Phase 3.6 市場尺度診斷**：[`PLAN.md`](docs/features/ai-backtest-tuning/PLAN.md) Phase 3.6（Gate、P0/P1/P2 指標、CLI、第二輪 grid 提案）；[`SPEC.md`](docs/features/ai-backtest-tuning/SPEC.md) §4.6；SHARED_ASSUMPTIONS **v1.2** §4.1；`ft003_volatility_baseline.py` / `ft003_exit_diagnosis.py`；[`workspaces/VOLATILITY_BASELINE.md`](workspaces/VOLATILITY_BASELINE.md) 模板與 [`strategy_diagnosis.md`](workspaces/_template/strategy_diagnosis.md)；AGENT_ROSTER §1.7。

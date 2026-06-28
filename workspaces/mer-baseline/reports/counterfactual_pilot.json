@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "thesis": "momentum_exhaustion_reversal",
+  "from_date": "2026-01-15",
+  "to_date": "2026-04-22",
+  "dates": [
+    "2026-01-15",
+    "2026-02-20",
+    "2026-03-12",
+    "2026-04-08",
+    "2026-04-22"
+  ],
+  "code": "TMFR1",
+  "friction_points_per_round_trip": 5.0,
+  "sim_params": {
+    "impulse_bars_list": [
+      3,
+      4
+    ],
+    "impulse_body_atr_k": 1.0,
+    "impulse_vol_pct": 70.0,
+    "absorb_window_sec": 20,
+    "absorb_max_move_atr_k": 0.25,
+    "absorb_min_vol": 80,
+    "tp_points": 12.0,
+    "sl_points": 10.0,
+    "max_hold_sec": 120,
+    "cooldown_sec": 180
+  },
+  "phase0_gate": {
+    "pass": false,
+    "gross_mean_min": 5.0,
+    "net_mean_min": 0.0,
+    "min_n": 20,
+    "best_passing": null
+  },
+  "summary_by_impulse_bars": {
+    "3": {
+      "scalp": {
+        "n": 1,
+        "gross_mean": -10.0,
+        "gross_median": -10.0,
+        "net_mean": -15.0,
+        "net_median": -15.0,
+        "gross_total": -10.0,
+        "net_total": -15.0
+      }
+    },
+    "4": {
+      "scalp": {
+        "n": 1,
+        "gross_mean": -10.0,
+        "gross_median": -10.0,
+        "net_mean": -15.0,
+        "net_median": -15.0,
+        "gross_total": -10.0,
+        "net_total": -15.0
+      }
+    }
+  },
+  "summary_by_bars_and_bucket": {
+    "3": {
+      "mid": {
+        "scalp": {
+          "n": 1,
+          "gross_mean": -10.0,
+          "gross_median": -10.0,
+          "net_mean": -15.0,
+          "net_median": -15.0,
+          "gross_total": -10.0,
+          "net_total": -15.0
+        }
+      }
+    },
+    "4": {
+      "mid": {
+        "scalp": {
+          "n": 1,
+          "gross_mean": -10.0,
+          "gross_median": -10.0,
+          "net_mean": -15.0,
+          "net_median": -15.0,
+          "gross_total": -10.0,
+          "net_total": -15.0
+        }
+      }
+    }
+  },
+  "summary_by_direction": {
+    "3": {
+      "Short": {
+        "scalp": {
+          "n": 1,
+          "gross_mean": -10.0,
+          "gross_median": -10.0,
+          "net_mean": -15.0,
+          "net_median": -15.0,
+          "gross_total": -10.0,
+          "net_total": -15.0
+        }
+      }
+    },
+    "4": {
+      "Short": {
+        "scalp": {
+          "n": 1,
+          "gross_mean": -10.0,
+          "gross_median": -10.0,
+          "net_mean": -15.0,
+          "net_median": -15.0,
+          "gross_total": -10.0,
+          "net_total": -15.0
+        }
+      }
+    }
+  },
+  "entry_count_by_bars": {
+    "3": 1,
+    "4": 1
+  },
+  "entries": {
+    "3": [
+      {
+        "day": "2026-04-08",
+        "ts": 1775612180,
+        "impulse_dir": "Long",
+        "direction": "Short",
+        "entry_price": 34765.0,
+        "atr": 41.4,
+        "impulse_bars": 3,
+        "body_sum": 102.0,
+        "exhaustion_kind": "climax_body_shrink",
+        "absorb_against_vol": 104.0,
+        "absorb_price_move": 5.0,
+        "absorb_score": 20.8,
+        "session_bucket": "mid",
+        "gross_scalp": -10.0,
+        "net_scalp": -15.0,
+        "scalp_sim": {
+          "gross_pnl": -10.0,
+          "exit_reason": "stop_loss",
+          "hold_sec": 36,
+          "mfe": 10.0,
+          "mae": 10.0
+        }
+      }
+    ],
+    "4": [
+      {
+        "day": "2026-04-08",
+        "ts": 1775612180,
+        "impulse_dir": "Long",
+        "direction": "Short",
+        "entry_price": 34765.0,
+        "atr": 41.4,
+        "impulse_bars": 4,
+        "body_sum": 141.0,
+        "exhaustion_kind": "climax_body_shrink",
+        "absorb_against_vol": 104.0,
+        "absorb_price_move": 5.0,
+        "absorb_score": 20.8,
+        "session_bucket": "mid",
+        "gross_scalp": -10.0,
+        "net_scalp": -15.0,
+        "scalp_sim": {
+          "gross_pnl": -10.0,
+          "exit_reason": "stop_loss",
+          "hold_sec": 36,
+          "mfe": 10.0,
+          "mae": 10.0
+        }
+      }
+    ]
+  }
+}

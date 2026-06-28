@@ -1,0 +1,432 @@
+{
+  "pilot_dates": [
+    "2026-01-15",
+    "2026-02-20",
+    "2026-03-12",
+    "2026-04-08",
+    "2026-04-22"
+  ],
+  "baseline": {
+    "variant": "v2_baseline",
+    "entry_count": 108,
+    "phase0_pass": false,
+    "best_passing": null,
+    "flow_diagnostics": {
+      "buy_setups": 164,
+      "sell_setups": 146,
+      "buy_flips": 73,
+      "sell_flips": 80
+    },
+    "overall": {
+      "n": 108,
+      "gross_mean": 1.25,
+      "net_mean": -3.75
+    },
+    "by_setup_side": {
+      "buy": {
+        "n": 51,
+        "gross_mean": -0.16,
+        "gross_median": -7.0,
+        "net_mean": -5.16,
+        "net_median": -12.0,
+        "gross_total": -8.0,
+        "net_total": -263.0
+      },
+      "sell": {
+        "n": 57,
+        "gross_mean": 2.51,
+        "gross_median": 6.0,
+        "net_mean": -2.49,
+        "net_median": 1.0,
+        "gross_total": 143.0,
+        "net_total": -142.0
+      }
+    }
+  },
+  "variants": [
+    {
+      "variant": "v3_close_1h",
+      "params": {
+        "close_1h_only": true
+      },
+      "summary": {
+        "variant": "v3_close_1h",
+        "entry_count": 27,
+        "phase0_pass": false,
+        "best_passing": null,
+        "flow_diagnostics": {
+          "buy_setups": 164,
+          "sell_setups": 146,
+          "buy_flips": 19,
+          "sell_flips": 21
+        },
+        "overall": {
+          "n": 27,
+          "gross_mean": 3.56,
+          "net_mean": -1.44
+        },
+        "by_setup_side": {
+          "buy": {
+            "n": 14,
+            "gross_mean": 5.5,
+            "gross_median": 12.0,
+            "net_mean": 0.5,
+            "net_median": 7.0,
+            "gross_total": 77.0,
+            "net_total": 7.0
+          },
+          "sell": {
+            "n": 13,
+            "gross_mean": 1.46,
+            "gross_median": 2.0,
+            "net_mean": -3.54,
+            "net_median": -3.0,
+            "gross_total": 19.0,
+            "net_total": -46.0
+          }
+        }
+      },
+      "phase0_gate": {
+        "pass": false,
+        "gross_mean_min": 5.0,
+        "net_mean_min": 0.0,
+        "min_n": 20,
+        "best_passing": null
+      },
+      "summary_by_setup_and_bucket": {
+        "buy": {
+          "close_1h": {
+            "scalp": {
+              "n": 14,
+              "gross_mean": 5.5,
+              "gross_median": 12.0,
+              "net_mean": 0.5,
+              "net_median": 7.0,
+              "gross_total": 77.0,
+              "net_total": 7.0
+            }
+          }
+        },
+        "sell": {
+          "close_1h": {
+            "scalp": {
+              "n": 13,
+              "gross_mean": 1.46,
+              "gross_median": 2.0,
+              "net_mean": -3.54,
+              "net_median": -3.0,
+              "gross_total": 19.0,
+              "net_total": -46.0
+            }
+          }
+        }
+      },
+      "entry_count": 27
+    },
+    {
+      "variant": "v3_footprint",
+      "params": {
+        "footprint_enabled": true
+      },
+      "summary": {
+        "variant": "v3_footprint",
+        "entry_count": 81,
+        "phase0_pass": false,
+        "best_passing": null,
+        "flow_diagnostics": {
+          "buy_setups": 159,
+          "sell_setups": 143,
+          "buy_flips": 54,
+          "sell_flips": 56
+        },
+        "overall": {
+          "n": 81,
+          "gross_mean": 1.01,
+          "net_mean": -3.99
+        },
+        "by_setup_side": {
+          "buy": {
+            "n": 39,
+            "gross_mean": 0.38,
+            "gross_median": -1.0,
+            "net_mean": -4.62,
+            "net_median": -6.0,
+            "gross_total": 15.0,
+            "net_total": -180.0
+          },
+          "sell": {
+            "n": 42,
+            "gross_mean": 1.6,
+            "gross_median": 3.5,
+            "net_mean": -3.4,
+            "net_median": -1.5,
+            "gross_total": 67.0,
+            "net_total": -143.0
+          }
+        }
+      },
+      "phase0_gate": {
+        "pass": false,
+        "gross_mean_min": 5.0,
+        "net_mean_min": 0.0,
+        "min_n": 20,
+        "best_passing": null
+      },
+      "summary_by_setup_and_bucket": {
+        "buy": {
+          "close_1h": {
+            "scalp": {
+              "n": 14,
+              "gross_mean": 2.14,
+              "gross_median": 3.5,
+              "net_mean": -2.86,
+              "net_median": -1.5,
+              "gross_total": 30.0,
+              "net_total": -40.0
+            }
+          },
+          "mid": {
+            "scalp": {
+              "n": 25,
+              "gross_mean": -0.6,
+              "gross_median": -7.0,
+              "net_mean": -5.6,
+              "net_median": -12.0,
+              "gross_total": -15.0,
+              "net_total": -140.0
+            }
+          }
+        },
+        "sell": {
+          "close_1h": {
+            "scalp": {
+              "n": 9,
+              "gross_mean": 1.78,
+              "gross_median": 2.0,
+              "net_mean": -3.22,
+              "net_median": -3.0,
+              "gross_total": 16.0,
+              "net_total": -29.0
+            }
+          },
+          "mid": {
+            "scalp": {
+              "n": 32,
+              "gross_mean": 1.91,
+              "gross_median": 6.0,
+              "net_mean": -3.09,
+              "net_median": 1.0,
+              "gross_total": 61.0,
+              "net_total": -99.0
+            }
+          },
+          "open_30m": {
+            "scalp": {
+              "n": 1,
+              "gross_mean": -10.0,
+              "gross_median": -10.0,
+              "net_mean": -15.0,
+              "net_median": -15.0,
+              "gross_total": -10.0,
+              "net_total": -15.0
+            }
+          }
+        }
+      },
+      "entry_count": 81
+    },
+    {
+      "variant": "v3_flip_surge_1p5",
+      "params": {
+        "flip_surge_mult": 1.5
+      },
+      "summary": {
+        "variant": "v3_flip_surge_1p5",
+        "entry_count": 62,
+        "phase0_pass": false,
+        "best_passing": null,
+        "flow_diagnostics": {
+          "buy_setups": 154,
+          "sell_setups": 144,
+          "buy_flips": 32,
+          "sell_flips": 48
+        },
+        "overall": {
+          "n": 62,
+          "gross_mean": 2.58,
+          "net_mean": -2.42
+        },
+        "by_setup_side": {
+          "buy": {
+            "n": 22,
+            "gross_mean": 0.82,
+            "gross_median": 1.0,
+            "net_mean": -4.18,
+            "net_median": -4.0,
+            "gross_total": 18.0,
+            "net_total": -92.0
+          },
+          "sell": {
+            "n": 40,
+            "gross_mean": 3.55,
+            "gross_median": 9.5,
+            "net_mean": -1.45,
+            "net_median": 4.5,
+            "gross_total": 142.0,
+            "net_total": -58.0
+          }
+        }
+      },
+      "phase0_gate": {
+        "pass": false,
+        "gross_mean_min": 5.0,
+        "net_mean_min": 0.0,
+        "min_n": 20,
+        "best_passing": null
+      },
+      "summary_by_setup_and_bucket": {
+        "buy": {
+          "close_1h": {
+            "scalp": {
+              "n": 9,
+              "gross_mean": 4.56,
+              "gross_median": 12.0,
+              "net_mean": -0.44,
+              "net_median": 7.0,
+              "gross_total": 41.0,
+              "net_total": -4.0
+            }
+          },
+          "mid": {
+            "scalp": {
+              "n": 13,
+              "gross_mean": -1.77,
+              "gross_median": -10.0,
+              "net_mean": -6.77,
+              "net_median": -15.0,
+              "gross_total": -23.0,
+              "net_total": -88.0
+            }
+          }
+        },
+        "sell": {
+          "close_1h": {
+            "scalp": {
+              "n": 11,
+              "gross_mean": 3.45,
+              "gross_median": 6.0,
+              "net_mean": -1.55,
+              "net_median": 1.0,
+              "gross_total": 38.0,
+              "net_total": -17.0
+            }
+          },
+          "mid": {
+            "scalp": {
+              "n": 28,
+              "gross_mean": 4.07,
+              "gross_median": 12.0,
+              "net_mean": -0.93,
+              "net_median": 7.0,
+              "gross_total": 114.0,
+              "net_total": -26.0
+            }
+          },
+          "open_30m": {
+            "scalp": {
+              "n": 1,
+              "gross_mean": -10.0,
+              "gross_median": -10.0,
+              "net_mean": -15.0,
+              "net_median": -15.0,
+              "gross_total": -10.0,
+              "net_total": -15.0
+            }
+          }
+        }
+      },
+      "entry_count": 62
+    },
+    {
+      "variant": "v3_all",
+      "params": {
+        "close_1h_only": true,
+        "footprint_enabled": true,
+        "flip_surge_mult": 1.5
+      },
+      "summary": {
+        "variant": "v3_all",
+        "entry_count": 15,
+        "phase0_pass": false,
+        "best_passing": null,
+        "flow_diagnostics": {
+          "buy_setups": 163,
+          "sell_setups": 145,
+          "buy_flips": 10,
+          "sell_flips": 11
+        },
+        "overall": {
+          "n": 15,
+          "gross_mean": 4.93,
+          "net_mean": -0.07
+        },
+        "by_setup_side": {
+          "buy": {
+            "n": 8,
+            "gross_mean": 5.0,
+            "gross_median": 12.0,
+            "net_mean": 0.0,
+            "net_median": 7.0,
+            "gross_total": 40.0,
+            "net_total": 0.0
+          },
+          "sell": {
+            "n": 7,
+            "gross_mean": 4.86,
+            "gross_median": 10.0,
+            "net_mean": -0.14,
+            "net_median": 5.0,
+            "gross_total": 34.0,
+            "net_total": -1.0
+          }
+        }
+      },
+      "phase0_gate": {
+        "pass": false,
+        "gross_mean_min": 5.0,
+        "net_mean_min": 0.0,
+        "min_n": 20,
+        "best_passing": null
+      },
+      "summary_by_setup_and_bucket": {
+        "buy": {
+          "close_1h": {
+            "scalp": {
+              "n": 8,
+              "gross_mean": 5.0,
+              "gross_median": 12.0,
+              "net_mean": 0.0,
+              "net_median": 7.0,
+              "gross_total": 40.0,
+              "net_total": 0.0
+            }
+          }
+        },
+        "sell": {
+          "close_1h": {
+            "scalp": {
+              "n": 7,
+              "gross_mean": 4.86,
+              "gross_median": 10.0,
+              "net_mean": -0.14,
+              "net_median": 5.0,
+              "gross_total": 34.0,
+              "net_total": -1.0
+            }
+          }
+        }
+      },
+      "entry_count": 15
+    }
+  ]
+}

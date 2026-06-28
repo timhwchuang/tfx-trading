@@ -18,6 +18,7 @@
 | **FT-004 Momentum Continuation** | **✅ MVPClosed** — Thesis A **No-Go**；[`gate_report.md`](../workspaces/mc-baseline/gate_report.md) · [SPEC §8](features/momentum-continuation/SPEC.md) |
 | **FT-005 Timeout Continuation** | **✅ MVPClosed** — Thesis B **No-Go at Phase 0**；[`gate_report.md`](../workspaces/tc-baseline/gate_report.md) · [SPEC §8](features/timeout-continuation/SPEC.md) |
 | **FT-006 VWAP Stretch Fade** | **🟡 Holdout 未過** — valid 過、2026-05 overfit suspect；[`gate_report`](../workspaces/vsf-baseline/gate_report.md) |
+| **FT-007 Momentum Exhaustion Reversal** | **✅ 放棄** — Thesis D MVPClosed；[`gate_report`](../workspaces/mer-baseline/gate_report.md) |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
 | **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
@@ -111,6 +112,13 @@
 - [x] holdout 2026-05 — **未過**（gross +4.26、net −0.74、123 趟）；overfit suspect
 - [ ] ~~人類簽核後 UAT 切換~~ — **凍結**（holdout 未過）
 - [ ] ~~可選 sweep~~ — **取消**（勿在 valid 上 tune）
+
+### FT-007 — Momentum Exhaustion Reversal（[`PLAN`](features/momentum-exhaustion-reversal/PLAN.md)）— **放棄 / MVPClosed**
+
+- [x] Phase 0 v1：1m K pilot — No-Go（n=2）
+- [x] Phase 0 v2：tick flow flip — n=108，net **−3.75**
+- [x] Phase 0 v3：close_1h / footprint / surge — **全未過**；best v3_all net **−0.07**（n=15）
+- [x] 人類 **放棄** — 不跑 01–04、不開 plugin（見 [`gate_report.md`](../workspaces/mer-baseline/gate_report.md)）
 
 **Post-MVP — Phase 6 長歷史（2022+，MVP holdout Gate 後）**
 
