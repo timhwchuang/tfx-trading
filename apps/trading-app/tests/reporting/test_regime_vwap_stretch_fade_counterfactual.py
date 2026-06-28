@@ -56,7 +56,7 @@ class TestRegimePct(unittest.TestCase):
         rv_index[dt.date(2026, 4, 1)] = {t: 0.01}
         pct = regime_pct_at_bar_time(0.025, t, prior_days, rv_index)
         self.assertIsNotNone(pct)
-        self.assertEqual(pct, 0.0)
+        self.assertEqual(pct, 100.0)
 
     def test_regime_ok_threshold(self) -> None:
         self.assertTrue(regime_ok(20.0, 30))
