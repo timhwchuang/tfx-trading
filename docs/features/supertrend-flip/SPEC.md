@@ -39,7 +39,7 @@ holdout_contract: v2.2.1
 |------|------|
 | 方向 | Phase 0 **Long-only**（Short flip 僅 **post_entry 附錄**統計，不進場） |
 | 進場 | 已收 **5m** bar SuperTrend 由 bear→bull；flip 確認 tick 見 §5.1 MUST-1 |
-| 停損 | `k_sl × ATR20`（k ∈ pre-register，**≥ 0.75**） |
+| 停損 | `k_sl × ATR(atr_period)`（k ∈ pre-register，**≥ 0.75**；ATR 定義 §5.1a） |
 | 停利 / trail | Phase 0 **僅** `simulate_atr_barrier_exit`（§5.0 封印）；grid 階段 **不得**換 exit 族 |
 | 時間出場 | 12:00 後禁新倉；持倉 `max_hold_sec` 或 session flatten |
 | 日內 flatten | **是** |
@@ -86,7 +86,9 @@ holdout_contract: v2.2.1
 | **exit（0c-1/0c-2 共用）** | §5.0b `atr_barrier_180s` | **封印** |
 | session | 09:15–12:00 entry | 封印 |
 | `no_new_entry_after` | **12:00** | 封印 |
+| `last_entry_before` | **11:45** | 封印 |
 | `direction` | Phase 0 **Long-only** | 封印 |
+| `min_atr_pts` | **25.0**（`DEFAULT_MIN_ATR`，與 ORB/VSF） | 封印 |
 
 **日期封印**：valid `2026-01-01`～`2026-03-31` · holdout `2026-04-01`～`2026-06-30` — **不得**依結果增刪參。
 
@@ -101,6 +103,7 @@ holdout_contract: v2.2.1
 | `max_hold_sec` | **180** |
 | 逾時未觸及 SL/TP | 以 **180s 時點 mark-to-market** gross（與 `armed_forward_counterfactual` 現行語意一致） |
 | Grid 可 tune | **僅** `hard_stop_atr_k` / `tp_atr_k` ∈ §5.0 列舉；**禁止** fingerprint 用 A、grid 用 B 兩套 exit |
+| **ATR 進 exit** | 與 ST **同一序列**：`atr_effective = max(atr[i], min_atr_pts)` @ 進場 bar（§5.1a） | 封印 |
 
 ### 5.1 Phase 0 封印 MUST（資深交易員 review · 2026-06-28）
 
@@ -117,22 +120,26 @@ holdout_contract: v2.2.1
 | Fill 價 | 該確認 tick 的 `close`（與其他 CF 一致；**不加**額外 intrabar 理想價） |
 | 測試 | tests **MUST** 含：partial bar 不 flip、flip 後第二 tick 才 confirm、同 bar 內 ST 線漂移不補進場 |
 
-#### 5.1a SuperTrend 演算法（TradingView 對齊 · 函式 `compute_supertrend_v1`）
+#### 5.1a SuperTrend 演算法（repo ATR · 函式 `compute_supertrend_v1`）
 
-> **SSOT 實作**：`reporting/supertrend_flip_counterfactual.py` → `compute_supertrend_v1(closed_bars, atr_period, st_mult)`  
-> **對照**：Pine `ta.supertrend(factor, atrLen)` 等價 ratchet 規則（非簡化版「僅 basic band」）。
+> **SSOT 實作**：`reporting/supertrend_flip_counterfactual.py` → `compute_supertrend_v1(closed_bars, atr_period, st_mult, min_atr_pts=25.0)`  
+> **ATR 決策（選項 A · 封印）**：ST band **與** `simulate_atr_barrier_exit` **共用** [`atr_series_from_bars`](../../../apps/trading-app/src/reporting/volatility_baseline.py) — **Rolling SMA(TR, period)**，TR 來自每根 bar 的 **H/L/C**（非 Wilder RMA、非 TR(hl2)）。  
+> **不宣稱 TradingView 預設數值一致**（TV `ta.atr` = Wilder RMA）；ratchet 規則同 Pine **final band** 邏輯，但 **ATR 尺度 = repo CF 同族**（FT-006/009 ORB 可比）。
 
 輸入：依時間排序之 **已收** 5m bar 序列 `bars[]`，每根 `{high, low, close}`。
 
 ```
+# ATR（與 volatility_baseline.atr_series_from_bars 一致）
+atr_raw[i] = SMA(TR(H,L,C), period=atr_period)   # i 對齊 bar index；bar 0 僅暖機
+atr[i] = max(atr_raw[i], min_atr_pts)             # DEFAULT_MIN_ATR = 25.0
+
 # 每根 bar i（i >= 1；i=0 僅暖機）
 hl2[i] = (high[i] + low[i]) / 2
-atr[i] = RMA/TR(hl2, atr_period)   # 與 repo 其他 CF 之 ATR20 同族
 
 basic_ub[i] = hl2[i] + st_mult * atr[i]
 basic_lb[i] = hl2[i] - st_mult * atr[i]
 
-# Final bands（ratchet — 與 TV 一致）
+# Final bands（Pine ratchet — final_ub/final_lb）
 final_ub[i] = basic_ub[i]  if (basic_ub[i] < final_ub[i-1] or close[i-1] > final_ub[i-1])
               else final_ub[i-1]
 final_lb[i] = basic_lb[i]  if (basic_lb[i] > final_lb[i-1] or close[i-1] < final_lb[i-1])
@@ -146,31 +153,38 @@ elif close[i] < final_lb[i-1]:
 else:
     trend[i] = trend[i-1]
 
+# 初值（i=0 · 封印）
+trend[0] = +1 if close[0] > final_ub[0] else (-1 if close[0] < final_lb[0] else +1)
+# bar 0 不產生 flip_long / flip_short
+
 supertrend_line[i] = final_lb[i] if trend[i] == +1 else final_ub[i]
 
-# Long flip 信號（僅已收 bar）
-flip_long[i] = (trend[i] == +1) and (trend[i-1] == -1)
+# Flip 信號（僅已收 bar · i >= 1）
+flip_long[i]  = (trend[i] == +1) and (trend[i-1] == -1)
+flip_short[i] = (trend[i] == -1) and (trend[i-1] == +1)
 ```
 
-**禁止**：用 `high/low` intrabar 觸及 basic band 判定 flip；`flip_long[i]` **僅**在 bar `i` **收盤後**輸出。
+**禁止**：用 `high/low` intrabar 觸及 basic band 判定 flip；`flip_*[i]` **僅**在 bar `i` **收盤後**輸出。
 
-**Unit test 錨點**：fixtures 含「close 未穿越但 lower ratchet 下移」bar — ST 線 MUST 與手算 TV 表一致（±0 點）。
+**Unit test 錨點**：fixtures 含「close 未穿越但 lower ratchet 下移」— ST 線 MUST 與 **SMA-ATR + ratchet 手算表**一致（±0 點）；**不**要求與 TV 預設 ATR 數值一致。
 
 #### MUST-2 — Fill / 滑價（相對停損 · 摩擦內建）
 
 | 項目 | 封印定義 |
 |------|----------|
-| 摩擦 | 每趟 round-trip **5 點**（`SHARED_ASSUMPTIONS` §3.1）；**所有** net / G2 已內建 |
-| 滑價假設 | CF 主路徑 **`slippage_pts = 1`**（單邊進場劣化 1 點；可 pre-register 敏感性 {0, 1, 2} **僅**附錄，不改主判） |
-| 停損尺度 | 進場時 `stop_dist_pts = k_sl × ATR20`（Phase 0 凍結 k_sl=**1.0** → 典型 **~0.75–1.25×ATR**，**非** legacy 固定 6 點） |
-| **量化 MUST** | `gate_report.md` **MUST** 表：`slippage_ratio_p50 = slippage_pts / stop_dist_pts`（及 p90）；並對照 **legacy 參考** `6 / ATR20`（≈ strategy_diagnosis **0.23×ATR** 尺度）供人類解讀 |
+| 摩擦 | 每趟 round-trip **5 點**（`SHARED_ASSUMPTIONS` §3.1）；`net = gross - 5`（與 ORB/VSF CF 同族） |
+| 滑價假設 | Long **`entry_fill = entry_price + slippage_pts`**（**`slippage_pts = 1`** 點劣化）再送入 `simulate_atr_barrier_exit`；**repo 其他 CF 多數** barrier 用 raw `entry_price`、僅扣 5 點摩擦 — FT-013 **刻意**多 1 點 entry 劣化以量化執行 margin |
+| 敏感性 | 附錄 `{0, 1, 2}` slippage_pts **僅**診斷；主判仍 **1** |
+| 停損尺度 | `stop_dist_pts = k_sl × atr_effective`（`atr_effective` = §5.1a @ 進場 bar；Phase 0 凍結 k_sl=**1.0**） |
+| **量化 MUST** | `slippage_ratio_p50 = slippage_pts / stop_dist_pts`（及 p90）；**legacy 參考** `6 / atr_effective`（≈ strategy_diagnosis 固定 6 點 vs **當趟** ATR 尺度） |
 | 解讀門檻 | 若 `slippage_ratio_p50 > 0.15`（1–2 點占停損 >15%）→ gate_report **MUST** 標 `execution_margin_thin`（非自動 MVPClosed，供 Phase 0b 討論） |
 
 #### MUST-3 — Whipsaw × cooldown × 12:00 flatten（摩擦疊加 · long-only）
 
 | 項目 | 封印定義 |
 |------|----------|
-| 方向 | Phase 0 **僅 Long**；Short flip **不**進場（留 post_entry 診斷欄位即可） |
+| 方向 | Phase 0 **僅 Long** 成交；`flip_short` **detect 但不 fill** |
+| Short 附錄 | 對每個 `flip_short`：以 **假設 Short** @ 確認 tick 跑 **post_entry only**（W5/W15/W30 stop-less）；**不**計入 G1–G3 · **不**進 net PnL |
 | Cooldown | 兩次 **long** flip 進場間隔 ≥ `cooldown_bars` 根 **已收** 5m bar；冷卻期內 flip **忽略** |
 | 12:00 窗 | `tick.ts >= 12:00` → **禁止**新進場；持倉依 exit 規則 **日內 flatten** |
 | 尾盤 flip | 11:45 後新 flip **不** arm（pre-register `last_entry_before=11:45`，避免進場即 flatten 純送摩擦） |
@@ -208,6 +222,7 @@ flip_long[i] = (trend[i] == +1) and (trend[i-1] == -1)
 - train flip 後 W30 stop-less **median ≤ 0** 且 n≥30 → whipsaw / 非順勢指紋 → **MVPClosed（0c-1 即停，不跑 grid）**
 - fingerprint **過** 但 grid **G1 不過** → **MVPClosed**（`stf_fingerprint_pass_g1_fail`）— **不**延長 tune
 - §3.1 單邊 / median disqualify（long-only Phase 0 仍看 Long 欄）
+
 ## 7. 人類簽核（§H）
 
 | 欄位 | 值 |

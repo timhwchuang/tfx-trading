@@ -30,14 +30,15 @@ blockers: []
 | 2 | flip 在 bar **收盤後**；**第一個** `tick.close > ST line` 才 entry |
 | 3 | cooldown 內第二次 long flip **忽略** |
 | 4 | **11:45** / **12:00** session 邊界各一 case |
-| 5 | `compute_supertrend_v1` ratchet fixture 與 TV 手算一致 |
+| 5 | `compute_supertrend_v1` ratchet + **SMA(TR)** fixture 與手算一致（非 TV Wilder ATR） |
 | 6 | payload 含 `slippage_ratio`（MUST-2） |
-| 7 | exit = `simulate_atr_barrier_exit(k_sl=1.0, tp=2.0, max_hold=180)` 與 §5.0b 一致 |
+| 7 | exit = `simulate_atr_barrier_exit` · `atr_effective` 同 ST（§5.0b） |
+| 8 | `entry_fill = entry_price + 1`（Long）· `min_atr=25` floor · `flip_short` post_entry only |
 
 ## Phase 0b — Code review（MUST 先於 train）
 
 - [ ] Bugbot 或人類 review PASS
-- [ ] **MUST-1** 無 repaint · flip 確認 tick = 收盤後首 tick
+- [ ] **MUST-1** 無 repaint · flip 確認 tick · **atr_series_from_bars**（非 Wilder）
 - [ ] **MUST-2** 摩擦 5 內建 · slippage_ratio 附錄
 - [ ] **MUST-3** long-only · cooldown · 11:45/12:00 窗 · funnel 階段
 - [ ] **§5.2** fingerprint 與 grid 路徑分離
@@ -54,16 +55,19 @@ cd apps/trading-app/src
 python scripts/ft013_stf_counterfactual.py --cache-dir ../../../tick_cache --fingerprint-only
 ```
 
-**通過線**：n≥30 · **W30 stop-less gross median > 0** · funnel 可解讀  
-**未過** → MVPClosed · **不跑 0c-2**（含 `stf_fingerprint_pass_g1_fail`：W30 過但 grid G1 不過）
+**通過線（0c-1）**：n≥30 · **W30 stop-less gross median > 0** · funnel 可解讀  
+
+**0c-1 未過**（W30≤0 或 n<30）→ **MVPClosed** · **不跑 0c-2**
 
 > **cache_audit**：預設跳過 — 見 [`CACHE_AUDIT.md`](../../../workspaces/CACHE_AUDIT.md)；backfill 後增量掃即可。
 
-### 0c-2 Grid（fingerprint 過才跑）
+### 0c-2 Grid（**僅** 0c-1 通過後）
 
 ```bash
 python scripts/ft013_stf_counterfactual.py --cache-dir ../../../tick_cache --grid
 ```
+
+**0c-2 未過**（G1/G2/G3 或 §3.1）→ **MVPClosed**（`stf_fingerprint_pass_g1_fail` 若 fingerprint 已過、grid mean gross≤5）
 
 ## 產物（`workspaces/stf-baseline/`）
 
