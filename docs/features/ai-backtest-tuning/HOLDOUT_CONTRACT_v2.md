@@ -70,7 +70,7 @@ python -m storage.cache_audit --code TMFR1   # sweep / CF 前
 |----|------|------|
 | FT-009 | MVPClosed | 01–04 過 / 05 holdout 負；`holdout_fail_structural` |
 | FT-010 | MVPClosed | 01–03 n≪30 |
-| FT-006 | Holdout 未過 | valid 過 / 05 負 |
+| FT-006 | **MVPClosed** | valid 過 / 05 holdout 負 / **v2.1 train 2025 未過**（`thesis_c_v21_train_no_go`） |
 
 新 thesis **不得** 宣稱「沿 v2.0 通過」除非明示 legacy 複驗 run id。
 

@@ -16,10 +16,10 @@
 | **Phase 5 Pilot** | **⛔ 阻塞** — 無合格 alpha；UAT 完成 **≠** 可上 Pilot |
 | Phase 6 策略真實化 | 骨架 ✅；**P6-1 / P6-SMC CAL-8** → **放棄**（綁定 vwap-momentum，見 §已放棄） |
 | **FT-002 SMC 濾網** | **✅ MVPClosed** — 工程 Phase 1–4 已落地；**CAL-8 / Land 放棄** |
-| **Alpha 線** | **主 focus** — 待 **新 thesis**（FT-012+）；見 §8 [`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) |
+| **Alpha 線** | **主 focus** — Playbook [`ALPHA_RESEARCH_PLAYBOOK.md`](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · 提案 [`THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) |
 | **FT-003 回測調參** | **✅ 收尾放棄** — `grid_no_viable_solution`；**不再 sweep** |
 | **FT-004～005、007～008** | **✅ MVPClosed / 放棄** |
-| **FT-006 VWAP Stretch Fade** | **✅ MVPClosed** — holdout 未過；**放棄** UAT 切換 |
+| **FT-006 VWAP Stretch Fade** | **✅ MVPClosed** — v2.1 train 未過；legacy holdout 未過 |
 | **FT-009 ORB** | **✅ MVPClosed** — legacy 過 / 2025 train 負 / holdout 未過 |
 | **FT-010 VTP** | **✅ MVPClosed** |
 | **FT-011 SCB** | **✅ MVPClosed** |
@@ -79,7 +79,7 @@
 
 | 優先 | 軌道 | 動作 |
 |------|------|------|
-| **P0** | Alpha | 人類起草 **新 thesis**（FT-012+）→ Phase 0 CF → v2.1 gate |
+| **P0** | Alpha | 人類 **Pick** [`THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) → Playbook Phase 0 CF |
 | **P1** | UAT 工程 | Phase 1+ 模擬交易日、fill 對帳、P4-13-F、累積 tick |
 | — | ~~P2 CAL-8~~ | **放棄** — 濾網綁定 `grid_no_viable_solution` 的 vwap-momentum |
 | — | Pilot / Live | **阻塞**，直至 Alpha P0 過關 + 人類 Go |

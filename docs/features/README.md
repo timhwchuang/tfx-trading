@@ -12,7 +12,7 @@
 | FT-003 | [ai-backtest-tuning](ai-backtest-tuning/SPEC.md) | **MVPClosed** | 2026-06-26 | Strategy v2 | [SPEC](ai-backtest-tuning/SPEC.md) · [PLAN](ai-backtest-tuning/PLAN.md) · [**ROSTER**](ai-backtest-tuning/AGENT_ROSTER.md) · [`election_report.md`](../../workspaces/election_report.md) · [`workspaces/`](../../workspaces/) |
 | FT-004 | [momentum-continuation](momentum-continuation/SPEC.md) | **MVPClosed** | 2026-06-27 | Pilot-prep | [SPEC](momentum-continuation/SPEC.md) §8 · [PLAN](momentum-continuation/PLAN.md) · [`gate_report`](../../workspaces/mc-baseline/gate_report.md) |
 | FT-005 | [timeout-continuation](timeout-continuation/SPEC.md) | **MVPClosed** | 2026-06-28 | Pilot-prep | [SPEC](timeout-continuation/SPEC.md) §8 · [PLAN](timeout-continuation/PLAN.md) · [`gate_report`](../../workspaces/tc-baseline/gate_report.md) |
-| FT-006 | [vwap-stretch-fade](vwap-stretch-fade/SPEC.md) | **Holdout 未過** | 2026-06-28 | Pilot-prep | [SPEC](vwap-stretch-fade/SPEC.md) §8 · [`gate_report`](../../workspaces/vsf-baseline/gate_report.md) |
+| FT-006 | [vwap-stretch-fade](vwap-stretch-fade/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC](vwap-stretch-fade/SPEC.md) §8 · [`gate_report`](../../workspaces/vsf-baseline/gate_report.md) |
 | FT-007 | [momentum-exhaustion-reversal](momentum-exhaustion-reversal/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC](momentum-exhaustion-reversal/SPEC.md) §8 · [`gate_report`](../../workspaces/mer-baseline/gate_report.md) |
 | FT-008 | [short-breakout](short-breakout/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §8](short-breakout/SPEC.md) · [`gate_report`](../../workspaces/sb-baseline/gate_report.md) |
 | FT-009 | [opening-range-breakout](opening-range-breakout/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §8](opening-range-breakout/SPEC.md) · [PLAN](opening-range-breakout/PLAN.md) · [`gate_report`](../../workspaces/orb-baseline/gate_report.md) |
@@ -54,7 +54,9 @@ stateDiagram-v2
 4. 更新 [`DOC_MAP.md`](../DOC_MAP.md) §Features
 5. 可選：在 [`TODO.md`](../TODO.md) 加一行連結至 PLAN
 6. Phase 0 結束時 commit；`CHANGELOG.md` 記 docs 條目
-7. 新 **策略 thesis**（**FT-011+**）**MUST** 連結 [`HOLDOUT_CONTRACT_v2.md`](ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) **§2.1**
+7. 新 **策略 thesis**（**FT-012+**）**MUST** 連結 [`HOLDOUT_CONTRACT_v2.md`](ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) **§2.1** 與 [`ALPHA_RESEARCH_PLAYBOOK.md`](ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)
+
+**Alpha 提案**：Agent 草稿 → [`workspaces/THESIS_QUEUE.md`](../../workspaces/THESIS_QUEUE.md) → 人類 `human-approved` → 複製 [`THESIS_BRIEF.md`](_template/THESIS_BRIEF.md) 進 SPEC。
 
 **命名**：slug 用 kebab-case、描述能力（例：`audit-event-replay`），不要用 `misc` 或日期。
 

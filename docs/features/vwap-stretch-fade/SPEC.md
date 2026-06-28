@@ -1,10 +1,10 @@
 ---
 id: FT-006
 slug: vwap-stretch-fade
-status: InProgress
+status: MVPClosed
 opened: 2026-06-28
 owner: human+agent
-target: Pilot-prep
+target: —
 stable_contract: packages/strategies/vwap-stretch-fade/SPEC.md
 audit_schema_version: 1
 ---
@@ -69,17 +69,20 @@ audit_schema_version: 1
 - [x] `vsf-baseline` baseline + `gate_report.md`
 - [x] 本 SPEC + PLAN
 
-## 8. §Decision — valid G1–G4 通過（2026-06-28）
+## 8. §Decision — MVPClosed（2026-06-28）
 
 | 欄位 | 值 |
 |------|-----|
-| 結論 | **Thesis C valid 通過、holdout 未過** — overfit suspect；**勿**切 UAT、**勿** valid sweep |
-| Plugin baseline（valid 月） | 82 趟；gross **+5.43**/趟、net **+0.43**/趟；QSL **6.1%** |
-| Holdout（2026-05） | 123 趟；gross **+4.26**/趟、net **−0.74**/趟；G1/G2/G3 未過 |
-| UAT/Live | **維持** `strategy-vwap-momentum` |
-| 下一輪 | 新 thesis 或診斷 5 月 regime；**不**在 valid 上 tune |
+| Legacy（v2.0） | valid 2026-04 **G1–G4 過**；holdout 2026-05 **未過**（net **−0.74**） |
+| Legacy Phase 0 CF | **僅 2026-04**（非 v2.1 train）；k=2.0×mid gross **+7.13**、median **−18.75**（厚尾） |
+| **v2.1 train 2025** | **未過** — k=2.0 n=268 net **−5.65**；無 k×bucket 通過 phase0_gate |
+| **v2.1 valid Q1** | k=2.0 凍結 n=298 net **−5.35**（診斷） |
+| 標籤 | `thesis_c_v21_train_no_go` |
+| 決策 | **MVPClosed** — plugin **凍結**；**勿** valid sweep、**勿**切 UAT |
+| UAT/Live | **維持** `strategy-vwap-momentum` **smoke 載荷** |
+| 下一輪 | regime fade → [`THESIS_QUEUE.md`](../../../workspaces/THESIS_QUEUE.md) **P-001**（新 FT-012+） |
 
-產物 SSOT：[`workspaces/vsf-baseline/gate_report.md`](../../../workspaces/vsf-baseline/gate_report.md)。
+產物 SSOT：[`workspaces/vsf-baseline/gate_report.md`](../../../workspaces/vsf-baseline/gate_report.md) · v2.1 [`counterfactual_v2.1_train2025.json`](../../../workspaces/vsf-baseline/reports/counterfactual_v2.1_train2025.json)
 
 ## 參考
 

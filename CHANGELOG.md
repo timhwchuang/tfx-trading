@@ -14,11 +14,14 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **Alpha Playbook v1.1（2026-06-28）**：Phase 0 拆 **0a 實作 → 0b code review → 0c train**；`THESIS_BRIEF` §I review 欄。
+- **FT-006 MVPClosed v2.1（2026-06-28）**：train 2025 未過（`thesis_c_v21_train_no_go`）；[`gate_report`](workspaces/vsf-baseline/gate_report.md) · v2.1 CF JSON。
 - **Doc sync（2026-06-28）**：雙軌 + CAL-8 放棄收斂 — `strategy_diagnosis` §8.1、`SHARED_ASSUMPTIONS` §2.1、`TODO.md`、`uat/APP.md`、`WeeklyStatus.md` 橫幅；`vwap-momentum` SPEC §6/§7.1 封存；`AGENT_ROSTER` → §8 + archived grid；FT-009 §8 v2.1 train 複驗；FT-011 §9 勾選。
 - **tick_cache SSOT (breaking)**：`kbar_cache/` 目錄與 `--kbar-cache-dir` / `--mirror-kbars` CLI 已移除；tick 與 kbar 皆寫入/讀取 `tick_cache/`（`{code}_kbars_{date}.csv`）。路徑 API 更名：`kbar_path` / `kbar_gz_path` / `resolve_kbar_path` / `kbars_satisfy_request`（取代 `kbars_cache_*` / `kbar_cache_satisfies_request`）。舊目錄遷移：`scripts/linux/migrate-legacy-kbar-cache.sh`；`structure_calibration` / `param_sweep` 讀 kbar 前自動遷移（`ensure_legacy_kbars_migrated`）。
 
 #### Added
 
+- **Alpha 研究儀式 v1.0（2026-06-28）**：[`ALPHA_RESEARCH_PLAYBOOK.md`](docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)；[`THESIS_BRIEF.md`](docs/features/_template/THESIS_BRIEF.md)；[`THESIS_QUEUE.md`](workspaces/THESIS_QUEUE.md)（P-001～003 草稿）。
 - **FT-002 MVPClosed（2026-06-28）**：SMC 濾網 CAL-8 / Land **放棄**（綁定 vwap-momentum）；工程 Phase 1–4 凍結。
 - **雙軌共識 + TODO 收斂（2026-06-28）**：[`strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §8；[`TODO.md`](docs/TODO.md) §已放棄 / §主 focus；Pilot 阻塞至新 alpha。
 - **雙軌共識（2026-06-28）**：[`strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §8 — UAT = 工程 only；主 focus = Alpha 新 thesis；現有策略回測已知不佳。SHARED_ASSUMPTIONS **v1.6** §2.1。

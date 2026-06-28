@@ -49,7 +49,7 @@
 | 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
 | MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
 | Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
-| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · **[`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)**（策略 thesis gate） · [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) · [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
+| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · **[`ALPHA_RESEARCH_PLAYBOOK.md`](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)**（Alpha 儀式） · **[`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)**（策略 thesis gate） · [`workspaces/THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) · [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) · [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
 | 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
 | tick_cache 品質稽核 / 修復 | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit；`storage.cache_audit` / `storage.cache_repair` |
 
@@ -72,7 +72,7 @@
 | FT-003 | ai-backtest-tuning | MVPClosed | [SPEC](features/ai-backtest-tuning/SPEC.md) · [PLAN](features/ai-backtest-tuning/PLAN.md) · [**ROSTER**](features/ai-backtest-tuning/AGENT_ROSTER.md) · [`election_report.md`](../workspaces/election_report.md) · [`workspaces/`](../workspaces/) |
 | FT-004 | momentum-continuation | **MVPClosed** | [SPEC](features/momentum-continuation/SPEC.md) §8 · [PLAN](features/momentum-continuation/PLAN.md) · [`mc-baseline/`](../workspaces/mc-baseline/) |
 | FT-005 | timeout-continuation | **MVPClosed** | [SPEC](features/timeout-continuation/SPEC.md) §8 · [PLAN](features/timeout-continuation/PLAN.md) · [`tc-baseline/`](../workspaces/tc-baseline/) |
-| FT-006 | vwap-stretch-fade | Holdout 未過 | [SPEC §8](features/vwap-stretch-fade/SPEC.md) · [`gate_report`](../workspaces/vsf-baseline/gate_report.md) |
+| FT-006 | vwap-stretch-fade | **MVPClosed** | [SPEC §8](features/vwap-stretch-fade/SPEC.md) · [`gate_report`](../workspaces/vsf-baseline/gate_report.md) |
 | FT-007 | momentum-exhaustion-reversal | MVPClosed | [SPEC §8](features/momentum-exhaustion-reversal/SPEC.md) · [`gate_report`](../workspaces/mer-baseline/gate_report.md) |
 | FT-008 | short-breakout | MVPClosed | [SPEC §8](features/short-breakout/SPEC.md) · [`gate_report`](../workspaces/sb-baseline/gate_report.md) |
 | FT-009 | opening-range-breakout | **MVPClosed** | [SPEC §8](features/opening-range-breakout/SPEC.md) · [`orb-baseline/`](../workspaces/orb-baseline/) |

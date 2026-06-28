@@ -127,7 +127,7 @@
 
 **FT-005 結論（2026-06-28）**：Thesis B（timeout 當 tick 進場）**No-Go at Phase 0** — timeout cohort `timeout_tick` CF gross **+4.10**/趟、net **-0.90**；延遲 180s 摧毀 armed 時點 edge（同子集 armed tick **+36**/趟）。Plugin **未實作**；見 [`tc-baseline/gate_report.md`](tc-baseline/gate_report.md)、[`docs/features/timeout-continuation/SPEC.md`](../docs/features/timeout-continuation/SPEC.md) §8。Strategy v2 breakout 路徑（armed / timeout 雙 thesis）**均否決** → 下一 thesis：**均值回歸**。
 
-**FT-006 結論（2026-06-28）**：Thesis C（`vwap_stretch_fade`）valid **G1–G4 全過**（4 月 gross **+5.43**、net **+0.43**、82 趟）；**holdout 2026-05 未過**（123 趟 gross **+4.26**、net **−0.74**）→ **overfit suspect**。Plugin **凍結研究用**；UAT 維持 v1。見 [`vsf-baseline/gate_report.md`](vsf-baseline/gate_report.md)。
+**FT-006 結論（2026-06-28）**：Thesis C（`vwap_stretch_fade`）legacy valid **G1–G4 過**；holdout 2026-05 **未過**；**v2.1 train 2025 未過**（k=2.0 net **−5.65**）→ **MVPClosed**（`thesis_c_v21_train_no_go`）。見 [`vsf-baseline/gate_report.md`](vsf-baseline/gate_report.md)。
 
 **FT-007 結論（2026-06-28）**：Thesis D（flow flip / 吸收反轉）**人類放棄** — v1/v2/v3 Phase 0 均未過 gate；v3_all 最佳 net **−0.07**（n=15）。Plugin **未實作**。見 [`mer-baseline/gate_report.md`](mer-baseline/gate_report.md)。
 
@@ -157,7 +157,7 @@
 | ID | 策略 | 回測結論 | UAT / Live |
 |----|------|----------|------------|
 | FT-003 | `strategy-vwap-momentum` hybrid | **`grid_no_viable_solution`**（淨期望全負） | UAT smoke **only** |
-| FT-006 | vwap-stretch-fade | valid 過 / holdout 未過 | 凍結研究 |
+| FT-006 | vwap-stretch-fade | valid 過 / holdout 未過 / **v2.1 train 未過** | MVPClosed |
 | FT-009 | ORB | legacy 過 / **2025 train 負** / holdout 未過 | MVPClosed |
 | FT-010 | VWAP trend pullback | Phase 0 未過 | MVPClosed |
 | FT-011 | Session confluence breakout | Phase 0 未過 | MVPClosed |
@@ -168,7 +168,9 @@
 
 ### 8.3 Alpha 線下一步（主 focus）
 
-1. **人類先定新假說**（一頁 SPEC）：與 hybrid / ORB / fade / pullback **本質不同**；pre-register 進出 + v2.1 日期。
+**儀式 SSOT**：[`ALPHA_RESEARCH_PLAYBOOK.md`](../docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · 提案佇列 [`THESIS_QUEUE.md`](THESIS_QUEUE.md)
+
+1. **Thesis 提案**：Agent **可**填 queue 草稿；人類 **Pick → `human-approved`** 後才寫 SPEC / 跑 CF（見 Playbook §1.1）。
 2. **Phase 0 counterfactual only** — 未過不開 plugin、不進 UAT 替換。
 3. **禁止**：在 vwap-momentum 上繼續 sweep knob 指望轉正；禁止 ORB/SCB 變體無新編號重跑；**禁止** P6-1 / P6-SMC **CAL-8**（濾網綁定已失敗 base）。
 4. **可並行**：UAT 累積 tick / fill audit → 供未來 **Confirm** 段使用，不取代 train gate。**KBARS_ARCHIVE** 仍可開（通用資料），不為 CAL-8。
