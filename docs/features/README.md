@@ -14,6 +14,9 @@
 | FT-005 | [timeout-continuation](timeout-continuation/SPEC.md) | **MVPClosed** | 2026-06-28 | Pilot-prep | [SPEC](timeout-continuation/SPEC.md) §8 · [PLAN](timeout-continuation/PLAN.md) · [`gate_report`](../../workspaces/tc-baseline/gate_report.md) |
 | FT-006 | [vwap-stretch-fade](vwap-stretch-fade/SPEC.md) | **Holdout 未過** | 2026-06-28 | Pilot-prep | [SPEC](vwap-stretch-fade/SPEC.md) §8 · [`gate_report`](../../workspaces/vsf-baseline/gate_report.md) |
 | FT-007 | [momentum-exhaustion-reversal](momentum-exhaustion-reversal/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC](momentum-exhaustion-reversal/SPEC.md) §8 · [`gate_report`](../../workspaces/mer-baseline/gate_report.md) |
+| FT-008 | [short-breakout](short-breakout/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §8](short-breakout/SPEC.md) · [`gate_report`](../../workspaces/sb-baseline/gate_report.md) |
+| FT-009 | [opening-range-breakout](opening-range-breakout/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §8](opening-range-breakout/SPEC.md) · [PLAN](opening-range-breakout/PLAN.md) · [`gate_report`](../../workspaces/orb-baseline/gate_report.md) |
+| FT-010 | [vwap-trend-pullback](vwap-trend-pullback/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §11](vwap-trend-pullback/SPEC.md) · [PLAN](vwap-trend-pullback/PLAN.md) · [`gate_report`](../../workspaces/vtp-baseline/gate_report.md) |
 
 ## 狀態定義
 
@@ -50,6 +53,7 @@ stateDiagram-v2
 4. 更新 [`DOC_MAP.md`](../DOC_MAP.md) §Features
 5. 可選：在 [`TODO.md`](../TODO.md) 加一行連結至 PLAN
 6. Phase 0 結束時 commit；`CHANGELOG.md` 記 docs 條目
+7. 新 **策略 thesis**（FT-004+）**MUST** 連結 [`HOLDOUT_CONTRACT_v2.md`](ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)
 
 **命名**：slug 用 kebab-case、描述能力（例：`audit-event-replay`），不要用 `misc` 或日期。
 

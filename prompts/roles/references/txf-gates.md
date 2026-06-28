@@ -6,6 +6,7 @@
 
 | Gate | 驗什麼 | 文件 |
 |------|--------|------|
+| **Strategy thesis** | train / valid / holdout、median、方向 | [`HOLDOUT_CONTRACT_v2.md`](../../../docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
 | **Merge code** | 測試全綠 | `bash scripts/run-all-tests.sh` |
 | **UAT** | 狀態機、對帳、audit 可解析；**不驗獲利** | [`docs/uat/APP.md`](../../../docs/uat/APP.md) Phase 0–4、[`docs/uat/KERNEL.md`](../../../docs/uat/KERNEL.md) |
 | **Pilot** | 量化門檻 + 穩定性 + 人類簽核 | [`docs/uat/APP.md`](../../../docs/uat/APP.md) **Phase 5** |

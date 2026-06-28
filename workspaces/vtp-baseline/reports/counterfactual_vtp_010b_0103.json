@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "variant": "v1b_buffer_touch_no_vol",
+  "code": "TMFR1",
+  "from_date": "2026-01-01",
+  "to_date": "2026-03-31",
+  "direction": "Long",
+  "friction_points": 5.0,
+  "stretch_k": 1.5,
+  "recency_max_bars_grid": [
+    6,
+    8,
+    10
+  ],
+  "require_volume_filter": false,
+  "exit": {
+    "hard_stop_atr_k": 1.0,
+    "hard_stop_floor_pts": 9.0,
+    "tp_atr_k": 1.8,
+    "max_hold_sec": 1200,
+    "variant": "atr_barrier_1200s"
+  },
+  "entry_count_by_param": {
+    "rcy6": 3,
+    "rcy8": 4,
+    "rcy10": 8
+  },
+  "summary_by_param": {
+    "rcy6": {
+      "atr_barrier_1200s": {
+        "n": 3,
+        "gross_mean": -30.29,
+        "gross_median": -25.0,
+        "net_mean": -35.29,
+        "net_median": -30.0,
+        "gross_total": -90.9,
+        "net_total": -105.9,
+        "quick_stop_loss_rate": 0.6667,
+        "stop_loss_rate": 1.0
+      }
+    },
+    "rcy8": {
+      "atr_barrier_1200s": {
+        "n": 4,
+        "gross_mean": -13.21,
+        "gross_median": -25.0,
+        "net_mean": -18.21,
+        "net_median": -30.0,
+        "gross_total": -52.9,
+        "net_total": -72.9,
+        "quick_stop_loss_rate": 0.5,
+        "stop_loss_rate": 0.75
+      }
+    },
+    "rcy10": {
+      "atr_barrier_1200s": {
+        "n": 8,
+        "gross_mean": 24.44,
+        "gross_median": 34.0,
+        "net_mean": 19.44,
+        "net_median": 29.0,
+        "gross_total": 195.5,
+        "net_total": 155.5,
+        "quick_stop_loss_rate": 0.375,
+        "stop_loss_rate": 0.375
+      }
+    }
+  },
+  "funnel": {
+    "trading_days": 54,
+    "days_with_stretch_env": 54,
+    "days_with_buffer_touch": 15,
+    "stretch_to_buffer_rate": 0.2778,
+    "structural_band_unreachable": false
+  },
+  "phase0_gate": {
+    "pass": false,
+    "gross_mean_min": 5.0,
+    "net_mean_min": 0.0,
+    "min_n": 30,
+    "best_passing": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "train_0103": {
+    "trading_days": 54,
+    "days_with_stretch_env": 54,
+    "days_with_buffer_touch": 15,
+    "stretch_to_buffer_rate": 0.2778,
+    "structural_band_unreachable": false
+  },
+  "valid_2026_04": {
+    "trading_days": 20,
+    "days_with_stretch_env": 20,
+    "days_with_buffer_touch": 8,
+    "stretch_to_buffer_rate": 0.4,
+    "structural_band_unreachable": false
+  }
+}

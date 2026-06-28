@@ -49,6 +49,10 @@ SWEEP_FIELD_TO_CONST: dict[str, str] = {
     "max_adverse_atr_k": "MAX_ADVERSE_ATR_K",
     "stretch_k": "STRETCH_K",
     "reset_z": "RESET_Z",
+    "range_minutes": "RANGE_MINUTES",
+    "buffer_atr_k": "BUFFER_ATR_K",
+    "orb_min_range_atr_k": "ORB_MIN_RANGE_ATR_K",
+    "orb_max_hold_sec": "ORB_MAX_HOLD_SEC",
 }
 
 _CONST_TO_SNAKE = {
@@ -90,6 +94,10 @@ _CONST_TO_SNAKE = {
     "MAX_ADVERSE_ATR_K": "max_adverse_atr_k",
     "STRETCH_K": "stretch_k",
     "RESET_Z": "reset_z",
+    "RANGE_MINUTES": "range_minutes",
+    "BUFFER_ATR_K": "buffer_atr_k",
+    "ORB_MIN_RANGE_ATR_K": "orb_min_range_atr_k",
+    "ORB_MAX_HOLD_SEC": "orb_max_hold_sec",
 }
 
 

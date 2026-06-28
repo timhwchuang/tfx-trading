@@ -131,6 +131,8 @@
 
 **FT-007 結論（2026-06-28）**：Thesis D（flow flip / 吸收反轉）**人類放棄** — v1/v2/v3 Phase 0 均未過 gate；v3_all 最佳 net **−0.07**（n=15）。Plugin **未實作**。見 [`mer-baseline/gate_report.md`](mer-baseline/gate_report.md)。
 
+**FT-009 結論（2026-06-28）**：Thesis F ORB — **01–04 Phase 0 通過**（rm30_bk0p15 gross **+7.93** net **+2.93**）；Short-heavy。見 [`orb-baseline/gate_report.md`](orb-baseline/gate_report.md)。
+
 ---
 
 ## §Decision（人類簽核）

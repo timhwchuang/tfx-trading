@@ -78,6 +78,10 @@ class Settings:
     max_adverse_atr_k: float
     stretch_k: float
     reset_z: float
+    range_minutes: int
+    buffer_atr_k: float
+    orb_min_range_atr_k: float
+    orb_max_hold_sec: int
 
     session_start: datetime.time
     session_end: datetime.time
@@ -219,6 +223,10 @@ def load_config(path: str | Path | None = None) -> Settings:
         max_adverse_atr_k=float(strategy.get("max_adverse_atr_k", 0.0)),
         stretch_k=float(strategy.get("stretch_k", 2.0)),
         reset_z=float(strategy.get("reset_z", 0.5)),
+        range_minutes=int(strategy.get("range_minutes", 30)),
+        buffer_atr_k=float(strategy.get("buffer_atr_k", 0.15)),
+        orb_min_range_atr_k=float(strategy.get("orb_min_range_atr_k", 0.5)),
+        orb_max_hold_sec=int(strategy.get("orb_max_hold_sec", 180)),
         session_start=_parse_time(session.get("start", "08:45")),
         session_end=_parse_time(session.get("end", "13:45")),
         session_flatten_time=_parse_time(session.get("flatten_time", "13:40")),

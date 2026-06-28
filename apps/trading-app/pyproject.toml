@@ -28,6 +28,7 @@ dependencies = [
   "strategy-vwap-momentum>=0.1.2,<1.0",
   "strategy-momentum-continuation>=0.1.0,<1.0",
   "strategy-vwap-stretch-fade>=0.1.0,<1.0",
+  "strategy-opening-range-breakout>=0.1.0,<1.0",
   "shioaji",
   "PyYAML>=6.0",
 ]

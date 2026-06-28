@@ -90,6 +90,10 @@ def default_test_settings() -> Settings:
         max_adverse_atr_k=0.0,
         stretch_k=2.0,
         reset_z=0.5,
+        range_minutes=30,
+        buffer_atr_k=0.15,
+        orb_min_range_atr_k=0.5,
+        orb_max_hold_sec=180,
         config_path=Path("config/config.yaml"),
     )
 

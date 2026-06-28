@@ -124,6 +124,12 @@ class Settings:
     stretch_k: float = 2.0
     reset_z: float = 0.5
 
+    # FT-009 opening-range-breakout
+    range_minutes: int = 30
+    buffer_atr_k: float = 0.15
+    orb_min_range_atr_k: float = 0.5
+    orb_max_hold_sec: int = 180
+
     config_path: Path = Path("")
 
 

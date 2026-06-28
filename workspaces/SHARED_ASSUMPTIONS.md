@@ -2,8 +2,8 @@
 
 | 欄位 | 值 |
 |------|-----|
-| **版本** | **v1.3** |
-| **更新日期** | 2026-06-27 |
+| **版本** | **v1.4** |
+| **更新日期** | 2026-06-28 |
 
 > **SSOT**：所有調參 agent **開工前 MUST 讀**；`grid.json` 邊界與 `analysis.md` 假說須與本檔一致。  
 > 違反本檔假設的 grid 視為 **invalid**，不得進入 leaderboard。  
@@ -16,7 +16,11 @@
 | 商品 | **TMFR1** 微台指期 |
 | Pilot 口數 | **qty=1**（多口管理未完成，見 `docs/AGENTS.md` §8） |
 | 時間源 | **交易所時間**（`exchange_time.py`）；日切與 session 以交易所為準 |
-| 資料 | `tick_cache/` 2026-01～05（見 [`DATA_SPLIT.md`](DATA_SPLIT.md)） |
+| 資料 | `tick_cache/` 2026-01～05（見 [`DATA_SPLIT.md`](DATA_SPLIT.md)）；**2026-06 / 2025 backfill** 見同檔與 [`HOLDOUT_CONTRACT_v2.md`](../docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
+
+### 1.1 策略 thesis Holdout（FT-004+）
+
+**MUST** 遵守 [`HOLDOUT_CONTRACT_v2.md`](../docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)：train 01–03、valid 04、holdout **05+06 合併**、冠軍 median/方向門檻、WFO 用 2025 backfill。
 
 ## 2. 回測 vs Live（不可混淆）
 

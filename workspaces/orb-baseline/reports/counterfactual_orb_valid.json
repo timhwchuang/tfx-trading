@@ -1,0 +1,1845 @@
+{
+  "schema_version": 1,
+  "thesis": "opening_range_breakout",
+  "variant": "v1_orb_first_break",
+  "from_date": "2026-04-01",
+  "to_date": "2026-04-30",
+  "code": "TMFR1",
+  "friction_points_per_round_trip": 5.0,
+  "sim_params": {
+    "range_minutes": [
+      15,
+      30
+    ],
+    "buffer_atr_ks": [
+      0.0,
+      0.15
+    ],
+    "min_range_atr_k": 0.5,
+    "first_break_only": true,
+    "max_trades_per_day": 1,
+    "hard_stop_atr_k": 0.75,
+    "tp_atr_k": 2.0,
+    "max_hold_sec": 180,
+    "session_open": "08:45:00",
+    "atr_method": "sma_tr_period_20"
+  },
+  "phase0_gate": {
+    "pass": false,
+    "gross_mean_min": 5.0,
+    "net_mean_min": 0.0,
+    "min_n": 30,
+    "best_passing": null
+  },
+  "phase0_gate_primary": "01-04_aggregate",
+  "summary_by_param": {
+    "rm15_bk0": {
+      "atr_barrier_180s": {
+        "n": 20,
+        "gross_mean": 8.64,
+        "gross_median": -18.75,
+        "net_mean": 3.64,
+        "net_median": -23.75,
+        "gross_total": 172.7,
+        "net_total": 72.7
+      }
+    },
+    "rm15_bk0p15": {
+      "atr_barrier_180s": {
+        "n": 20,
+        "gross_mean": 8.62,
+        "gross_median": -18.75,
+        "net_mean": 3.62,
+        "net_median": -23.75,
+        "gross_total": 172.4,
+        "net_total": 72.4
+      }
+    },
+    "rm30_bk0": {
+      "atr_barrier_180s": {
+        "n": 19,
+        "gross_mean": -4.94,
+        "gross_median": -27.64,
+        "net_mean": -9.94,
+        "net_median": -32.64,
+        "gross_total": -93.9,
+        "net_total": -188.9
+      }
+    },
+    "rm30_bk0p15": {
+      "atr_barrier_180s": {
+        "n": 19,
+        "gross_mean": 1.54,
+        "gross_median": -25.88,
+        "net_mean": -3.46,
+        "net_median": -30.88,
+        "gross_total": 29.2,
+        "net_total": -65.8
+      }
+    }
+  },
+  "summary_by_direction": {
+    "rm15_bk0": {
+      "Long": {
+        "atr_barrier_180s": {
+          "n": 12,
+          "gross_mean": 13.27,
+          "gross_median": 15.62,
+          "net_mean": 8.27,
+          "net_median": 10.62,
+          "gross_total": 159.2,
+          "net_total": 99.2
+        }
+      },
+      "Short": {
+        "atr_barrier_180s": {
+          "n": 8,
+          "gross_mean": 1.68,
+          "gross_median": -18.75,
+          "net_mean": -3.32,
+          "net_median": -23.75,
+          "gross_total": 13.5,
+          "net_total": -26.5
+        }
+      }
+    },
+    "rm15_bk0p15": {
+      "Long": {
+        "atr_barrier_180s": {
+          "n": 12,
+          "gross_mean": 13.27,
+          "gross_median": 15.62,
+          "net_mean": 8.27,
+          "net_median": 10.62,
+          "gross_total": 159.2,
+          "net_total": 99.2
+        }
+      },
+      "Short": {
+        "atr_barrier_180s": {
+          "n": 8,
+          "gross_mean": 1.65,
+          "gross_median": -18.75,
+          "net_mean": -3.35,
+          "net_median": -23.75,
+          "gross_total": 13.2,
+          "net_total": -26.8
+        }
+      }
+    },
+    "rm30_bk0": {
+      "Long": {
+        "atr_barrier_180s": {
+          "n": 15,
+          "gross_mean": -12.97,
+          "gross_median": -27.64,
+          "net_mean": -17.97,
+          "net_median": -32.64,
+          "gross_total": -194.6,
+          "net_total": -269.6
+        }
+      },
+      "Short": {
+        "atr_barrier_180s": {
+          "n": 4,
+          "gross_mean": 25.16,
+          "gross_median": -6.81,
+          "net_mean": 20.16,
+          "net_median": -11.81,
+          "gross_total": 100.6,
+          "net_total": 80.6
+        }
+      }
+    },
+    "rm30_bk0p15": {
+      "Long": {
+        "atr_barrier_180s": {
+          "n": 15,
+          "gross_mean": -4.76,
+          "gross_median": -25.88,
+          "net_mean": -9.76,
+          "net_median": -30.88,
+          "gross_total": -71.4,
+          "net_total": -146.4
+        }
+      },
+      "Short": {
+        "atr_barrier_180s": {
+          "n": 4,
+          "gross_mean": 25.16,
+          "gross_median": -6.81,
+          "net_mean": 20.16,
+          "net_median": -11.81,
+          "gross_total": 100.6,
+          "net_total": 80.6
+        }
+      }
+    }
+  },
+  "days_with_valid_range": {
+    "rm15_bk0": 20,
+    "rm15_bk0p15": 20,
+    "rm30_bk0": 20,
+    "rm30_bk0p15": 20
+  },
+  "days_with_breakout": {
+    "rm15_bk0": 20,
+    "rm15_bk0p15": 20,
+    "rm30_bk0": 19,
+    "rm30_bk0p15": 19
+  },
+  "entry_count_by_param": {
+    "rm15_bk0": 20,
+    "rm15_bk0p15": 20,
+    "rm30_bk0": 19,
+    "rm30_bk0p15": 19
+  },
+  "entries": {
+    "rm15_bk0": [
+      {
+        "day": "2026-04-01",
+        "ts": 1775005560,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 33004.0,
+        "atr": 25.0,
+        "range_high": 33165.0,
+        "range_low": 33010.0,
+        "range_width": 155.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 16,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-02",
+        "ts": 1775091720,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 33550.0,
+        "atr": 25.0,
+        "range_high": 33690.0,
+        "range_low": 33563.0,
+        "range_width": 127.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 66.0
+        }
+      },
+      {
+        "day": "2026-04-07",
+        "ts": 1775523900,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 33300.0,
+        "atr": 25.0,
+        "range_high": 33277.0,
+        "range_low": 33120.0,
+        "range_width": 157.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 5,
+          "mfe": 8.0,
+          "mae": 19.0
+        }
+      },
+      {
+        "day": "2026-04-08",
+        "ts": 1775612040,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 34720.0,
+        "atr": 39.5,
+        "range_high": 34680.0,
+        "range_low": 34500.0,
+        "range_width": 180.0,
+        "gross_atr_sim": 64.0,
+        "net_atr_sim": 59.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 64.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 65.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-09",
+        "ts": 1775697180,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 34885.0,
+        "atr": 36.7,
+        "range_high": 35140.0,
+        "range_low": 34888.0,
+        "range_width": 252.0,
+        "gross_atr_sim": -27.53,
+        "net_atr_sim": -32.53,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.53,
+          "exit_reason": "stop_loss",
+          "hold_sec": 93,
+          "mfe": 42.0,
+          "mae": 28.0
+        }
+      },
+      {
+        "day": "2026-04-10",
+        "ts": 1775783100,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 35438.0,
+        "atr": 25.0,
+        "range_high": 35378.0,
+        "range_low": 35215.0,
+        "range_width": 163.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 23.0
+        }
+      },
+      {
+        "day": "2026-04-13",
+        "ts": 1776042960,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 35550.0,
+        "atr": 43.9,
+        "range_high": 35507.0,
+        "range_low": 35185.0,
+        "range_width": 322.0,
+        "gross_atr_sim": -32.92,
+        "net_atr_sim": -37.92,
+        "atr_barrier_sim": {
+          "gross_pnl": -32.92,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 34.0
+        }
+      },
+      {
+        "day": "2026-04-14",
+        "ts": 1776128700,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 36124.0,
+        "atr": 25.0,
+        "range_high": 36107.0,
+        "range_low": 36012.0,
+        "range_width": 95.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 72,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-15",
+        "ts": 1776215160,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 36653.0,
+        "atr": 25.0,
+        "range_high": 36754.0,
+        "range_low": 36669.0,
+        "range_width": 85.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 34,
+          "mfe": 1.0,
+          "mae": 19.0
+        }
+      },
+      {
+        "day": "2026-04-16",
+        "ts": 1776301320,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 37288.0,
+        "atr": 25.0,
+        "range_high": 37412.0,
+        "range_low": 37305.0,
+        "range_width": 107.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 2,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-17",
+        "ts": 1776388200,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 37323.0,
+        "atr": 33.7,
+        "range_high": 37308.0,
+        "range_low": 37150.0,
+        "range_width": 158.0,
+        "gross_atr_sim": -25.28,
+        "net_atr_sim": -30.28,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.28,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 36.0
+        }
+      },
+      {
+        "day": "2026-04-20",
+        "ts": 1776647160,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 37477.0,
+        "atr": 25.0,
+        "range_high": 37460.0,
+        "range_low": 37250.0,
+        "range_width": 210.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 25,
+          "mfe": 22.0,
+          "mae": 19.0
+        }
+      },
+      {
+        "day": "2026-04-21",
+        "ts": 1776733320,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 37820.0,
+        "atr": 25.0,
+        "range_high": 37794.0,
+        "range_low": 37697.0,
+        "range_width": 97.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 0,
+          "mfe": 110.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-22",
+        "ts": 1776819720,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 37938.0,
+        "atr": 25.0,
+        "range_high": 38185.0,
+        "range_low": 37945.0,
+        "range_width": 240.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 60.0
+        }
+      },
+      {
+        "day": "2026-04-23",
+        "ts": 1776906240,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 38772.0,
+        "atr": 25.0,
+        "range_high": 38724.0,
+        "range_low": 38559.0,
+        "range_width": 165.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 5,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-24",
+        "ts": 1776992580,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 38484.0,
+        "atr": 25.0,
+        "range_high": 38468.0,
+        "range_low": 38250.0,
+        "range_width": 218.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 23,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-27",
+        "ts": 1777251780,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 40066.0,
+        "atr": 25.0,
+        "range_high": 40058.0,
+        "range_low": 39902.0,
+        "range_width": 156.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 24,
+          "mfe": 50.0,
+          "mae": 5.0
+        }
+      },
+      {
+        "day": "2026-04-28",
+        "ts": 1777338420,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 39984.0,
+        "atr": 53.75,
+        "range_high": 39955.0,
+        "range_low": 39796.0,
+        "range_width": 159.0,
+        "gross_atr_sim": -40.31,
+        "net_atr_sim": -45.31,
+        "atr_barrier_sim": {
+          "gross_pnl": -40.31,
+          "exit_reason": "stop_loss",
+          "hold_sec": 70,
+          "mfe": 8.0,
+          "mae": 41.0
+        }
+      },
+      {
+        "day": "2026-04-29",
+        "ts": 1777424460,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 39340.0,
+        "atr": 25.0,
+        "range_high": 39784.0,
+        "range_low": 39376.0,
+        "range_width": 408.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 18,
+          "mfe": 20.0,
+          "mae": 20.0
+        }
+      },
+      {
+        "day": "2026-04-30",
+        "ts": 1777513020,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 39564.0,
+        "atr": 53.95,
+        "range_high": 39938.0,
+        "range_low": 39600.0,
+        "range_width": 338.0,
+        "gross_atr_sim": 16.0,
+        "net_atr_sim": 11.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 16.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 106.0,
+          "mae": 24.0
+        }
+      }
+    ],
+    "rm15_bk0p15": [
+      {
+        "day": "2026-04-01",
+        "ts": 1775005560,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 33004.0,
+        "atr": 25.0,
+        "range_high": 33165.0,
+        "range_low": 33010.0,
+        "range_width": 155.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 16,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-02",
+        "ts": 1775091720,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 33550.0,
+        "atr": 25.0,
+        "range_high": 33690.0,
+        "range_low": 33563.0,
+        "range_width": 127.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 66.0
+        }
+      },
+      {
+        "day": "2026-04-07",
+        "ts": 1775523900,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 33300.0,
+        "atr": 25.0,
+        "range_high": 33277.0,
+        "range_low": 33120.0,
+        "range_width": 157.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 5,
+          "mfe": 8.0,
+          "mae": 19.0
+        }
+      },
+      {
+        "day": "2026-04-08",
+        "ts": 1775612040,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 34720.0,
+        "atr": 39.5,
+        "range_high": 34680.0,
+        "range_low": 34500.0,
+        "range_width": 180.0,
+        "gross_atr_sim": 64.0,
+        "net_atr_sim": 59.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 64.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 65.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-09",
+        "ts": 1775697240,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 34856.0,
+        "atr": 37.1,
+        "range_high": 35140.0,
+        "range_low": 34888.0,
+        "range_width": 252.0,
+        "gross_atr_sim": -27.83,
+        "net_atr_sim": -32.83,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.83,
+          "exit_reason": "stop_loss",
+          "hold_sec": 31,
+          "mfe": 0.0,
+          "mae": 28.0
+        }
+      },
+      {
+        "day": "2026-04-10",
+        "ts": 1775783100,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 35438.0,
+        "atr": 25.0,
+        "range_high": 35378.0,
+        "range_low": 35215.0,
+        "range_width": 163.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 23.0
+        }
+      },
+      {
+        "day": "2026-04-13",
+        "ts": 1776042960,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 35550.0,
+        "atr": 43.9,
+        "range_high": 35507.0,
+        "range_low": 35185.0,
+        "range_width": 322.0,
+        "gross_atr_sim": -32.92,
+        "net_atr_sim": -37.92,
+        "atr_barrier_sim": {
+          "gross_pnl": -32.92,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 34.0
+        }
+      },
+      {
+        "day": "2026-04-14",
+        "ts": 1776128700,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 36124.0,
+        "atr": 25.0,
+        "range_high": 36107.0,
+        "range_low": 36012.0,
+        "range_width": 95.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 72,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-15",
+        "ts": 1776215160,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 36653.0,
+        "atr": 25.0,
+        "range_high": 36754.0,
+        "range_low": 36669.0,
+        "range_width": 85.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 34,
+          "mfe": 1.0,
+          "mae": 19.0
+        }
+      },
+      {
+        "day": "2026-04-16",
+        "ts": 1776301320,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 37288.0,
+        "atr": 25.0,
+        "range_high": 37412.0,
+        "range_low": 37305.0,
+        "range_width": 107.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 2,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-17",
+        "ts": 1776388200,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 37323.0,
+        "atr": 33.7,
+        "range_high": 37308.0,
+        "range_low": 37150.0,
+        "range_width": 158.0,
+        "gross_atr_sim": -25.28,
+        "net_atr_sim": -30.28,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.28,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 36.0
+        }
+      },
+      {
+        "day": "2026-04-20",
+        "ts": 1776647160,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 37477.0,
+        "atr": 25.0,
+        "range_high": 37460.0,
+        "range_low": 37250.0,
+        "range_width": 210.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 25,
+          "mfe": 22.0,
+          "mae": 19.0
+        }
+      },
+      {
+        "day": "2026-04-21",
+        "ts": 1776733320,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 37820.0,
+        "atr": 25.0,
+        "range_high": 37794.0,
+        "range_low": 37697.0,
+        "range_width": 97.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 0,
+          "mfe": 110.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-22",
+        "ts": 1776819720,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 37938.0,
+        "atr": 25.0,
+        "range_high": 38185.0,
+        "range_low": 37945.0,
+        "range_width": 240.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 60.0
+        }
+      },
+      {
+        "day": "2026-04-23",
+        "ts": 1776906240,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 38772.0,
+        "atr": 25.0,
+        "range_high": 38724.0,
+        "range_low": 38559.0,
+        "range_width": 165.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 5,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-24",
+        "ts": 1776992580,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 38484.0,
+        "atr": 25.0,
+        "range_high": 38468.0,
+        "range_low": 38250.0,
+        "range_width": 218.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 23,
+          "mfe": 50.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-27",
+        "ts": 1777251780,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 40066.0,
+        "atr": 25.0,
+        "range_high": 40058.0,
+        "range_low": 39902.0,
+        "range_width": 156.0,
+        "gross_atr_sim": 50.0,
+        "net_atr_sim": 45.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 50.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 24,
+          "mfe": 50.0,
+          "mae": 5.0
+        }
+      },
+      {
+        "day": "2026-04-28",
+        "ts": 1777338420,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 39984.0,
+        "atr": 53.75,
+        "range_high": 39955.0,
+        "range_low": 39796.0,
+        "range_width": 159.0,
+        "gross_atr_sim": -40.31,
+        "net_atr_sim": -45.31,
+        "atr_barrier_sim": {
+          "gross_pnl": -40.31,
+          "exit_reason": "stop_loss",
+          "hold_sec": 70,
+          "mfe": 8.0,
+          "mae": 41.0
+        }
+      },
+      {
+        "day": "2026-04-29",
+        "ts": 1777424460,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 39340.0,
+        "atr": 25.0,
+        "range_high": 39784.0,
+        "range_low": 39376.0,
+        "range_width": 408.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 18,
+          "mfe": 20.0,
+          "mae": 20.0
+        }
+      },
+      {
+        "day": "2026-04-30",
+        "ts": 1777513020,
+        "range_minutes": 15,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 39564.0,
+        "atr": 53.95,
+        "range_high": 39938.0,
+        "range_low": 39600.0,
+        "range_width": 338.0,
+        "gross_atr_sim": 16.0,
+        "net_atr_sim": 11.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 16.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 106.0,
+          "mae": 24.0
+        }
+      }
+    ],
+    "rm30_bk0": [
+      {
+        "day": "2026-04-01",
+        "ts": 1775007120,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 33193.0,
+        "atr": 42.45,
+        "range_high": 33182.0,
+        "range_low": 32909.0,
+        "range_width": 273.0,
+        "gross_atr_sim": -31.84,
+        "net_atr_sim": -36.84,
+        "atr_barrier_sim": {
+          "gross_pnl": -31.84,
+          "exit_reason": "stop_loss",
+          "hold_sec": 156,
+          "mfe": 39.0,
+          "mae": 32.0
+        }
+      },
+      {
+        "day": "2026-04-02",
+        "ts": 1775092740,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 33341.0,
+        "atr": 72.3,
+        "range_high": 33690.0,
+        "range_low": 33379.0,
+        "range_width": 311.0,
+        "gross_atr_sim": 144.6,
+        "net_atr_sim": 139.6,
+        "atr_barrier_sim": {
+          "gross_pnl": 144.6,
+          "exit_reason": "take_profit",
+          "hold_sec": 147,
+          "mfe": 145.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-07",
+        "ts": 1775525040,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 33324.0,
+        "atr": 44.05,
+        "range_high": 33322.0,
+        "range_low": 33120.0,
+        "range_width": 202.0,
+        "gross_atr_sim": -33.04,
+        "net_atr_sim": -38.04,
+        "atr_barrier_sim": {
+          "gross_pnl": -33.04,
+          "exit_reason": "stop_loss",
+          "hold_sec": 82,
+          "mfe": 5.0,
+          "mae": 34.0
+        }
+      },
+      {
+        "day": "2026-04-08",
+        "ts": 1775612040,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 34720.0,
+        "atr": 39.5,
+        "range_high": 34680.0,
+        "range_low": 34476.0,
+        "range_width": 204.0,
+        "gross_atr_sim": 64.0,
+        "net_atr_sim": 59.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 64.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 65.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-09",
+        "ts": 1775698980,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 34793.0,
+        "atr": 40.45,
+        "range_high": 35140.0,
+        "range_low": 34843.0,
+        "range_width": 297.0,
+        "gross_atr_sim": -30.34,
+        "net_atr_sim": -35.34,
+        "atr_barrier_sim": {
+          "gross_pnl": -30.34,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 46.0
+        }
+      },
+      {
+        "day": "2026-04-10",
+        "ts": 1775783880,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 35454.0,
+        "atr": 46.15,
+        "range_high": 35438.0,
+        "range_low": 35215.0,
+        "range_width": 223.0,
+        "gross_atr_sim": -34.61,
+        "net_atr_sim": -39.61,
+        "atr_barrier_sim": {
+          "gross_pnl": -34.61,
+          "exit_reason": "stop_loss",
+          "hold_sec": 74,
+          "mfe": 0.0,
+          "mae": 35.0
+        }
+      },
+      {
+        "day": "2026-04-13",
+        "ts": 1776042960,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 35550.0,
+        "atr": 43.9,
+        "range_high": 35507.0,
+        "range_low": 35185.0,
+        "range_width": 322.0,
+        "gross_atr_sim": -32.92,
+        "net_atr_sim": -37.92,
+        "atr_barrier_sim": {
+          "gross_pnl": -32.92,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 34.0
+        }
+      },
+      {
+        "day": "2026-04-14",
+        "ts": 1776129720,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 36231.0,
+        "atr": 35.15,
+        "range_high": 36206.0,
+        "range_low": 36012.0,
+        "range_width": 194.0,
+        "gross_atr_sim": 16.0,
+        "net_atr_sim": 11.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 16.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 43.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-15",
+        "ts": 1776215760,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 36800.0,
+        "atr": 28.6,
+        "range_high": 36789.0,
+        "range_low": 36637.0,
+        "range_width": 152.0,
+        "gross_atr_sim": 34.0,
+        "net_atr_sim": 29.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 34.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 40.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-16",
+        "ts": 1776313140,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 37441.0,
+        "atr": 25.0,
+        "range_high": 37412.0,
+        "range_low": 37106.0,
+        "range_width": 306.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 82,
+          "mfe": 14.0,
+          "mae": 19.0
+        }
+      },
+      {
+        "day": "2026-04-17",
+        "ts": 1776388980,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 37349.0,
+        "atr": 39.35,
+        "range_high": 37343.0,
+        "range_low": 37150.0,
+        "range_width": 193.0,
+        "gross_atr_sim": -29.51,
+        "net_atr_sim": -34.510000000000005,
+        "atr_barrier_sim": {
+          "gross_pnl": -29.51,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 76.0
+        }
+      },
+      {
+        "day": "2026-04-20",
+        "ts": 1776649500,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 37639.0,
+        "atr": 36.85,
+        "range_high": 37612.0,
+        "range_low": 37250.0,
+        "range_width": 362.0,
+        "gross_atr_sim": -27.64,
+        "net_atr_sim": -32.64,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.64,
+          "exit_reason": "stop_loss",
+          "hold_sec": 5,
+          "mfe": 0.0,
+          "mae": 28.0
+        }
+      },
+      {
+        "day": "2026-04-21",
+        "ts": 1776736620,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 37663.0,
+        "atr": 39.5,
+        "range_high": 38072.0,
+        "range_low": 37697.0,
+        "range_width": 375.0,
+        "gross_atr_sim": -29.62,
+        "net_atr_sim": -34.620000000000005,
+        "atr_barrier_sim": {
+          "gross_pnl": -29.62,
+          "exit_reason": "stop_loss",
+          "hold_sec": 6,
+          "mfe": 0.0,
+          "mae": 30.0
+        }
+      },
+      {
+        "day": "2026-04-22",
+        "ts": 1776821520,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 38193.0,
+        "atr": 36.5,
+        "range_high": 38185.0,
+        "range_low": 37925.0,
+        "range_width": 260.0,
+        "gross_atr_sim": -27.38,
+        "net_atr_sim": -32.379999999999995,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.38,
+          "exit_reason": "stop_loss",
+          "hold_sec": 5,
+          "mfe": 0.0,
+          "mae": 28.0
+        }
+      },
+      {
+        "day": "2026-04-23",
+        "ts": 1776906960,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 38940.0,
+        "atr": 57.7,
+        "range_high": 38933.0,
+        "range_low": 38559.0,
+        "range_width": 374.0,
+        "gross_atr_sim": 23.0,
+        "net_atr_sim": 18.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 23.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 45.0,
+          "mae": 11.0
+        }
+      },
+      {
+        "day": "2026-04-24",
+        "ts": 1776993420,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 38639.0,
+        "atr": 50.35,
+        "range_high": 38632.0,
+        "range_low": 38250.0,
+        "range_width": 382.0,
+        "gross_atr_sim": -37.76,
+        "net_atr_sim": -42.76,
+        "atr_barrier_sim": {
+          "gross_pnl": -37.76,
+          "exit_reason": "stop_loss",
+          "hold_sec": 70,
+          "mfe": 6.0,
+          "mae": 38.0
+        }
+      },
+      {
+        "day": "2026-04-27",
+        "ts": 1777252920,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 40397.0,
+        "atr": 104.15,
+        "range_high": 40338.0,
+        "range_low": 39902.0,
+        "range_width": 436.0,
+        "gross_atr_sim": -78.11,
+        "net_atr_sim": -83.11,
+        "atr_barrier_sim": {
+          "gross_pnl": -78.11,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 99.0
+        }
+      },
+      {
+        "day": "2026-04-28",
+        "ts": 1777339020,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Long",
+        "entry_price": 40100.0,
+        "atr": 59.35,
+        "range_high": 40008.0,
+        "range_low": 39796.0,
+        "range_width": 212.0,
+        "gross_atr_sim": 20.0,
+        "net_atr_sim": 15.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 20.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 78.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-30",
+        "ts": 1777513020,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.0,
+        "direction": "Short",
+        "entry_price": 39564.0,
+        "atr": 53.95,
+        "range_high": 39938.0,
+        "range_low": 39584.0,
+        "range_width": 354.0,
+        "gross_atr_sim": 16.0,
+        "net_atr_sim": 11.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 16.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 106.0,
+          "mae": 24.0
+        }
+      }
+    ],
+    "rm30_bk0p15": [
+      {
+        "day": "2026-04-01",
+        "ts": 1775007120,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 33193.0,
+        "atr": 42.45,
+        "range_high": 33182.0,
+        "range_low": 32909.0,
+        "range_width": 273.0,
+        "gross_atr_sim": -31.84,
+        "net_atr_sim": -36.84,
+        "atr_barrier_sim": {
+          "gross_pnl": -31.84,
+          "exit_reason": "stop_loss",
+          "hold_sec": 156,
+          "mfe": 39.0,
+          "mae": 32.0
+        }
+      },
+      {
+        "day": "2026-04-02",
+        "ts": 1775092740,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 33341.0,
+        "atr": 72.3,
+        "range_high": 33690.0,
+        "range_low": 33379.0,
+        "range_width": 311.0,
+        "gross_atr_sim": 144.6,
+        "net_atr_sim": 139.6,
+        "atr_barrier_sim": {
+          "gross_pnl": 144.6,
+          "exit_reason": "take_profit",
+          "hold_sec": 147,
+          "mfe": 145.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-07",
+        "ts": 1775525760,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 33334.0,
+        "atr": 34.5,
+        "range_high": 33322.0,
+        "range_low": 33120.0,
+        "range_width": 202.0,
+        "gross_atr_sim": -25.88,
+        "net_atr_sim": -30.88,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.88,
+          "exit_reason": "stop_loss",
+          "hold_sec": 63,
+          "mfe": 33.0,
+          "mae": 26.0
+        }
+      },
+      {
+        "day": "2026-04-08",
+        "ts": 1775612040,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 34720.0,
+        "atr": 39.5,
+        "range_high": 34680.0,
+        "range_low": 34476.0,
+        "range_width": 204.0,
+        "gross_atr_sim": 64.0,
+        "net_atr_sim": 59.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 64.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 65.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-09",
+        "ts": 1775698980,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 34793.0,
+        "atr": 40.45,
+        "range_high": 35140.0,
+        "range_low": 34843.0,
+        "range_width": 297.0,
+        "gross_atr_sim": -30.34,
+        "net_atr_sim": -35.34,
+        "atr_barrier_sim": {
+          "gross_pnl": -30.34,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 46.0
+        }
+      },
+      {
+        "day": "2026-04-10",
+        "ts": 1775783880,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 35454.0,
+        "atr": 46.15,
+        "range_high": 35438.0,
+        "range_low": 35215.0,
+        "range_width": 223.0,
+        "gross_atr_sim": -34.61,
+        "net_atr_sim": -39.61,
+        "atr_barrier_sim": {
+          "gross_pnl": -34.61,
+          "exit_reason": "stop_loss",
+          "hold_sec": 74,
+          "mfe": 0.0,
+          "mae": 35.0
+        }
+      },
+      {
+        "day": "2026-04-13",
+        "ts": 1776042960,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 35550.0,
+        "atr": 43.9,
+        "range_high": 35507.0,
+        "range_low": 35185.0,
+        "range_width": 322.0,
+        "gross_atr_sim": -32.92,
+        "net_atr_sim": -37.92,
+        "atr_barrier_sim": {
+          "gross_pnl": -32.92,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 34.0
+        }
+      },
+      {
+        "day": "2026-04-14",
+        "ts": 1776129720,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 36231.0,
+        "atr": 35.15,
+        "range_high": 36206.0,
+        "range_low": 36012.0,
+        "range_width": 194.0,
+        "gross_atr_sim": 16.0,
+        "net_atr_sim": 11.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 16.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 43.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-15",
+        "ts": 1776215760,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 36800.0,
+        "atr": 28.6,
+        "range_high": 36789.0,
+        "range_low": 36637.0,
+        "range_width": 152.0,
+        "gross_atr_sim": 34.0,
+        "net_atr_sim": 29.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 34.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 40.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-16",
+        "ts": 1776313140,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 37441.0,
+        "atr": 25.0,
+        "range_high": 37412.0,
+        "range_low": 37106.0,
+        "range_width": 306.0,
+        "gross_atr_sim": -18.75,
+        "net_atr_sim": -23.75,
+        "atr_barrier_sim": {
+          "gross_pnl": -18.75,
+          "exit_reason": "stop_loss",
+          "hold_sec": 82,
+          "mfe": 14.0,
+          "mae": 19.0
+        }
+      },
+      {
+        "day": "2026-04-17",
+        "ts": 1776388980,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 37349.0,
+        "atr": 39.35,
+        "range_high": 37343.0,
+        "range_low": 37150.0,
+        "range_width": 193.0,
+        "gross_atr_sim": -29.51,
+        "net_atr_sim": -34.510000000000005,
+        "atr_barrier_sim": {
+          "gross_pnl": -29.51,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 76.0
+        }
+      },
+      {
+        "day": "2026-04-20",
+        "ts": 1776649500,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 37639.0,
+        "atr": 36.85,
+        "range_high": 37612.0,
+        "range_low": 37250.0,
+        "range_width": 362.0,
+        "gross_atr_sim": -27.64,
+        "net_atr_sim": -32.64,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.64,
+          "exit_reason": "stop_loss",
+          "hold_sec": 5,
+          "mfe": 0.0,
+          "mae": 28.0
+        }
+      },
+      {
+        "day": "2026-04-21",
+        "ts": 1776736620,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 37663.0,
+        "atr": 39.5,
+        "range_high": 38072.0,
+        "range_low": 37697.0,
+        "range_width": 375.0,
+        "gross_atr_sim": -29.62,
+        "net_atr_sim": -34.620000000000005,
+        "atr_barrier_sim": {
+          "gross_pnl": -29.62,
+          "exit_reason": "stop_loss",
+          "hold_sec": 6,
+          "mfe": 0.0,
+          "mae": 30.0
+        }
+      },
+      {
+        "day": "2026-04-22",
+        "ts": 1776821520,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 38193.0,
+        "atr": 36.5,
+        "range_high": 38185.0,
+        "range_low": 37925.0,
+        "range_width": 260.0,
+        "gross_atr_sim": -27.38,
+        "net_atr_sim": -32.379999999999995,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.38,
+          "exit_reason": "stop_loss",
+          "hold_sec": 5,
+          "mfe": 0.0,
+          "mae": 28.0
+        }
+      },
+      {
+        "day": "2026-04-23",
+        "ts": 1776907020,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 38965.0,
+        "atr": 57.6,
+        "range_high": 38933.0,
+        "range_low": 38559.0,
+        "range_width": 374.0,
+        "gross_atr_sim": 9.0,
+        "net_atr_sim": 4.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 9.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 38.0,
+          "mae": 35.0
+        }
+      },
+      {
+        "day": "2026-04-24",
+        "ts": 1776993960,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 38666.0,
+        "atr": 46.1,
+        "range_high": 38632.0,
+        "range_low": 38250.0,
+        "range_width": 382.0,
+        "gross_atr_sim": 92.2,
+        "net_atr_sim": 87.2,
+        "atr_barrier_sim": {
+          "gross_pnl": 92.2,
+          "exit_reason": "take_profit",
+          "hold_sec": 135,
+          "mfe": 93.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-27",
+        "ts": 1777252920,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 40397.0,
+        "atr": 104.15,
+        "range_high": 40338.0,
+        "range_low": 39902.0,
+        "range_width": 436.0,
+        "gross_atr_sim": -78.11,
+        "net_atr_sim": -83.11,
+        "atr_barrier_sim": {
+          "gross_pnl": -78.11,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 99.0
+        }
+      },
+      {
+        "day": "2026-04-28",
+        "ts": 1777339020,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Long",
+        "entry_price": 40100.0,
+        "atr": 59.35,
+        "range_high": 40008.0,
+        "range_low": 39796.0,
+        "range_width": 212.0,
+        "gross_atr_sim": 20.0,
+        "net_atr_sim": 15.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 20.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 78.0,
+          "mae": 0.0
+        }
+      },
+      {
+        "day": "2026-04-30",
+        "ts": 1777513020,
+        "range_minutes": 30,
+        "buffer_atr_k": 0.15,
+        "direction": "Short",
+        "entry_price": 39564.0,
+        "atr": 53.95,
+        "range_high": 39938.0,
+        "range_low": 39584.0,
+        "range_width": 354.0,
+        "gross_atr_sim": 16.0,
+        "net_atr_sim": 11.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 16.0,
+          "exit_reason": "horizon",
+          "hold_sec": 180,
+          "mfe": 106.0,
+          "mae": 24.0
+        }
+      }
+    ]
+  }
+}

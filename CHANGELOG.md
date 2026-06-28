@@ -18,7 +18,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
-- **FT-003 MVP 收尾**：[`workspaces/election_report.md`](workspaces/election_report.md) — `grid_no_viable_solution` + `diagnostic_only`（holdout 未跑）；Strategy v2 待開。
+- **Holdout 契約 v2（2026-06-28）**：[`HOLDOUT_CONTRACT_v2.md`](docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) — train 01–03 / valid 04 / holdout **05+06 合併**；冠軍 median·方向門檻；2025 WFO backfill。 [`DATA_SPLIT.md`](workspaces/DATA_SPLIT.md) 同步。
 - **FT-003 Phase 3.6 進場漏斗 Methods SSOT**：[`ENTRY_FUNNEL_METRICS.md`](docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)（armed 順勢窗口、回踩漏斗、timeout、vol_1s 操作定義）；PLAN Phase 3.6 四平面 §A–§D；SPEC §4.6 產物 `entry_funnel.json`；SHARED_ASSUMPTIONS **v1.3** §4.2；模板 `volatility_baseline.md` §C、`strategy_diagnosis.md` §6；AGENT_ROSTER §1.7 更新。
 - **FT-003 Phase 3.6 §C 進場漏斗 pipeline**：`reporting/entry_funnel.py`（`IndicatorState` tick 回放、armed forward W30/60/180/300、vol 分位、§C markdown merge）；`ft003_episode_diagnosis.py` CLI → `workspaces/reports/entry_funnel.json` + `VOLATILITY_BASELINE.md` §C。
 - **FT-003 Phase 3.6 四平面診斷收尾**：`VOLATILITY_BASELINE.md` §A–§D 數據填妥（conservative valid 進場漏斗 + 三 agent 出場診斷）；`cache_audit --code TMFR1` 無 FAIL；[`workspaces/strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §1–§6 合成敘事（armed 順勢≠net edge、回踩瓶頸、vol 門檻非綁定、與尺度錯配雙重 squeeze → `grid_no_viable_solution`）— **§Decision 待人類簽核**。
@@ -27,6 +27,10 @@ Historical standalone-repo release links are kept for archaeology only; developm
 - **FT-004 MVPClosed（2026-06-28）**：Thesis A **No-Go**（`thesis_a_no_go`）；plugin 凍結研究用、不進 Live；見 [`SPEC §8`](docs/features/momentum-continuation/SPEC.md)。
 - **FT-005 MVPClosed（2026-06-28）**：Thesis B **No-Go at Phase 0**（`thesis_b_phase0_no_go`）；見 [`SPEC §8`](docs/features/timeout-continuation/SPEC.md)。
 - **FT-007 放棄（2026-06-28）**：Thesis D MVPClosed — v1/v2/v3 Phase 0 未過；見 [`SPEC §8`](docs/features/momentum-exhaustion-reversal/SPEC.md)、[`mer-baseline/gate_report`](workspaces/mer-baseline/gate_report.md)。
+- **FT-008 Phase 0 v2（2026-06-28）**：`close_1h_only` — valid 通過（lb10_bk0.1 gross +7.24）；01–04 未過（gross +4.40 net −0.60）；見 [`gate_report_v2`](workspaces/sb-baseline/gate_report_v2.md)。
+- **FT-009 MVPClosed（2026-06-28）**：Thesis F — 01–04 Phase 0 過、plugin 完成；**2026-05 holdout 未過** → No-Go UAT；見 [`SPEC §8`](docs/features/opening-range-breakout/SPEC.md)、[`orb-baseline/gate_report`](workspaces/orb-baseline/gate_report.md)。
+- **FT-010 MVPClosed（2026-06-28）**：Thesis G — Phase 0 01–03 未過（n≪30）；見 [`SPEC §11`](docs/features/vwap-trend-pullback/SPEC.md)、[`vtp-baseline/gate_report`](workspaces/vtp-baseline/gate_report.md)。
+- **FT-009 Phase 0（2026-06-28）**：Opening Range Breakout — `orb_counterfactual.py`；01–04 主判；見 [`orb-baseline/gate_report`](workspaces/orb-baseline/gate_report.md)。
 - **FT-007 v2 flow flip pilot（2026-06-28）**：108 筆 / 153 flips；net 仍負；close_1h buy-fade 子集 gross +5.5（n=14）；見 [`counterfactual_flow_flip_pilot.json`](workspaces/mer-baseline/reports/counterfactual_flow_flip_pilot.json)。
 - **FT-006 holdout（2026-06-28）**：2026-05 plugin baseline **未過** G1/G2/G3（123 趟、net **−0.74**）；valid 仍過 → overfit suspect；見 [`gate_report`](workspaces/vsf-baseline/gate_report.md)。
 - **FT-006 Go Pilot-prep（2026-06-28）**：`strategy-vwap-stretch-fade` plugin + Phase 0–2；valid G1–G4 全過；見 [`SPEC §8`](docs/features/vwap-stretch-fade/SPEC.md)。

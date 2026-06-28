@@ -19,6 +19,8 @@
 | **FT-005 Timeout Continuation** | **✅ MVPClosed** — Thesis B **No-Go at Phase 0**；[`gate_report.md`](../workspaces/tc-baseline/gate_report.md) · [SPEC §8](features/timeout-continuation/SPEC.md) |
 | **FT-006 VWAP Stretch Fade** | **🟡 Holdout 未過** — valid 過、2026-05 overfit suspect；[`gate_report`](../workspaces/vsf-baseline/gate_report.md) |
 | **FT-007 Momentum Exhaustion Reversal** | **✅ 放棄** — Thesis D MVPClosed；[`gate_report`](../workspaces/mer-baseline/gate_report.md) |
+| **FT-009 Opening Range Breakout** | **✅ MVPClosed** — 01–04 過、05 holdout 未過；[`gate_report`](../workspaces/orb-baseline/gate_report.md) |
+| **FT-010 VWAP Trend Pullback** | **✅ MVPClosed** — Phase 0 未過（n≪30）；[`gate_report`](../workspaces/vtp-baseline/gate_report.md) |
 | Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
 | Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
 | **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
@@ -119,6 +121,23 @@
 - [x] Phase 0 v2：tick flow flip — n=108，net **−3.75**
 - [x] Phase 0 v3：close_1h / footprint / surge — **全未過**；best v3_all net **−0.07**（n=15）
 - [x] 人類 **放棄** — 不跑 01–04、不開 plugin（見 [`gate_report.md`](../workspaces/mer-baseline/gate_report.md)）
+
+### FT-008 — Short Breakout（[`PLAN`](features/short-breakout/PLAN.md)）— **MVPClosed**
+
+- [x] Phase 0 v1/v2 — valid 子集過、01–04 未過
+
+### FT-009 — Opening Range Breakout（[`PLAN`](features/opening-range-breakout/PLAN.md)）— **MVPClosed**
+
+- [x] SPEC + PLAN + `orb_counterfactual.py` + CLI
+- [x] 01–04 主判 — **通過**（rm30_bk0p15）
+- [x] Phase 1 plugin + 01–04 baseline（73 趟 net +1.29）
+- [x] holdout 2026-05 — **未過** → **No-Go UAT**（見 [`gate_report`](../workspaces/orb-baseline/gate_report.md)）
+
+### FT-010 — VWAP Trend Pullback（[`PLAN`](features/vwap-trend-pullback/PLAN.md)）— **MVPClosed**
+
+- [x] Phase 0 CF — 01–03 **未過**（best rcy10 n=3；04 valid 0 筆）
+- [x] FT-010b 證偽（去量能濾網）— 仍未過
+- [x] **No-Go at Phase 0** — 不開 plugin（見 [`gate_report`](../workspaces/vtp-baseline/gate_report.md)）
 
 **Post-MVP — Phase 6 長歷史（2022+，MVP holdout Gate 後）**
 

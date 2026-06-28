@@ -40,14 +40,16 @@
 | [`ops/WindowsOps.md`](ops/WindowsOps.md) | Windows 排程、告警、路徑 |
 | [`AGENTS.md`](AGENTS.md) | AI 安全護欄、Callback MUST NOT、Production Gate |
 
-## 4. 研究與整合規格（按需）
+## 4. 研究與 Gate（策略 thesis）
 
 | 主題 | 文件 |
 | ---- | ---- |
+| **Holdout 契約 v2**（train/valid/holdout、median、方向） | [`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
+| 資料切分 SSOT | [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) |
 | 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
 | MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
 | Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
-| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · [`workspaces/`](../workspaces/) · Phase 3.6 [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · 進場漏斗 Methods [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
+| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · **[`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)**（策略 thesis gate） · [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) · [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
 | 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
 | tick_cache 品質稽核 / 修復 | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit；`storage.cache_audit` / `storage.cache_repair` |
 
@@ -72,6 +74,9 @@
 | FT-005 | timeout-continuation | **MVPClosed** | [SPEC](features/timeout-continuation/SPEC.md) §8 · [PLAN](features/timeout-continuation/PLAN.md) · [`tc-baseline/`](../workspaces/tc-baseline/) |
 | FT-006 | vwap-stretch-fade | Holdout 未過 | [SPEC §8](features/vwap-stretch-fade/SPEC.md) · [`gate_report`](../workspaces/vsf-baseline/gate_report.md) |
 | FT-007 | momentum-exhaustion-reversal | MVPClosed | [SPEC §8](features/momentum-exhaustion-reversal/SPEC.md) · [`gate_report`](../workspaces/mer-baseline/gate_report.md) |
+| FT-008 | short-breakout | MVPClosed | [SPEC §8](features/short-breakout/SPEC.md) · [`gate_report`](../workspaces/sb-baseline/gate_report.md) |
+| FT-009 | opening-range-breakout | **MVPClosed** | [SPEC §8](features/opening-range-breakout/SPEC.md) · [`orb-baseline/`](../workspaces/orb-baseline/) |
+| FT-010 | vwap-trend-pullback | **MVPClosed** | [SPEC §11](features/vwap-trend-pullback/SPEC.md) · [`vtp-baseline/`](../workspaces/vtp-baseline/) |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 
