@@ -16,7 +16,7 @@
 | P-001 | Regime VWAP stretch fade | `mvpclosed` | mean-reversion | — | — | FT-012 已結 |
 | P-002 | Midday liquidity pause fade | `rejected` | mean-reversion | — | **high** | fade 整族已死 |
 | P-003 | Opening gap inventory fade | `draft-hold` | mean-reversion | — | **high** | 需改觸發或否決 |
-| P-004 | Morning VWAP hold pullback long | `draft-proposal` | **continuation** | mean_robust | low | 等人類 Pick |
+| P-004 | Morning VWAP hold pullback long | **`mvpclosed`** → FT-014 | **continuation** | mean_robust | low | train n=7 · W30 med +38 · vol_shrink 過稀 |
 | P-005 | Gap drive continuation | `draft-proposal` | **continuation** | **skew** 候選 | med | 等人類 Pick |
 | P-006 | Midday range expansion long | `draft-proposal` | **continuation** | mean_robust | med | 等人類 Pick |
 | P-007 | SuperTrend flip continuation | **`mvpclosed`** | **continuation** | mean_robust | low | FT-013 · `stf_fingerprint_fail` |
@@ -45,17 +45,13 @@
 
 ---
 
-## P-004 — Morning VWAP hold pullback long
+## P-004 — Morning VWAP hold pullback long → **FT-014**（**MVPClosed**）
 
-**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-28 · **collision**：low
+**狀態**：**`mvpclosed`** · **outcome**：`mvhp_fingerprint_fail` · **日期**：2026-06-28 · **class**：**mean_robust** · **FT**：[`morning-vwap-hold-pullback`](../../docs/features/morning-vwap-hold-pullback/SPEC.md) · [`gate_report`](mvhp-baseline/gate_report.md)
 
-**故事**：09:15–10:30，價格 **持續在 VWAP 上方**（開盤 drive），第一次回踩 VWAP 且 1m 量縮 → **做多**順勢延續（非 fade）。
+**0c-1（2026-06-28）**：train n=**7**（G3 不過）· W30 stop-less med **+38** · barrier gross/趟 24 · funnel hold→entry 4.3% · vol_shrink 瓶頸（77 touch → 7 entry）。post_entry `direction_ok_margin_thin` — **方向弱正但樣本過稀，禁 grid**。
 
-**不是 FT-006/012 因為**：進場是 **順勢回踩買入**；觸發為「VWAP 支撐 + 量縮」，非 |z| 超標反向。
-
-**粗算錨點**：FT-003 timeout 子集 W180 **+35**（順勢未成交）— 假設可截取類似路徑；預期 n 60–120；gross 目標 **3–6**（保守，仍須過 G1）。
-
-**Falsify**：train W30 stop-less median ≤ 0 → 順勢 thesis 錯；post_entry 附錄 MUST 進 gate_report。
+**Pick A（2026-06-28）**：post FT-013 · 延續 mean_robust continuation 族。
 
 ---
 
@@ -149,12 +145,12 @@
 | P-002 | **rejected** | 2026-06-28 | midday fade = fade 整族變形 |
 | P-008 | **rejected** | 2026-06-28 | breakout 族 + gross 天花板 < friction 5 |
 | P-007 | **mvpclosed** → FT-013 | 2026-06-28 | train W30 med −10 · 0c-1 fingerprint fail |
+| P-004 | **mvpclosed** → FT-014 | 2026-06-28 | train n=7 · `mvhp_fingerprint_fail` · grid 跳過 |
 
 ---
 
 ## 人類操作
 
-1. **P-004 / P-006** continuation 候選 — 等人類 Pick
-2. 下一 skew 候選：**P-009**（建議 **FT-014**）
-3. P-004 / P-005 / P-006 仍 `draft-proposal` — 需另 Pick
-4. **v2.2.1 不復活 FT 屍體** — 見 Holdout §11
+1. **P-004 MVPClosed** — [`FT-014 gate_report`](mvhp-baseline/gate_report.md) · 下一 thesis 待 Pick
+2. **P-006** continuation · **P-009** skew — 仍 `draft-proposal`
+3. **v2.2.1 不復活 FT 屍體** — 見 Holdout §11

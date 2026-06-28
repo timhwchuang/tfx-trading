@@ -79,6 +79,8 @@
 | FT-010 | vwap-trend-pullback | **MVPClosed** | [SPEC §11](features/vwap-trend-pullback/SPEC.md) · [`vtp-baseline/`](../workspaces/vtp-baseline/) |
 | FT-011 | session-confluence-breakout | **MVPClosed** | [SPEC §10](features/session-confluence-breakout/SPEC.md) · [`scb-baseline/`](../workspaces/scb-baseline/) |
 | FT-012 | regime-vwap-stretch-fade | **MVPClosed** | [SPEC §8](features/regime-vwap-stretch-fade/SPEC.md) · [`rvsf-baseline/`](../workspaces/rvsf-baseline/) |
+| FT-013 | supertrend-flip | **MVPClosed** | [SPEC](features/supertrend-flip/SPEC.md) · [`stf-baseline/`](../workspaces/stf-baseline/) |
+| FT-014 | morning-vwap-hold-pullback | **MVPClosed** | [SPEC](features/morning-vwap-hold-pullback/SPEC.md) · [`mvhp_fingerprint_fail`](../workspaces/mvhp-baseline/gate_report.md) |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 

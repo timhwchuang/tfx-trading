@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "thesis": "morning_vwap_hold_pullback",
+  "variant": "mvhp_fingerprint_v1",
+  "mode": "fingerprint",
+  "from_date": "2025-01-01",
+  "to_date": "2025-12-31",
+  "code": "TMFR1",
+  "friction_points_per_round_trip": 5.0,
+  "entry_model": "raw_1m_bar_close_orb_vsf_family",
+  "sim_params": {
+    "entry_window": "09:15:00–10:30:00",
+    "max_trades_per_day": 1,
+    "atr_period": 14,
+    "min_atr_pts": 25.0,
+    "exit_variant": "atr_barrier_900s",
+    "max_hold_sec": 900
+  },
+  "fingerprint_params": {
+    "hold_min_bars": 10,
+    "touch_buf_k": 0.1,
+    "pullback_vol_ratio_max": 0.85,
+    "vwap_slope_bars": 3,
+    "k_sl": 1.0,
+    "tp_atr_k": 2.0
+  },
+  "fingerprint_gate": {
+    "pass": false,
+    "min_n": 30,
+    "w30_stop_less_gross_median_min": 0,
+    "w30_stop_less_gross_median": 38.0,
+    "n": 7
+  },
+  "phase0_gate": {
+    "pass": false,
+    "gross_mean_min": 5.0,
+    "net_mean_min": 0.0,
+    "min_n": 30,
+    "best_passing": null
+  },
+  "section31_long_by_param": {
+    "hm10_tb0p1_vr0p85_vs3_ksl1_tp2": {
+      "disqualified": false,
+      "reasons": [],
+      "gross_median": 50.0,
+      "net_mean": 19.0,
+      "n": 7
+    }
+  },
+  "outcome_hint": "mvhp_fingerprint_fail",
+  "summary_by_param": {
+    "hm10_tb0p1_vr0p85_vs3_ksl1_tp2": {
+      "atr_barrier_900s": {
+        "n": 7,
+        "gross_mean": 24.0,
+        "gross_median": 50.0,
+        "net_mean": 19.0,
+        "net_median": 45.0,
+        "gross_total": 168.0,
+        "net_total": 133.0
+      }
+    }
+  },
+  "post_entry_diagnosis_by_param": {
+    "hm10_tb0p1_vr0p85_vs3_ksl1_tp2": {
+      "n": 7,
+      "barrier": {
+        "gross_mean": 24.0,
+        "gross_median": 50.0,
+        "net_mean": 19.0,
+        "net_median": 45.0
+      },
+      "barrier_path": {
+        "MFE_mean": 34.71,
+        "MFE_median": 50.0,
+        "MAE_mean": 12.86,
+        "MAE_median": 15.0
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": 20.43,
+          "close_delta_median": 36.0,
+          "net_median": 31.0,
+          "MFE_median": 39.0,
+          "MAE_median": 15.0
+        },
+        "W900": {
+          "close_delta_mean": 24.43,
+          "close_delta_median": 18.0,
+          "net_median": 13.0,
+          "MFE_median": 50.0,
+          "MAE_median": 15.0
+        },
+        "W1800": {
+          "close_delta_mean": 36.29,
+          "close_delta_median": 38.0,
+          "net_median": 33.0,
+          "MFE_median": 69.0,
+          "MAE_median": 15.0
+        }
+      },
+      "by_direction": {
+        "Long": {
+          "n": 7,
+          "barrier": {
+            "gross_mean": 24.0,
+            "gross_median": 50.0,
+            "net_mean": 19.0,
+            "net_median": 45.0
+          },
+          "barrier_path": {
+            "MFE_mean": 34.71,
+            "MFE_median": 50.0,
+            "MAE_mean": 12.86,
+            "MAE_median": 15.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": 20.43,
+              "close_delta_median": 36.0,
+              "net_median": 31.0,
+              "MFE_median": 39.0,
+              "MAE_median": 15.0
+            },
+            "W900": {
+              "close_delta_mean": 24.43,
+              "close_delta_median": 18.0,
+              "net_median": 13.0,
+              "MFE_median": 50.0,
+              "MAE_median": 15.0
+            },
+            "W1800": {
+              "close_delta_mean": 36.29,
+              "close_delta_median": 38.0,
+              "net_median": 33.0,
+              "MFE_median": 69.0,
+              "MAE_median": 15.0
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "direction_ok_margin_thin",
+        "notes": [
+          "W30 stop-less 有正 median，仍須看 barrier 與 valid",
+          "180s 內 MFE median 50.0 > MAE 15.0（路徑曾順向）"
+        ],
+        "policy_note": "stop-less forward 順向 ≠ net edge；不得用診斷結果回頭 tune train grid。"
+      }
+    }
+  },
+  "funnel_by_param": {
+    "hm10_tb0p1_vr0p85_vs3_ksl1_tp2": {
+      "totals": {
+        "days_with_session": 241,
+        "hold_pass": 164,
+        "first_touch": 77,
+        "vol_shrink": 7,
+        "entry": 7,
+        "hold_to_entry_rate": 0.0427,
+        "hold_to_touch_rate": 0.4695
+      }
+    }
+  },
+  "entry_count_by_param": {
+    "hm10_tb0p1_vr0p85_vs3_ksl1_tp2": 7
+  }
+}

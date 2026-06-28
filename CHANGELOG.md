@@ -14,6 +14,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **FT-014 MVPClosed（2026-06-28）**：Morning VWAP hold pullback — train 2025 fingerprint **n=7**（W30 med +38 · vol_shrink 瓶頸）→ `mvhp_fingerprint_fail`；grid 跳過；[`gate_report`](workspaces/mvhp-baseline/gate_report.md)。
+- **FT-014 SPEC/PLAN（2026-06-28）**：資深 TXF 設計審閱 — post_entry §5.3、outcome codes、`max_hold_sec=900`、valid 參考產物、gate_report 分節。
 - **FT-013 MVPClosed（2026-06-28）**：SuperTrend flip — train 2025 fingerprint W30 stop-less med **−10.0**（`stf_fingerprint_fail`）；grid 跳過；[`gate_report`](workspaces/stf-baseline/gate_report.md)。
 - **cache_audit 政策（2026-06-28）**：非每次 CF 全庫掃；SSOT [`workspaces/CACHE_AUDIT.md`](workspaces/CACHE_AUDIT.md)；Playbook / HOLDOUT / DATA_SPLIT 更新。
 - **進場後診斷標準化（2026-06-28）**：`post_entry_diagnosis.py`；FT-006/012 CF 產 W5/W15/W30 + MFE/MAE；Playbook §5.1 提案檢查清單；queue 換批 continuation thesis。
@@ -25,6 +27,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-014 Phase 0（2026-06-28）**：`morning_vwap_hold_pullback_counterfactual.py` · `ft014_mvhp_counterfactual.py` · `mvhp-baseline/` fingerprint JSON。
+- **FT-014 Draft（2026-06-28）**：P-004 Morning VWAP hold pullback — [`morning-vwap-hold-pullback/SPEC.md`](docs/features/morning-vwap-hold-pullback/SPEC.md) · Tim Pick A。
 - **FT-013 Phase 0（2026-06-28）**：`supertrend_flip_counterfactual.py` · `ft013_stf_counterfactual.py` · `stf-baseline/` fingerprint JSON。
 - **Corpse Atlas（2026-06-28）**：`retrofit_post_entry_diagnosis.py` · `run_corpse_atlas_batch.py` · `analyze_corpse_mfe_context.py`；[`CORPSE_ATLAS.md`](workspaces/CORPSE_ATLAS.md) 全族驗屍彙總。
 - **`post_entry_diagnosis.py`（2026-06-28）**：Phase 0 標準進場後診斷（W5/15/30、MFE/MAE、gate_report 附錄）。

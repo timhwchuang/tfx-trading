@@ -20,6 +20,7 @@
 | FT-011 | [session-confluence-breakout](session-confluence-breakout/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §10](session-confluence-breakout/SPEC.md) · [PLAN](session-confluence-breakout/PLAN.md) · [`gate_report`](../../workspaces/scb-baseline/gate_report.md) |
 | FT-012 | [regime-vwap-stretch-fade](regime-vwap-stretch-fade/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §8](regime-vwap-stretch-fade/SPEC.md) · [`gate_report`](../../workspaces/rvsf-baseline/gate_report.md) |
 | FT-013 | [supertrend-flip](supertrend-flip/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | [gate_report](../../workspaces/stf-baseline/gate_report.md) · `stf_fingerprint_fail` |
+| FT-014 | [morning-vwap-hold-pullback](morning-vwap-hold-pullback/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | [`mvhp_fingerprint_fail`](../../workspaces/mvhp-baseline/gate_report.md) · n=7 · W30 med +38 |
 
 ## 狀態定義
 
