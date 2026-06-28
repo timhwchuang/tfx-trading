@@ -27,6 +27,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-015 MVPClosed（2026-06-28）**：FVG retest pullback skew — train 2025 fingerprint **n=211** · W30 med **−0.0** → `frp_fingerprint_fail`；[`gate_report`](workspaces/fvg-baseline/gate_report.md)。
+- **FT-015 Draft（2026-06-28）**：P-009 FVG retest pullback — **skew** · Tim GO。
 - **FT-014 Phase 0（2026-06-28）**：`morning_vwap_hold_pullback_counterfactual.py` · `ft014_mvhp_counterfactual.py` · `mvhp-baseline/` fingerprint JSON。
 - **FT-014 Draft（2026-06-28）**：P-004 Morning VWAP hold pullback — [`morning-vwap-hold-pullback/SPEC.md`](docs/features/morning-vwap-hold-pullback/SPEC.md) · Tim Pick A。
 - **FT-013 Phase 0（2026-06-28）**：`supertrend_flip_counterfactual.py` · `ft013_stf_counterfactual.py` · `stf-baseline/` fingerprint JSON。

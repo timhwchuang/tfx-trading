@@ -81,6 +81,7 @@
 | FT-012 | regime-vwap-stretch-fade | **MVPClosed** | [SPEC §8](features/regime-vwap-stretch-fade/SPEC.md) · [`rvsf-baseline/`](../workspaces/rvsf-baseline/) |
 | FT-013 | supertrend-flip | **MVPClosed** | [SPEC](features/supertrend-flip/SPEC.md) · [`stf-baseline/`](../workspaces/stf-baseline/) |
 | FT-014 | morning-vwap-hold-pullback | **MVPClosed** | [SPEC](features/morning-vwap-hold-pullback/SPEC.md) · [`mvhp_fingerprint_fail`](../workspaces/mvhp-baseline/gate_report.md) |
+| FT-015 | fvg-retest-pullback | **MVPClosed** | [SPEC](features/fvg-retest-pullback/SPEC.md) · [`frp_fingerprint_fail`](../workspaces/fvg-baseline/gate_report.md) |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 

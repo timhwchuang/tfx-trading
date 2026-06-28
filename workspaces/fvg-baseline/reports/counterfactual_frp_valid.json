@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "thesis": "fvg_retest_pullback",
+  "thesis_class": "skew",
+  "variant": "frp_fingerprint_v1",
+  "mode": "fingerprint",
+  "from_date": "2026-01-01",
+  "to_date": "2026-03-31",
+  "code": "TMFR1",
+  "friction_points_per_round_trip": 5.0,
+  "entry_model": "tick_in_fvg_zone_vol_1s_p40",
+  "sim_params": {
+    "entry_window": "09:15:00–12:30:00",
+    "max_trades_per_day": 1,
+    "atr_period": 20,
+    "min_atr_pts": 25.0,
+    "structure_tf_min": 5,
+    "exit_variant": "atr_barrier_900s",
+    "max_hold_sec": 900
+  },
+  "fingerprint_params": {
+    "swing_lookback": 3,
+    "max_fvg_age_bars": 6,
+    "vol_pct_max": 0.4,
+    "k_sl": 1.0,
+    "tp_atr_k": 2.0
+  },
+  "fingerprint_gate": {
+    "pass": false,
+    "min_n": 15,
+    "w30_stop_less_gross_median_min": 0,
+    "w30_stop_less_gross_median": -1.5,
+    "n": 46
+  },
+  "phase0_gate": {
+    "pass": false,
+    "gross_mean_min": 5.0,
+    "net_mean_min": 0.0,
+    "min_n": 15,
+    "thesis_class": "skew",
+    "best_passing": null
+  },
+  "skew_gate_by_param": {
+    "sl3_age6_vp0p4_ksl1_tp2": {
+      "disqualified": true,
+      "reasons": [
+        "payoff_ratio",
+        "max_consecutive_losses",
+        "max_consecutive_loss_pts",
+        "worst_month_net",
+        "net_mean_at_friction_7",
+        "long_net_mean_lt_-3",
+        "short_gross_share_gt_80pct"
+      ],
+      "payoff_ratio": 1.82,
+      "tail_count": 16,
+      "max_consecutive_losses": 14,
+      "max_consecutive_loss_pts": 459.0,
+      "worst_month_net": -365.4,
+      "top3_win_gross_share": 0.186,
+      "net_mean_at_friction_7": -5.9,
+      "win_rate": 0.37,
+      "n": 46
+    }
+  },
+  "outcome_hint": "frp_fingerprint_fail",
+  "summary_by_param": {
+    "sl3_age6_vp0p4_ksl1_tp2": {
+      "atr_barrier_900s": {
+        "n": 46,
+        "gross_mean": 1.1,
+        "gross_median": -25.0,
+        "net_mean": -3.9,
+        "net_median": -30.0,
+        "gross_total": 50.7,
+        "net_total": -179.3
+      }
+    }
+  },
+  "post_entry_diagnosis_by_param": {
+    "sl3_age6_vp0p4_ksl1_tp2": {
+      "n": 46,
+      "barrier": {
+        "gross_mean": 1.1,
+        "gross_median": -25.0,
+        "net_mean": -3.9,
+        "net_median": -30.0
+      },
+      "barrier_path": {
+        "MFE_mean": 28.59,
+        "MFE_median": 27.0,
+        "MAE_mean": 20.46,
+        "MAE_median": 25.0
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": -12.02,
+          "close_delta_median": -5.0,
+          "net_median": -10.0,
+          "MFE_median": 25.0,
+          "MAE_median": 24.5
+        },
+        "W900": {
+          "close_delta_mean": -8.65,
+          "close_delta_median": 9.0,
+          "net_median": 4.0,
+          "MFE_median": 39.0,
+          "MAE_median": 33.5
+        },
+        "W1800": {
+          "close_delta_mean": -3.54,
+          "close_delta_median": -1.5,
+          "net_median": -6.5,
+          "MFE_median": 53.0,
+          "MAE_median": 39.0
+        }
+      },
+      "by_direction": {
+        "Long": {
+          "n": 35,
+          "barrier": {
+            "gross_mean": -0.09,
+            "gross_median": -25.0,
+            "net_mean": -5.09,
+            "net_median": -30.0
+          },
+          "barrier_path": {
+            "MFE_mean": 27.83,
+            "MFE_median": 27.0,
+            "MAE_mean": 20.34,
+            "MAE_median": 25.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": -11.34,
+              "close_delta_median": -5.0,
+              "net_median": -10.0,
+              "MFE_median": 24.0,
+              "MAE_median": 24.0
+            },
+            "W900": {
+              "close_delta_mean": 4.29,
+              "close_delta_median": 18.0,
+              "net_median": 13.0,
+              "MFE_median": 40.0,
+              "MAE_median": 33.0
+            },
+            "W1800": {
+              "close_delta_mean": 4.49,
+              "close_delta_median": -1.0,
+              "net_median": -6.0,
+              "MFE_median": 52.0,
+              "MAE_median": 38.0
+            }
+          }
+        },
+        "Short": {
+          "n": 11,
+          "barrier": {
+            "gross_mean": 4.9,
+            "gross_median": -25.0,
+            "net_mean": -0.1,
+            "net_median": -30.0
+          },
+          "barrier_path": {
+            "MFE_mean": 31.0,
+            "MFE_median": 32.0,
+            "MAE_mean": 20.82,
+            "MAE_median": 25.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": -14.18,
+              "close_delta_median": -12.0,
+              "net_median": -17.0,
+              "MFE_median": 32.0,
+              "MAE_median": 36.0
+            },
+            "W900": {
+              "close_delta_mean": -49.82,
+              "close_delta_median": -15.0,
+              "net_median": -20.0,
+              "MFE_median": 32.0,
+              "MAE_median": 36.0
+            },
+            "W1800": {
+              "close_delta_mean": -29.09,
+              "close_delta_median": -8.0,
+              "net_median": -13.0,
+              "MFE_median": 61.0,
+              "MAE_median": 70.0
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "direction_failed",
+        "notes": [
+          "W30 stop-less median 為負 → 方向假說弱",
+          "180s 內 MFE median 27.0 > MAE 25.0（路徑曾順向）"
+        ],
+        "policy_note": "stop-less forward 順向 ≠ net edge；不得用診斷結果回頭 tune train grid。"
+      }
+    }
+  },
+  "funnel_by_param": {
+    "sl3_age6_vp0p4_ksl1_tp2": {
+      "totals": {
+        "days_with_session": 54,
+        "bos_active_fvg": 47,
+        "zone_touch": 46,
+        "vol_ok": 46,
+        "entry": 46,
+        "bos_to_entry_rate": 0.9787,
+        "touch_to_entry_rate": 1.0
+      }
+    }
+  },
+  "entry_count_by_param": {
+    "sl3_age6_vp0p4_ksl1_tp2": 46
+  }
+}

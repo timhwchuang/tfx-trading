@@ -20,6 +20,7 @@
 | **009** | valid | — | 19 | −25.88 | −22.0 | +5.0 | 33/28 | direction_ok_margin_thin |
 | **009** | holdout 05 | — | 19 | −33.34 | −17.0 | +56.0 | 25/38 | exit_kills_edge |
 | **011** | 2025 train rm30 | rm30 | 46 | −24.65 | −2.0 | −3.0 | 30/25.5 | direction_failed |
+| **015** | 2025 train fp | sl3 | 211 | -3.0 | 1.0 | **-0.0** | 17/18 | direction_weak |
 | **014** | 2025 train fp | hm10 | 7 | 50.0 | 36.0 | **+38.0** | 50/15 | direction_ok_margin_thin |
 | **013** | 2025 train fp | ap10_sm3 | 67 | −4.0 | −5.0 | **−10.0** | 7/15 | direction_failed |
 | **013** | 2026 Q1 valid fp | ap10_sm3 | 26 | +14.5 | +7.0 | +7.5 | 36/28 | direction_ok_margin_thin |

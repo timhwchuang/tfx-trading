@@ -21,7 +21,7 @@
 | P-006 | Midday range expansion long | `draft-proposal` | **continuation** | mean_robust | med | 等人類 Pick |
 | P-007 | SuperTrend flip continuation | **`mvpclosed`** | **continuation** | mean_robust | low | FT-013 · `stf_fingerprint_fail` |
 | P-008 | Bollinger squeeze breakout | `rejected` | **continuation** | — | **high** | breakout 族 · gross 天花板 |
-| P-009 | FVG retest pullback | `draft-proposal` | **liquidity** | **skew** 候選 | med | 等人類 Pick |
+| P-009 | FVG retest pullback | **`mvpclosed`** → FT-015 | **liquidity** | **skew** | med | W30 med −0 · n=211 |
 
 ---
 
@@ -117,23 +117,11 @@
 
 ---
 
-## P-009 — FVG retest pullback
+## P-009 — FVG retest pullback → **FT-015**（**MVPClosed**）
 
-**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-28 · **collision**：med · **class 建議**：**skew**
+**狀態**：**`mvpclosed`** · **outcome**：`frp_fingerprint_fail` · **class**：**skew** · [`gate_report`](fvg-baseline/gate_report.md)
 
-**故事**：5m 偵測到 **同向 BOS** 後留下未 mitigated FVG；價格 **回測 FVG zone**（tick 進 zone 且 1m 量縮）→ **順 BOS 方向**進場（09:15–12:30）。FVG 定義複用 FT-002 §4.7（完全填補才 mitigated）。
-
-**不是 FT-002 因為**：FT-002 把 FVG 當 **pullback 濾網**（veto）；本案 FVG zone 是 **進場觸發**，非附屬 filter。
-
-**不是 P-004 / FT-010 因為**：回踩錨點是 **結構缺口**（gap between b0/b2），非 VWAP 或 stretch-to-buffer。
-
-**不是 FT-011 因為**：不用 OR / session confluence；單一 **BOS → FVG → retest** 因果鏈。
-
-**粗算錨點**：FT-010 VTP n≪30（pullback 低頻）；FT-002 filter 放棄 — 本案預期 n **40–80**（BOS+FVG 漏斗較窄）；gross 目標 **4–7**（結構回踩理論上 R:R 較好，仍須過 G1）。
-
-**Pre-register 草圖**：5m bucket · BOS swing lookback ∈ {3,5} · retest 需 `vol_1s ≤ p40` · max_fvg_age_bars ∈ {6,12}。
-
-**Falsify**：funnel `bos→active_fvg→zone_touch→entry` 轉化 < 5% 或 train n < 30 → 結構信號太稀 → MVPClosed；W30 stop-less median ≤ 0 → 假 FVG 為主。
+**0c-1（2026-06-28）**：n=**211** · W30 stop-less med **−0.0** · barrier gross/趟 0.33 · Long W30 +2 / Short −2 · post_entry `direction_weak` · **grid 跳過**。
 
 ---
 
@@ -146,11 +134,12 @@
 | P-008 | **rejected** | 2026-06-28 | breakout 族 + gross 天花板 < friction 5 |
 | P-007 | **mvpclosed** → FT-013 | 2026-06-28 | train W30 med −10 · 0c-1 fingerprint fail |
 | P-004 | **mvpclosed** → FT-014 | 2026-06-28 | train n=7 · `mvhp_fingerprint_fail` · grid 跳過 |
+| P-009 | **mvpclosed** → FT-015 | 2026-06-28 | W30 med −0 · n=211 · `frp_fingerprint_fail` |
 
 ---
 
 ## 人類操作
 
-1. **P-004 MVPClosed** — [`FT-014 gate_report`](mvhp-baseline/gate_report.md) · 下一 thesis 待 Pick
-2. **P-006** continuation · **P-009** skew — 仍 `draft-proposal`
+1. **P-009 MVPClosed** — [`FT-015 gate_report`](fvg-baseline/gate_report.md) · 下一 thesis 待 Pick
+2. **P-006** / **P-005** — 仍 `draft-proposal`
 3. **v2.2.1 不復活 FT 屍體** — 見 Holdout §11
