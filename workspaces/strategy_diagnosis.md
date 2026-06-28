@@ -131,7 +131,47 @@
 
 **FT-007 結論（2026-06-28）**：Thesis D（flow flip / 吸收反轉）**人類放棄** — v1/v2/v3 Phase 0 均未過 gate；v3_all 最佳 net **−0.07**（n=15）。Plugin **未實作**。見 [`mer-baseline/gate_report.md`](mer-baseline/gate_report.md)。
 
-**FT-009 結論（2026-06-28）**：Thesis F ORB — **01–04 Phase 0 通過**（rm30_bk0p15 gross **+7.93** net **+2.93**）；Short-heavy。見 [`orb-baseline/gate_report.md`](orb-baseline/gate_report.md)。
+**FT-009 結論（2026-06-28）**：Thesis F ORB — legacy 01–04 **通過**（rm30_bk0p15）；**2025 train v2.1 複驗全 param net 負**；05 holdout 未過 → **MVPClosed**。見 [`orb-baseline/gate_report.md`](orb-baseline/gate_report.md)。
+
+**FT-010 結論（2026-06-28）**：Thesis G VTP — Phase 0 **未過**（n≪30）。見 [`vtp-baseline/gate_report.md`](vtp-baseline/gate_report.md)。
+
+**FT-011 結論（2026-06-28）**：Thesis H SCB — 2025 train **未過**（net 負、median 負）；valid Q1 rm30 **overfit_suspect**。見 [`scb-baseline/gate_report.md`](scb-baseline/gate_report.md)。
+
+---
+
+## 8. 雙軌共識（2026-06-28 · 人類 + Agent）
+
+> **一句話**：狀態機再完美，沒有可交易的進出策略就沒有交易事業；**UAT 與 Alpha 並行，但主戰場在 Alpha**。
+
+### 8.1 兩條線，不可混淆
+
+| 軌道 | 目的 | 目前狀態 | 成功標準 |
+|------|------|----------|----------|
+| **工程線（UAT / Infra）** | 驗證 `TradingEngine`、委託、audit、fill 對帳、tick/kbar 累積 | **持續進行** | Phase 0–4 UAT checklist；**不**以 PnL 過關；**不**含 P6-1 / P6-SMC **CAL-8**（已放棄，§8.2） |
+| **Alpha 線（策略研究）** | 找到 **pre-register** 後可 falsify 的進出 edge | **主戰場** | v2.1 train G1–G3 + §3.1；否則 MVPClosed |
+
+**UAT 掛載的 `strategy-vwap-momentum`**：僅作 **plugin 載荷 / 決策路徑 smoke**，**不代表**回測或 Pilot 已驗證獲利。Live 預設 **paper / 最小口數 / 診斷**；不得以「UAT 在跑」推論 alpha 合格。
+
+### 8.2 已知策略狀態（回測結論 · 不作 Pilot 依據）
+
+| ID | 策略 | 回測結論 | UAT / Live |
+|----|------|----------|------------|
+| FT-003 | `strategy-vwap-momentum` hybrid | **`grid_no_viable_solution`**（淨期望全負） | UAT smoke **only** |
+| FT-006 | vwap-stretch-fade | valid 過 / holdout 未過 | 凍結研究 |
+| FT-009 | ORB | legacy 過 / **2025 train 負** / holdout 未過 | MVPClosed |
+| FT-010 | VWAP trend pullback | Phase 0 未過 | MVPClosed |
+| FT-011 | Session confluence breakout | Phase 0 未過 | MVPClosed |
+| FT-004～005、007～008 | 各 thesis | MVPClosed 或放棄 | — |
+| **FT-002** trend / SMC 濾網 + CAL-8 | 綁定 vwap-momentum | **放棄**（`structure_filter_enabled` false） |
+
+**共識**：上表 **無一項** 可作為「已驗證可獲利」的 live 策略；**濾網 CAL-8 亦放棄**。工程線完成 **不** 自動解鎖 Pilot。
+
+### 8.3 Alpha 線下一步（主 focus）
+
+1. **人類先定新假說**（一頁 SPEC）：與 hybrid / ORB / fade / pullback **本質不同**；pre-register 進出 + v2.1 日期。
+2. **Phase 0 counterfactual only** — 未過不開 plugin、不進 UAT 替換。
+3. **禁止**：在 vwap-momentum 上繼續 sweep knob 指望轉正；禁止 ORB/SCB 變體無新編號重跑；**禁止** P6-1 / P6-SMC **CAL-8**（濾網綁定已失敗 base）。
+4. **可並行**：UAT 累積 tick / fill audit → 供未來 **Confirm** 段使用，不取代 train gate。**KBARS_ARCHIVE** 仍可開（通用資料），不為 CAL-8。
 
 ---
 
@@ -140,6 +180,7 @@
 | 欄位 | 值 |
 |------|-----|
 | 簽核人 | Tim（對話確認） |
-| 日期 | 2026-06-27 |
+| 日期 | 2026-06-27（FT-003）；**2026-06-28（雙軌共識 §8）** |
 | 決策 | **已收尾** — `grid_no_viable_solution` + `diagnostic_only`；**否決** round2；改開 **Option A 策略層重設計** |
+| **雙軌（§8）** | **UAT 持續** = 工程驗證 only；**主 focus = Alpha 新 thesis**；現有全部策略回測已知不佳，不得作 Pilot 依據 |
 | 備註 | 根因：gross edge ≈ 0 + 進場逆向選擇（§6.1）+ 摩擦 5 點/趟。Phase 4 holdout **未跑**。見 [`election_report.md`](election_report.md)。 |

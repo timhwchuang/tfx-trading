@@ -1,6 +1,8 @@
 # Workspaces — AI 回測調參（FT-003）
 
-> **MVP 狀態（2026-06-27）**：**已收尾** — [`election_report.md`](election_report.md) 標 `grid_no_viable_solution` + `diagnostic_only`；**不產** `elected_config.yaml`。下一階段：**Strategy v2**（見 [`strategy_diagnosis.md`](strategy_diagnosis.md) §7 · [`docs/TODO.md`](../docs/TODO.md)）。
+> **雙軌共識（2026-06-28）**：[`strategy_diagnosis.md`](strategy_diagnosis.md) **§8** — **UAT 持續**（狀態機 / fill / 對帳，**不驗 alpha**）；**主 focus = 新策略 thesis**。現有策略（含 `vwap-momentum`、FT-006～011）回測 **均已知不佳**，不得作 Pilot 依據。
+
+> **MVP 狀態（2026-06-27）**：**已收尾** — [`election_report.md`](election_report.md) 標 `grid_no_viable_solution` + `diagnostic_only`；**不產** `elected_config.yaml`。下一階段：**Strategy v2 / 新 thesis**（見 [`strategy_diagnosis.md`](strategy_diagnosis.md) §7–§8）。
 
 > **AI 第一份文件**：[`docs/features/ai-backtest-tuning/AGENT_ROSTER.md`](../docs/features/ai-backtest-tuning/AGENT_ROSTER.md)（你是哪位、開工 prompt）  
 > **執行步驟**：[`PLAN.md`](../docs/features/ai-backtest-tuning/PLAN.md)

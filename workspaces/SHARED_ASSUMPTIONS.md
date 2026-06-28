@@ -2,7 +2,7 @@
 
 | 欄位 | 值 |
 |------|-----|
-| **版本** | **v1.5** |
+| **版本** | **v1.6** |
 | **更新日期** | 2026-06-28 |
 
 > **SSOT**：所有調參 agent **開工前 MUST 讀**；`grid.json` 邊界與 `analysis.md` 假說須與本檔一致。  
@@ -44,6 +44,17 @@ FT-004～010 沿用 **§2.0 legacy**；結論不重跑。
 | | 手續費 / 稅（`friction` net；見 §3.1） |
 
 **MUST**：所有 agent 在 analysis 中區分「相對排序 / 假說驗證」與「live 獲利預測」。**競賽 KPI（`valid_score`、`expectancy_net`）一律以 friction **enabled** 的 net 為準**（v1.1 起）。
+
+### 2.1 雙軌共識（2026-06-28 · MUST）
+
+| 軌道 | 驗什麼 | 不驗什麼 |
+|------|--------|----------|
+| **UAT / Infra** | 狀態機、委託、audit、fill 對帳、tick/kbar 累積 | 策略 net 期望、Pilot 獲利、**P6-1 / P6-SMC CAL-8**（已放棄） |
+| **Alpha / Thesis** | v2.1 train gate、Phase 0 CF | 取代 UAT 工程簽核 |
+
+- UAT 可掛載 `strategy-vwap-momentum` 作 **smoke 載荷**；該 plugin 回測結論為 **`grid_no_viable_solution`**（見 [`strategy_diagnosis.md`](strategy_diagnosis.md) §8.2）。
+- **主資源 focus**：新 pre-registered thesis；FT-003 grid sweep **不得**再當 alpha 主線。
+- SSOT 敘事：[`strategy_diagnosis.md`](strategy_diagnosis.md) §8。
 
 ## 3. 摩擦、滑價與執行
 

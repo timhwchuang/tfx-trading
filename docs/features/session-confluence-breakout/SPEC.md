@@ -213,7 +213,7 @@ Holdout 2026-04-01 … 2026-06-30   封印（06 未落地 → holdout_partial）
 - [x] 本 SPEC + [`PLAN.md`](PLAN.md)
 - [x] `scb_counterfactual.py` + `ft011_scb_counterfactual.py`
 - [x] train + valid CF JSON + funnel + ORB delta + `gate_report.md`
-- [ ] `strategy_diagnosis.md` §Decision 段
+- [x] `strategy_diagnosis.md` §Decision 段（§8.2 FT-011 結論）
 
 ### Phase 1（train 過關後）
 
@@ -226,7 +226,7 @@ Holdout 2026-04-01 … 2026-06-30   封印（06 未落地 → holdout_partial）
 - [ ] holdout Q2 **一次** baseline（04–06）
 - [ ] 更新 §10 §Decision
 
-**UAT/Live**：全程 **維持** `strategy-vwap-momentum`，直至 FT-011 holdout 過關 + 人類書面同意。
+**UAT/Live**：**維持** `strategy-vwap-momentum` **smoke 載荷**（非 alpha 背書）；FT-011 MVPClosed，不替換 plugin。
 
 ## 10. §Decision — MVPClosed at Phase 0（2026-06-28）
 

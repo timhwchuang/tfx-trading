@@ -14,10 +14,14 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **Doc sync（2026-06-28）**：雙軌 + CAL-8 放棄收斂 — `strategy_diagnosis` §8.1、`SHARED_ASSUMPTIONS` §2.1、`TODO.md`、`uat/APP.md`、`WeeklyStatus.md` 橫幅；`vwap-momentum` SPEC §6/§7.1 封存；`AGENT_ROSTER` → §8 + archived grid；FT-009 §8 v2.1 train 複驗；FT-011 §9 勾選。
 - **tick_cache SSOT (breaking)**：`kbar_cache/` 目錄與 `--kbar-cache-dir` / `--mirror-kbars` CLI 已移除；tick 與 kbar 皆寫入/讀取 `tick_cache/`（`{code}_kbars_{date}.csv`）。路徑 API 更名：`kbar_path` / `kbar_gz_path` / `resolve_kbar_path` / `kbars_satisfy_request`（取代 `kbars_cache_*` / `kbar_cache_satisfies_request`）。舊目錄遷移：`scripts/linux/migrate-legacy-kbar-cache.sh`；`structure_calibration` / `param_sweep` 讀 kbar 前自動遷移（`ensure_legacy_kbars_migrated`）。
 
 #### Added
 
+- **FT-002 MVPClosed（2026-06-28）**：SMC 濾網 CAL-8 / Land **放棄**（綁定 vwap-momentum）；工程 Phase 1–4 凍結。
+- **雙軌共識 + TODO 收斂（2026-06-28）**：[`strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §8；[`TODO.md`](docs/TODO.md) §已放棄 / §主 focus；Pilot 阻塞至新 alpha。
+- **雙軌共識（2026-06-28）**：[`strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §8 — UAT = 工程 only；主 focus = Alpha 新 thesis；現有策略回測已知不佳。SHARED_ASSUMPTIONS **v1.6** §2.1。
 - **FT-011 MVPClosed（2026-06-28）**：Session Confluence Breakout — 2025 train 未過（rm30 net −3.01、median 負）；valid Q1 rm30 overfit_suspect；見 [`SPEC §10`](docs/features/session-confluence-breakout/SPEC.md)、[`gate_report`](workspaces/scb-baseline/gate_report.md)。
 - **FT-011 Draft（2026-06-28）**：Session Confluence Breakout（Thesis H）— [`SPEC`](docs/features/session-confluence-breakout/SPEC.md) · [`PLAN`](docs/features/session-confluence-breakout/PLAN.md)；Holdout v2.1（2025 train · 2026 Q1 valid · 2026 Q2 holdout）；Phase 0 long-only；`workspaces/scb-baseline/`。
 - **Holdout 契約 v2.1（2026-06-28）**：[`HOLDOUT_CONTRACT_v2.md`](docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) — **2025 全年 train**（247 日）· **2026 Q1 valid** · **2026 Q2 holdout**（04–06）；§2.0 legacy 封存 FT-006～010。[`DATA_SPLIT.md`](workspaces/DATA_SPLIT.md) 同步。

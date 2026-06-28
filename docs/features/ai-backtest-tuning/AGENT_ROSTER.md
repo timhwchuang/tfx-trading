@@ -7,20 +7,22 @@ status: MVPClosed
 
 # FT-003 — 調參 Agent 編制表（AI 必讀）
 
-> **MVP 收尾（2026-06-27）**：[`election_report.md`](../../../workspaces/election_report.md) — `grid_no_viable_solution` + `diagnostic_only`；**不產** `elected_config.yaml`。下一階段 **Strategy v2** 另開（見 [`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §7 · [`TODO.md`](../../TODO.md) §Strategy v2）。**勿**再跑本輪 sweep / holdout / round2。
+> **MVP 收尾（2026-06-27）**：[`election_report.md`](../../../workspaces/election_report.md) — `grid_no_viable_solution` + `diagnostic_only`；**不產** `elected_config.yaml`。**勿**再跑本輪 sweep / holdout / round2。
+
+> **雙軌共識（2026-06-28）**：SSOT 敘事見 [`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) **§8**（非 §7）。UAT = 工程 only；**主 focus = Alpha 新 thesis**（FT-012+）。下方 agent grid **已封存（archived）**，僅供考古。
 
 > **讀者**：每一個負責 FT-003 的 Cursor / Grok session。  
 > **身份**：你**不是**一般 coding assistant；你**必須**同時扮演 [`prompts/roles/senior-trading-professional.md`](../../../prompts/roles/senior-trading-professional.md) 中的 **資深台指期交易員（15+ 年）**，在**資本保全優先**的前提下設計假說、grid 與解讀 KPI。  
 > **工程**：跑 `backtest` / `param_sweep` 可自己執行或請工程 agent；**交易結論**只能依本 role + SPEC §3–§4 產出。
 
-## 0. 競賽編制（幾位、各做什麼）
+## 0. 競賽編制（幾位、各做什麼）— **archived**
 
-| # | Workspace slug | 職稱（繁中） | 英文代號 | MVP | 一句話使命 |
-|---|----------------|-------------|----------|-----|------------|
-| 1 | `agent-conservative` | **資本保全調參師** | Capital Preservation | **必跑** | 用**少交易、高品質市況**換取較低 MDD 與較穩定的 valid expectancy |
-| 2 | `agent-execution` | **執行品質調參師** | Execution Quality | **必跑** | 在**不犧牲風控**下，壓低秒停損率與執行摩擦對 expectancy 的侵蚀 |
-| 3 | `agent-risk-exit` | **出場與風控調參師** | Risk & Exit Architecture | 擴充 | 優化 **TP / trail / 連虧 / 日虧** 結構，避免「賺小賠大」與心理不可承受的連虧 |
-| 4 | `agent-regime` | **市況濾網研究員** | Regime Filter Research | 擴充 | 在 **旗標預設關** 前提下研究 structure/trend 參數；**不得**宣稱可上線開 filter |
+| # | Workspace slug | 職稱（繁中） | 英文代號 | MVP | 一句話使命 | 狀態 |
+|---|----------------|-------------|----------|-----|------------|------|
+| 1 | `agent-conservative` | **資本保全調參師** | Capital Preservation | **必跑** | 用**少交易、高品質市況**換取較低 MDD 與較穩定的 valid expectancy | **archived** |
+| 2 | `agent-execution` | **執行品質調參師** | Execution Quality | **必跑** | 在**不犧牲風控**下，壓低秒停損率與執行摩擦對 expectancy 的侵蚀 | **archived** |
+| 3 | `agent-risk-exit` | **出場與風控調參師** | Risk & Exit Architecture | 擴充 | 優化 **TP / trail / 連虧 / 日虧** 結構，避免「賺小賠大」與心理不可承受的連虧 | **archived** |
+| 4 | `agent-regime` | **市況濾網研究員** | Regime Filter Research | 擴充 | 在 **旗標預設關** 前提下研究 structure/trend 參數；**不得**宣稱可上線開 filter | **archived** |
 
 - **MVP（現在）**：baseline → sweep → `analysis.md` → **Phase 3.4 peer_review**（**先於** leaderboard）→ `leaderboard.jsonl`。
 - **擴充**：#3、#4 目錄已就緒（`agent-risk-exit`、`agent-regime`）；規則與 prompt 見 §4–§5。

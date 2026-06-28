@@ -1,18 +1,16 @@
 ---
 id: FT-002
 slug: smc-structure-filter
-status: Draft
+status: MVPClosed
 opened: 2026-06-18
-owner: human+agent
-target: UAT
-phases: [0, 1, 2, 3, 4, 5]
+phases: [0, 1, 2, 3, 4]
 blockers: []
 ---
 
 # FT-002 — SMC Structure Filter（PLAN）
 
-> **PLAN** = 怎麼交付 [`SPEC.md`](SPEC.md)。Phase checkbox 隨 PR 更新。  
-> 設計審閱：[`REVIEW.md`](REVIEW.md)（資深交易人員）。
+> **PLAN** = 怎麼交付 [`SPEC.md`](SPEC.md)。  
+> **2026-06-28**：Phase 5 **CAL-8 / Land 放棄** — 綁定 vwap-momentum（無 edge）。工程 Phase 1–4 **凍結**。
 
 ## Scope
 
@@ -150,36 +148,22 @@ blockers: []
 - [x] log 含 `structure_veto` + `structure_algo_version`
 - [x] 3-run determinism 通過
 
-### Phase 5 — UAT + CAL-8 + Land
+### Phase 5 — UAT + CAL-8 + Land — **⛔ 放棄（2026-06-28）**
 
-**P6-SMC-CAL**
+> 濾網綁定 `grid_no_viable_solution` 的 vwap-momentum；CAL-8 無法創造 alpha。Harness **保留**；不再簽核。
 
-- [ ] UAT ≥5 日（累積證據）
-- [ ] harness + sweep 完整
-- [ ] ≥3 structure_veto near-miss 人工審閱
-- [ ] CAL-8 → [`WeeklyStatus.md`](../../WeeklyStatus.md)
-
-**Land（SPEC §9 MUST）**
-
-- [ ] [`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) §Integration contracts
-- [ ] [`packages/trading-engine/SPEC.md`](../../../packages/trading-engine/SPEC.md)
-- [ ] [`packages/strategies/vwap-momentum/SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) §SMC
-- [ ] [`docs/AGENTS.md`](../../AGENTS.md) §3
-- [ ] [`CHANGELOG.md`](../../../CHANGELOG.md)
-- [ ] ft status → **Landed**
-
-**Pilot 提醒（不取代 Phase 5）**
-
-- [ ] 文件明確：CAL-8 Go 後若上 Pilot，仍須 [`uat/APP.md`](../../uat/APP.md) Phase 5（20 日 / 80 筆 / …）
+- [x] ~~UAT ≥5 日~~ — **放棄**
+- [x] ~~CAL-8 → WeeklyStatus~~ — **放棄**
+- [x] ~~Land §9~~ — **取消**
+- [x] ~~Pilot 銜接~~ — **不適用**
 
 ---
 
-## Acceptance（關閉 ft）
+## Acceptance（關閉整張 ft）
 
-- [ ] SPEC §11 全勾
-- [ ] `run-all-tests.sh` 全綠
-- [ ] CAL-8 書面結論（Go 或 No-Go）
-- [ ] §9 文件併入完成
+- [x] 工程 Phase 1–4 + SPEC §12 §Decision
+- [x] ~~CAL-8~~ / ~~Land~~ — **放棄**
+- [x] `run-all-tests.sh` 全綠（工程碼保留）
 
 ## Risks（更新）
 

@@ -92,11 +92,13 @@
 
 **Phase 3.6 進場漏斗診斷**（FT-003）：armed 後順勢窗口、回踩轉化率、`vol_1s` 門檻分位、timeout 診斷 — 操作定義與 cohort 分層見 [`docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md`](../../../docs/features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md)；產物模板 [`workspaces/_template/volatility_baseline.md`](../../../workspaces/_template/volatility_baseline.md) §C。
 
-## 6. SMC Structure Filter（FT-002，Phase 1 離線模組）
+## 6. SMC Structure Filter（FT-002，Phase 1 離線模組）— **封存**
+
+> **⛔ 2026-06-28**：P6-SMC-CAL / **CAL-8 已放棄**（濾網綁定 `grid_no_viable_solution` 的 vwap-momentum）。`structure_filter_enabled` **永久維持 false**；以下僅作程式與研究參考。
 
 > **設計真相**：[`docs/features/smc-structure-filter/SPEC.md`](../../../docs/features/smc-structure-filter/SPEC.md)  
 > **狀態**：`structure.py` + 單元測試已落地；engine 接線與 `structure_filter_enabled` 見 ft PLAN Phase 3+。  
-> **預設**：濾網關閉；與 `trend_filter_enabled` **互斥**；開啟須 P6-SMC-CAL + CAL-8。
+> **預設**：濾網關閉；與 `trend_filter_enabled` **互斥**；~~開啟須 P6-SMC-CAL + CAL-8~~ **不得開啟**（CAL-8 放棄）。
 
 實作入口：`strategy_vwap_momentum.structure`（`compute_structure`, `regime_allows_entry`, `structure_algo_version=1`）。
 
@@ -113,7 +115,9 @@
 
 這些設計讓 trend_veto 真正有統計意義，而不是對微弱雜訊的過度反應。
 
-### 7.1 Trend Filter 校準（Live gate）
+### 7.1 Trend Filter 校準（Live gate）— **封存**
+
+> **⛔ 2026-06-28**：P6-1-CAL / **CAL-8 已放棄**（同上）。`trend_filter_enabled` **永久維持 false**；以下 harness 說明僅作歷史參考。
 
 **Iron rules**
 

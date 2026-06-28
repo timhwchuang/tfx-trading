@@ -1,7 +1,7 @@
 ---
 id: FT-002
 slug: smc-structure-filter
-status: Draft
+status: MVPClosed
 opened: 2026-06-18
 owner: human+agent
 target: UAT
@@ -13,7 +13,7 @@ structure_algo_version: 1
 # FT-002 — SMC Structure Filter（SPEC）
 
 > **目標**：用永豐 `api.kbars`（1m OHLCV）在背景算出 SMC 結構狀態，作為 **戰場濾網**（zone + 方向）；**tick 開槍邏輯不變**（momentum armed → pullback entry）。  
-> **治理**：`structure_filter_enabled` 預設 `false`；與 `trend_filter_enabled` **互斥**；開啟前須 **P6-SMC-CAL + CAL-8**（≠ Pilot Ready，見 §8.2）。  
+> **治理（2026-06-28 更新）**：工程 Phase 1–4 已落地；**CAL-8 / Land 放棄** — 濾網綁定 `grid_no_viable_solution` 的 vwap-momentum，否決層無法補 edge。`structure_filter_enabled` **維持 false**。  
 > 實作順序見 [`PLAN.md`](PLAN.md)。設計審閱見 [`REVIEW.md`](REVIEW.md)。
 
 ## 1. Summary
@@ -433,7 +433,19 @@ ft **Landed** 前 MUST 併入：
 - [ ] harness 三組 counterfactual + friction 報表
 - [ ] CAL-8 紀錄（Go 或 No-Go）
 - [ ] §9 全部文件併入
-- [ ] ft **Landed**
+- [ ] ft **Landed** — **取消**（MVPClosed）
+
+---
+
+## 12. §Decision — MVPClosed CAL-8 path（2026-06-28）
+
+| 欄位 | 值 |
+|------|-----|
+| 工程 Phase 1–4 | **完成** — `structure.py`、engine 接線、audit、determinism |
+| CAL-8 / Phase 5 Land | **放棄** — 濾網僅服務 vwap-momentum；FT-003 **`grid_no_viable_solution`** |
+| 執行 | `structure_filter_enabled` / `trend_filter_enabled` **維持 false** |
+| 新 thesis | 若未來新 plugin 需要 regime 濾網，**另開 ft** 重評；不沿用本輪 CAL-8 |
+| 參考 | [`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §8 |
 
 ---
 

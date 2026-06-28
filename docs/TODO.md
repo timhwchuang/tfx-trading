@@ -1,32 +1,32 @@
 # trading-app — Roadmap
 
 > **執行環境：地雲雙管** — Live 建議 **GCP GCE（asia-east1）** 或 **Windows**；回測/CAL 放 **地端 Linux/macOS**（見 [`ops/HYBRID_DEPLOY.md`](ops/HYBRID_DEPLOY.md)）。原則：**UAT 驗狀態機與對帳，不驗獲利**。
+> **雙軌共識（2026-06-28）**：UAT 持續 = 工程線；**主 focus = Alpha 新 thesis**。現有策略回測均已知不佳 — [`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) §8。
 > 文件職責見 [`DOC_MAP.md`](DOC_MAP.md)。Monorepo：[`tfx-trading`](https://github.com/timhwchuang/tfx-trading)。
 
-## 目前狀態（2026-06-23）
+## 目前狀態（2026-06-28）
 
 | 階段 | 狀態 |
 | ---- | ---- |
+| **工程線 · UAT** | **🟢 持續** — 驗狀態機 / fill / 對帳；**不驗策略獲利**（見 [`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) §8） |
 | Phase 0～2 狀態機 / 訊號 / 委託 | ✅ 已落地（kernel + plugin） |
-| **Phase 3 UAT** | **🟢 GCE Live 就緒** — [`uat/APP.md`](uat/APP.md) Phase 0 ✅；**Phase 1** 首個完整交易日待驗（2026-06-24） |
-| **GCE Live 節點** | ✅ 已部署（`e2-medium`，Debian 13，asia-east1，08:30–14:00 排程）；見 [`ops/LinuxOps.md`](ops/LinuxOps.md) §GCE |
-| Phase 4 運維骨架 | ✅ P4-1～12 已落地；GCE systemd + cron 已設；**P4-13-F 斷網實機**、Telegram 實機待 UAT 演練 |
-| Phase 5 Pilot | 見 [`uat/APP.md`](uat/APP.md) Phase 5（量化 gate + 摩擦對帳 + 壓力情境審閱） |
-| Phase 6 策略真實化 | 骨架 ✅（旗標預設關）；**B 類 tooling ✅**（P6-1 + **P6-SMC-CAL** harness/sweep）；待 UAT tick 跑 CAL-8；P6-4/5 待做 |
-| **FT-002 SMC（工程）** | Phase 1–4 ✅（`REVIEW.md` PASS）；**Phase 5 Land + CAL-8** 待 ≥5 日 UAT |
-| **FT-003 回測調參** | **✅ MVP 收尾** — `grid_no_viable_solution`；[`election_report.md`](../workspaces/election_report.md) |
-| **FT-004 Momentum Continuation** | **✅ MVPClosed** — Thesis A **No-Go**；[`gate_report.md`](../workspaces/mc-baseline/gate_report.md) · [SPEC §8](features/momentum-continuation/SPEC.md) |
-| **FT-005 Timeout Continuation** | **✅ MVPClosed** — Thesis B **No-Go at Phase 0**；[`gate_report.md`](../workspaces/tc-baseline/gate_report.md) · [SPEC §8](features/timeout-continuation/SPEC.md) |
-| **FT-006 VWAP Stretch Fade** | **🟡 Holdout 未過** — valid 過、2026-05 overfit suspect；[`gate_report`](../workspaces/vsf-baseline/gate_report.md) |
-| **FT-007 Momentum Exhaustion Reversal** | **✅ 放棄** — Thesis D MVPClosed；[`gate_report`](../workspaces/mer-baseline/gate_report.md) |
-| **FT-009 Opening Range Breakout** | **✅ MVPClosed** — 01–04 過、05 holdout 未過；[`gate_report`](../workspaces/orb-baseline/gate_report.md) |
-| **FT-010 VWAP Trend Pullback** | **✅ MVPClosed** — Phase 0 未過（n≪30）；[`gate_report`](../workspaces/vtp-baseline/gate_report.md) |
-| Phase 7 策略介面 | ✅ `trading-engine` Protocol + `strategy-vwap-momentum` plugin |
-| Phase 8 / monorepo | ✅ `tfx-trading`；`trading_app_engine_ports()` 接線 |
-| **UAT 證據目錄** | ✅ [`uat_evidence/`](../uat_evidence/) 範本 + `reports/`、`snapshots/` 骨架 |
+| **Phase 3 UAT** | **🟢 GCE Live 就緒** — [`uat/APP.md`](uat/APP.md) Phase 0 ✅；Phase 1+ 進行中 |
+| **GCE Live 節點** | ✅ 已部署（`e2-medium`，Debian 13，asia-east1，08:30–14:00 排程） |
+| Phase 4 運維骨架 | ✅ P4-1～12；**P4-13-F**、Telegram 實機待 UAT 演練 |
+| **Phase 5 Pilot** | **⛔ 阻塞** — 無合格 alpha；UAT 完成 **≠** 可上 Pilot |
+| Phase 6 策略真實化 | 骨架 ✅；**P6-1 / P6-SMC CAL-8** → **放棄**（綁定 vwap-momentum，見 §已放棄） |
+| **FT-002 SMC 濾網** | **✅ MVPClosed** — 工程 Phase 1–4 已落地；**CAL-8 / Land 放棄** |
+| **Alpha 線** | **主 focus** — 待 **新 thesis**（FT-012+）；見 §8 [`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) |
+| **FT-003 回測調參** | **✅ 收尾放棄** — `grid_no_viable_solution`；**不再 sweep** |
+| **FT-004～005、007～008** | **✅ MVPClosed / 放棄** |
+| **FT-006 VWAP Stretch Fade** | **✅ MVPClosed** — holdout 未過；**放棄** UAT 切換 |
+| **FT-009 ORB** | **✅ MVPClosed** — legacy 過 / 2025 train 負 / holdout 未過 |
+| **FT-010 VTP** | **✅ MVPClosed** |
+| **FT-011 SCB** | **✅ MVPClosed** |
+| Phase 7 策略介面 | ✅ Protocol + `strategy-vwap-momentum`（**UAT smoke only**） |
+| Phase 8 / monorepo | ✅ |
 
-> **UAT Ready ≠ Live Ready**。Phase 6 **P6-1-CAL** / **P6-SMC-CAL**（trend / structure filter）是 Live gate，不是 UAT gate。
-
+> **UAT Ready ≠ Live Ready ≠ Alpha Ready**。Pilot / Live **須**新 thesis 過 v2.1 train gate，不得沿用現有 plugin 回測結論。
 **測試基線**：`bash scripts/run-all-tests.sh` — 以實際 `Ran N tests` 輸出為準（2026-06-18：engine **90**、backtest **27**、strategy **60**、app **136**，合計 **313** 全綠）。
 
 ### Phase 編號對照（避免混淆）
@@ -35,7 +35,7 @@
 |--------------|--------------------------------|------|
 | Phase 3 UAT | Phase 0–4 | 模擬累積、壓力測試 |
 | Phase 5 Pilot | **Phase 5** | 量化 gate + 人類簽核 |
-| Phase 6 策略真實化 | Phase 6（切 CA）+ Live CAL-8 | trend filter 等 |
+| Phase 6 策略真實化 | Phase 6（切 CA）；~~Live CAL-8~~ **濾網 CAL 已放棄** | trend/structure filter 骨架保留、**永久關** |
 | Phase 7 策略介面 | Phase 7（Pilot 1 口） | 上 CA 後執行 |
 
 > **Pilot 門檻 SSOT**：[`uat/APP.md`](uat/APP.md) Phase 5。`txf-gates.md` / role 檔僅摘要 + 連結。
@@ -59,7 +59,7 @@
 | 功能 | 路徑 / 指令 | 用途 |
 |------|-------------|------|
 | Tick 落盤 | `TICK_ARCHIVE=1` → `tick_cache/` | determinism、backtest 重現 |
-| K 線落盤 | `KBARS_ARCHIVE=1` | ATR 熱身、CAL-8 B 類 |
+| K 線落盤 | `KBARS_ARCHIVE=1` | ATR 熱身、HTF 回測；~~CAL-8 B 類~~ **已放棄** |
 | 日報 + KPI | `python -m reporting <log> --json` | gross/net、near-miss、type0_pct |
 | 週趨勢 | `python -m reporting reports\day*.json --trend`（monorepo 根 + PYTHONPATH） | Phase 3 gross/net、Sharpe、MDD |
 | Determinism | `python -m sweep.determinism_check --date …` | Phase 5 可重現性 |
@@ -70,8 +70,39 @@
 | 回測重跑 | `python -m backtest --code TMFR1 --dates …`（與 `config.yaml` `product_code` 一致） | UAT tick 驗證 |
 | P4-13 護欄 | `config.yaml` `operations.*` | 暖機、斷線上限、有倉 CRITICAL |
 | Near-miss 漏斗 | `DAILY_SUMMARY.near_miss` | pullback / timeout 診斷 |
-| Trend CAL tooling | `python -m reporting.calibration_cli` | P6-1 Live gate 前校準（預設 filter 關） |
-| SMC CAL tooling | `python -m reporting.structure_calibration_cli` | P6-SMC-CAL（預設 `structure_filter_enabled: false`） |
+| Trend CAL tooling | `python -m reporting.calibration_cli` | **封存** — P6-1-CAL 已放棄；CLI 保留研究用 |
+| SMC CAL tooling | `python -m reporting.structure_calibration_cli` | **封存** — P6-SMC-CAL 已放棄；預設 `structure_filter_enabled: false` |
+
+---
+
+## 目前主 focus（2026-06-28）
+
+| 優先 | 軌道 | 動作 |
+|------|------|------|
+| **P0** | Alpha | 人類起草 **新 thesis**（FT-012+）→ Phase 0 CF → v2.1 gate |
+| **P1** | UAT 工程 | Phase 1+ 模擬交易日、fill 對帳、P4-13-F、累積 tick |
+| — | ~~P2 CAL-8~~ | **放棄** — 濾網綁定 `grid_no_viable_solution` 的 vwap-momentum |
+| — | Pilot / Live | **阻塞**，直至 Alpha P0 過關 + 人類 Go |
+
+---
+
+## 已放棄 / 不再進行（2026-06-28）
+
+> SSOT：[`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) §8.2。下列 **不得**再排入 sprint。
+
+| 項目 | 原因 |
+|------|------|
+| FT-003 四 agent **grid sweep / round2** | `grid_no_viable_solution`；`round2_proposal` 已否決 |
+| FT-003 **Phase 6 WFO / 長歷史**（§Post-MVP） | 無冠軍、無 holdout 過關；改為 **新 thesis** 才跑 WFO |
+| FT-006 **UAT 切換 / valid 上 tune** | holdout 未過；MVPClosed |
+| FT-009 **重戰 / plugin 上線** | 2025 train 全負；holdout 結構失敗 |
+| FT-010 / FT-011 **plugin** | Phase 0 未過 |
+| ORB / SCB / VTP **變體無新編號重跑** | 本質同族；需新假說 |
+| **以 vwap-momentum 回測期望推進 Pilot** | hybrid 淨期望全負 |
+| **P6-1-CAL / P6-SMC-CAL（CAL-8 B 類）** | trend / SMC 濾網 **僅服務** vwap-momentum；base 已 `grid_no_viable_solution`；開濾網無法創造 alpha |
+| **FT-002 Phase 5 Land + CAL-8** | 同上；**程式碼凍結**作研究參考，不再跑 harness 簽核 |
+| `elected_config.yaml` / leaderboard 晉級 holdout | 本輪無候選 |
+| agent-conservative / execution **現 grid 再 sweep** | 診斷已完成；邊際效益趨零 |
 
 ---
 
@@ -88,7 +119,8 @@
 - [x] Phase 3.5：`leaderboard.jsonl`
 - [x] **Phase 3.6**：四平面診斷 §A–§D 完成；`strategy_diagnosis.md` §1–§7 + **§Decision（Option A）** — 否決 round2、改策略層重設計
 - [x] **Phase 3.6 / Phase 4 收尾**：[`election_report.md`](../workspaces/election_report.md) — `grid_no_viable_solution` + `diagnostic_only`（holdout 未跑）
-- [x] **Strategy v2** → FT-004 **已收尾 No-Go**（[`SPEC §8`](features/momentum-continuation/SPEC.md)）；下一 thesis 見 `strategy_diagnosis.md` §7
+- [x] **Strategy v2 第一波** → FT-004～011 **均已 MVPClosed**；下一 thesis 見 `strategy_diagnosis.md` §8.3
+- [x] ~~agent grid 持續 sweep~~ — **放棄**（§已放棄）
 
 ### FT-004 — Momentum Continuation（[`PLAN`](features/momentum-continuation/PLAN.md)）— **MVPClosed**
 
@@ -104,16 +136,11 @@
 - [x] ~~Phase 1 plugin~~ / ~~Phase 2 baseline~~ — **取消**
 - [x] 下一 thesis → **FT-006** VWAP Stretch Fade
 
-### FT-006 — VWAP Stretch Fade（[`PLAN`](features/vwap-stretch-fade/PLAN.md)）— **Go Pilot-prep**
+### FT-006 — VWAP Stretch Fade — **MVPClosed · 放棄**
 
-- [x] Phase 0：counterfactual + `vsf-baseline/reports/counterfactual_vwap_stretch_fade.json`
-- [x] Phase 0 決策：**通過** — k=2.0×mid gross **+7.13**、net **+2.13**（n=48）
-- [x] Phase 1 plugin：`strategy-vwap-stretch-fade`
-- [x] Phase 2 baseline + G1–G4（82 趟 gross **+5.43**、net **+0.43**、QSL **6.1%**）
-- [x] Phase 3 文件收尾（[`gate_report.md`](../workspaces/vsf-baseline/gate_report.md) §Decision **Go — Pilot-prep**）
-- [x] holdout 2026-05 — **未過**（gross +4.26、net −0.74、123 趟）；overfit suspect
-- [ ] ~~人類簽核後 UAT 切換~~ — **凍結**（holdout 未過）
-- [ ] ~~可選 sweep~~ — **取消**（勿在 valid 上 tune）
+- [x] Phase 0～3、holdout 2026-05 — holdout **未過**（overfit suspect）
+- [x] ~~人類簽核後 UAT 切換~~ — **放棄**
+- [x] ~~可選 sweep~~ — **放棄**
 
 ### FT-007 — Momentum Exhaustion Reversal（[`PLAN`](features/momentum-exhaustion-reversal/PLAN.md)）— **放棄 / MVPClosed**
 
@@ -126,12 +153,11 @@
 
 - [x] Phase 0 v1/v2 — valid 子集過、01–04 未過
 
-### FT-009 — Opening Range Breakout（[`PLAN`](features/opening-range-breakout/PLAN.md)）— **MVPClosed**
+### FT-009 — Opening Range Breakout — **MVPClosed · 放棄**
 
-- [x] SPEC + PLAN + `orb_counterfactual.py` + CLI
-- [x] 01–04 主判 — **通過**（rm30_bk0p15）
-- [x] Phase 1 plugin + 01–04 baseline（73 趟 net +1.29）
-- [x] holdout 2026-05 — **未過** → **No-Go UAT**（見 [`gate_report`](../workspaces/orb-baseline/gate_report.md)）
+- [x] SPEC + PLAN + plugin + legacy 01–04 / holdout 05
+- [x] **2025 train v2.1 複驗** — 全 param net 負 → **不重戰**
+- [x] ~~holdout v2 04–06 翻案~~ — 僅可 **存檔**（06 tick 落地後），不作 UAT 依據
 
 ### FT-010 — VWAP Trend Pullback（[`PLAN`](features/vwap-trend-pullback/PLAN.md)）— **MVPClosed**
 
@@ -139,18 +165,15 @@
 - [x] FT-010b 證偽（去量能濾網）— 仍未過
 - [x] **No-Go at Phase 0** — 不開 plugin（見 [`gate_report`](../workspaces/vtp-baseline/gate_report.md)）
 
-**Post-MVP — Phase 6 長歷史（2022+，MVP holdout Gate 後）**
+### FT-011 — Session Confluence Breakout — **MVPClosed · 放棄**
 
-> SSOT：[PLAN Phase 6](features/ai-backtest-tuning/PLAN.md#phase-6--長歷史穩健性驗證post-mvp2022)。**算力 MUST 雲端 GCE overnight。**
+- [x] Phase 0 CF — 2025 train **未過**；valid Q1 overfit_suspect
+- [x] ~~plugin~~ — **取消**
 
-- [ ] Gate：MVP holdout 非 `overfit_suspect`
-- [ ] P1：補檔（先 2024–2025 pilot，再決定是否補 2022）+ `cache_audit`
-- [ ] P2：`DATA_SPLIT.md` fold（季滾 pilot / 月滾完整）+ Phase 6 holdout
-- [ ] P3：GCE 跑 `ft003_walkforward`（或批次腳本）→ `robustness_report.md` §1–§10
-- [ ] P3b：人類簽核 WFO Gate（net Sharpe、MDD、trade_count 穩定；摩擦 5 點/趟 MUST）
-- [ ] P4：v1/v2 決策樹 + Phase 6 holdout 一次（若 v2）
-- [ ] **P5.5 Phase 6.5**：Shadow/Paper ≥2–4 週 + `compare_fill_audits`（報告 §11）
-- [ ] 運維：kill switch / emergency flatten 演練、日週報、券商 reconciliation 證據
+**Post-MVP — FT-003 Phase 6 長歷史** — **⛔ 整段放棄**（無 `elected_config`、無 holdout 過關；新 thesis 過 gate 後另開 WFO）
+
+- [x] ~~Gate：MVP holdout 非 overfit_suspect~~ — 不適用
+- [x] ~~P1–P5.5 WFO / Shadow~~ — **放棄**（見 §已放棄）
 
 ### P0-5 部位真相驅動（已落地 code+測試；UAT gate 待驗）
 
@@ -184,46 +207,19 @@
 - [ ] 完整 qty>1 倉位管理（防禦層已有；Pilot 暫假設 **qty=1**）
 -  owner: `trading-engine`
 
-### P6-1-CAL（Live gate — 待 UAT tick）
+### P6-1-CAL — **⛔ 放棄**（綁定 vwap-momentum）
 
-> **前提**：`trend_filter_enabled` 預設 **false**；`trend_min_strength=0.0` 是最嚴格（最多 veto）。開啟前必過 **CAL-8** 人類簽核。
-> **語意 / CLI**：[`packages/strategies/vwap-momentum/SPEC.md`](../packages/strategies/vwap-momentum/SPEC.md) §6.1 · sweep 接線 [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts
+> **2026-06-28**：trend 濾網僅 **否決** vwap-momentum 進場；base 已 `grid_no_viable_solution`。Harness **保留**；**不再**跑 CAL-8 B 類。
 
-**A 類（合成，已完成）**
+- [x] A 類：CAL-1～5、trend harness、sweep tooling
+- [x] ~~B 類 UAT 累積 + CAL-8~~ — **放棄**
 
-- [x] CAL-1～5：時間切片、trend harness、sweep `trend_*` 參數、`test_trend.py` / `test_trend_calibration.py`
+### P6-SMC-CAL — **⛔ 放棄**（FT-002 · 綁定 vwap-momentum）
 
-**B 類（真實 UAT 資料，進行中）**
+> **2026-06-28**：SMC structure 濾網掛在 vwap-momentum **開槍邏輯不變**；base 無 edge → CAL-8 **放棄**。`structure_filter_enabled` **永久維持 false**（直至新 thesis plugin 另議）。
 
-- [x] Tooling：`forward_pnl.py`、`calibration_cli`、`param_sweep(forward_policy=...)`
-- [ ] **1. 累積**：UAT 連續 **≥5 交易日**；`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`；log 含 `reason=trend_veto`
-- [ ] **2. Harness**：`cd apps/trading-app/src` → `python -m reporting.calibration_cli <log> --dates ... --cache-dir tick_cache --forward-seconds 1800`
-- [ ] **3. Sweep**：同上 + `--sweep --sweep-output sweep_result.jsonl`（grid 見 SPEC §6.1）
-- [ ] **4. CAL-8 Go/No-Go**：人類簽核 → 寫入 [`WeeklyStatus.md`](WeeklyStatus.md)；**No-Go** 則維持 `trend_filter_enabled=false`
-
-- owner: `strategy-vwap-momentum` + `trading-app/reporting` + `trading-app/sweep`
-
-### P6-SMC-CAL（Live gate — 待 UAT tick）
-
-> **前提**：`structure_filter_enabled` 預設 **false**；與 `trend_filter_enabled` **互斥**（config fail-fast）。開啟前必過 **CAL-8** 人類簽核。
-> **設計真相**：[`docs/features/smc-structure-filter/SPEC.md`](features/smc-structure-filter/SPEC.md) · 實作計劃 [`PLAN.md`](features/smc-structure-filter/PLAN.md)
-
-**A 類（合成，已完成）**
-
-- [x] CAL-SMC-1：`structure.py` + `test_structure.py`（FVG/BOS/sweep、gap guard）
-- [x] CAL-SMC-2：`regime_allows_entry` 互斥單元測試
-- [x] CAL-SMC-3：Phase 3 engine 接線 + `param_sweep` structure grid + stale guards
-- [x] CAL-SMC-4：Phase 4 `structure_veto` audit、armed enrichment、`record_structure_veto`、filter-on determinism
-
-**B 類（真實 UAT 資料）**
-
-- [ ] **1. 累積**：UAT 連續 **≥5 交易日**；`TICK_ARCHIVE=1` + `KBARS_ARCHIVE=1`；`tick_cache/*_kbars_*` 可餵 harness；**開 filter 測試時** log 須含 `structure_veto`（預設 filter 關則無）
-- [x] **2. Harness**：`structure_calibration_cli`（見 ft PLAN Phase 2）
-- [x] **3. Sweep**：`structure_min_strength` grid（`structure_calibration_cli --sweep` + `param_sweep`）
-- [x] **4. Counterfactual**：分開跑 — 無濾網 / structure only / trend only（harness 內建；互斥，不得同時開）
-- [ ] **5. CAL-8 Go/No-Go**：人類簽核 → [`WeeklyStatus.md`](WeeklyStatus.md)；**No-Go** 則維持 `structure_filter_enabled=false`
-
-- owner: `strategy-vwap-momentum` + `trading-app/reporting` + `trading-app/sweep`
+- [x] A 類：CAL-SMC-1～4、harness、sweep、counterfactual tooling
+- [x] ~~B 類：≥5 日 UAT + CAL-8 + Land~~ — **放棄**（見 [`smc-structure-filter/PLAN.md`](features/smc-structure-filter/PLAN.md)）
 
 ### P6-4 Position sizing
 
@@ -259,9 +255,10 @@
 | Gate | 條件 | 文件 |
 | ---- | ---- | ---- |
 | **Merge code** | `run_tests.py` 全綠 | 各 repo |
-| **UAT** | 模擬 API + `simulation: true` + checklist Pass | [`uat/APP.md`](uat/APP.md) + [`uat/KERNEL.md`](uat/KERNEL.md) |
-| **Pilot** | UAT 連續零異常 + CA + 秒停損率達標 | [`uat/APP.md`](uat/APP.md) Phase 5 |
-| **Live** | §P6-1-CAL 通過（CAL-8）+ 人類簽核 | 本檔 §P6-1-CAL、[`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md) |
+| **UAT** | 模擬 API + `simulation: true` + checklist Pass | [`uat/APP.md`](uat/APP.md) |
+| **Alpha** | 新 thesis v2.1 train G1–G3 + §3.1 | [`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
+| **Pilot** | UAT 工程 Pass + **Alpha 過關** + 人類簽核 | [`uat/APP.md`](uat/APP.md) Phase 5 |
+| **Live** | Pilot + 人類簽核 | ~~CAL-8 濾網~~ **已放棄**；[`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md) |
 
 ---
 

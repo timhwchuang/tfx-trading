@@ -64,12 +64,13 @@ audit_schema_version: 1
 
 | 欄位 | 值 |
 |------|-----|
-| Phase 0 | **通過** — 01–04 `rm30_bk0p15` n=73 gross **+7.93** net **+2.93** |
+| Phase 0 legacy | **通過** — 01–04 `rm30_bk0p15` n=73 gross **+7.93** net **+2.93** |
 | Phase 1 plugin | **完成** — 73/73 成交；01–04 plugin net **+1.29** |
 | Holdout 05 v1 | **未過** — CF/plugin 雙雙 net 負（凍結 param）；`holdout_fail_structural` |
-| Holdout v2 05+06 | **未跑**（06 待 backfill） |
-| 決策 | **MVPClosed**（`thesis_f_orb_holdout_no_go`）— 不進 UAT |
-| UAT/Live | **維持** `strategy-vwap-momentum` |
+| **Train v2.1（2025）複驗** | **未過** — 全 param grid **net 負**（ad-hoc `ft009_orb_counterfactual.py`；2026-06-28） |
+| Holdout v2 05+06 | **未跑**（MVPClosed 於 train 複驗後） |
+| 決策 | **MVPClosed**（`thesis_f_orb_holdout_no_go` + **2025 train 全負**）— 不進 UAT |
+| UAT/Live | **維持** `strategy-vwap-momentum` **smoke 載荷** |
 
 產物 SSOT：[`workspaces/orb-baseline/gate_report.md`](../../../workspaces/orb-baseline/gate_report.md)。
 

@@ -3,6 +3,8 @@
 > **目標**：讓**任何人**（包含未來的你或下一個 AI session）都能**照表抄課**，一步一步、踏實地、**不會漏關鍵步驟**地從模擬環境走到可以上正式 CA 的小規模 Pilot。
 > 這份文件是**單一真相來源**（Single Source of Truth）。所有進度、證據、簽名都在這裡或明確連結到這裡。
 
+> **⛔ CAL-8 已放棄（2026-06-28）**：P6-1 / P6-SMC **濾網校準**不再執行（綁定 `grid_no_viable_solution` 的 vwap-momentum）。UAT 照常累積 tick/kbar；**不得**以 CAL-8 為 UAT / Pilot gate。SSOT：[`strategy_diagnosis.md`](../../workspaces/strategy_diagnosis.md) §8.2 · [`TODO.md`](../TODO.md) §已放棄。
+
 ## 目前進度一目瞭然（每天結束必須更新）
 
 | Phase | 狀態 | 完成日期 | 關鍵證據位置 | 負責人簽名 |
@@ -154,7 +156,7 @@ python -m sweep.determinism_check --date 2026-06-17 --mode hash --output snapsho
 
 **Phase 2 完成條件**（全部 ☐）：
 - [ ] 連續 5 日都有完整 tick_cache + reports\*.json
-- [ ] 連續 5 日 `tick_cache\{product_code}_kbars_*.csv` 有落盤（`KBARS_ARCHIVE=1`；供 ATR + **P6-SMC-CAL** harness）
+- [ ] 連續 5 日 `tick_cache\{product_code}_kbars_*.csv` 有落盤（`KBARS_ARCHIVE=1`；供 ATR 熱身 / HTF 回測）
 - [ ] 至少 3 日有實際進場意圖（`SIGNAL_AUDIT` 或 `DECISION_AUDIT` entry path）
 - [ ] 無雙 entry / pending 問題
 - [ ] 每日都有 git commit + snapshot
@@ -216,9 +218,9 @@ python -m reporting $env:LOG_FILE --trend
 | No-tick 看門狗 | 長時間無 tick | 正確重訂閱 | log |
 | 完整對帳 | 收盤比對 | `daily_summaries[-1].pnl.daily_pnl_points` 與券商一致或可解釋 | `uat_evidence/phase3_weekly/broker_reconciliation.csv` |
 | tick_type 品質 | 看 `type0_pct` | <40% 或有書面解釋 | 日報 JSON |
-| structure_stale（可選） | CAL-8 前 filter-on 演練 | kbars 中斷後擋 entry、允許 exit；log 含 `risk_blocked` `block_reason=structure_stale` | log 片段 |
+| structure_stale（可選 · **封存**） | ~~CAL-8 前 filter-on 演練~~ | kbars 中斷後擋 entry、允許 exit；log 含 `risk_blocked` `block_reason=structure_stale` | **非 UAT 必做**；CAL-8 已放棄 |
 
-> **P6-SMC-CAL（Live gate，非 UAT gate）**：工程 Phase 1–4 已落地；UAT 期間 **`structure_filter_enabled` 預設 false**，照常累積 tick/kbar 即可。≥5 交易日後跑 `python -m reporting.structure_calibration_cli`（見 [`TODO.md`](../TODO.md) §P6-SMC-CAL、[`WeeklyStatus.md`](../WeeklyStatus.md) P6-SMC-CAL 模板）。**CAL-8 Go ≠ Pilot Ready**。
+> **P6-SMC-CAL — ⛔ 已放棄（2026-06-28）**：工程 Phase 1–4 已落地；**不再**跑 `structure_calibration_cli` 簽核。UAT 期間 **`structure_filter_enabled` 預設 false**，照常累積 tick/kbar 即可。見 [`strategy_diagnosis.md`](../../workspaces/strategy_diagnosis.md) §8.2。
 
 **Tick 品質 × 訊號品質觀測**（Phase 4 起累積，Phase 5 審核必附）：
 
@@ -344,7 +346,7 @@ python -m reporting $env:LOG_FILE --episodes
 |------|------|----------|
 | **Ops** | Phase 6 告警實機驗證、Live 排程（Windows 或 GCE systemd）、斷線演練證據 | [`HYBRID_DEPLOY.md`](../ops/HYBRID_DEPLOY.md)、[`LinuxOps.md`](../ops/LinuxOps.md)、[`WindowsOps.md`](../ops/WindowsOps.md) |
 | **永豐 API / Kernel** | B3–B6 regression；重連後 `sync_positions` + 首 tick 暖機對帳 | [`KERNEL.md`](KERNEL.md)、[`LIVE_SAFETY.md`](../ops/LIVE_SAFETY.md) |
-| **Daily Reviewer** | 每週三指標 + gross/net + 摩擦差異 + near-miss；Phase 5 前整理前 5 大虧損日；CAL-8 時填 P6-SMC-CAL 模板 | [`WeeklyStatus.md`](../WeeklyStatus.md) |
+| **Daily Reviewer** | 每週三指標 + gross/net + 摩擦差異 + near-miss；Phase 5 前整理前 5 大虧損日 | [`WeeklyStatus.md`](../WeeklyStatus.md) |
 
 ---
 
@@ -401,7 +403,7 @@ python -m reporting $env:LOG_FILE --episodes
 
 **文件修訂紀錄（資深交易人員 review 納入）**：
 - Phase 3：gross/net 並列 + 券商對帳摩擦追蹤（自 Phase 3 起，非 Phase 7 才開始）
-- Phase 4：tick 品質分層觀測 + 壓力情境 audit timeline 累積；**FT-002** `structure_veto` / `structure_stale` 演練（CAL-8 前置，預設 filter 關）
+- Phase 4：tick 品質分層觀測 + 壓力情境 audit timeline 累積；**FT-002** `structure_veto` / `structure_stale` 演練（**可選**；CAL-8 已放棄，預設 filter 關）
 - Phase 2：`tick_cache/*_kbars_*` 累積列為 SMC harness 前置
 - Phase 5：樣本/密度/0 成交日定義、fidelity gap、≥3 壓力情境人類審閱（含 near-miss）
 - Phase 6：Ops 告警實機證據格式 + 角色協作表
