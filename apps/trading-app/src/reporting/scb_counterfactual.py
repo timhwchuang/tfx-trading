@@ -9,7 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from reporting.armed_forward_counterfactual import FRICTION_POINTS, _summarize_gross_net
-from reporting.forward_pnl import _direction_sign
+from reporting.forward_pnl import _direction_sign, load_tick_series
+from reporting.post_entry_diagnosis import (
+    enrich_rows_with_forward_windows,
+    summarize_post_entry_diagnosis,
+)
 from reporting.orb_counterfactual import (
     OpeningRange,
     OrbSignal,
@@ -721,6 +725,8 @@ def build_scb_payload(
     if not dates:
         raise ValueError(f"no tick cache dates for {from_date}..{to_date}")
 
+    series = load_tick_series(code, sorted(dates), cache_dir=cache_dir)
+
     all_by_param: dict[str, list[dict[str, Any]]] = {_param_key(rm): [] for rm in range_minutes}
     funnel_by_param: dict[str, dict[str, int]] = {
         _param_key(rm): {
@@ -770,10 +776,17 @@ def build_scb_payload(
             all_by_param[pkey].extend(rows)
 
     summary_by_param: dict[str, Any] = {}
+    post_entry_by_param: dict[str, Any] = {}
     for key, rows in all_by_param.items():
+        if rows:
+            enrich_rows_with_forward_windows(rows, series)
         summary_by_param[key] = {
             EXIT_VARIANT: _summary_block(rows, "gross_atr_sim", "net_atr_sim"),
         }
+        post_entry_by_param[key] = summarize_post_entry_diagnosis(
+            rows,
+            friction_points=friction_points,
+        )
 
     funnel_out: dict[str, Any] = {}
     for pkey, totals in funnel_by_param.items():
@@ -819,6 +832,8 @@ def build_scb_payload(
             k: _group_summary(v, "session_bucket") for k, v in all_by_param.items()
         },
         "entry_count_by_param": {k: len(v) for k, v in all_by_param.items()},
+        "entries": all_by_param,
+        "post_entry_diagnosis_by_param": post_entry_by_param,
         "rows_by_param": all_by_param,
         "funnel_by_param": funnel_out,
     }

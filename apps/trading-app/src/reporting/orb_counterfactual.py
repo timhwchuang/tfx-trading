@@ -12,6 +12,11 @@ from reporting.armed_forward_counterfactual import (
     _summarize_gross_net,
     simulate_atr_barrier_exit,
 )
+from reporting.forward_pnl import load_tick_series
+from reporting.post_entry_diagnosis import (
+    enrich_rows_with_forward_windows,
+    summarize_post_entry_diagnosis,
+)
 from reporting.short_breakout_counterfactual import (
     PHASE0_GROSS_MIN,
     PHASE0_MIN_N,
@@ -290,6 +295,8 @@ def build_orb_payload(
     if not dates:
         raise ValueError(f"no tick cache dates for {from_date}..{to_date}")
 
+    series = load_tick_series(code, sorted(dates), cache_dir=cache_dir)
+
     all_by_param: dict[str, list[dict[str, Any]]] = {}
     days_with_range: dict[str, int] = {}
     days_with_break: dict[str, int] = {}
@@ -328,10 +335,17 @@ def build_orb_payload(
                 all_by_param[key].extend(rows)
 
     summary_by_param: dict[str, Any] = {}
+    post_entry_by_param: dict[str, Any] = {}
     for key, rows in all_by_param.items():
+        if rows:
+            enrich_rows_with_forward_windows(rows, series)
         summary_by_param[key] = {
             "atr_barrier_180s": _summary_block(rows, "gross_atr_sim", "net_atr_sim"),
         }
+        post_entry_by_param[key] = summarize_post_entry_diagnosis(
+            rows,
+            friction_points=friction_points,
+        )
 
     phase0_gate = _evaluate_phase0_gate_params(summary_by_param)
 
@@ -365,4 +379,5 @@ def build_orb_payload(
         "days_with_breakout": days_with_break,
         "entry_count_by_param": {k: len(v) for k, v in all_by_param.items()},
         "entries": all_by_param,
+        "post_entry_diagnosis_by_param": post_entry_by_param,
     }

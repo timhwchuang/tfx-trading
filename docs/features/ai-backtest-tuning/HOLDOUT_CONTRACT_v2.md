@@ -32,7 +32,8 @@ owner: human+agent
 
 ```bash
 cd apps/trading-app/src
-python -m storage.cache_audit --code TMFR1   # sweep / CF 前
+# 全庫 audit 非每次 CF；見 workspaces/CACHE_AUDIT.md
+python -m storage.cache_audit --code TMFR1 --from-date YYYY-MM-DD --to-date YYYY-MM-DD  # backfill 後增量
 ```
 
 ---

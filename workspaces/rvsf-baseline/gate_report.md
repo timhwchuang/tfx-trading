@@ -1,6 +1,6 @@
 # FT-012 Gate Report — rvsf-baseline（Phase 0）
 
-> **Code review**：PASS 2026-06-28 Bugbot RV lookahead fix
+> **Code review**：PASS 2026-06-28
 > **Thesis I**：Regime VWAP Stretch Fade — P-001 GO。
 > **主判**：**2025 train**（Holdout v2.1）· 2026 Q1 valid 診斷。
 
@@ -29,9 +29,9 @@
 
 ## VSF delta（train · 早盤 09:00–10:30 · k=2.0 · 無 regime）
 
-- VSF morning（無 regime）：n=**650** net_total=**−2955.09**
-- RVSF：無合格冠軍（全 param train 未過）
-- **解讀**：regime 濾網降頻但未改善 net；早盤無條件 fade 亦深度為負
+- VSF morning n=650 net_total=-2955.09
+- RVSF best: {'param': None, 'n': 0, 'net_total': 0.0, 'net_mean': None}
+- Delta: {'net_delta_rvsf_minus_vsf_morning': 2955.09, 'rvsf_pass_rate_of_vsf': 0.0}
 
 ## Valid 2026 Q1（診斷 only）
 
@@ -51,8 +51,30 @@
 
 | 欄位 | 值 |
 |------|-----|
-| 決策 | **MVPClosed** — `thesis_i_rvsf_no_go` |
-| Train 2025 | 最佳 k2_p30 n=133 net **−4.25**；全組 §3.1 disqualify |
-| Valid Q1 | 全 param net 負 |
+| 決策 | **No-Go at Phase 0** (`thesis_i_rvsf_no_go`) |
 | UAT | **維持** `strategy-vwap-momentum` smoke |
 | 日期 | 2026-06-28 |
+## 進場後診斷（train · k2_p30 · 非 gate）
+
+> stop-less forward 順向 ≠ net edge；不得用診斷結果回頭 tune train grid。
+
+| 指標 | mean | median |
+|------|------|--------|
+| Barrier gross | 0.75 | -7.31 |
+| 180s MFE / MAE | 13.56 / 7.32 | 11.0 / 8.0 |
+| W5m stop-less gross | -1.03 | 2.0 (net med -3.0) |
+| W15m stop-less gross | -3.33 | -3.0 (net med -8.0) |
+| W30m stop-less gross | 0.07 | 4.0 (net med -1.0) |
+
+**Verdict**: `direction_ok_margin_thin`
+
+- W30 stop-less 有正 median，仍須看 barrier 與 valid
+- 180s 內 MFE median 11.0 > MAE 8.0（路徑曾順向）
+
+### Long / Short
+
+| side | n | barrier med | W30 med |
+|---|---:|---:|---:|
+| Long | 63 | 0.0 | -4.0 |
+| Short | 70 | -8.01 | 16.0 |
+

@@ -14,6 +14,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **cache_audit 政策（2026-06-28）**：非每次 CF 全庫掃；SSOT [`workspaces/CACHE_AUDIT.md`](workspaces/CACHE_AUDIT.md)；Playbook / HOLDOUT / DATA_SPLIT 更新。
+- **進場後診斷標準化（2026-06-28）**：`post_entry_diagnosis.py`；FT-006/012 CF 產 W5/W15/W30 + MFE/MAE；Playbook §5.1 提案檢查清單；queue 換批 continuation thesis。
 - **FT-012 MVPClosed（2026-06-28）**：Regime VWAP Stretch Fade — train 2025 全 param net 負；[`gate_report`](workspaces/rvsf-baseline/gate_report.md)。
 - **Alpha Playbook v1.1（2026-06-28）**：Phase 0 拆 **0a 實作 → 0b code review → 0c train**；`THESIS_BRIEF` §I review 欄。
 - **FT-006 MVPClosed v2.1（2026-06-28）**：train 2025 未過（`thesis_c_v21_train_no_go`）；[`gate_report`](workspaces/vsf-baseline/gate_report.md) · v2.1 CF JSON。
@@ -22,6 +24,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **Corpse Atlas（2026-06-28）**：`retrofit_post_entry_diagnosis.py` · `run_corpse_atlas_batch.py` · `analyze_corpse_mfe_context.py`；[`CORPSE_ATLAS.md`](workspaces/CORPSE_ATLAS.md) 全族驗屍彙總。
+- **`post_entry_diagnosis.py`（2026-06-28）**：Phase 0 標準進場後診斷（W5/15/30、MFE/MAE、gate_report 附錄）。
 - **FT-012 Phase 0（2026-06-28）**：`regime_vwap_stretch_fade_counterfactual.py` · `ft012_*` CLI · `rvsf-baseline/`。
 - **Alpha 研究儀式 v1.0（2026-06-28）**：[`ALPHA_RESEARCH_PLAYBOOK.md`](docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)；[`THESIS_BRIEF.md`](docs/features/_template/THESIS_BRIEF.md)；[`THESIS_QUEUE.md`](workspaces/THESIS_QUEUE.md)（P-001～003 草稿）。
 - **FT-002 MVPClosed（2026-06-28）**：SMC 濾網 CAL-8 / Land **放棄**（綁定 vwap-momentum）；工程 Phase 1–4 凍結。

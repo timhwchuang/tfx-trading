@@ -130,6 +130,6204 @@
     "rm20": 72,
     "rm30": 46
   },
+  "entries": {
+    "rm20": [
+      {
+        "day": "2025-01-06",
+        "ts": 1736126220,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23341.0,
+        "atr": 22.0,
+        "session_vwap": 23294.63,
+        "opening_range_high": 23327.0,
+        "range_low": 23218.0,
+        "volume_ratio": 1.8504,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.6,
+        "net_atr_sim": 34.6,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.6,
+          "exit_reason": "take_profit",
+          "hold_sec": 1178,
+          "mfe": 40.0,
+          "mae": 15.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -1.0,
+            "MFE_delta": 14.0,
+            "MAE_delta": 10.0,
+            "signed_return_over_atr": -0.0455
+          },
+          "W900": {
+            "close_delta": 21.0,
+            "MFE_delta": 26.0,
+            "MAE_delta": 15.0,
+            "signed_return_over_atr": 0.9545
+          },
+          "W1800": {
+            "close_delta": 82.0,
+            "MFE_delta": 84.0,
+            "MAE_delta": 15.0,
+            "signed_return_over_atr": 3.7273
+          }
+        }
+      },
+      {
+        "day": "2025-01-09",
+        "ts": 1736385300,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23406.0,
+        "atr": 21.21,
+        "session_vwap": 23347.23,
+        "opening_range_high": 23392.0,
+        "range_low": 23254.0,
+        "volume_ratio": 2.3824,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -25.46,
+        "net_atr_sim": -30.46,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.46,
+          "exit_reason": "stop_loss",
+          "hold_sec": 149,
+          "mfe": 4.0,
+          "mae": 26.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -8.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 26.0,
+            "signed_return_over_atr": -0.3772
+          },
+          "W900": {
+            "close_delta": -63.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 81.0,
+            "signed_return_over_atr": -2.9703
+          },
+          "W1800": {
+            "close_delta": -39.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 115.0,
+            "signed_return_over_atr": -1.8388
+          }
+        }
+      },
+      {
+        "day": "2025-01-10",
+        "ts": 1736471520,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23124.0,
+        "atr": 24.29,
+        "session_vwap": 23062.27,
+        "opening_range_high": 23083.0,
+        "range_low": 23019.0,
+        "volume_ratio": 1.9068,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -29.14,
+        "net_atr_sim": -34.14,
+        "atr_barrier_sim": {
+          "gross_pnl": -29.14,
+          "exit_reason": "stop_loss",
+          "hold_sec": 48,
+          "mfe": 0.0,
+          "mae": 30.0,
+          "quick_stop": true
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -31.0,
+            "MFE_delta": -2.0,
+            "MAE_delta": 33.0,
+            "signed_return_over_atr": -1.2762
+          },
+          "W900": {
+            "close_delta": 10.0,
+            "MFE_delta": 14.0,
+            "MAE_delta": 34.0,
+            "signed_return_over_atr": 0.4117
+          },
+          "W1800": {
+            "close_delta": -4.0,
+            "MFE_delta": 14.0,
+            "MAE_delta": 65.0,
+            "signed_return_over_atr": -0.1647
+          }
+        }
+      },
+      {
+        "day": "2025-01-14",
+        "ts": 1736817120,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22646.0,
+        "atr": 30.07,
+        "session_vwap": 22614.45,
+        "opening_range_high": 22645.0,
+        "range_low": 22560.0,
+        "volume_ratio": 5.5325,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -36.09,
+        "net_atr_sim": -41.09,
+        "atr_barrier_sim": {
+          "gross_pnl": -36.09,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 38.0,
+          "quick_stop": true
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -42.0,
+            "MFE_delta": -23.0,
+            "MAE_delta": 55.0,
+            "signed_return_over_atr": -1.3967
+          },
+          "W900": {
+            "close_delta": -58.0,
+            "MFE_delta": -23.0,
+            "MAE_delta": 89.0,
+            "signed_return_over_atr": -1.9288
+          },
+          "W1800": {
+            "close_delta": 17.0,
+            "MFE_delta": 39.0,
+            "MAE_delta": 115.0,
+            "signed_return_over_atr": 0.5653
+          }
+        }
+      },
+      {
+        "day": "2025-01-20",
+        "ts": 1737335700,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23338.0,
+        "atr": 26.57,
+        "session_vwap": 23280.63,
+        "opening_range_high": 23320.0,
+        "range_low": 23223.0,
+        "volume_ratio": 4.4136,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -31.89,
+        "net_atr_sim": -36.89,
+        "atr_barrier_sim": {
+          "gross_pnl": -31.89,
+          "exit_reason": "stop_loss",
+          "hold_sec": 829,
+          "mfe": 24.0,
+          "mae": 32.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 12.0,
+            "MFE_delta": 16.0,
+            "MAE_delta": 17.0,
+            "signed_return_over_atr": 0.4516
+          },
+          "W900": {
+            "close_delta": -26.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 37.0,
+            "signed_return_over_atr": -0.9785
+          },
+          "W1800": {
+            "close_delta": -3.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 55.0,
+            "signed_return_over_atr": -0.1129
+          }
+        }
+      },
+      {
+        "day": "2025-03-03",
+        "ts": 1740964020,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22770.0,
+        "atr": 31.57,
+        "session_vwap": 22700.93,
+        "opening_range_high": 22747.0,
+        "range_low": 22622.0,
+        "volume_ratio": 1.5438,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -37.89,
+        "net_atr_sim": -42.89,
+        "atr_barrier_sim": {
+          "gross_pnl": -37.89,
+          "exit_reason": "stop_loss",
+          "hold_sec": 256,
+          "mfe": 23.0,
+          "mae": 38.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -41.0,
+            "MFE_delta": 23.0,
+            "MAE_delta": 48.0,
+            "signed_return_over_atr": -1.2987
+          },
+          "W900": {
+            "close_delta": -66.0,
+            "MFE_delta": 23.0,
+            "MAE_delta": 110.0,
+            "signed_return_over_atr": -2.0906
+          },
+          "W1800": {
+            "close_delta": -137.0,
+            "MFE_delta": 23.0,
+            "MAE_delta": 155.0,
+            "signed_return_over_atr": -4.3396
+          }
+        }
+      },
+      {
+        "day": "2025-03-04",
+        "ts": 1741051860,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22362.0,
+        "atr": 20.07,
+        "session_vwap": 22297.13,
+        "opening_range_high": 22356.0,
+        "range_low": 22193.0,
+        "volume_ratio": 1.4095,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 36.13,
+        "net_atr_sim": 31.130000000000003,
+        "atr_barrier_sim": {
+          "gross_pnl": 36.13,
+          "exit_reason": "take_profit",
+          "hold_sec": 151,
+          "mfe": 37.0,
+          "mae": 3.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 25.0,
+            "MFE_delta": 42.0,
+            "MAE_delta": 3.0,
+            "signed_return_over_atr": 1.2456
+          },
+          "W900": {
+            "close_delta": 65.0,
+            "MFE_delta": 75.0,
+            "MAE_delta": 3.0,
+            "signed_return_over_atr": 3.2387
+          },
+          "W1800": {
+            "close_delta": 56.0,
+            "MFE_delta": 93.0,
+            "MAE_delta": 3.0,
+            "signed_return_over_atr": 2.7902
+          }
+        }
+      },
+      {
+        "day": "2025-03-05",
+        "ts": 1741138020,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22854.0,
+        "atr": 20.64,
+        "session_vwap": 22773.95,
+        "opening_range_high": 22825.0,
+        "range_low": 22639.0,
+        "volume_ratio": 1.7924,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.77,
+        "net_atr_sim": -29.77,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.77,
+          "exit_reason": "stop_loss",
+          "hold_sec": 234,
+          "mfe": 26.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -11.0,
+            "MFE_delta": 26.0,
+            "MAE_delta": 46.0,
+            "signed_return_over_atr": -0.5329
+          },
+          "W900": {
+            "close_delta": 4.0,
+            "MFE_delta": 26.0,
+            "MAE_delta": 46.0,
+            "signed_return_over_atr": 0.1938
+          },
+          "W1800": {
+            "close_delta": -11.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": 46.0,
+            "signed_return_over_atr": -0.5329
+          }
+        }
+      },
+      {
+        "day": "2025-03-07",
+        "ts": 1741309800,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22642.0,
+        "atr": 20.93,
+        "session_vwap": 22571.77,
+        "opening_range_high": 22610.0,
+        "range_low": 22483.0,
+        "volume_ratio": 2.3176,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 37.67,
+        "net_atr_sim": 32.67,
+        "atr_barrier_sim": {
+          "gross_pnl": 37.67,
+          "exit_reason": "take_profit",
+          "hold_sec": 250,
+          "mfe": 38.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 38.0,
+            "MFE_delta": 42.0,
+            "MAE_delta": -4.0,
+            "signed_return_over_atr": 1.8156
+          },
+          "W900": {
+            "close_delta": 16.0,
+            "MFE_delta": 42.0,
+            "MAE_delta": 2.0,
+            "signed_return_over_atr": 0.7645
+          },
+          "W1800": {
+            "close_delta": -19.0,
+            "MFE_delta": 42.0,
+            "MAE_delta": 33.0,
+            "signed_return_over_atr": -0.9078
+          }
+        }
+      },
+      {
+        "day": "2025-03-11",
+        "ts": 1741658880,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 21972.0,
+        "atr": 24.43,
+        "session_vwap": 21817.92,
+        "opening_range_high": 21946.0,
+        "range_low": 21787.0,
+        "volume_ratio": 2.074,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -29.31,
+        "net_atr_sim": -34.31,
+        "atr_barrier_sim": {
+          "gross_pnl": -29.31,
+          "exit_reason": "stop_loss",
+          "hold_sec": 328,
+          "mfe": 6.0,
+          "mae": 30.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -14.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 26.0,
+            "signed_return_over_atr": -0.5731
+          },
+          "W900": {
+            "close_delta": 56.0,
+            "MFE_delta": 59.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 2.2923
+          },
+          "W1800": {
+            "close_delta": 15.0,
+            "MFE_delta": 76.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 0.614
+          }
+        }
+      },
+      {
+        "day": "2025-03-12",
+        "ts": 1741742040,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22131.0,
+        "atr": 25.0,
+        "session_vwap": 22093.55,
+        "opening_range_high": 22130.0,
+        "range_low": 22046.0,
+        "volume_ratio": 1.4619,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -5.0,
+        "net_atr_sim": -10.0,
+        "atr_barrier_sim": {
+          "gross_pnl": -5.0,
+          "exit_reason": "horizon",
+          "hold_sec": 1199,
+          "mfe": 24.0,
+          "mae": 21.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -7.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 10.0,
+            "signed_return_over_atr": -0.28
+          },
+          "W900": {
+            "close_delta": -12.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 21.0,
+            "signed_return_over_atr": -0.48
+          },
+          "W1800": {
+            "close_delta": 44.0,
+            "MFE_delta": 45.0,
+            "MAE_delta": 21.0,
+            "signed_return_over_atr": 1.76
+          }
+        }
+      },
+      {
+        "day": "2025-03-20",
+        "ts": 1742433120,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22311.0,
+        "atr": 20.57,
+        "session_vwap": 22257.83,
+        "opening_range_high": 22285.0,
+        "range_low": 22203.0,
+        "volume_ratio": 1.7492,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 37.03,
+        "net_atr_sim": 32.03,
+        "atr_barrier_sim": {
+          "gross_pnl": 37.03,
+          "exit_reason": "take_profit",
+          "hold_sec": 69,
+          "mfe": 38.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 13.0,
+            "MFE_delta": 39.0,
+            "MAE_delta": -11.0,
+            "signed_return_over_atr": 0.632
+          },
+          "W900": {
+            "close_delta": -30.0,
+            "MFE_delta": 39.0,
+            "MAE_delta": 36.0,
+            "signed_return_over_atr": -1.4584
+          },
+          "W1800": {
+            "close_delta": -59.0,
+            "MFE_delta": 39.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": -2.8683
+          }
+        }
+      },
+      {
+        "day": "2025-04-01",
+        "ts": 1743471120,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 21044.0,
+        "atr": 21.86,
+        "session_vwap": 20966.48,
+        "opening_range_high": 21023.0,
+        "range_low": 20888.0,
+        "volume_ratio": 4.0932,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.34,
+        "net_atr_sim": 34.34,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.34,
+          "exit_reason": "take_profit",
+          "hold_sec": 670,
+          "mfe": 40.0,
+          "mae": 7.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 22.0,
+            "MFE_delta": 27.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 1.0064
+          },
+          "W900": {
+            "close_delta": 73.0,
+            "MFE_delta": 80.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 3.3394
+          },
+          "W1800": {
+            "close_delta": 51.0,
+            "MFE_delta": 104.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 2.333
+          }
+        }
+      },
+      {
+        "day": "2025-04-02",
+        "ts": 1743557820,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 21346.0,
+        "atr": 20.57,
+        "session_vwap": 21289.08,
+        "opening_range_high": 21326.0,
+        "range_low": 21227.0,
+        "volume_ratio": 1.86,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.69,
+        "net_atr_sim": -29.69,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.69,
+          "exit_reason": "stop_loss",
+          "hold_sec": 126,
+          "mfe": 5.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -39.0,
+            "MFE_delta": 5.0,
+            "MAE_delta": 60.0,
+            "signed_return_over_atr": -1.896
+          },
+          "W900": {
+            "close_delta": -38.0,
+            "MFE_delta": 5.0,
+            "MAE_delta": 60.0,
+            "signed_return_over_atr": -1.8474
+          },
+          "W1800": {
+            "close_delta": -106.0,
+            "MFE_delta": 5.0,
+            "MAE_delta": 111.0,
+            "signed_return_over_atr": -5.1531
+          }
+        }
+      },
+      {
+        "day": "2025-04-08",
+        "ts": 1744075560,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 18654.0,
+        "atr": 62.07,
+        "session_vwap": 18476.83,
+        "opening_range_high": 18643.0,
+        "range_low": 18377.0,
+        "volume_ratio": 2.0317,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -74.49,
+        "net_atr_sim": -79.49,
+        "atr_barrier_sim": {
+          "gross_pnl": -74.49,
+          "exit_reason": "stop_loss",
+          "hold_sec": 85,
+          "mfe": 98.0,
+          "mae": 75.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -95.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 96.0,
+            "signed_return_over_atr": -1.5305
+          },
+          "W900": {
+            "close_delta": -13.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 99.0,
+            "signed_return_over_atr": -0.2094
+          },
+          "W1800": {
+            "close_delta": -173.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 216.0,
+            "signed_return_over_atr": -2.7872
+          }
+        }
+      },
+      {
+        "day": "2025-04-09",
+        "ts": 1744161180,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 18161.0,
+        "atr": 64.64,
+        "session_vwap": 18020.28,
+        "opening_range_high": 18152.0,
+        "range_low": 17843.0,
+        "volume_ratio": 1.7235,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 116.36,
+        "net_atr_sim": 111.36,
+        "atr_barrier_sim": {
+          "gross_pnl": 116.36,
+          "exit_reason": "take_profit",
+          "hold_sec": 72,
+          "mfe": 117.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 20.0,
+            "MFE_delta": 120.0,
+            "MAE_delta": 6.0,
+            "signed_return_over_atr": 0.3094
+          },
+          "W900": {
+            "close_delta": -116.0,
+            "MFE_delta": 120.0,
+            "MAE_delta": 143.0,
+            "signed_return_over_atr": -1.7946
+          },
+          "W1800": {
+            "close_delta": -36.0,
+            "MFE_delta": 120.0,
+            "MAE_delta": 235.0,
+            "signed_return_over_atr": -0.5569
+          }
+        }
+      },
+      {
+        "day": "2025-04-11",
+        "ts": 1744334940,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 18944.0,
+        "atr": 51.36,
+        "session_vwap": 18674.31,
+        "opening_range_high": 18724.0,
+        "range_low": 18443.0,
+        "volume_ratio": 1.6715,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -61.63,
+        "net_atr_sim": -66.63,
+        "atr_barrier_sim": {
+          "gross_pnl": -61.63,
+          "exit_reason": "stop_loss",
+          "hold_sec": 56,
+          "mfe": 0.0,
+          "mae": 63.0,
+          "quick_stop": true
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -136.0,
+            "MFE_delta": -11.0,
+            "MAE_delta": 162.0,
+            "signed_return_over_atr": -2.648
+          },
+          "W900": {
+            "close_delta": 106.0,
+            "MFE_delta": 138.0,
+            "MAE_delta": 162.0,
+            "signed_return_over_atr": 2.0639
+          },
+          "W1800": {
+            "close_delta": 129.0,
+            "MFE_delta": 151.0,
+            "MAE_delta": 162.0,
+            "signed_return_over_atr": 2.5117
+          }
+        }
+      },
+      {
+        "day": "2025-04-15",
+        "ts": 1744679700,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 19629.0,
+        "atr": 34.71,
+        "session_vwap": 19580.29,
+        "opening_range_high": 19624.0,
+        "range_low": 19541.0,
+        "volume_ratio": 2.0567,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -41.66,
+        "net_atr_sim": -46.66,
+        "atr_barrier_sim": {
+          "gross_pnl": -41.66,
+          "exit_reason": "stop_loss",
+          "hold_sec": 346,
+          "mfe": 33.0,
+          "mae": 42.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -24.0,
+            "MFE_delta": 33.0,
+            "MAE_delta": 41.0,
+            "signed_return_over_atr": -0.6914
+          },
+          "W900": {
+            "close_delta": -33.0,
+            "MFE_delta": 33.0,
+            "MAE_delta": 57.0,
+            "signed_return_over_atr": -0.9507
+          },
+          "W1800": {
+            "close_delta": 0.0,
+            "MFE_delta": 33.0,
+            "MAE_delta": 57.0,
+            "signed_return_over_atr": 0.0
+          }
+        }
+      },
+      {
+        "day": "2025-04-22",
+        "ts": 1745284860,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 18982.0,
+        "atr": 30.71,
+        "session_vwap": 18923.54,
+        "opening_range_high": 18968.0,
+        "range_low": 18864.0,
+        "volume_ratio": 3.078,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -10.0,
+        "net_atr_sim": -15.0,
+        "atr_barrier_sim": {
+          "gross_pnl": -10.0,
+          "exit_reason": "horizon",
+          "hold_sec": 1200,
+          "mfe": 43.0,
+          "mae": 16.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 21.0,
+            "MFE_delta": 41.0,
+            "MAE_delta": -2.0,
+            "signed_return_over_atr": 0.6838
+          },
+          "W900": {
+            "close_delta": 11.0,
+            "MFE_delta": 43.0,
+            "MAE_delta": 16.0,
+            "signed_return_over_atr": 0.3582
+          },
+          "W1800": {
+            "close_delta": 39.0,
+            "MFE_delta": 48.0,
+            "MAE_delta": 16.0,
+            "signed_return_over_atr": 1.2699
+          }
+        }
+      },
+      {
+        "day": "2025-04-23",
+        "ts": 1745370720,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 19378.0,
+        "atr": 27.5,
+        "session_vwap": 19266.01,
+        "opening_range_high": 19332.0,
+        "range_low": 19172.0,
+        "volume_ratio": 2.9144,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 49.5,
+        "net_atr_sim": 44.5,
+        "atr_barrier_sim": {
+          "gross_pnl": 49.5,
+          "exit_reason": "take_profit",
+          "hold_sec": 947,
+          "mfe": 50.0,
+          "mae": 30.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -6.0,
+            "MFE_delta": 43.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": -0.2182
+          },
+          "W900": {
+            "close_delta": 32.0,
+            "MFE_delta": 48.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": 1.1636
+          },
+          "W1800": {
+            "close_delta": -15.0,
+            "MFE_delta": 71.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": -0.5455
+          }
+        }
+      },
+      {
+        "day": "2025-04-28",
+        "ts": 1745802960,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 20029.0,
+        "atr": 22.79,
+        "session_vwap": 19988.81,
+        "opening_range_high": 20011.0,
+        "range_low": 19955.0,
+        "volume_ratio": 1.4107,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -27.34,
+        "net_atr_sim": -32.34,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.34,
+          "exit_reason": "stop_loss",
+          "hold_sec": 221,
+          "mfe": 0.0,
+          "mae": 28.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -43.0,
+            "MFE_delta": -7.0,
+            "MAE_delta": 46.0,
+            "signed_return_over_atr": -1.8868
+          },
+          "W900": {
+            "close_delta": -27.0,
+            "MFE_delta": -7.0,
+            "MAE_delta": 49.0,
+            "signed_return_over_atr": -1.1847
+          },
+          "W1800": {
+            "close_delta": -1.0,
+            "MFE_delta": 14.0,
+            "MAE_delta": 49.0,
+            "signed_return_over_atr": -0.0439
+          }
+        }
+      },
+      {
+        "day": "2025-05-02",
+        "ts": 1746148500,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 20575.0,
+        "atr": 22.86,
+        "session_vwap": 20520.56,
+        "opening_range_high": 20560.0,
+        "range_low": 20466.0,
+        "volume_ratio": 2.9444,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -27.43,
+        "net_atr_sim": -32.43,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.43,
+          "exit_reason": "stop_loss",
+          "hold_sec": 174,
+          "mfe": 5.0,
+          "mae": 28.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -15.0,
+            "MFE_delta": 5.0,
+            "MAE_delta": 38.0,
+            "signed_return_over_atr": -0.6562
+          },
+          "W900": {
+            "close_delta": -53.0,
+            "MFE_delta": 5.0,
+            "MAE_delta": 54.0,
+            "signed_return_over_atr": -2.3185
+          },
+          "W1800": {
+            "close_delta": -69.0,
+            "MFE_delta": 5.0,
+            "MAE_delta": 93.0,
+            "signed_return_over_atr": -3.0184
+          }
+        }
+      },
+      {
+        "day": "2025-05-06",
+        "ts": 1746494160,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 20308.0,
+        "atr": 39.64,
+        "session_vwap": 20242.77,
+        "opening_range_high": 20290.0,
+        "range_low": 20144.0,
+        "volume_ratio": 3.0652,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 71.36,
+        "net_atr_sim": 66.36,
+        "atr_barrier_sim": {
+          "gross_pnl": 71.36,
+          "exit_reason": "take_profit",
+          "hold_sec": 345,
+          "mfe": 72.0,
+          "mae": 42.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 41.0,
+            "MFE_delta": 44.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 1.0343
+          },
+          "W900": {
+            "close_delta": 103.0,
+            "MFE_delta": 103.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 2.5984
+          },
+          "W1800": {
+            "close_delta": 27.0,
+            "MFE_delta": 104.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 0.6811
+          }
+        }
+      },
+      {
+        "day": "2025-05-08",
+        "ts": 1746666600,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 20595.0,
+        "atr": 28.71,
+        "session_vwap": 20523.1,
+        "opening_range_high": 20568.0,
+        "range_low": 20452.0,
+        "volume_ratio": 3.2542,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 51.69,
+        "net_atr_sim": 46.69,
+        "atr_barrier_sim": {
+          "gross_pnl": 51.69,
+          "exit_reason": "take_profit",
+          "hold_sec": 180,
+          "mfe": 52.0,
+          "mae": 7.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 33.0,
+            "MFE_delta": 55.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 1.1494
+          },
+          "W900": {
+            "close_delta": 2.0,
+            "MFE_delta": 55.0,
+            "MAE_delta": 11.0,
+            "signed_return_over_atr": 0.0697
+          },
+          "W1800": {
+            "close_delta": -42.0,
+            "MFE_delta": 55.0,
+            "MAE_delta": 64.0,
+            "signed_return_over_atr": -1.4629
+          }
+        }
+      },
+      {
+        "day": "2025-05-09",
+        "ts": 1746753480,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 20709.0,
+        "atr": 24.21,
+        "session_vwap": 20675.41,
+        "opening_range_high": 20708.0,
+        "range_low": 20631.0,
+        "volume_ratio": 2.097,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -29.06,
+        "net_atr_sim": -34.06,
+        "atr_barrier_sim": {
+          "gross_pnl": -29.06,
+          "exit_reason": "stop_loss",
+          "hold_sec": 81,
+          "mfe": 0.0,
+          "mae": 30.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -21.0,
+            "MFE_delta": -11.0,
+            "MAE_delta": 43.0,
+            "signed_return_over_atr": -0.8674
+          },
+          "W900": {
+            "close_delta": -75.0,
+            "MFE_delta": -11.0,
+            "MAE_delta": 79.0,
+            "signed_return_over_atr": -3.0979
+          },
+          "W1800": {
+            "close_delta": -75.0,
+            "MFE_delta": -11.0,
+            "MAE_delta": 113.0,
+            "signed_return_over_atr": -3.0979
+          }
+        }
+      },
+      {
+        "day": "2025-05-12",
+        "ts": 1747011960,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 21062.0,
+        "atr": 22.79,
+        "session_vwap": 21019.69,
+        "opening_range_high": 21047.0,
+        "range_low": 20978.0,
+        "volume_ratio": 2.8475,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 41.01,
+        "net_atr_sim": 36.01,
+        "atr_barrier_sim": {
+          "gross_pnl": 41.01,
+          "exit_reason": "take_profit",
+          "hold_sec": 132,
+          "mfe": 42.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 29.0,
+            "MFE_delta": 45.0,
+            "MAE_delta": -18.0,
+            "signed_return_over_atr": 1.2725
+          },
+          "W900": {
+            "close_delta": 31.0,
+            "MFE_delta": 67.0,
+            "MAE_delta": 2.0,
+            "signed_return_over_atr": 1.3602
+          },
+          "W1800": {
+            "close_delta": 30.0,
+            "MFE_delta": 67.0,
+            "MAE_delta": 2.0,
+            "signed_return_over_atr": 1.3164
+          }
+        }
+      },
+      {
+        "day": "2025-06-03",
+        "ts": 1748912880,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 21131.0,
+        "atr": 22.57,
+        "session_vwap": 21076.52,
+        "opening_range_high": 21111.0,
+        "range_low": 21015.0,
+        "volume_ratio": 2.5371,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -27.09,
+        "net_atr_sim": -32.09,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.09,
+          "exit_reason": "stop_loss",
+          "hold_sec": 168,
+          "mfe": 0.0,
+          "mae": 28.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -3.0,
+            "MFE_delta": -3.0,
+            "MAE_delta": 28.0,
+            "signed_return_over_atr": -0.1329
+          },
+          "W900": {
+            "close_delta": -32.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 45.0,
+            "signed_return_over_atr": -1.4178
+          },
+          "W1800": {
+            "close_delta": 59.0,
+            "MFE_delta": 76.0,
+            "MAE_delta": 45.0,
+            "signed_return_over_atr": 2.6141
+          }
+        }
+      },
+      {
+        "day": "2025-06-04",
+        "ts": 1748999220,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 21325.0,
+        "atr": 22.07,
+        "session_vwap": 21293.84,
+        "opening_range_high": 21323.0,
+        "range_low": 21260.0,
+        "volume_ratio": 1.6134,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.73,
+        "net_atr_sim": 34.73,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.73,
+          "exit_reason": "take_profit",
+          "hold_sec": 422,
+          "mfe": 40.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 20.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": -9.0,
+            "signed_return_over_atr": 0.9062
+          },
+          "W900": {
+            "close_delta": 67.0,
+            "MFE_delta": 75.0,
+            "MAE_delta": -9.0,
+            "signed_return_over_atr": 3.0358
+          },
+          "W1800": {
+            "close_delta": 112.0,
+            "MFE_delta": 125.0,
+            "MAE_delta": -9.0,
+            "signed_return_over_atr": 5.0748
+          }
+        }
+      },
+      {
+        "day": "2025-06-13",
+        "ts": 1749779280,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22052.0,
+        "atr": 24.21,
+        "session_vwap": 21982.09,
+        "opening_range_high": 22049.0,
+        "range_low": 21903.0,
+        "volume_ratio": 1.6173,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 43.59,
+        "net_atr_sim": 38.59,
+        "atr_barrier_sim": {
+          "gross_pnl": 43.59,
+          "exit_reason": "take_profit",
+          "hold_sec": 222,
+          "mfe": 44.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 44.0,
+            "MFE_delta": 46.0,
+            "MAE_delta": -21.0,
+            "signed_return_over_atr": 1.8174
+          },
+          "W900": {
+            "close_delta": 57.0,
+            "MFE_delta": 82.0,
+            "MAE_delta": -21.0,
+            "signed_return_over_atr": 2.3544
+          },
+          "W1800": {
+            "close_delta": 52.0,
+            "MFE_delta": 86.0,
+            "MAE_delta": -21.0,
+            "signed_return_over_atr": 2.1479
+          }
+        }
+      },
+      {
+        "day": "2025-06-24",
+        "ts": 1750727220,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 21866.0,
+        "atr": 22.0,
+        "session_vwap": 21817.47,
+        "opening_range_high": 21845.0,
+        "range_low": 21763.0,
+        "volume_ratio": 3.1945,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.6,
+        "net_atr_sim": 34.6,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.6,
+          "exit_reason": "take_profit",
+          "hold_sec": 0,
+          "mfe": 40.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 44.0,
+            "MFE_delta": 61.0,
+            "MAE_delta": -23.0,
+            "signed_return_over_atr": 2.0
+          },
+          "W900": {
+            "close_delta": 49.0,
+            "MFE_delta": 85.0,
+            "MAE_delta": -4.0,
+            "signed_return_over_atr": 2.2273
+          },
+          "W1800": {
+            "close_delta": 9.0,
+            "MFE_delta": 85.0,
+            "MAE_delta": 19.0,
+            "signed_return_over_atr": 0.4091
+          }
+        }
+      },
+      {
+        "day": "2025-07-01",
+        "ts": 1751333040,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22445.0,
+        "atr": 21.29,
+        "session_vwap": 22339.46,
+        "opening_range_high": 22355.0,
+        "range_low": 22180.0,
+        "volume_ratio": 1.8145,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -25.54,
+        "net_atr_sim": -30.54,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.54,
+          "exit_reason": "stop_loss",
+          "hold_sec": 298,
+          "mfe": 13.0,
+          "mae": 26.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -27.0,
+            "MFE_delta": 13.0,
+            "MAE_delta": 28.0,
+            "signed_return_over_atr": -1.2682
+          },
+          "W900": {
+            "close_delta": 89.0,
+            "MFE_delta": 92.0,
+            "MAE_delta": 28.0,
+            "signed_return_over_atr": 4.1804
+          },
+          "W1800": {
+            "close_delta": 124.0,
+            "MFE_delta": 148.0,
+            "MAE_delta": 28.0,
+            "signed_return_over_atr": 5.8243
+          }
+        }
+      },
+      {
+        "day": "2025-07-09",
+        "ts": 1752023160,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22277.0,
+        "atr": 23.79,
+        "session_vwap": 22204.36,
+        "opening_range_high": 22255.0,
+        "range_low": 22150.0,
+        "volume_ratio": 1.8367,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -13.0,
+        "net_atr_sim": -18.0,
+        "atr_barrier_sim": {
+          "gross_pnl": -13.0,
+          "exit_reason": "horizon",
+          "hold_sec": 1200,
+          "mfe": 6.0,
+          "mae": 28.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -11.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 28.0,
+            "signed_return_over_atr": -0.4624
+          },
+          "W900": {
+            "close_delta": -7.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 28.0,
+            "signed_return_over_atr": -0.2942
+          },
+          "W1800": {
+            "close_delta": -32.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 60.0,
+            "signed_return_over_atr": -1.3451
+          }
+        }
+      },
+      {
+        "day": "2025-07-10",
+        "ts": 1752111120,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22536.0,
+        "atr": 20.57,
+        "session_vwap": 22475.93,
+        "opening_range_high": 22518.0,
+        "range_low": 22410.0,
+        "volume_ratio": 1.5729,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.69,
+        "net_atr_sim": -29.69,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.69,
+          "exit_reason": "stop_loss",
+          "hold_sec": 830,
+          "mfe": 24.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 24.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 1.1667
+          },
+          "W900": {
+            "close_delta": -17.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 37.0,
+            "signed_return_over_atr": -0.8264
+          },
+          "W1800": {
+            "close_delta": -4.0,
+            "MFE_delta": 29.0,
+            "MAE_delta": 37.0,
+            "signed_return_over_atr": -0.1945
+          }
+        }
+      },
+      {
+        "day": "2025-07-11",
+        "ts": 1752196200,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22595.0,
+        "atr": 23.21,
+        "session_vwap": 22542.41,
+        "opening_range_high": 22593.0,
+        "range_low": 22486.0,
+        "volume_ratio": 2.2162,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -27.86,
+        "net_atr_sim": -32.86,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.86,
+          "exit_reason": "stop_loss",
+          "hold_sec": 515,
+          "mfe": 4.0,
+          "mae": 28.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -3.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 14.0,
+            "signed_return_over_atr": -0.1293
+          },
+          "W900": {
+            "close_delta": -1.0,
+            "MFE_delta": 18.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": -0.0431
+          },
+          "W1800": {
+            "close_delta": 86.0,
+            "MFE_delta": 89.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": 3.7053
+          }
+        }
+      },
+      {
+        "day": "2025-07-15",
+        "ts": 1752544440,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 22783.0,
+        "atr": 20.5,
+        "session_vwap": 22632.31,
+        "opening_range_high": 22565.0,
+        "range_low": 22510.0,
+        "volume_ratio": 1.9411,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.6,
+        "net_atr_sim": -29.6,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.6,
+          "exit_reason": "stop_loss",
+          "hold_sec": 123,
+          "mfe": 4.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -11.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": -0.5366
+          },
+          "W900": {
+            "close_delta": 63.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": 3.0732
+          },
+          "W1800": {
+            "close_delta": -3.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 32.0,
+            "signed_return_over_atr": -0.1463
+          }
+        }
+      },
+      {
+        "day": "2025-07-22",
+        "ts": 1753146840,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23332.0,
+        "atr": 20.29,
+        "session_vwap": 23264.85,
+        "opening_range_high": 23280.0,
+        "range_low": 23205.0,
+        "volume_ratio": 2.7364,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 36.51,
+        "net_atr_sim": 31.509999999999998,
+        "atr_barrier_sim": {
+          "gross_pnl": 36.51,
+          "exit_reason": "take_profit",
+          "hold_sec": 20,
+          "mfe": 37.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 49.0,
+            "MFE_delta": 56.0,
+            "MAE_delta": -24.0,
+            "signed_return_over_atr": 2.415
+          },
+          "W900": {
+            "close_delta": 11.0,
+            "MFE_delta": 74.0,
+            "MAE_delta": 15.0,
+            "signed_return_over_atr": 0.5421
+          },
+          "W1800": {
+            "close_delta": 31.0,
+            "MFE_delta": 74.0,
+            "MAE_delta": 15.0,
+            "signed_return_over_atr": 1.5278
+          }
+        }
+      },
+      {
+        "day": "2025-07-23",
+        "ts": 1753233000,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23168.0,
+        "atr": 27.64,
+        "session_vwap": 23114.34,
+        "opening_range_high": 23151.0,
+        "range_low": 22987.0,
+        "volume_ratio": 1.4932,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -33.17,
+        "net_atr_sim": -38.17,
+        "atr_barrier_sim": {
+          "gross_pnl": -33.17,
+          "exit_reason": "stop_loss",
+          "hold_sec": 866,
+          "mfe": 28.0,
+          "mae": 34.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 22.0,
+            "MFE_delta": 22.0,
+            "MAE_delta": 6.0,
+            "signed_return_over_atr": 0.7959
+          },
+          "W900": {
+            "close_delta": -39.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": 61.0,
+            "signed_return_over_atr": -1.411
+          },
+          "W1800": {
+            "close_delta": -22.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": 92.0,
+            "signed_return_over_atr": -0.7959
+          }
+        }
+      },
+      {
+        "day": "2025-07-25",
+        "ts": 1753405740,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23313.0,
+        "atr": 21.86,
+        "session_vwap": 23280.36,
+        "opening_range_high": 23298.0,
+        "range_low": 23236.0,
+        "volume_ratio": 1.7277,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -26.23,
+        "net_atr_sim": -31.23,
+        "atr_barrier_sim": {
+          "gross_pnl": -26.23,
+          "exit_reason": "stop_loss",
+          "hold_sec": 184,
+          "mfe": 12.0,
+          "mae": 27.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -51.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 58.0,
+            "signed_return_over_atr": -2.333
+          },
+          "W900": {
+            "close_delta": -72.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 105.0,
+            "signed_return_over_atr": -3.2937
+          },
+          "W1800": {
+            "close_delta": -55.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 105.0,
+            "signed_return_over_atr": -2.516
+          }
+        }
+      },
+      {
+        "day": "2025-07-30",
+        "ts": 1753839660,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23352.0,
+        "atr": 23.57,
+        "session_vwap": 23284.93,
+        "opening_range_high": 23344.0,
+        "range_low": 23207.0,
+        "volume_ratio": 2.5033,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -28.29,
+        "net_atr_sim": -33.29,
+        "atr_barrier_sim": {
+          "gross_pnl": -28.29,
+          "exit_reason": "stop_loss",
+          "hold_sec": 377,
+          "mfe": 25.0,
+          "mae": 29.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -9.0,
+            "MFE_delta": 25.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": -0.3818
+          },
+          "W900": {
+            "close_delta": -34.0,
+            "MFE_delta": 25.0,
+            "MAE_delta": 68.0,
+            "signed_return_over_atr": -1.4425
+          },
+          "W1800": {
+            "close_delta": -23.0,
+            "MFE_delta": 25.0,
+            "MAE_delta": 68.0,
+            "signed_return_over_atr": -0.9758
+          }
+        }
+      },
+      {
+        "day": "2025-08-01",
+        "ts": 1754010660,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23307.0,
+        "atr": 31.29,
+        "session_vwap": 23194.47,
+        "opening_range_high": 23247.0,
+        "range_low": 23040.0,
+        "volume_ratio": 1.65,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -37.54,
+        "net_atr_sim": -42.54,
+        "atr_barrier_sim": {
+          "gross_pnl": -37.54,
+          "exit_reason": "stop_loss",
+          "hold_sec": 971,
+          "mfe": 36.0,
+          "mae": 38.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 16.0,
+            "MFE_delta": 32.0,
+            "MAE_delta": 16.0,
+            "signed_return_over_atr": 0.5113
+          },
+          "W900": {
+            "close_delta": -9.0,
+            "MFE_delta": 36.0,
+            "MAE_delta": 32.0,
+            "signed_return_over_atr": -0.2876
+          },
+          "W1800": {
+            "close_delta": 90.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 2.8763
+          }
+        }
+      },
+      {
+        "day": "2025-08-04",
+        "ts": 1754271180,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23164.0,
+        "atr": 21.0,
+        "session_vwap": 23114.94,
+        "opening_range_high": 23155.0,
+        "range_low": 23083.0,
+        "volume_ratio": 1.5345,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -25.2,
+        "net_atr_sim": -30.2,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.2,
+          "exit_reason": "stop_loss",
+          "hold_sec": 260,
+          "mfe": 19.0,
+          "mae": 26.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -23.0,
+            "MFE_delta": 19.0,
+            "MAE_delta": 27.0,
+            "signed_return_over_atr": -1.0952
+          },
+          "W900": {
+            "close_delta": 20.0,
+            "MFE_delta": 22.0,
+            "MAE_delta": 27.0,
+            "signed_return_over_atr": 0.9524
+          },
+          "W1800": {
+            "close_delta": 18.0,
+            "MFE_delta": 36.0,
+            "MAE_delta": 27.0,
+            "signed_return_over_atr": 0.8571
+          }
+        }
+      },
+      {
+        "day": "2025-08-05",
+        "ts": 1754356260,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23541.0,
+        "atr": 20.5,
+        "session_vwap": 23488.76,
+        "opening_range_high": 23527.0,
+        "range_low": 23428.0,
+        "volume_ratio": 2.6308,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.6,
+        "net_atr_sim": -29.6,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.6,
+          "exit_reason": "stop_loss",
+          "hold_sec": 100,
+          "mfe": 1.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -97.0,
+            "MFE_delta": 1.0,
+            "MAE_delta": 102.0,
+            "signed_return_over_atr": -4.7317
+          },
+          "W900": {
+            "close_delta": -105.0,
+            "MFE_delta": 1.0,
+            "MAE_delta": 113.0,
+            "signed_return_over_atr": -5.122
+          },
+          "W1800": {
+            "close_delta": -46.0,
+            "MFE_delta": 1.0,
+            "MAE_delta": 121.0,
+            "signed_return_over_atr": -2.2439
+          }
+        }
+      },
+      {
+        "day": "2025-08-07",
+        "ts": 1754529360,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23893.0,
+        "atr": 23.07,
+        "session_vwap": 23779.13,
+        "opening_range_high": 23852.0,
+        "range_low": 23621.0,
+        "volume_ratio": 1.417,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 41.53,
+        "net_atr_sim": 36.53,
+        "atr_barrier_sim": {
+          "gross_pnl": 41.53,
+          "exit_reason": "take_profit",
+          "hold_sec": 160,
+          "mfe": 42.0,
+          "mae": 16.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 65.0,
+            "MFE_delta": 68.0,
+            "MAE_delta": 16.0,
+            "signed_return_over_atr": 2.8175
+          },
+          "W900": {
+            "close_delta": 86.0,
+            "MFE_delta": 99.0,
+            "MAE_delta": 16.0,
+            "signed_return_over_atr": 3.7278
+          },
+          "W1800": {
+            "close_delta": 104.0,
+            "MFE_delta": 126.0,
+            "MAE_delta": 16.0,
+            "signed_return_over_atr": 4.508
+          }
+        }
+      },
+      {
+        "day": "2025-08-18",
+        "ts": 1755479460,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 24284.0,
+        "atr": 20.71,
+        "session_vwap": 24230.93,
+        "opening_range_high": 24264.0,
+        "range_low": 24178.0,
+        "volume_ratio": 1.609,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 37.29,
+        "net_atr_sim": 32.29,
+        "atr_barrier_sim": {
+          "gross_pnl": 37.29,
+          "exit_reason": "take_profit",
+          "hold_sec": 242,
+          "mfe": 38.0,
+          "mae": 9.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 32.0,
+            "MFE_delta": 41.0,
+            "MAE_delta": 9.0,
+            "signed_return_over_atr": 1.5451
+          },
+          "W900": {
+            "close_delta": 52.0,
+            "MFE_delta": 66.0,
+            "MAE_delta": 9.0,
+            "signed_return_over_atr": 2.5109
+          },
+          "W1800": {
+            "close_delta": 56.0,
+            "MFE_delta": 76.0,
+            "MAE_delta": 9.0,
+            "signed_return_over_atr": 2.704
+          }
+        }
+      },
+      {
+        "day": "2025-08-21",
+        "ts": 1755738420,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 23798.0,
+        "atr": 25.79,
+        "session_vwap": 23754.31,
+        "opening_range_high": 23794.0,
+        "range_low": 23690.0,
+        "volume_ratio": 1.5298,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -30.94,
+        "net_atr_sim": -35.94,
+        "atr_barrier_sim": {
+          "gross_pnl": -30.94,
+          "exit_reason": "stop_loss",
+          "hold_sec": 68,
+          "mfe": 0.0,
+          "mae": 31.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 5.0,
+            "MFE_delta": 7.0,
+            "MAE_delta": 36.0,
+            "signed_return_over_atr": 0.1939
+          },
+          "W900": {
+            "close_delta": 24.0,
+            "MFE_delta": 53.0,
+            "MAE_delta": 36.0,
+            "signed_return_over_atr": 0.9306
+          },
+          "W1800": {
+            "close_delta": 77.0,
+            "MFE_delta": 88.0,
+            "MAE_delta": 36.0,
+            "signed_return_over_atr": 2.9857
+          }
+        }
+      },
+      {
+        "day": "2025-08-26",
+        "ts": 1756170660,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 24195.0,
+        "atr": 20.5,
+        "session_vwap": 24134.69,
+        "opening_range_high": 24170.0,
+        "range_low": 24093.0,
+        "volume_ratio": 3.6403,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.6,
+        "net_atr_sim": -29.6,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.6,
+          "exit_reason": "stop_loss",
+          "hold_sec": 106,
+          "mfe": 8.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -44.0,
+            "MFE_delta": 8.0,
+            "MAE_delta": 49.0,
+            "signed_return_over_atr": -2.1463
+          },
+          "W900": {
+            "close_delta": -61.0,
+            "MFE_delta": 8.0,
+            "MAE_delta": 70.0,
+            "signed_return_over_atr": -2.9756
+          },
+          "W1800": {
+            "close_delta": -56.0,
+            "MFE_delta": 8.0,
+            "MAE_delta": 105.0,
+            "signed_return_over_atr": -2.7317
+          }
+        }
+      },
+      {
+        "day": "2025-09-03",
+        "ts": 1756861860,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 24009.0,
+        "atr": 29.64,
+        "session_vwap": 23962.65,
+        "opening_range_high": 24003.0,
+        "range_low": 23888.0,
+        "volume_ratio": 2.392,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -35.57,
+        "net_atr_sim": -40.57,
+        "atr_barrier_sim": {
+          "gross_pnl": -35.57,
+          "exit_reason": "stop_loss",
+          "hold_sec": 268,
+          "mfe": 16.0,
+          "mae": 36.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -56.0,
+            "MFE_delta": 16.0,
+            "MAE_delta": 69.0,
+            "signed_return_over_atr": -1.8893
+          },
+          "W900": {
+            "close_delta": -35.0,
+            "MFE_delta": 16.0,
+            "MAE_delta": 103.0,
+            "signed_return_over_atr": -1.1808
+          },
+          "W1800": {
+            "close_delta": -23.0,
+            "MFE_delta": 16.0,
+            "MAE_delta": 103.0,
+            "signed_return_over_atr": -0.776
+          }
+        }
+      },
+      {
+        "day": "2025-09-04",
+        "ts": 1756948080,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 24283.0,
+        "atr": 20.5,
+        "session_vwap": 24242.2,
+        "opening_range_high": 24274.0,
+        "range_low": 24187.0,
+        "volume_ratio": 2.1849,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 36.9,
+        "net_atr_sim": 31.9,
+        "atr_barrier_sim": {
+          "gross_pnl": 36.9,
+          "exit_reason": "take_profit",
+          "hold_sec": 71,
+          "mfe": 37.0,
+          "mae": 2.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -8.0,
+            "MFE_delta": 38.0,
+            "MAE_delta": 22.0,
+            "signed_return_over_atr": -0.3902
+          },
+          "W900": {
+            "close_delta": -39.0,
+            "MFE_delta": 38.0,
+            "MAE_delta": 87.0,
+            "signed_return_over_atr": -1.9024
+          },
+          "W1800": {
+            "close_delta": -33.0,
+            "MFE_delta": 38.0,
+            "MAE_delta": 87.0,
+            "signed_return_over_atr": -1.6098
+          }
+        }
+      },
+      {
+        "day": "2025-09-08",
+        "ts": 1757293680,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 24670.0,
+        "atr": 21.57,
+        "session_vwap": 24612.88,
+        "opening_range_high": 24658.0,
+        "range_low": 24558.0,
+        "volume_ratio": 2.3352,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -25.89,
+        "net_atr_sim": -30.89,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.89,
+          "exit_reason": "stop_loss",
+          "hold_sec": 0,
+          "mfe": 0.0,
+          "mae": 27.0,
+          "quick_stop": true
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -69.0,
+            "MFE_delta": -21.0,
+            "MAE_delta": 89.0,
+            "signed_return_over_atr": -3.1989
+          },
+          "W900": {
+            "close_delta": -74.0,
+            "MFE_delta": -21.0,
+            "MAE_delta": 98.0,
+            "signed_return_over_atr": -3.4307
+          },
+          "W1800": {
+            "close_delta": -52.0,
+            "MFE_delta": -21.0,
+            "MAE_delta": 104.0,
+            "signed_return_over_atr": -2.4108
+          }
+        }
+      },
+      {
+        "day": "2025-09-16",
+        "ts": 1757985120,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 25577.0,
+        "atr": 23.21,
+        "session_vwap": 25497.46,
+        "opening_range_high": 25507.0,
+        "range_low": 25411.0,
+        "volume_ratio": 2.115,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -27.86,
+        "net_atr_sim": -32.86,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.86,
+          "exit_reason": "stop_loss",
+          "hold_sec": 245,
+          "mfe": 18.0,
+          "mae": 28.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -9.0,
+            "MFE_delta": 18.0,
+            "MAE_delta": 35.0,
+            "signed_return_over_atr": -0.3878
+          },
+          "W900": {
+            "close_delta": 0.0,
+            "MFE_delta": 21.0,
+            "MAE_delta": 57.0,
+            "signed_return_over_atr": 0.0
+          },
+          "W1800": {
+            "close_delta": 10.0,
+            "MFE_delta": 33.0,
+            "MAE_delta": 57.0,
+            "signed_return_over_atr": 0.4308
+          }
+        }
+      },
+      {
+        "day": "2025-09-30",
+        "ts": 1759195320,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 25951.0,
+        "atr": 21.21,
+        "session_vwap": 25897.95,
+        "opening_range_high": 25936.0,
+        "range_low": 25787.0,
+        "volume_ratio": 3.5134,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 38.19,
+        "net_atr_sim": 33.19,
+        "atr_barrier_sim": {
+          "gross_pnl": 38.19,
+          "exit_reason": "take_profit",
+          "hold_sec": 120,
+          "mfe": 39.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 66.0,
+            "MFE_delta": 94.0,
+            "MAE_delta": -11.0,
+            "signed_return_over_atr": 3.1117
+          },
+          "W900": {
+            "close_delta": 63.0,
+            "MFE_delta": 94.0,
+            "MAE_delta": -11.0,
+            "signed_return_over_atr": 2.9703
+          },
+          "W1800": {
+            "close_delta": 42.0,
+            "MFE_delta": 94.0,
+            "MAE_delta": -7.0,
+            "signed_return_over_atr": 1.9802
+          }
+        }
+      },
+      {
+        "day": "2025-10-01",
+        "ts": 1759281180,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 26166.0,
+        "atr": 23.43,
+        "session_vwap": 26115.44,
+        "opening_range_high": 26143.0,
+        "range_low": 26062.0,
+        "volume_ratio": 5.1122,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 42.17,
+        "net_atr_sim": 37.17,
+        "atr_barrier_sim": {
+          "gross_pnl": 42.17,
+          "exit_reason": "take_profit",
+          "hold_sec": 273,
+          "mfe": 43.0,
+          "mae": 17.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 43.0,
+            "MFE_delta": 60.0,
+            "MAE_delta": 17.0,
+            "signed_return_over_atr": 1.8353
+          },
+          "W900": {
+            "close_delta": 106.0,
+            "MFE_delta": 128.0,
+            "MAE_delta": 17.0,
+            "signed_return_over_atr": 4.5241
+          },
+          "W1800": {
+            "close_delta": 185.0,
+            "MFE_delta": 209.0,
+            "MAE_delta": 17.0,
+            "signed_return_over_atr": 7.8959
+          }
+        }
+      },
+      {
+        "day": "2025-10-03",
+        "ts": 1759454280,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 26519.0,
+        "atr": 24.07,
+        "session_vwap": 26455.56,
+        "opening_range_high": 26488.0,
+        "range_low": 26388.0,
+        "volume_ratio": 3.2455,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -28.89,
+        "net_atr_sim": -33.89,
+        "atr_barrier_sim": {
+          "gross_pnl": -28.89,
+          "exit_reason": "stop_loss",
+          "hold_sec": 168,
+          "mfe": 24.0,
+          "mae": 29.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -39.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": -1.6203
+          },
+          "W900": {
+            "close_delta": -30.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": -1.2464
+          },
+          "W1800": {
+            "close_delta": 28.0,
+            "MFE_delta": 36.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": 1.1633
+          }
+        }
+      },
+      {
+        "day": "2025-10-13",
+        "ts": 1760319120,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 26840.0,
+        "atr": 36.36,
+        "session_vwap": 26678.95,
+        "opening_range_high": 26723.0,
+        "range_low": 26392.0,
+        "volume_ratio": 1.4305,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -43.63,
+        "net_atr_sim": -48.63,
+        "atr_barrier_sim": {
+          "gross_pnl": -43.63,
+          "exit_reason": "stop_loss",
+          "hold_sec": 265,
+          "mfe": 15.0,
+          "mae": 44.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -68.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 70.0,
+            "signed_return_over_atr": -1.8702
+          },
+          "W900": {
+            "close_delta": -63.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 101.0,
+            "signed_return_over_atr": -1.7327
+          },
+          "W1800": {
+            "close_delta": -14.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 101.0,
+            "signed_return_over_atr": -0.385
+          }
+        }
+      },
+      {
+        "day": "2025-10-15",
+        "ts": 1760493180,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 26988.0,
+        "atr": 20.86,
+        "session_vwap": 26899.65,
+        "opening_range_high": 26964.0,
+        "range_low": 26841.0,
+        "volume_ratio": 1.9452,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 37.54,
+        "net_atr_sim": 32.54,
+        "atr_barrier_sim": {
+          "gross_pnl": 37.54,
+          "exit_reason": "take_profit",
+          "hold_sec": 425,
+          "mfe": 38.0,
+          "mae": 20.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -19.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": -0.9108
+          },
+          "W900": {
+            "close_delta": 32.0,
+            "MFE_delta": 76.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": 1.534
+          },
+          "W1800": {
+            "close_delta": 112.0,
+            "MFE_delta": 113.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": 5.3691
+          }
+        }
+      },
+      {
+        "day": "2025-10-16",
+        "ts": 1760578380,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27551.0,
+        "atr": 20.64,
+        "session_vwap": 27510.39,
+        "opening_range_high": 27545.0,
+        "range_low": 27460.0,
+        "volume_ratio": 1.4175,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 37.16,
+        "net_atr_sim": 32.16,
+        "atr_barrier_sim": {
+          "gross_pnl": 37.16,
+          "exit_reason": "take_profit",
+          "hold_sec": 0,
+          "mfe": 40.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 98.0,
+            "MFE_delta": 101.0,
+            "MAE_delta": -40.0,
+            "signed_return_over_atr": 4.7481
+          },
+          "W900": {
+            "close_delta": 132.0,
+            "MFE_delta": 134.0,
+            "MAE_delta": -40.0,
+            "signed_return_over_atr": 6.3953
+          },
+          "W1800": {
+            "close_delta": 131.0,
+            "MFE_delta": 166.0,
+            "MAE_delta": -40.0,
+            "signed_return_over_atr": 6.3469
+          }
+        }
+      },
+      {
+        "day": "2025-10-17",
+        "ts": 1760663220,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27520.0,
+        "atr": 28.86,
+        "session_vwap": 27439.43,
+        "opening_range_high": 27487.0,
+        "range_low": 27227.0,
+        "volume_ratio": 1.9618,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -34.63,
+        "net_atr_sim": -39.63,
+        "atr_barrier_sim": {
+          "gross_pnl": -34.63,
+          "exit_reason": "stop_loss",
+          "hold_sec": 352,
+          "mfe": 25.0,
+          "mae": 35.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 17.0,
+            "MFE_delta": 25.0,
+            "MAE_delta": 23.0,
+            "signed_return_over_atr": 0.5891
+          },
+          "W900": {
+            "close_delta": -47.0,
+            "MFE_delta": 25.0,
+            "MAE_delta": 59.0,
+            "signed_return_over_atr": -1.6286
+          },
+          "W1800": {
+            "close_delta": -33.0,
+            "MFE_delta": 25.0,
+            "MAE_delta": 89.0,
+            "signed_return_over_atr": -1.1435
+          }
+        }
+      },
+      {
+        "day": "2025-10-20",
+        "ts": 1760923380,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27639.0,
+        "atr": 29.64,
+        "session_vwap": 27551.84,
+        "opening_range_high": 27619.0,
+        "range_low": 27434.0,
+        "volume_ratio": 2.2396,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 53.36,
+        "net_atr_sim": 48.36,
+        "atr_barrier_sim": {
+          "gross_pnl": 53.36,
+          "exit_reason": "take_profit",
+          "hold_sec": 222,
+          "mfe": 54.0,
+          "mae": 13.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 43.0,
+            "MFE_delta": 54.0,
+            "MAE_delta": 13.0,
+            "signed_return_over_atr": 1.4507
+          },
+          "W900": {
+            "close_delta": 136.0,
+            "MFE_delta": 152.0,
+            "MAE_delta": 13.0,
+            "signed_return_over_atr": 4.5884
+          },
+          "W1800": {
+            "close_delta": 159.0,
+            "MFE_delta": 183.0,
+            "MAE_delta": 13.0,
+            "signed_return_over_atr": 5.3644
+          }
+        }
+      },
+      {
+        "day": "2025-10-21",
+        "ts": 1761009360,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27984.0,
+        "atr": 26.86,
+        "session_vwap": 27940.22,
+        "opening_range_high": 27971.0,
+        "range_low": 27860.0,
+        "volume_ratio": 1.97,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -32.23,
+        "net_atr_sim": -37.23,
+        "atr_barrier_sim": {
+          "gross_pnl": -32.23,
+          "exit_reason": "stop_loss",
+          "hold_sec": 52,
+          "mfe": 15.0,
+          "mae": 33.0,
+          "quick_stop": true
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 16.0,
+            "MFE_delta": 22.0,
+            "MAE_delta": 33.0,
+            "signed_return_over_atr": 0.5957
+          },
+          "W900": {
+            "close_delta": -53.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 84.0,
+            "signed_return_over_atr": -1.9732
+          },
+          "W1800": {
+            "close_delta": -45.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 84.0,
+            "signed_return_over_atr": -1.6754
+          }
+        }
+      },
+      {
+        "day": "2025-10-23",
+        "ts": 1761181980,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27474.0,
+        "atr": 26.93,
+        "session_vwap": 27403.63,
+        "opening_range_high": 27449.0,
+        "range_low": 27314.0,
+        "volume_ratio": 1.8771,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 48.47,
+        "net_atr_sim": 43.47,
+        "atr_barrier_sim": {
+          "gross_pnl": 48.47,
+          "exit_reason": "take_profit",
+          "hold_sec": 1196,
+          "mfe": 49.0,
+          "mae": 21.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 13.0,
+            "MFE_delta": 14.0,
+            "MAE_delta": 21.0,
+            "signed_return_over_atr": 0.4827
+          },
+          "W900": {
+            "close_delta": 40.0,
+            "MFE_delta": 41.0,
+            "MAE_delta": 21.0,
+            "signed_return_over_atr": 1.4853
+          },
+          "W1800": {
+            "close_delta": 12.0,
+            "MFE_delta": 68.0,
+            "MAE_delta": 21.0,
+            "signed_return_over_atr": 0.4456
+          }
+        }
+      },
+      {
+        "day": "2025-10-30",
+        "ts": 1761786420,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 28510.0,
+        "atr": 25.93,
+        "session_vwap": 28448.46,
+        "opening_range_high": 28492.0,
+        "range_low": 28388.0,
+        "volume_ratio": 2.0609,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -31.11,
+        "net_atr_sim": -36.11,
+        "atr_barrier_sim": {
+          "gross_pnl": -31.11,
+          "exit_reason": "stop_loss",
+          "hold_sec": 450,
+          "mfe": 41.0,
+          "mae": 32.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 12.0,
+            "MFE_delta": 41.0,
+            "MAE_delta": 5.0,
+            "signed_return_over_atr": 0.4628
+          },
+          "W900": {
+            "close_delta": -114.0,
+            "MFE_delta": 41.0,
+            "MAE_delta": 119.0,
+            "signed_return_over_atr": -4.3965
+          },
+          "W1800": {
+            "close_delta": -149.0,
+            "MFE_delta": 41.0,
+            "MAE_delta": 218.0,
+            "signed_return_over_atr": -5.7462
+          }
+        }
+      },
+      {
+        "day": "2025-10-31",
+        "ts": 1761874740,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 28553.0,
+        "atr": 20.5,
+        "session_vwap": 28477.2,
+        "opening_range_high": 28515.0,
+        "range_low": 28424.0,
+        "volume_ratio": 4.6603,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.6,
+        "net_atr_sim": -29.6,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.6,
+          "exit_reason": "stop_loss",
+          "hold_sec": 317,
+          "mfe": 35.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -6.0,
+            "MFE_delta": 35.0,
+            "MAE_delta": 13.0,
+            "signed_return_over_atr": -0.2927
+          },
+          "W900": {
+            "close_delta": -34.0,
+            "MFE_delta": 35.0,
+            "MAE_delta": 93.0,
+            "signed_return_over_atr": -1.6585
+          },
+          "W1800": {
+            "close_delta": -29.0,
+            "MFE_delta": 35.0,
+            "MAE_delta": 93.0,
+            "signed_return_over_atr": -1.4146
+          }
+        }
+      },
+      {
+        "day": "2025-11-03",
+        "ts": 1762132200,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 28457.0,
+        "atr": 21.71,
+        "session_vwap": 28406.13,
+        "opening_range_high": 28440.0,
+        "range_low": 28361.0,
+        "volume_ratio": 1.8889,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.09,
+        "net_atr_sim": 34.09,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.09,
+          "exit_reason": "take_profit",
+          "hold_sec": 124,
+          "mfe": 40.0,
+          "mae": 9.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 47.0,
+            "MFE_delta": 51.0,
+            "MAE_delta": 9.0,
+            "signed_return_over_atr": 2.1649
+          },
+          "W900": {
+            "close_delta": 91.0,
+            "MFE_delta": 125.0,
+            "MAE_delta": 9.0,
+            "signed_return_over_atr": 4.1916
+          },
+          "W1800": {
+            "close_delta": 19.0,
+            "MFE_delta": 125.0,
+            "MAE_delta": 12.0,
+            "signed_return_over_atr": 0.8752
+          }
+        }
+      },
+      {
+        "day": "2025-11-04",
+        "ts": 1762219320,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 28528.0,
+        "atr": 22.29,
+        "session_vwap": 28449.85,
+        "opening_range_high": 28494.0,
+        "range_low": 28382.0,
+        "volume_ratio": 2.9976,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 40.11,
+        "net_atr_sim": 35.11,
+        "atr_barrier_sim": {
+          "gross_pnl": 40.11,
+          "exit_reason": "take_profit",
+          "hold_sec": 192,
+          "mfe": 41.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 55.0,
+            "MFE_delta": 65.0,
+            "MAE_delta": -2.0,
+            "signed_return_over_atr": 2.4675
+          },
+          "W900": {
+            "close_delta": -16.0,
+            "MFE_delta": 65.0,
+            "MAE_delta": 63.0,
+            "signed_return_over_atr": -0.7178
+          },
+          "W1800": {
+            "close_delta": -98.0,
+            "MFE_delta": 65.0,
+            "MAE_delta": 127.0,
+            "signed_return_over_atr": -4.3966
+          }
+        }
+      },
+      {
+        "day": "2025-11-17",
+        "ts": 1763343120,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27678.0,
+        "atr": 21.43,
+        "session_vwap": 27612.38,
+        "opening_range_high": 27672.0,
+        "range_low": 27562.0,
+        "volume_ratio": 5.0825,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -25.71,
+        "net_atr_sim": -30.71,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.71,
+          "exit_reason": "stop_loss",
+          "hold_sec": 72,
+          "mfe": 6.0,
+          "mae": 26.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -44.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 89.0,
+            "signed_return_over_atr": -2.0532
+          },
+          "W900": {
+            "close_delta": -124.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 167.0,
+            "signed_return_over_atr": -5.7863
+          },
+          "W1800": {
+            "close_delta": -133.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 167.0,
+            "signed_return_over_atr": -6.2063
+          }
+        }
+      },
+      {
+        "day": "2025-11-18",
+        "ts": 1763430360,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27186.0,
+        "atr": 32.14,
+        "session_vwap": 27132.79,
+        "opening_range_high": 27185.0,
+        "range_low": 27111.0,
+        "volume_ratio": 2.055,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 57.86,
+        "net_atr_sim": 52.86,
+        "atr_barrier_sim": {
+          "gross_pnl": 57.86,
+          "exit_reason": "take_profit",
+          "hold_sec": 17,
+          "mfe": 58.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 74.0,
+            "MFE_delta": 86.0,
+            "MAE_delta": -18.0,
+            "signed_return_over_atr": 2.3024
+          },
+          "W900": {
+            "close_delta": 40.0,
+            "MFE_delta": 112.0,
+            "MAE_delta": -18.0,
+            "signed_return_over_atr": 1.2446
+          },
+          "W1800": {
+            "close_delta": -43.0,
+            "MFE_delta": 112.0,
+            "MAE_delta": 43.0,
+            "signed_return_over_atr": -1.3379
+          }
+        }
+      },
+      {
+        "day": "2025-11-19",
+        "ts": 1763515380,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 26900.0,
+        "atr": 29.57,
+        "session_vwap": 26820.51,
+        "opening_range_high": 26899.0,
+        "range_low": 26714.0,
+        "volume_ratio": 1.7272,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -35.49,
+        "net_atr_sim": -40.49,
+        "atr_barrier_sim": {
+          "gross_pnl": -35.49,
+          "exit_reason": "stop_loss",
+          "hold_sec": 187,
+          "mfe": 15.0,
+          "mae": 36.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -36.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 38.0,
+            "signed_return_over_atr": -1.2175
+          },
+          "W900": {
+            "close_delta": -49.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 67.0,
+            "signed_return_over_atr": -1.6571
+          },
+          "W1800": {
+            "close_delta": -111.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 129.0,
+            "signed_return_over_atr": -3.7538
+          }
+        }
+      },
+      {
+        "day": "2025-11-20",
+        "ts": 1763600760,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27398.0,
+        "atr": 25.0,
+        "session_vwap": 27357.01,
+        "opening_range_high": 27386.0,
+        "range_low": 27286.0,
+        "volume_ratio": 1.6442,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 45.0,
+        "net_atr_sim": 40.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 45.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 278,
+          "mfe": 45.0,
+          "mae": 21.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 34.0,
+            "MFE_delta": 47.0,
+            "MAE_delta": 21.0,
+            "signed_return_over_atr": 1.36
+          },
+          "W900": {
+            "close_delta": -13.0,
+            "MFE_delta": 47.0,
+            "MAE_delta": 38.0,
+            "signed_return_over_atr": -0.52
+          },
+          "W1800": {
+            "close_delta": 76.0,
+            "MFE_delta": 77.0,
+            "MAE_delta": 38.0,
+            "signed_return_over_atr": 3.04
+          }
+        }
+      },
+      {
+        "day": "2025-12-02",
+        "ts": 1764637980,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27725.0,
+        "atr": 25.93,
+        "session_vwap": 27687.35,
+        "opening_range_high": 27722.0,
+        "range_low": 27627.0,
+        "volume_ratio": 1.8061,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 46.67,
+        "net_atr_sim": 41.67,
+        "atr_barrier_sim": {
+          "gross_pnl": 46.67,
+          "exit_reason": "take_profit",
+          "hold_sec": 120,
+          "mfe": 47.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 45.0,
+            "MFE_delta": 63.0,
+            "MAE_delta": -9.0,
+            "signed_return_over_atr": 1.7354
+          },
+          "W900": {
+            "close_delta": 32.0,
+            "MFE_delta": 63.0,
+            "MAE_delta": -9.0,
+            "signed_return_over_atr": 1.2341
+          },
+          "W1800": {
+            "close_delta": -25.0,
+            "MFE_delta": 63.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": -0.9641
+          }
+        }
+      },
+      {
+        "day": "2025-12-15",
+        "ts": 1765761300,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27861.0,
+        "atr": 24.79,
+        "session_vwap": 27806.84,
+        "opening_range_high": 27845.0,
+        "range_low": 27754.0,
+        "volume_ratio": 2.3383,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -29.74,
+        "net_atr_sim": -34.739999999999995,
+        "atr_barrier_sim": {
+          "gross_pnl": -29.74,
+          "exit_reason": "stop_loss",
+          "hold_sec": 441,
+          "mfe": 32.0,
+          "mae": 30.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 23.0,
+            "MFE_delta": 32.0,
+            "MAE_delta": 13.0,
+            "signed_return_over_atr": 0.9278
+          },
+          "W900": {
+            "close_delta": 13.0,
+            "MFE_delta": 32.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": 0.5244
+          },
+          "W1800": {
+            "close_delta": 30.0,
+            "MFE_delta": 44.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": 1.2102
+          }
+        }
+      },
+      {
+        "day": "2025-12-16",
+        "ts": 1765847580,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27657.0,
+        "atr": 23.07,
+        "session_vwap": 27602.31,
+        "opening_range_high": 27654.0,
+        "range_low": 27550.0,
+        "volume_ratio": 2.5983,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -27.69,
+        "net_atr_sim": -32.69,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.69,
+          "exit_reason": "stop_loss",
+          "hold_sec": 306,
+          "mfe": 24.0,
+          "mae": 28.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -19.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 22.0,
+            "signed_return_over_atr": -0.8236
+          },
+          "W900": {
+            "close_delta": -32.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 43.0,
+            "signed_return_over_atr": -1.3871
+          },
+          "W1800": {
+            "close_delta": -127.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 132.0,
+            "signed_return_over_atr": -5.505
+          }
+        }
+      },
+      {
+        "day": "2025-12-18",
+        "ts": 1766022180,
+        "param": "rm20",
+        "range_minutes": 20,
+        "direction": "Long",
+        "entry_price": 27612.0,
+        "atr": 22.07,
+        "session_vwap": 27535.41,
+        "opening_range_high": 27595.0,
+        "range_low": 27491.0,
+        "volume_ratio": 1.469,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.73,
+        "net_atr_sim": 34.73,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.73,
+          "exit_reason": "take_profit",
+          "hold_sec": 235,
+          "mfe": 40.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 60.0,
+            "MFE_delta": 66.0,
+            "MAE_delta": -2.0,
+            "signed_return_over_atr": 2.7186
+          },
+          "W900": {
+            "close_delta": 2.0,
+            "MFE_delta": 66.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": 0.0906
+          },
+          "W1800": {
+            "close_delta": -55.0,
+            "MFE_delta": 66.0,
+            "MAE_delta": 77.0,
+            "signed_return_over_atr": -2.4921
+          }
+        }
+      }
+    ],
+    "rm30": [
+      {
+        "day": "2025-01-06",
+        "ts": 1736126220,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 23341.0,
+        "atr": 22.0,
+        "session_vwap": 23294.63,
+        "opening_range_high": 23335.0,
+        "range_low": 23218.0,
+        "volume_ratio": 1.8504,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.6,
+        "net_atr_sim": 34.6,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.6,
+          "exit_reason": "take_profit",
+          "hold_sec": 1178,
+          "mfe": 40.0,
+          "mae": 15.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -1.0,
+            "MFE_delta": 14.0,
+            "MAE_delta": 10.0,
+            "signed_return_over_atr": -0.0455
+          },
+          "W900": {
+            "close_delta": 21.0,
+            "MFE_delta": 26.0,
+            "MAE_delta": 15.0,
+            "signed_return_over_atr": 0.9545
+          },
+          "W1800": {
+            "close_delta": 82.0,
+            "MFE_delta": 84.0,
+            "MAE_delta": 15.0,
+            "signed_return_over_atr": 3.7273
+          }
+        }
+      },
+      {
+        "day": "2025-01-10",
+        "ts": 1736472180,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 23134.0,
+        "atr": 20.14,
+        "session_vwap": 23071.91,
+        "opening_range_high": 23129.0,
+        "range_low": 23019.0,
+        "volume_ratio": 2.2249,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.17,
+        "net_atr_sim": -29.17,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.17,
+          "exit_reason": "stop_loss",
+          "hold_sec": 312,
+          "mfe": 4.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -15.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 17.0,
+            "signed_return_over_atr": -0.7448
+          },
+          "W900": {
+            "close_delta": -43.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 75.0,
+            "signed_return_over_atr": -2.1351
+          },
+          "W1800": {
+            "close_delta": -43.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 75.0,
+            "signed_return_over_atr": -2.1351
+          }
+        }
+      },
+      {
+        "day": "2025-01-14",
+        "ts": 1736818800,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 22678.0,
+        "atr": 27.07,
+        "session_vwap": 22608.66,
+        "opening_range_high": 22668.0,
+        "range_low": 22560.0,
+        "volume_ratio": 2.6479,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -32.49,
+        "net_atr_sim": -37.49,
+        "atr_barrier_sim": {
+          "gross_pnl": -32.49,
+          "exit_reason": "stop_loss",
+          "hold_sec": 474,
+          "mfe": 7.0,
+          "mae": 33.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -7.0,
+            "MFE_delta": 7.0,
+            "MAE_delta": 32.0,
+            "signed_return_over_atr": -0.2586
+          },
+          "W900": {
+            "close_delta": -22.0,
+            "MFE_delta": 7.0,
+            "MAE_delta": 53.0,
+            "signed_return_over_atr": -0.8127
+          },
+          "W1800": {
+            "close_delta": -52.0,
+            "MFE_delta": 7.0,
+            "MAE_delta": 67.0,
+            "signed_return_over_atr": -1.9209
+          }
+        }
+      },
+      {
+        "day": "2025-01-20",
+        "ts": 1737336000,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 23344.0,
+        "atr": 20.79,
+        "session_vwap": 23288.94,
+        "opening_range_high": 23340.0,
+        "range_low": 23223.0,
+        "volume_ratio": 1.6565,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.94,
+        "net_atr_sim": -29.94,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.94,
+          "exit_reason": "stop_loss",
+          "hold_sec": 528,
+          "mfe": 18.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 5.0,
+            "MFE_delta": 18.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": 0.2405
+          },
+          "W900": {
+            "close_delta": -30.0,
+            "MFE_delta": 18.0,
+            "MAE_delta": 61.0,
+            "signed_return_over_atr": -1.443
+          },
+          "W1800": {
+            "close_delta": 0.0,
+            "MFE_delta": 21.0,
+            "MAE_delta": 61.0,
+            "signed_return_over_atr": 0.0
+          }
+        }
+      },
+      {
+        "day": "2025-03-04",
+        "ts": 1741051920,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 22383.0,
+        "atr": 20.5,
+        "session_vwap": 22301.27,
+        "opening_range_high": 22374.0,
+        "range_low": 22193.0,
+        "volume_ratio": 5.3953,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 36.9,
+        "net_atr_sim": 31.9,
+        "atr_barrier_sim": {
+          "gross_pnl": 36.9,
+          "exit_reason": "take_profit",
+          "hold_sec": 542,
+          "mfe": 37.0,
+          "mae": 24.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -2.0,
+            "MFE_delta": 21.0,
+            "MAE_delta": 24.0,
+            "signed_return_over_atr": -0.0976
+          },
+          "W900": {
+            "close_delta": 53.0,
+            "MFE_delta": 60.0,
+            "MAE_delta": 24.0,
+            "signed_return_over_atr": 2.5854
+          },
+          "W1800": {
+            "close_delta": 46.0,
+            "MFE_delta": 72.0,
+            "MAE_delta": 24.0,
+            "signed_return_over_atr": 2.2439
+          }
+        }
+      },
+      {
+        "day": "2025-03-05",
+        "ts": 1741138020,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 22854.0,
+        "atr": 20.64,
+        "session_vwap": 22773.95,
+        "opening_range_high": 22825.0,
+        "range_low": 22639.0,
+        "volume_ratio": 1.7924,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.77,
+        "net_atr_sim": -29.77,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.77,
+          "exit_reason": "stop_loss",
+          "hold_sec": 234,
+          "mfe": 26.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -11.0,
+            "MFE_delta": 26.0,
+            "MAE_delta": 46.0,
+            "signed_return_over_atr": -0.5329
+          },
+          "W900": {
+            "close_delta": 4.0,
+            "MFE_delta": 26.0,
+            "MAE_delta": 46.0,
+            "signed_return_over_atr": 0.1938
+          },
+          "W1800": {
+            "close_delta": -11.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": 46.0,
+            "signed_return_over_atr": -0.5329
+          }
+        }
+      },
+      {
+        "day": "2025-03-11",
+        "ts": 1741658880,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 21972.0,
+        "atr": 24.43,
+        "session_vwap": 21817.92,
+        "opening_range_high": 21946.0,
+        "range_low": 21662.0,
+        "volume_ratio": 2.074,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -29.31,
+        "net_atr_sim": -34.31,
+        "atr_barrier_sim": {
+          "gross_pnl": -29.31,
+          "exit_reason": "stop_loss",
+          "hold_sec": 328,
+          "mfe": 6.0,
+          "mae": 30.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -14.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 26.0,
+            "signed_return_over_atr": -0.5731
+          },
+          "W900": {
+            "close_delta": 56.0,
+            "MFE_delta": 59.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 2.2923
+          },
+          "W1800": {
+            "close_delta": 15.0,
+            "MFE_delta": 76.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 0.614
+          }
+        }
+      },
+      {
+        "day": "2025-04-01",
+        "ts": 1743471120,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 21044.0,
+        "atr": 21.86,
+        "session_vwap": 20966.48,
+        "opening_range_high": 21023.0,
+        "range_low": 20888.0,
+        "volume_ratio": 4.0932,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.34,
+        "net_atr_sim": 34.34,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.34,
+          "exit_reason": "take_profit",
+          "hold_sec": 670,
+          "mfe": 40.0,
+          "mae": 7.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 22.0,
+            "MFE_delta": 27.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 1.0064
+          },
+          "W900": {
+            "close_delta": 73.0,
+            "MFE_delta": 80.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 3.3394
+          },
+          "W1800": {
+            "close_delta": 51.0,
+            "MFE_delta": 104.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 2.333
+          }
+        }
+      },
+      {
+        "day": "2025-04-02",
+        "ts": 1743557820,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 21346.0,
+        "atr": 20.57,
+        "session_vwap": 21289.08,
+        "opening_range_high": 21326.0,
+        "range_low": 21227.0,
+        "volume_ratio": 1.86,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.69,
+        "net_atr_sim": -29.69,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.69,
+          "exit_reason": "stop_loss",
+          "hold_sec": 126,
+          "mfe": 5.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -39.0,
+            "MFE_delta": 5.0,
+            "MAE_delta": 60.0,
+            "signed_return_over_atr": -1.896
+          },
+          "W900": {
+            "close_delta": -38.0,
+            "MFE_delta": 5.0,
+            "MAE_delta": 60.0,
+            "signed_return_over_atr": -1.8474
+          },
+          "W1800": {
+            "close_delta": -106.0,
+            "MFE_delta": 5.0,
+            "MAE_delta": 111.0,
+            "signed_return_over_atr": -5.1531
+          }
+        }
+      },
+      {
+        "day": "2025-04-08",
+        "ts": 1744075560,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 18654.0,
+        "atr": 62.07,
+        "session_vwap": 18476.83,
+        "opening_range_high": 18643.0,
+        "range_low": 18343.0,
+        "volume_ratio": 2.0317,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -74.49,
+        "net_atr_sim": -79.49,
+        "atr_barrier_sim": {
+          "gross_pnl": -74.49,
+          "exit_reason": "stop_loss",
+          "hold_sec": 85,
+          "mfe": 98.0,
+          "mae": 75.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -95.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 96.0,
+            "signed_return_over_atr": -1.5305
+          },
+          "W900": {
+            "close_delta": -13.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 99.0,
+            "signed_return_over_atr": -0.2094
+          },
+          "W1800": {
+            "close_delta": -173.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 216.0,
+            "signed_return_over_atr": -2.7872
+          }
+        }
+      },
+      {
+        "day": "2025-04-11",
+        "ts": 1744334940,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 18944.0,
+        "atr": 51.36,
+        "session_vwap": 18674.31,
+        "opening_range_high": 18733.0,
+        "range_low": 18443.0,
+        "volume_ratio": 1.6715,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -61.63,
+        "net_atr_sim": -66.63,
+        "atr_barrier_sim": {
+          "gross_pnl": -61.63,
+          "exit_reason": "stop_loss",
+          "hold_sec": 56,
+          "mfe": 0.0,
+          "mae": 63.0,
+          "quick_stop": true
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -136.0,
+            "MFE_delta": -11.0,
+            "MAE_delta": 162.0,
+            "signed_return_over_atr": -2.648
+          },
+          "W900": {
+            "close_delta": 106.0,
+            "MFE_delta": 138.0,
+            "MAE_delta": 162.0,
+            "signed_return_over_atr": 2.0639
+          },
+          "W1800": {
+            "close_delta": 129.0,
+            "MFE_delta": 151.0,
+            "MAE_delta": 162.0,
+            "signed_return_over_atr": 2.5117
+          }
+        }
+      },
+      {
+        "day": "2025-04-15",
+        "ts": 1744679760,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 19651.0,
+        "atr": 33.21,
+        "session_vwap": 19584.84,
+        "opening_range_high": 19640.0,
+        "range_low": 19518.0,
+        "volume_ratio": 1.4376,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -39.86,
+        "net_atr_sim": -44.86,
+        "atr_barrier_sim": {
+          "gross_pnl": -39.86,
+          "exit_reason": "stop_loss",
+          "hold_sec": 95,
+          "mfe": 1.0,
+          "mae": 40.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -71.0,
+            "MFE_delta": 1.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": -2.1379
+          },
+          "W900": {
+            "close_delta": -32.0,
+            "MFE_delta": 1.0,
+            "MAE_delta": 79.0,
+            "signed_return_over_atr": -0.9636
+          },
+          "W1800": {
+            "close_delta": -21.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 79.0,
+            "signed_return_over_atr": -0.6323
+          }
+        }
+      },
+      {
+        "day": "2025-04-22",
+        "ts": 1745284860,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 18982.0,
+        "atr": 30.71,
+        "session_vwap": 18923.54,
+        "opening_range_high": 18968.0,
+        "range_low": 18848.0,
+        "volume_ratio": 3.078,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -10.0,
+        "net_atr_sim": -15.0,
+        "atr_barrier_sim": {
+          "gross_pnl": -10.0,
+          "exit_reason": "horizon",
+          "hold_sec": 1200,
+          "mfe": 43.0,
+          "mae": 16.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 21.0,
+            "MFE_delta": 41.0,
+            "MAE_delta": -2.0,
+            "signed_return_over_atr": 0.6838
+          },
+          "W900": {
+            "close_delta": 11.0,
+            "MFE_delta": 43.0,
+            "MAE_delta": 16.0,
+            "signed_return_over_atr": 0.3582
+          },
+          "W1800": {
+            "close_delta": 39.0,
+            "MFE_delta": 48.0,
+            "MAE_delta": 16.0,
+            "signed_return_over_atr": 1.2699
+          }
+        }
+      },
+      {
+        "day": "2025-04-23",
+        "ts": 1745371740,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 19433.0,
+        "atr": 22.0,
+        "session_vwap": 19311.77,
+        "opening_range_high": 19421.0,
+        "range_low": 19172.0,
+        "volume_ratio": 1.7842,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -26.4,
+        "net_atr_sim": -31.4,
+        "atr_barrier_sim": {
+          "gross_pnl": -26.4,
+          "exit_reason": "stop_loss",
+          "hold_sec": 201,
+          "mfe": 16.0,
+          "mae": 27.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -8.0,
+            "MFE_delta": 16.0,
+            "MAE_delta": 28.0,
+            "signed_return_over_atr": -0.3636
+          },
+          "W900": {
+            "close_delta": -61.0,
+            "MFE_delta": 16.0,
+            "MAE_delta": 81.0,
+            "signed_return_over_atr": -2.7727
+          },
+          "W1800": {
+            "close_delta": -58.0,
+            "MFE_delta": 16.0,
+            "MAE_delta": 92.0,
+            "signed_return_over_atr": -2.6364
+          }
+        }
+      },
+      {
+        "day": "2025-04-28",
+        "ts": 1745802960,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 20029.0,
+        "atr": 22.79,
+        "session_vwap": 19988.81,
+        "opening_range_high": 20014.0,
+        "range_low": 19955.0,
+        "volume_ratio": 1.4107,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -27.34,
+        "net_atr_sim": -32.34,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.34,
+          "exit_reason": "stop_loss",
+          "hold_sec": 221,
+          "mfe": 0.0,
+          "mae": 28.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -43.0,
+            "MFE_delta": -7.0,
+            "MAE_delta": 46.0,
+            "signed_return_over_atr": -1.8868
+          },
+          "W900": {
+            "close_delta": -27.0,
+            "MFE_delta": -7.0,
+            "MAE_delta": 49.0,
+            "signed_return_over_atr": -1.1847
+          },
+          "W1800": {
+            "close_delta": -1.0,
+            "MFE_delta": 14.0,
+            "MAE_delta": 49.0,
+            "signed_return_over_atr": -0.0439
+          }
+        }
+      },
+      {
+        "day": "2025-05-06",
+        "ts": 1746494160,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 20308.0,
+        "atr": 39.64,
+        "session_vwap": 20242.77,
+        "opening_range_high": 20290.0,
+        "range_low": 20144.0,
+        "volume_ratio": 3.0652,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 71.36,
+        "net_atr_sim": 66.36,
+        "atr_barrier_sim": {
+          "gross_pnl": 71.36,
+          "exit_reason": "take_profit",
+          "hold_sec": 345,
+          "mfe": 72.0,
+          "mae": 42.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 41.0,
+            "MFE_delta": 44.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 1.0343
+          },
+          "W900": {
+            "close_delta": 103.0,
+            "MFE_delta": 103.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 2.5984
+          },
+          "W1800": {
+            "close_delta": 27.0,
+            "MFE_delta": 104.0,
+            "MAE_delta": 42.0,
+            "signed_return_over_atr": 0.6811
+          }
+        }
+      },
+      {
+        "day": "2025-06-04",
+        "ts": 1748999760,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 21376.0,
+        "atr": 22.86,
+        "session_vwap": 21311.82,
+        "opening_range_high": 21362.0,
+        "range_low": 21260.0,
+        "volume_ratio": 2.5542,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 41.14,
+        "net_atr_sim": 36.14,
+        "atr_barrier_sim": {
+          "gross_pnl": 41.14,
+          "exit_reason": "take_profit",
+          "hold_sec": 433,
+          "mfe": 42.0,
+          "mae": 22.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 13.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 22.0,
+            "signed_return_over_atr": 0.5687
+          },
+          "W900": {
+            "close_delta": 50.0,
+            "MFE_delta": 74.0,
+            "MAE_delta": 22.0,
+            "signed_return_over_atr": 2.1872
+          },
+          "W1800": {
+            "close_delta": 73.0,
+            "MFE_delta": 83.0,
+            "MAE_delta": 22.0,
+            "signed_return_over_atr": 3.1934
+          }
+        }
+      },
+      {
+        "day": "2025-06-13",
+        "ts": 1749779280,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 22052.0,
+        "atr": 24.21,
+        "session_vwap": 21982.09,
+        "opening_range_high": 22049.0,
+        "range_low": 21903.0,
+        "volume_ratio": 1.6173,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 43.59,
+        "net_atr_sim": 38.59,
+        "atr_barrier_sim": {
+          "gross_pnl": 43.59,
+          "exit_reason": "take_profit",
+          "hold_sec": 222,
+          "mfe": 44.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 44.0,
+            "MFE_delta": 46.0,
+            "MAE_delta": -21.0,
+            "signed_return_over_atr": 1.8174
+          },
+          "W900": {
+            "close_delta": 57.0,
+            "MFE_delta": 82.0,
+            "MAE_delta": -21.0,
+            "signed_return_over_atr": 2.3544
+          },
+          "W1800": {
+            "close_delta": 52.0,
+            "MFE_delta": 86.0,
+            "MAE_delta": -21.0,
+            "signed_return_over_atr": 2.1479
+          }
+        }
+      },
+      {
+        "day": "2025-06-24",
+        "ts": 1750728060,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 21937.0,
+        "atr": 22.79,
+        "session_vwap": 21851.89,
+        "opening_range_high": 21927.0,
+        "range_low": 21763.0,
+        "volume_ratio": 3.5153,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -27.34,
+        "net_atr_sim": -32.34,
+        "atr_barrier_sim": {
+          "gross_pnl": -27.34,
+          "exit_reason": "stop_loss",
+          "hold_sec": 370,
+          "mfe": 0.0,
+          "mae": 28.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -13.0,
+            "MFE_delta": -6.0,
+            "MAE_delta": 27.0,
+            "signed_return_over_atr": -0.5704
+          },
+          "W900": {
+            "close_delta": -58.0,
+            "MFE_delta": -6.0,
+            "MAE_delta": 90.0,
+            "signed_return_over_atr": -2.545
+          },
+          "W1800": {
+            "close_delta": -7.0,
+            "MFE_delta": -3.0,
+            "MAE_delta": 90.0,
+            "signed_return_over_atr": -0.3072
+          }
+        }
+      },
+      {
+        "day": "2025-07-01",
+        "ts": 1751333640,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 22469.0,
+        "atr": 20.57,
+        "session_vwap": 22351.65,
+        "opening_range_high": 22458.0,
+        "range_low": 22180.0,
+        "volume_ratio": 1.4039,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 37.03,
+        "net_atr_sim": 32.03,
+        "atr_barrier_sim": {
+          "gross_pnl": 37.03,
+          "exit_reason": "take_profit",
+          "hold_sec": 62,
+          "mfe": 38.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 65.0,
+            "MFE_delta": 68.0,
+            "MAE_delta": -21.0,
+            "signed_return_over_atr": 3.1599
+          },
+          "W900": {
+            "close_delta": 92.0,
+            "MFE_delta": 124.0,
+            "MAE_delta": -21.0,
+            "signed_return_over_atr": 4.4725
+          },
+          "W1800": {
+            "close_delta": 78.0,
+            "MFE_delta": 124.0,
+            "MAE_delta": -21.0,
+            "signed_return_over_atr": 3.7919
+          }
+        }
+      },
+      {
+        "day": "2025-07-10",
+        "ts": 1752111120,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 22536.0,
+        "atr": 20.57,
+        "session_vwap": 22475.93,
+        "opening_range_high": 22518.0,
+        "range_low": 22410.0,
+        "volume_ratio": 1.5729,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.69,
+        "net_atr_sim": -29.69,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.69,
+          "exit_reason": "stop_loss",
+          "hold_sec": 830,
+          "mfe": 24.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 24.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 1.1667
+          },
+          "W900": {
+            "close_delta": -17.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 37.0,
+            "signed_return_over_atr": -0.8264
+          },
+          "W1800": {
+            "close_delta": -4.0,
+            "MFE_delta": 29.0,
+            "MAE_delta": 37.0,
+            "signed_return_over_atr": -0.1945
+          }
+        }
+      },
+      {
+        "day": "2025-07-15",
+        "ts": 1752544440,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 22783.0,
+        "atr": 20.5,
+        "session_vwap": 22632.31,
+        "opening_range_high": 22591.0,
+        "range_low": 22510.0,
+        "volume_ratio": 1.9411,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.6,
+        "net_atr_sim": -29.6,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.6,
+          "exit_reason": "stop_loss",
+          "hold_sec": 123,
+          "mfe": 4.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -11.0,
+            "MFE_delta": 4.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": -0.5366
+          },
+          "W900": {
+            "close_delta": 63.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 30.0,
+            "signed_return_over_atr": 3.0732
+          },
+          "W1800": {
+            "close_delta": -3.0,
+            "MFE_delta": 98.0,
+            "MAE_delta": 32.0,
+            "signed_return_over_atr": -0.1463
+          }
+        }
+      },
+      {
+        "day": "2025-07-22",
+        "ts": 1753147380,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 23396.0,
+        "atr": 20.07,
+        "session_vwap": 23305.14,
+        "opening_range_high": 23363.0,
+        "range_low": 23205.0,
+        "volume_ratio": 2.5364,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.09,
+        "net_atr_sim": -29.09,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.09,
+          "exit_reason": "stop_loss",
+          "hold_sec": 130,
+          "mfe": 10.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -50.0,
+            "MFE_delta": 10.0,
+            "MAE_delta": 79.0,
+            "signed_return_over_atr": -2.4913
+          },
+          "W900": {
+            "close_delta": -40.0,
+            "MFE_delta": 10.0,
+            "MAE_delta": 79.0,
+            "signed_return_over_atr": -1.993
+          },
+          "W1800": {
+            "close_delta": -78.0,
+            "MFE_delta": 10.0,
+            "MAE_delta": 79.0,
+            "signed_return_over_atr": -3.8864
+          }
+        }
+      },
+      {
+        "day": "2025-07-30",
+        "ts": 1753839660,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 23352.0,
+        "atr": 23.57,
+        "session_vwap": 23284.93,
+        "opening_range_high": 23344.0,
+        "range_low": 23207.0,
+        "volume_ratio": 2.5033,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -28.29,
+        "net_atr_sim": -33.29,
+        "atr_barrier_sim": {
+          "gross_pnl": -28.29,
+          "exit_reason": "stop_loss",
+          "hold_sec": 377,
+          "mfe": 25.0,
+          "mae": 29.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -9.0,
+            "MFE_delta": 25.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": -0.3818
+          },
+          "W900": {
+            "close_delta": -34.0,
+            "MFE_delta": 25.0,
+            "MAE_delta": 68.0,
+            "signed_return_over_atr": -1.4425
+          },
+          "W1800": {
+            "close_delta": -23.0,
+            "MFE_delta": 25.0,
+            "MAE_delta": 68.0,
+            "signed_return_over_atr": -0.9758
+          }
+        }
+      },
+      {
+        "day": "2025-08-01",
+        "ts": 1754012160,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 23364.0,
+        "atr": 23.14,
+        "session_vwap": 23239.02,
+        "opening_range_high": 23339.0,
+        "range_low": 23040.0,
+        "volume_ratio": 2.286,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 41.66,
+        "net_atr_sim": 36.66,
+        "atr_barrier_sim": {
+          "gross_pnl": 41.66,
+          "exit_reason": "take_profit",
+          "hold_sec": 374,
+          "mfe": 42.0,
+          "mae": 2.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 33.0,
+            "MFE_delta": 41.0,
+            "MAE_delta": 2.0,
+            "signed_return_over_atr": 1.4261
+          },
+          "W900": {
+            "close_delta": 47.0,
+            "MFE_delta": 73.0,
+            "MAE_delta": 2.0,
+            "signed_return_over_atr": 2.0311
+          },
+          "W1800": {
+            "close_delta": 42.0,
+            "MFE_delta": 73.0,
+            "MAE_delta": 2.0,
+            "signed_return_over_atr": 1.815
+          }
+        }
+      },
+      {
+        "day": "2025-08-04",
+        "ts": 1754271180,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 23164.0,
+        "atr": 21.0,
+        "session_vwap": 23114.94,
+        "opening_range_high": 23155.0,
+        "range_low": 23030.0,
+        "volume_ratio": 1.5345,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -25.2,
+        "net_atr_sim": -30.2,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.2,
+          "exit_reason": "stop_loss",
+          "hold_sec": 260,
+          "mfe": 19.0,
+          "mae": 26.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -23.0,
+            "MFE_delta": 19.0,
+            "MAE_delta": 27.0,
+            "signed_return_over_atr": -1.0952
+          },
+          "W900": {
+            "close_delta": 20.0,
+            "MFE_delta": 22.0,
+            "MAE_delta": 27.0,
+            "signed_return_over_atr": 0.9524
+          },
+          "W1800": {
+            "close_delta": 18.0,
+            "MFE_delta": 36.0,
+            "MAE_delta": 27.0,
+            "signed_return_over_atr": 0.8571
+          }
+        }
+      },
+      {
+        "day": "2025-08-07",
+        "ts": 1754529600,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 23935.0,
+        "atr": 23.0,
+        "session_vwap": 23791.89,
+        "opening_range_high": 23896.0,
+        "range_low": 23621.0,
+        "volume_ratio": 2.6953,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 41.4,
+        "net_atr_sim": 36.4,
+        "atr_barrier_sim": {
+          "gross_pnl": 41.4,
+          "exit_reason": "take_profit",
+          "hold_sec": 144,
+          "mfe": 42.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 20.0,
+            "MFE_delta": 55.0,
+            "MAE_delta": -1.0,
+            "signed_return_over_atr": 0.8696
+          },
+          "W900": {
+            "close_delta": 62.0,
+            "MFE_delta": 72.0,
+            "MAE_delta": -1.0,
+            "signed_return_over_atr": 2.6957
+          },
+          "W1800": {
+            "close_delta": 65.0,
+            "MFE_delta": 84.0,
+            "MAE_delta": -1.0,
+            "signed_return_over_atr": 2.8261
+          }
+        }
+      },
+      {
+        "day": "2025-08-18",
+        "ts": 1755479880,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 24334.0,
+        "atr": 21.64,
+        "session_vwap": 24251.74,
+        "opening_range_high": 24307.0,
+        "range_low": 24178.0,
+        "volume_ratio": 1.4366,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 8.0,
+        "net_atr_sim": 3.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 8.0,
+          "exit_reason": "horizon",
+          "hold_sec": 1200,
+          "mfe": 21.0,
+          "mae": 21.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 13.0,
+            "MFE_delta": 16.0,
+            "MAE_delta": 21.0,
+            "signed_return_over_atr": 0.6007
+          },
+          "W900": {
+            "close_delta": 11.0,
+            "MFE_delta": 21.0,
+            "MAE_delta": 21.0,
+            "signed_return_over_atr": 0.5083
+          },
+          "W1800": {
+            "close_delta": 15.0,
+            "MFE_delta": 41.0,
+            "MAE_delta": 21.0,
+            "signed_return_over_atr": 0.6932
+          }
+        }
+      },
+      {
+        "day": "2025-08-21",
+        "ts": 1755738960,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 23822.0,
+        "atr": 22.79,
+        "session_vwap": 23764.98,
+        "opening_range_high": 23816.0,
+        "range_low": 23690.0,
+        "volume_ratio": 1.4907,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 41.01,
+        "net_atr_sim": 36.01,
+        "atr_barrier_sim": {
+          "gross_pnl": 41.01,
+          "exit_reason": "take_profit",
+          "hold_sec": 528,
+          "mfe": 42.0,
+          "mae": 15.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -2.0,
+            "MFE_delta": 29.0,
+            "MAE_delta": 15.0,
+            "signed_return_over_atr": -0.0878
+          },
+          "W900": {
+            "close_delta": 48.0,
+            "MFE_delta": 62.0,
+            "MAE_delta": 15.0,
+            "signed_return_over_atr": 2.1062
+          },
+          "W1800": {
+            "close_delta": 82.0,
+            "MFE_delta": 83.0,
+            "MAE_delta": 15.0,
+            "signed_return_over_atr": 3.5981
+          }
+        }
+      },
+      {
+        "day": "2025-09-30",
+        "ts": 1759195320,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 25951.0,
+        "atr": 21.21,
+        "session_vwap": 25897.95,
+        "opening_range_high": 25936.0,
+        "range_low": 25787.0,
+        "volume_ratio": 3.5134,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 38.19,
+        "net_atr_sim": 33.19,
+        "atr_barrier_sim": {
+          "gross_pnl": 38.19,
+          "exit_reason": "take_profit",
+          "hold_sec": 120,
+          "mfe": 39.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 66.0,
+            "MFE_delta": 94.0,
+            "MAE_delta": -11.0,
+            "signed_return_over_atr": 3.1117
+          },
+          "W900": {
+            "close_delta": 63.0,
+            "MFE_delta": 94.0,
+            "MAE_delta": -11.0,
+            "signed_return_over_atr": 2.9703
+          },
+          "W1800": {
+            "close_delta": 42.0,
+            "MFE_delta": 94.0,
+            "MAE_delta": -7.0,
+            "signed_return_over_atr": 1.9802
+          }
+        }
+      },
+      {
+        "day": "2025-10-01",
+        "ts": 1759281540,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 26203.0,
+        "atr": 21.71,
+        "session_vwap": 26132.38,
+        "opening_range_high": 26177.0,
+        "range_low": 26062.0,
+        "volume_ratio": 3.0153,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.09,
+        "net_atr_sim": 34.09,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.09,
+          "exit_reason": "take_profit",
+          "hold_sec": 171,
+          "mfe": 40.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 66.0,
+            "MFE_delta": 69.0,
+            "MAE_delta": -7.0,
+            "signed_return_over_atr": 3.0401
+          },
+          "W900": {
+            "close_delta": 92.0,
+            "MFE_delta": 107.0,
+            "MAE_delta": -7.0,
+            "signed_return_over_atr": 4.2377
+          },
+          "W1800": {
+            "close_delta": 125.0,
+            "MFE_delta": 172.0,
+            "MAE_delta": -7.0,
+            "signed_return_over_atr": 5.7577
+          }
+        }
+      },
+      {
+        "day": "2025-10-03",
+        "ts": 1759454280,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 26519.0,
+        "atr": 24.07,
+        "session_vwap": 26455.56,
+        "opening_range_high": 26494.0,
+        "range_low": 26388.0,
+        "volume_ratio": 3.2455,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -28.89,
+        "net_atr_sim": -33.89,
+        "atr_barrier_sim": {
+          "gross_pnl": -28.89,
+          "exit_reason": "stop_loss",
+          "hold_sec": 168,
+          "mfe": 24.0,
+          "mae": 29.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -39.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": -1.6203
+          },
+          "W900": {
+            "close_delta": -30.0,
+            "MFE_delta": 24.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": -1.2464
+          },
+          "W1800": {
+            "close_delta": 28.0,
+            "MFE_delta": 36.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": 1.1633
+          }
+        }
+      },
+      {
+        "day": "2025-10-13",
+        "ts": 1760319120,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 26840.0,
+        "atr": 36.36,
+        "session_vwap": 26678.95,
+        "opening_range_high": 26749.0,
+        "range_low": 26392.0,
+        "volume_ratio": 1.4305,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -43.63,
+        "net_atr_sim": -48.63,
+        "atr_barrier_sim": {
+          "gross_pnl": -43.63,
+          "exit_reason": "stop_loss",
+          "hold_sec": 265,
+          "mfe": 15.0,
+          "mae": 44.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -68.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 70.0,
+            "signed_return_over_atr": -1.8702
+          },
+          "W900": {
+            "close_delta": -63.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 101.0,
+            "signed_return_over_atr": -1.7327
+          },
+          "W1800": {
+            "close_delta": -14.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 101.0,
+            "signed_return_over_atr": -0.385
+          }
+        }
+      },
+      {
+        "day": "2025-10-15",
+        "ts": 1760493180,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 26988.0,
+        "atr": 20.86,
+        "session_vwap": 26899.65,
+        "opening_range_high": 26964.0,
+        "range_low": 26772.0,
+        "volume_ratio": 1.9452,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 37.54,
+        "net_atr_sim": 32.54,
+        "atr_barrier_sim": {
+          "gross_pnl": 37.54,
+          "exit_reason": "take_profit",
+          "hold_sec": 425,
+          "mfe": 38.0,
+          "mae": 20.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -19.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": -0.9108
+          },
+          "W900": {
+            "close_delta": 32.0,
+            "MFE_delta": 76.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": 1.534
+          },
+          "W1800": {
+            "close_delta": 112.0,
+            "MFE_delta": 113.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": 5.3691
+          }
+        }
+      },
+      {
+        "day": "2025-10-16",
+        "ts": 1760578440,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 27592.0,
+        "atr": 22.0,
+        "session_vwap": 27518.93,
+        "opening_range_high": 27554.0,
+        "range_low": 27460.0,
+        "volume_ratio": 5.6826,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.6,
+        "net_atr_sim": 34.6,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.6,
+          "exit_reason": "take_profit",
+          "hold_sec": 60,
+          "mfe": 40.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 64.0,
+            "MFE_delta": 69.0,
+            "MAE_delta": -20.0,
+            "signed_return_over_atr": 2.9091
+          },
+          "W900": {
+            "close_delta": 78.0,
+            "MFE_delta": 93.0,
+            "MAE_delta": -20.0,
+            "signed_return_over_atr": 3.5455
+          },
+          "W1800": {
+            "close_delta": 89.0,
+            "MFE_delta": 125.0,
+            "MAE_delta": -20.0,
+            "signed_return_over_atr": 4.0455
+          }
+        }
+      },
+      {
+        "day": "2025-10-20",
+        "ts": 1760923380,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 27639.0,
+        "atr": 29.64,
+        "session_vwap": 27551.84,
+        "opening_range_high": 27619.0,
+        "range_low": 27434.0,
+        "volume_ratio": 2.2396,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 53.36,
+        "net_atr_sim": 48.36,
+        "atr_barrier_sim": {
+          "gross_pnl": 53.36,
+          "exit_reason": "take_profit",
+          "hold_sec": 222,
+          "mfe": 54.0,
+          "mae": 13.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 43.0,
+            "MFE_delta": 54.0,
+            "MAE_delta": 13.0,
+            "signed_return_over_atr": 1.4507
+          },
+          "W900": {
+            "close_delta": 136.0,
+            "MFE_delta": 152.0,
+            "MAE_delta": 13.0,
+            "signed_return_over_atr": 4.5884
+          },
+          "W1800": {
+            "close_delta": 159.0,
+            "MFE_delta": 183.0,
+            "MAE_delta": 13.0,
+            "signed_return_over_atr": 5.3644
+          }
+        }
+      },
+      {
+        "day": "2025-10-23",
+        "ts": 1761183300,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 27536.0,
+        "atr": 20.29,
+        "session_vwap": 27440.95,
+        "opening_range_high": 27480.0,
+        "range_low": 27314.0,
+        "volume_ratio": 1.5509,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.34,
+        "net_atr_sim": -29.34,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.34,
+          "exit_reason": "stop_loss",
+          "hold_sec": 112,
+          "mfe": 2.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -52.0,
+            "MFE_delta": 2.0,
+            "MAE_delta": 56.0,
+            "signed_return_over_atr": -2.5628
+          },
+          "W900": {
+            "close_delta": -46.0,
+            "MFE_delta": 2.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": -2.2671
+          },
+          "W1800": {
+            "close_delta": -6.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 71.0,
+            "signed_return_over_atr": -0.2957
+          }
+        }
+      },
+      {
+        "day": "2025-10-31",
+        "ts": 1761874740,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 28553.0,
+        "atr": 20.5,
+        "session_vwap": 28477.2,
+        "opening_range_high": 28515.0,
+        "range_low": 28424.0,
+        "volume_ratio": 4.6603,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.6,
+        "net_atr_sim": -29.6,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.6,
+          "exit_reason": "stop_loss",
+          "hold_sec": 317,
+          "mfe": 35.0,
+          "mae": 25.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -6.0,
+            "MFE_delta": 35.0,
+            "MAE_delta": 13.0,
+            "signed_return_over_atr": -0.2927
+          },
+          "W900": {
+            "close_delta": -34.0,
+            "MFE_delta": 35.0,
+            "MAE_delta": 93.0,
+            "signed_return_over_atr": -1.6585
+          },
+          "W1800": {
+            "close_delta": -29.0,
+            "MFE_delta": 35.0,
+            "MAE_delta": 93.0,
+            "signed_return_over_atr": -1.4146
+          }
+        }
+      },
+      {
+        "day": "2025-11-03",
+        "ts": 1762132620,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 28523.0,
+        "atr": 25.0,
+        "session_vwap": 28431.09,
+        "opening_range_high": 28503.0,
+        "range_low": 28361.0,
+        "volume_ratio": 1.699,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 45.0,
+        "net_atr_sim": 40.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 45.0,
+          "exit_reason": "take_profit",
+          "hold_sec": 204,
+          "mfe": 45.0,
+          "mae": 6.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 35.0,
+            "MFE_delta": 59.0,
+            "MAE_delta": 6.0,
+            "signed_return_over_atr": 1.4
+          },
+          "W900": {
+            "close_delta": -8.0,
+            "MFE_delta": 59.0,
+            "MAE_delta": 25.0,
+            "signed_return_over_atr": -0.32
+          },
+          "W1800": {
+            "close_delta": -23.0,
+            "MFE_delta": 59.0,
+            "MAE_delta": 78.0,
+            "signed_return_over_atr": -0.92
+          }
+        }
+      },
+      {
+        "day": "2025-11-04",
+        "ts": 1762219320,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 28528.0,
+        "atr": 22.29,
+        "session_vwap": 28449.85,
+        "opening_range_high": 28494.0,
+        "range_low": 28382.0,
+        "volume_ratio": 2.9976,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 40.11,
+        "net_atr_sim": 35.11,
+        "atr_barrier_sim": {
+          "gross_pnl": 40.11,
+          "exit_reason": "take_profit",
+          "hold_sec": 192,
+          "mfe": 41.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 55.0,
+            "MFE_delta": 65.0,
+            "MAE_delta": -2.0,
+            "signed_return_over_atr": 2.4675
+          },
+          "W900": {
+            "close_delta": -16.0,
+            "MFE_delta": 65.0,
+            "MAE_delta": 63.0,
+            "signed_return_over_atr": -0.7178
+          },
+          "W1800": {
+            "close_delta": -98.0,
+            "MFE_delta": 65.0,
+            "MAE_delta": 127.0,
+            "signed_return_over_atr": -4.3966
+          }
+        }
+      },
+      {
+        "day": "2025-11-17",
+        "ts": 1763343120,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 27678.0,
+        "atr": 21.43,
+        "session_vwap": 27612.38,
+        "opening_range_high": 27672.0,
+        "range_low": 27529.0,
+        "volume_ratio": 5.0825,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -25.71,
+        "net_atr_sim": -30.71,
+        "atr_barrier_sim": {
+          "gross_pnl": -25.71,
+          "exit_reason": "stop_loss",
+          "hold_sec": 72,
+          "mfe": 6.0,
+          "mae": 26.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -44.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 89.0,
+            "signed_return_over_atr": -2.0532
+          },
+          "W900": {
+            "close_delta": -124.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 167.0,
+            "signed_return_over_atr": -5.7863
+          },
+          "W1800": {
+            "close_delta": -133.0,
+            "MFE_delta": 6.0,
+            "MAE_delta": 167.0,
+            "signed_return_over_atr": -6.2063
+          }
+        }
+      },
+      {
+        "day": "2025-11-18",
+        "ts": 1763430420,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 27205.0,
+        "atr": 31.0,
+        "session_vwap": 27135.26,
+        "opening_range_high": 27193.0,
+        "range_low": 27111.0,
+        "volume_ratio": 2.793,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 55.8,
+        "net_atr_sim": 50.8,
+        "atr_barrier_sim": {
+          "gross_pnl": 55.8,
+          "exit_reason": "take_profit",
+          "hold_sec": 3,
+          "mfe": 56.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 46.0,
+            "MFE_delta": 67.0,
+            "MAE_delta": -24.0,
+            "signed_return_over_atr": 1.4839
+          },
+          "W900": {
+            "close_delta": 21.0,
+            "MFE_delta": 93.0,
+            "MAE_delta": -15.0,
+            "signed_return_over_atr": 0.6774
+          },
+          "W1800": {
+            "close_delta": -56.0,
+            "MFE_delta": 93.0,
+            "MAE_delta": 66.0,
+            "signed_return_over_atr": -1.8065
+          }
+        }
+      },
+      {
+        "day": "2025-11-19",
+        "ts": 1763515380,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 26900.0,
+        "atr": 29.57,
+        "session_vwap": 26820.51,
+        "opening_range_high": 26899.0,
+        "range_low": 26714.0,
+        "volume_ratio": 1.7272,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -35.49,
+        "net_atr_sim": -40.49,
+        "atr_barrier_sim": {
+          "gross_pnl": -35.49,
+          "exit_reason": "stop_loss",
+          "hold_sec": 187,
+          "mfe": 15.0,
+          "mae": 36.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -36.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 38.0,
+            "signed_return_over_atr": -1.2175
+          },
+          "W900": {
+            "close_delta": -49.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 67.0,
+            "signed_return_over_atr": -1.6571
+          },
+          "W1800": {
+            "close_delta": -111.0,
+            "MFE_delta": 15.0,
+            "MAE_delta": 129.0,
+            "signed_return_over_atr": -3.7538
+          }
+        }
+      },
+      {
+        "day": "2025-11-20",
+        "ts": 1763602320,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 27453.0,
+        "atr": 20.0,
+        "session_vwap": 27377.85,
+        "opening_range_high": 27445.0,
+        "range_low": 27286.0,
+        "volume_ratio": 3.246,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": -24.0,
+        "net_atr_sim": -29.0,
+        "atr_barrier_sim": {
+          "gross_pnl": -24.0,
+          "exit_reason": "stop_loss",
+          "hold_sec": 812,
+          "mfe": 28.0,
+          "mae": 24.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 14.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": 0.7
+          },
+          "W900": {
+            "close_delta": -19.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": 31.0,
+            "signed_return_over_atr": -0.95
+          },
+          "W1800": {
+            "close_delta": -106.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": 159.0,
+            "signed_return_over_atr": -5.3
+          }
+        }
+      },
+      {
+        "day": "2025-12-15",
+        "ts": 1765762200,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 27877.0,
+        "atr": 21.07,
+        "session_vwap": 27823.78,
+        "opening_range_high": 27868.0,
+        "range_low": 27754.0,
+        "volume_ratio": 1.6701,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 23.0,
+        "net_atr_sim": 18.0,
+        "atr_barrier_sim": {
+          "gross_pnl": 23.0,
+          "exit_reason": "horizon",
+          "hold_sec": 1200,
+          "mfe": 33.0,
+          "mae": 17.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 0.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": 14.0,
+            "signed_return_over_atr": 0.0
+          },
+          "W900": {
+            "close_delta": 14.0,
+            "MFE_delta": 28.0,
+            "MAE_delta": 17.0,
+            "signed_return_over_atr": 0.6645
+          },
+          "W1800": {
+            "close_delta": 49.0,
+            "MFE_delta": 59.0,
+            "MAE_delta": 17.0,
+            "signed_return_over_atr": 2.3256
+          }
+        }
+      },
+      {
+        "day": "2025-12-18",
+        "ts": 1766022180,
+        "param": "rm30",
+        "range_minutes": 30,
+        "direction": "Long",
+        "entry_price": 27612.0,
+        "atr": 22.07,
+        "session_vwap": 27535.41,
+        "opening_range_high": 27595.0,
+        "range_low": 27466.0,
+        "volume_ratio": 1.469,
+        "confluence_factors": {
+          "C1": true,
+          "C2": true,
+          "C3": true,
+          "C4": true,
+          "C5": true
+        },
+        "session_bucket": "morning",
+        "gross_atr_sim": 39.73,
+        "net_atr_sim": 34.73,
+        "atr_barrier_sim": {
+          "gross_pnl": 39.73,
+          "exit_reason": "take_profit",
+          "hold_sec": 235,
+          "mfe": 40.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 60.0,
+            "MFE_delta": 66.0,
+            "MAE_delta": -2.0,
+            "signed_return_over_atr": 2.7186
+          },
+          "W900": {
+            "close_delta": 2.0,
+            "MFE_delta": 66.0,
+            "MAE_delta": 20.0,
+            "signed_return_over_atr": 0.0906
+          },
+          "W1800": {
+            "close_delta": -55.0,
+            "MFE_delta": 66.0,
+            "MAE_delta": 77.0,
+            "signed_return_over_atr": -2.4921
+          }
+        }
+      }
+    ]
+  },
+  "post_entry_diagnosis_by_param": {
+    "rm20": {
+      "n": 72,
+      "barrier": {
+        "gross_mean": 0.39,
+        "gross_median": -24.65,
+        "net_mean": -4.61,
+        "net_median": -29.65
+      },
+      "barrier_path": {
+        "MFE_mean": 28.82,
+        "MFE_median": 30.0,
+        "MAE_mean": 21.99,
+        "MAE_median": 25.5
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": 0.49,
+          "close_delta_median": -2.0,
+          "net_median": -7.0,
+          "MFE_median": 24.5,
+          "MAE_median": 21.0
+        },
+        "W900": {
+          "close_delta_mean": 0.35,
+          "close_delta_median": -4.0,
+          "net_median": -9.0,
+          "MFE_median": 37.0,
+          "MAE_median": 37.0
+        },
+        "W1800": {
+          "close_delta_mean": 1.56,
+          "close_delta_median": -3.0,
+          "net_median": -8.0,
+          "MFE_median": 46.5,
+          "MAE_median": 47.5
+        }
+      },
+      "by_direction": {
+        "Long": {
+          "n": 72,
+          "barrier": {
+            "gross_mean": 0.39,
+            "gross_median": -24.65,
+            "net_mean": -4.61,
+            "net_median": -29.65
+          },
+          "barrier_path": {
+            "MFE_mean": 28.82,
+            "MFE_median": 30.0,
+            "MAE_mean": 21.99,
+            "MAE_median": 25.5
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": 0.49,
+              "close_delta_median": -2.0,
+              "net_median": -7.0,
+              "MFE_median": 24.5,
+              "MAE_median": 21.0
+            },
+            "W900": {
+              "close_delta_mean": 0.35,
+              "close_delta_median": -4.0,
+              "net_median": -9.0,
+              "MFE_median": 37.0,
+              "MAE_median": 37.0
+            },
+            "W1800": {
+              "close_delta_mean": 1.56,
+              "close_delta_median": -3.0,
+              "net_median": -8.0,
+              "MFE_median": 46.5,
+              "MAE_median": 47.5
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "direction_failed",
+        "notes": [
+          "W30 stop-less median 為負 → 方向假說弱",
+          "180s 內 MFE median 30.0 > MAE 25.5（路徑曾順向）"
+        ],
+        "policy_note": "stop-less forward 順向 ≠ net edge；不得用診斷結果回頭 tune train grid。"
+      }
+    },
+    "rm30": {
+      "n": 46,
+      "barrier": {
+        "gross_mean": 1.99,
+        "gross_median": -24.05,
+        "net_mean": -3.01,
+        "net_median": -29.05
+      },
+      "barrier_path": {
+        "MFE_mean": 28.63,
+        "MFE_median": 30.5,
+        "MAE_mean": 21.37,
+        "MAE_median": 25.0
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": -1.39,
+          "close_delta_median": -2.0,
+          "net_median": -7.0,
+          "MFE_median": 24.0,
+          "MAE_median": 20.0
+        },
+        "W900": {
+          "close_delta_mean": 11.11,
+          "close_delta_median": 7.5,
+          "net_median": 2.5,
+          "MFE_median": 39.0,
+          "MAE_median": 34.0
+        },
+        "W1800": {
+          "close_delta_mean": 4.5,
+          "close_delta_median": -0.5,
+          "net_median": -5.5,
+          "MFE_median": 59.0,
+          "MAE_median": 47.5
+        }
+      },
+      "by_direction": {
+        "Long": {
+          "n": 46,
+          "barrier": {
+            "gross_mean": 1.99,
+            "gross_median": -24.05,
+            "net_mean": -3.01,
+            "net_median": -29.05
+          },
+          "barrier_path": {
+            "MFE_mean": 28.63,
+            "MFE_median": 30.5,
+            "MAE_mean": 21.37,
+            "MAE_median": 25.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": -1.39,
+              "close_delta_median": -2.0,
+              "net_median": -7.0,
+              "MFE_median": 24.0,
+              "MAE_median": 20.0
+            },
+            "W900": {
+              "close_delta_mean": 11.11,
+              "close_delta_median": 7.5,
+              "net_median": 2.5,
+              "MFE_median": 39.0,
+              "MAE_median": 34.0
+            },
+            "W1800": {
+              "close_delta_mean": 4.5,
+              "close_delta_median": -0.5,
+              "net_median": -5.5,
+              "MFE_median": 59.0,
+              "MAE_median": 47.5
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "direction_failed",
+        "notes": [
+          "W30 stop-less median 為負 → 方向假說弱",
+          "180s 內 MFE median 30.5 > MAE 25.0（路徑曾順向）"
+        ],
+        "policy_note": "stop-less forward 順向 ≠ net edge；不得用診斷結果回頭 tune train grid。"
+      }
+    }
+  },
   "funnel_by_param": {
     "rm20": {
       "days": 241,

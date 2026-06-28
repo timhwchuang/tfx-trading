@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
+from reporting.post_entry_diagnosis import format_gate_report_post_entry_section
 from reporting.regime_vwap_stretch_fade_counterfactual import (
     EXIT_VARIANT,
     build_regime_vwap_stretch_fade_payload,
@@ -133,12 +134,34 @@ def _write_gate_report(
         lines.append("| 備註 | valid 過但 train 未過 — **overfit_suspect** |")
     lines.append("| UAT | **維持** `strategy-vwap-momentum` smoke |")
     lines.append("| 日期 | 2026-06-28 |")
+
+    diag_by_param = train_payload.get("post_entry_diagnosis_by_param") or {}
+    best_param = None
+    if t_gate.get("best_passing"):
+        best_param = t_gate["best_passing"]["param"]
+    elif t_gate.get("candidates"):
+        best_param = max(
+            t_gate["candidates"],
+            key=lambda c: (c.get("net_mean") or float("-inf"), c.get("n") or 0),
+        ).get("param")
+    # Diagnostic appendix: align with VSF delta anchor (k=2.0, p30) when all fail gate
+    if not t_gate.get("best_passing") and "k2_p30" in diag_by_param:
+        best_param = "k2_p30"
+    if best_param and best_param in diag_by_param:
+        lines.extend(
+            format_gate_report_post_entry_section(
+                diag_by_param[best_param],
+                param_label=f"train · {best_param}",
+            )
+        )
+
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def _payload_for_json(payload: dict) -> dict:
     out = dict(payload)
     out.pop("rows_by_param", None)
+    # Keep post_entry_diagnosis_by_param in JSON (compact diagnostic SSOT)
     return out
 
 

@@ -57,6 +57,6 @@
 | 欄位 | 值 |
 |------|-----|
 | 決策 | **No-Go at Phase 0** (`thesis_h_scb_no_go`) |
-| 備註 | train 未過（net 負、median 負）；valid Q1 rm30 表面過關 → **overfit_suspect**（confluence 濾網減損 ORB 但仍無 edge） |
+| 備註 | valid 過但 train 未過 — 不一致 |
 | UAT | **維持** `strategy-vwap-momentum` |
 | 日期 | 2026-06-28 |

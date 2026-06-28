@@ -12,6 +12,7 @@
     8,
     10
   ],
+  "require_volume_filter": true,
   "exit": {
     "hard_stop_atr_k": 1.0,
     "hard_stop_floor_pts": 9.0,
@@ -23,6 +24,483 @@
     "rcy6": 1,
     "rcy8": 1,
     "rcy10": 3
+  },
+  "entries": {
+    "rcy6": [
+      {
+        "day": "2026-03-25",
+        "ts": 1774404120,
+        "recency_max_bars": 6,
+        "param": "rcy6",
+        "direction": "Long",
+        "entry_price": 33706.0,
+        "atr": 40.86,
+        "session_vwap": 33702.87,
+        "stretch_high": 33789.0,
+        "recency_bars": 2,
+        "session_bucket": "mid",
+        "gross_atr_sim": -40.86,
+        "net_atr_sim": -45.86,
+        "atr_barrier_sim": {
+          "gross_pnl": -40.86,
+          "exit_reason": "stop_loss",
+          "hold_sec": 228,
+          "mfe": 12.0,
+          "mae": 41.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -39.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 66.0,
+            "signed_return_over_atr": -0.9545
+          },
+          "W900": {
+            "close_delta": -119.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 204.0,
+            "signed_return_over_atr": -2.9124
+          },
+          "W1800": {
+            "close_delta": -105.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 204.0,
+            "signed_return_over_atr": -2.5698
+          }
+        }
+      }
+    ],
+    "rcy8": [
+      {
+        "day": "2026-03-25",
+        "ts": 1774404120,
+        "recency_max_bars": 8,
+        "param": "rcy8",
+        "direction": "Long",
+        "entry_price": 33706.0,
+        "atr": 40.86,
+        "session_vwap": 33702.87,
+        "stretch_high": 33789.0,
+        "recency_bars": 2,
+        "session_bucket": "mid",
+        "gross_atr_sim": -40.86,
+        "net_atr_sim": -45.86,
+        "atr_barrier_sim": {
+          "gross_pnl": -40.86,
+          "exit_reason": "stop_loss",
+          "hold_sec": 228,
+          "mfe": 12.0,
+          "mae": 41.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -39.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 66.0,
+            "signed_return_over_atr": -0.9545
+          },
+          "W900": {
+            "close_delta": -119.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 204.0,
+            "signed_return_over_atr": -2.9124
+          },
+          "W1800": {
+            "close_delta": -105.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 204.0,
+            "signed_return_over_atr": -2.5698
+          }
+        }
+      }
+    ],
+    "rcy10": [
+      {
+        "day": "2026-01-21",
+        "ts": 1768957920,
+        "recency_max_bars": 10,
+        "param": "rcy10",
+        "direction": "Long",
+        "entry_price": 31403.0,
+        "atr": 29.0,
+        "session_vwap": 31400.51,
+        "stretch_high": 31481.0,
+        "recency_bars": 9,
+        "session_bucket": "open_30m",
+        "gross_atr_sim": 52.2,
+        "net_atr_sim": 47.2,
+        "atr_barrier_sim": {
+          "gross_pnl": 52.2,
+          "exit_reason": "take_profit",
+          "hold_sec": 175,
+          "mfe": 54.0,
+          "mae": 7.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 51.0,
+            "MFE_delta": 70.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 1.7586
+          },
+          "W900": {
+            "close_delta": 134.0,
+            "MFE_delta": 142.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 4.6207
+          },
+          "W1800": {
+            "close_delta": 197.0,
+            "MFE_delta": 226.0,
+            "MAE_delta": 7.0,
+            "signed_return_over_atr": 6.7931
+          }
+        }
+      },
+      {
+        "day": "2026-02-24",
+        "ts": 1771894920,
+        "recency_max_bars": 10,
+        "param": "rcy10",
+        "direction": "Long",
+        "entry_price": 34193.0,
+        "atr": 25.29,
+        "session_vwap": 34192.77,
+        "stretch_high": 34242.0,
+        "recency_bars": 9,
+        "session_bucket": "open_30m",
+        "gross_atr_sim": 45.51,
+        "net_atr_sim": 40.51,
+        "atr_barrier_sim": {
+          "gross_pnl": 45.51,
+          "exit_reason": "take_profit",
+          "hold_sec": 40,
+          "mfe": 46.0,
+          "mae": 0.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": 119.0,
+            "MFE_delta": 168.0,
+            "MAE_delta": -8.0,
+            "signed_return_over_atr": 4.7054
+          },
+          "W900": {
+            "close_delta": 158.0,
+            "MFE_delta": 195.0,
+            "MAE_delta": -8.0,
+            "signed_return_over_atr": 6.2475
+          },
+          "W1800": {
+            "close_delta": 257.0,
+            "MFE_delta": 301.0,
+            "MAE_delta": -8.0,
+            "signed_return_over_atr": 10.1621
+          }
+        }
+      },
+      {
+        "day": "2026-03-25",
+        "ts": 1774404120,
+        "recency_max_bars": 10,
+        "param": "rcy10",
+        "direction": "Long",
+        "entry_price": 33706.0,
+        "atr": 40.86,
+        "session_vwap": 33702.87,
+        "stretch_high": 33789.0,
+        "recency_bars": 2,
+        "session_bucket": "mid",
+        "gross_atr_sim": -40.86,
+        "net_atr_sim": -45.86,
+        "atr_barrier_sim": {
+          "gross_pnl": -40.86,
+          "exit_reason": "stop_loss",
+          "hold_sec": 228,
+          "mfe": 12.0,
+          "mae": 41.0,
+          "quick_stop": false
+        },
+        "post_entry_forward": {
+          "W300": {
+            "close_delta": -39.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 66.0,
+            "signed_return_over_atr": -0.9545
+          },
+          "W900": {
+            "close_delta": -119.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 204.0,
+            "signed_return_over_atr": -2.9124
+          },
+          "W1800": {
+            "close_delta": -105.0,
+            "MFE_delta": 12.0,
+            "MAE_delta": 204.0,
+            "signed_return_over_atr": -2.5698
+          }
+        }
+      }
+    ]
+  },
+  "post_entry_diagnosis_by_param": {
+    "rcy6": {
+      "n": 1,
+      "barrier": {
+        "gross_mean": -40.86,
+        "gross_median": -40.86,
+        "net_mean": -45.86,
+        "net_median": -45.86
+      },
+      "barrier_path": {
+        "MFE_mean": 12.0,
+        "MFE_median": 12.0,
+        "MAE_mean": 41.0,
+        "MAE_median": 41.0
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": -39.0,
+          "close_delta_median": -39.0,
+          "net_median": -44.0,
+          "MFE_median": 12.0,
+          "MAE_median": 66.0
+        },
+        "W900": {
+          "close_delta_mean": -119.0,
+          "close_delta_median": -119.0,
+          "net_median": -124.0,
+          "MFE_median": 12.0,
+          "MAE_median": 204.0
+        },
+        "W1800": {
+          "close_delta_mean": -105.0,
+          "close_delta_median": -105.0,
+          "net_median": -110.0,
+          "MFE_median": 12.0,
+          "MAE_median": 204.0
+        }
+      },
+      "by_direction": {
+        "Long": {
+          "n": 1,
+          "barrier": {
+            "gross_mean": -40.86,
+            "gross_median": -40.86,
+            "net_mean": -45.86,
+            "net_median": -45.86
+          },
+          "barrier_path": {
+            "MFE_mean": 12.0,
+            "MFE_median": 12.0,
+            "MAE_mean": 41.0,
+            "MAE_median": 41.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": -39.0,
+              "close_delta_median": -39.0,
+              "net_median": -44.0,
+              "MFE_median": 12.0,
+              "MAE_median": 66.0
+            },
+            "W900": {
+              "close_delta_mean": -119.0,
+              "close_delta_median": -119.0,
+              "net_median": -124.0,
+              "MFE_median": 12.0,
+              "MAE_median": 204.0
+            },
+            "W1800": {
+              "close_delta_mean": -105.0,
+              "close_delta_median": -105.0,
+              "net_median": -110.0,
+              "MFE_median": 12.0,
+              "MAE_median": 204.0
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "insufficient_n",
+        "notes": [
+          "n < 5"
+        ]
+      }
+    },
+    "rcy8": {
+      "n": 1,
+      "barrier": {
+        "gross_mean": -40.86,
+        "gross_median": -40.86,
+        "net_mean": -45.86,
+        "net_median": -45.86
+      },
+      "barrier_path": {
+        "MFE_mean": 12.0,
+        "MFE_median": 12.0,
+        "MAE_mean": 41.0,
+        "MAE_median": 41.0
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": -39.0,
+          "close_delta_median": -39.0,
+          "net_median": -44.0,
+          "MFE_median": 12.0,
+          "MAE_median": 66.0
+        },
+        "W900": {
+          "close_delta_mean": -119.0,
+          "close_delta_median": -119.0,
+          "net_median": -124.0,
+          "MFE_median": 12.0,
+          "MAE_median": 204.0
+        },
+        "W1800": {
+          "close_delta_mean": -105.0,
+          "close_delta_median": -105.0,
+          "net_median": -110.0,
+          "MFE_median": 12.0,
+          "MAE_median": 204.0
+        }
+      },
+      "by_direction": {
+        "Long": {
+          "n": 1,
+          "barrier": {
+            "gross_mean": -40.86,
+            "gross_median": -40.86,
+            "net_mean": -45.86,
+            "net_median": -45.86
+          },
+          "barrier_path": {
+            "MFE_mean": 12.0,
+            "MFE_median": 12.0,
+            "MAE_mean": 41.0,
+            "MAE_median": 41.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": -39.0,
+              "close_delta_median": -39.0,
+              "net_median": -44.0,
+              "MFE_median": 12.0,
+              "MAE_median": 66.0
+            },
+            "W900": {
+              "close_delta_mean": -119.0,
+              "close_delta_median": -119.0,
+              "net_median": -124.0,
+              "MFE_median": 12.0,
+              "MAE_median": 204.0
+            },
+            "W1800": {
+              "close_delta_mean": -105.0,
+              "close_delta_median": -105.0,
+              "net_median": -110.0,
+              "MFE_median": 12.0,
+              "MAE_median": 204.0
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "insufficient_n",
+        "notes": [
+          "n < 5"
+        ]
+      }
+    },
+    "rcy10": {
+      "n": 3,
+      "barrier": {
+        "gross_mean": 18.95,
+        "gross_median": 45.51,
+        "net_mean": 13.95,
+        "net_median": 40.51
+      },
+      "barrier_path": {
+        "MFE_mean": 37.33,
+        "MFE_median": 46.0,
+        "MAE_mean": 16.0,
+        "MAE_median": 7.0
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": 43.67,
+          "close_delta_median": 51.0,
+          "net_median": 46.0,
+          "MFE_median": 70.0,
+          "MAE_median": 7.0
+        },
+        "W900": {
+          "close_delta_mean": 57.67,
+          "close_delta_median": 134.0,
+          "net_median": 129.0,
+          "MFE_median": 142.0,
+          "MAE_median": 7.0
+        },
+        "W1800": {
+          "close_delta_mean": 116.33,
+          "close_delta_median": 197.0,
+          "net_median": 192.0,
+          "MFE_median": 226.0,
+          "MAE_median": 7.0
+        }
+      },
+      "by_direction": {
+        "Long": {
+          "n": 3,
+          "barrier": {
+            "gross_mean": 18.95,
+            "gross_median": 45.51,
+            "net_mean": 13.95,
+            "net_median": 40.51
+          },
+          "barrier_path": {
+            "MFE_mean": 37.33,
+            "MFE_median": 46.0,
+            "MAE_mean": 16.0,
+            "MAE_median": 7.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": 43.67,
+              "close_delta_median": 51.0,
+              "net_median": 46.0,
+              "MFE_median": 70.0,
+              "MAE_median": 7.0
+            },
+            "W900": {
+              "close_delta_mean": 57.67,
+              "close_delta_median": 134.0,
+              "net_median": 129.0,
+              "MFE_median": 142.0,
+              "MAE_median": 7.0
+            },
+            "W1800": {
+              "close_delta_mean": 116.33,
+              "close_delta_median": 197.0,
+              "net_median": 192.0,
+              "MFE_median": 226.0,
+              "MAE_median": 7.0
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "insufficient_n",
+        "notes": [
+          "n < 5"
+        ]
+      }
+    }
   },
   "summary_by_param": {
     "rcy6": {

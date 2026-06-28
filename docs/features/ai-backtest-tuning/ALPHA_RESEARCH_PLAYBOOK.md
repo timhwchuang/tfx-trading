@@ -23,7 +23,7 @@ applies_to: FT-012+
 | **Thesis 來源** | **Pick / Reject / 改寫** 一個提案；寫 §Decision 簽名 | **可**從診斷產出 **2–3 份草稿** 放入 [`THESIS_QUEUE.md`](../../../workspaces/THESIS_QUEUE.md) |
 | **Pre-register** | **Must 批准** grid 邊界與進出定義後，才准實作 CF | 撰寫 `SPEC.md` 草稿、撞車檢查（對照 §4 負面圖書館） |
 | **CF 程式** | **Code review 通過**（Bugbot 或人類）後才准跑 train | 實作 `*_counterfactual.py` + 單元測試；**禁止**未審查即跑 2025 train |
-| **Phase 0 train** | 看 `gate_report.md`、決定 Go / MVPClosed | `cache_audit` → 跑 train JSON + funnel |
+| **Phase 0 train** | 看 `gate_report.md`、決定 Go / MVPClosed | 跑 train JSON + funnel（`cache_audit` 見 §2 快取政策） |
 | **Plugin** | train 過 + 人類 Go 才開工 | 實作 `packages/strategies/...` |
 | **Holdout** | **一次**封印後簽 Go / No-Go | 跑 baseline、不得依結果改參 |
 | **Pilot / UAT 換策略** | 書面 Go | **禁止**自行建議 `simulation: false` |
@@ -45,7 +45,7 @@ flowchart LR
   E --> F[實作 CF + tests]
   F --> R{Code review?}
   R -->|未過| F
-  R -->|過| T[cache_audit + train CF]
+  R -->|過| T[train CF]
   T --> G{2025 train}
   G -->|未過| H[MVPClosed]
   G -->|過| I[valid 對照 → plugin → holdout]
@@ -88,12 +88,18 @@ flowchart LR
 
 #### Phase 0c — Train 回測（review 通過後）
 
-**開工前 MUST**
+**tick_cache 稽核（非每次 CF）**
+
+- SSOT 最近一次 PASS：[`workspaces/CACHE_AUDIT.md`](../../../workspaces/CACHE_AUDIT.md)
+- **預設跳過**全庫 `cache_audit`（已 PASS 且未 backfill 新日）
+- **MUST 重跑**：backfill 新日期、`cache_repair --fix`、首次環境 — 用增量即可：
 
 ```bash
 cd apps/trading-app/src
-python -m storage.cache_audit --code TMFR1
+python -m storage.cache_audit --code TMFR1 --from-date 2026-06-01 --to-date 2026-06-30
 ```
+
+PASS 後更新 `CACHE_AUDIT.md` stamp。
 
 **產物**（`workspaces/<slug>-baseline/`）
 
@@ -102,6 +108,13 @@ python -m storage.cache_audit --code TMFR1
 | `gate_report.md` | train G1–G3、§3.1 disqualify、valid 對照、決策 |
 | `reports/counterfactual_*_train.json` | 參數 grid、Long/Short、單月 |
 | funnel / delta | 事件數、瓶頸階段 |
+| **`post_entry_diagnosis`** | W5/W15/W30 stop-less + MFE/MAE + Long/Short（**非 gate**） |
+
+**進場後診斷（FT-012+ MUST）**
+
+- 模組：[`post_entry_diagnosis.py`](../../../apps/trading-app/src/reporting/post_entry_diagnosis.py)
+- 每個 `*_counterfactual.py` 產物 JSON 含 `post_entry_diagnosis_by_*`；`gate_report.md` 附錄一表
+- **不進** G1–G3；用來區分「方向錯」vs「出場殺 edge」；**禁止**依診斷回頭 tune train grid
 
 **規則**
 
@@ -149,7 +162,7 @@ python -m storage.cache_audit --code TMFR1
 |------|-----|------|------|
 | 爆量 + VWAP 回踩 hybrid | 003 | `grid_no_viable_solution` | sweep / round2 / 濾網拯救 |
 | Breakout 延續 | 004, 005 | No-Go | armed/timeout 全進、追價 |
-| VWAP stretch fade | 006 | valid 過 / holdout 掛 | 同觸發無新 regime 標籤 |
+| VWAP stretch fade | 006, **012** | valid 過 / holdout 掛 / regime+早盤仍負 | **z-score fade 整族**（含 regime、時段、vol 濾網） |
 | Flow / 衰竭 | 007 | 放棄 | 微結構高頻 |
 | Short / 開盤突破 | 008 | MVPClosed | 同族變體 |
 | ORB | 009 | 2025 train 全負 | 無新編號 ORB 掃參 |
@@ -173,6 +186,14 @@ SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.m
 6. **預期頻率 & gross/趟**（能否壓過 5 點摩擦）
 7. **Pre-register grid**（僅 train 用）
 
+### 5.1 Agent 提案檢查清單（避免 FT-012 重犯）
+
+1. **機制多樣性**：queue 同批 3 案 MUST 含 ≥2 種 `E.2` 標籤（不可全 mean-reversion fade）
+2. **粗算錨點**：`THESIS_BRIEF §E.1` 必填最近同族 MVPClosed 實績；預期 gross 不得無根據樂觀
+3. **本質差異一句話**：必須寫清「進場觸發信號」與負面圖書館不同，非僅時段/regime 濾網
+4. **Post-entry 預判**：若 thesis 是 fade，註明「若 W30 stop-less median 仍 < 摩擦 → 整族放棄，不調 exit」
+5. **人類 Pick 前**：Agent 自評每案 `collision_risk: low|med|high`；high 預設不進 queue 或標 `draft-hold`
+
 ---
 
 ## 6. 開新 ft 的檔案 SOP
@@ -190,8 +211,9 @@ SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.m
 ```text
 讀 ALPHA_RESEARCH_PLAYBOOK.md + strategy_diagnosis §8 + HOLDOUT_CONTRACT_v2 §2.1。
 任務：<proposal-id> 已 human-approved → 寫 SPEC/PLAN + Phase 0a 實作 CF + tests。
-MUST：Phase 0b code review PASS 後才跑 0c train（cache_audit 先跑）。
-MUST：grid 僅 2025 train；產 gate_report + funnel + Long/Short。
+MUST：Phase 0b code review PASS 後才跑 0c train。
+MUST NOT：每次 CF 前全庫 cache_audit（見 CACHE_AUDIT.md；僅 backfill/修復後增量掃）。
+MUST：grid 僅 2025 train；產 gate_report + funnel + Long/Short + **post_entry_diagnosis 附錄**。
 MUST NOT：未 review 即 train、plugin、valid tune、重跑負面圖書館家族。
 ```
 

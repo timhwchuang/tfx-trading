@@ -15,6 +15,10 @@ from reporting.armed_forward_counterfactual import (
     _summarize_gross_net,
     simulate_atr_barrier_exit,
 )
+from reporting.post_entry_diagnosis import (
+    enrich_rows_with_forward_windows,
+    summarize_post_entry_diagnosis,
+)
 from reporting.forward_pnl import ForwardPnlPolicy, make_replay_forward_pnl
 from reporting.short_breakout_counterfactual import _session_bars
 from reporting.volatility_baseline import atr_series_from_bars
@@ -580,10 +584,17 @@ def build_regime_vwap_stretch_fade_payload(
             all_by_param[pkey].extend(rows)
 
     summary_by_param: dict[str, dict[str, Any]] = {}
+    post_entry_by_param: dict[str, dict[str, Any]] = {}
     for pkey, rows in all_by_param.items():
+        if rows:
+            enrich_rows_with_forward_windows(rows, series)
         summary_by_param[pkey] = {
             EXIT_VARIANT: _summary_block(rows, "gross_atr_sim", "net_atr_sim"),
         }
+        post_entry_by_param[pkey] = summarize_post_entry_diagnosis(
+            rows,
+            friction_points=friction_points,
+        )
 
     funnel_out: dict[str, Any] = {}
     for pkey, totals in funnel_by_param.items():
@@ -625,6 +636,7 @@ def build_regime_vwap_stretch_fade_payload(
         },
         "entry_count_by_param": {p: len(rows) for p, rows in all_by_param.items()},
         "funnel_by_param": funnel_out,
+        "post_entry_diagnosis_by_param": post_entry_by_param,
         "rows_by_param": all_by_param,
     }
 

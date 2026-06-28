@@ -12,6 +12,7 @@
     8,
     10
   ],
+  "require_volume_filter": true,
   "exit": {
     "hard_stop_atr_k": 1.0,
     "hard_stop_floor_pts": 9.0,
@@ -23,6 +24,43 @@
     "rcy6": 0,
     "rcy8": 0,
     "rcy10": 0
+  },
+  "entries": {
+    "rcy6": [],
+    "rcy8": [],
+    "rcy10": []
+  },
+  "post_entry_diagnosis_by_param": {
+    "rcy6": {
+      "n": 0,
+      "by_direction": {},
+      "interpretation": {
+        "verdict": "insufficient_n",
+        "notes": [
+          "n < 5"
+        ]
+      }
+    },
+    "rcy8": {
+      "n": 0,
+      "by_direction": {},
+      "interpretation": {
+        "verdict": "insufficient_n",
+        "notes": [
+          "n < 5"
+        ]
+      }
+    },
+    "rcy10": {
+      "n": 0,
+      "by_direction": {},
+      "interpretation": {
+        "verdict": "insufficient_n",
+        "notes": [
+          "n < 5"
+        ]
+      }
+    }
   },
   "summary_by_param": {
     "rcy6": {

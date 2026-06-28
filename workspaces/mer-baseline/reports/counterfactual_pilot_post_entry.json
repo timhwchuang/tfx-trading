@@ -1,0 +1,177 @@
+{
+  "source_thesis": "momentum_exhaustion_reversal",
+  "from_date": "2026-01-15",
+  "to_date": "2026-04-22",
+  "code": "TMFR1",
+  "friction_points_per_round_trip": 5.0,
+  "post_entry_diagnosis_by_key": {
+    "3": {
+      "n": 1,
+      "barrier": {
+        "gross_mean": -10.0,
+        "gross_median": -10.0,
+        "net_mean": -15.0,
+        "net_median": -15.0
+      },
+      "barrier_path": {
+        "MFE_mean": 10.0,
+        "MFE_median": 10.0,
+        "MAE_mean": 10.0,
+        "MAE_median": 10.0
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": -5.0,
+          "close_delta_median": -5.0,
+          "net_median": -10.0,
+          "MFE_median": 10.0,
+          "MAE_median": 34.0
+        },
+        "W900": {
+          "close_delta_mean": -88.0,
+          "close_delta_median": -88.0,
+          "net_median": -93.0,
+          "MFE_median": 34.0,
+          "MAE_median": 95.0
+        },
+        "W1800": {
+          "close_delta_mean": -201.0,
+          "close_delta_median": -201.0,
+          "net_median": -206.0,
+          "MFE_median": 34.0,
+          "MAE_median": 227.0
+        }
+      },
+      "by_direction": {
+        "Short": {
+          "n": 1,
+          "barrier": {
+            "gross_mean": -10.0,
+            "gross_median": -10.0,
+            "net_mean": -15.0,
+            "net_median": -15.0
+          },
+          "barrier_path": {
+            "MFE_mean": 10.0,
+            "MFE_median": 10.0,
+            "MAE_mean": 10.0,
+            "MAE_median": 10.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": -5.0,
+              "close_delta_median": -5.0,
+              "net_median": -10.0,
+              "MFE_median": 10.0,
+              "MAE_median": 34.0
+            },
+            "W900": {
+              "close_delta_mean": -88.0,
+              "close_delta_median": -88.0,
+              "net_median": -93.0,
+              "MFE_median": 34.0,
+              "MAE_median": 95.0
+            },
+            "W1800": {
+              "close_delta_mean": -201.0,
+              "close_delta_median": -201.0,
+              "net_median": -206.0,
+              "MFE_median": 34.0,
+              "MAE_median": 227.0
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "insufficient_n",
+        "notes": [
+          "n < 5"
+        ]
+      }
+    },
+    "4": {
+      "n": 1,
+      "barrier": {
+        "gross_mean": -10.0,
+        "gross_median": -10.0,
+        "net_mean": -15.0,
+        "net_median": -15.0
+      },
+      "barrier_path": {
+        "MFE_mean": 10.0,
+        "MFE_median": 10.0,
+        "MAE_mean": 10.0,
+        "MAE_median": 10.0
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": -5.0,
+          "close_delta_median": -5.0,
+          "net_median": -10.0,
+          "MFE_median": 10.0,
+          "MAE_median": 34.0
+        },
+        "W900": {
+          "close_delta_mean": -88.0,
+          "close_delta_median": -88.0,
+          "net_median": -93.0,
+          "MFE_median": 34.0,
+          "MAE_median": 95.0
+        },
+        "W1800": {
+          "close_delta_mean": -201.0,
+          "close_delta_median": -201.0,
+          "net_median": -206.0,
+          "MFE_median": 34.0,
+          "MAE_median": 227.0
+        }
+      },
+      "by_direction": {
+        "Short": {
+          "n": 1,
+          "barrier": {
+            "gross_mean": -10.0,
+            "gross_median": -10.0,
+            "net_mean": -15.0,
+            "net_median": -15.0
+          },
+          "barrier_path": {
+            "MFE_mean": 10.0,
+            "MFE_median": 10.0,
+            "MAE_mean": 10.0,
+            "MAE_median": 10.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": -5.0,
+              "close_delta_median": -5.0,
+              "net_median": -10.0,
+              "MFE_median": 10.0,
+              "MAE_median": 34.0
+            },
+            "W900": {
+              "close_delta_mean": -88.0,
+              "close_delta_median": -88.0,
+              "net_median": -93.0,
+              "MFE_median": 34.0,
+              "MAE_median": 95.0
+            },
+            "W1800": {
+              "close_delta_mean": -201.0,
+              "close_delta_median": -201.0,
+              "net_median": -206.0,
+              "MFE_median": 34.0,
+              "MAE_median": 227.0
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "insufficient_n",
+        "notes": [
+          "n < 5"
+        ]
+      }
+    }
+  }
+}

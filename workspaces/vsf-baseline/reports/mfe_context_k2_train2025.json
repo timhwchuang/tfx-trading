@@ -1,0 +1,129 @@
+{
+  "stretch_k": "2.0",
+  "n": 268,
+  "mfe_p75_threshold": 31.0,
+  "high_mfe_cohort": {
+    "n": 70,
+    "barrier_net_median": 45.0,
+    "w5_median": 38.5,
+    "w15_median": 26.0,
+    "w30_median": 38.5,
+    "giveback_median": 4.5,
+    "mfe_median": 50.0,
+    "mae_median": 5.0,
+    "mfe_mae_ratio_median": 4.7
+  },
+  "high_mfe_by_session": {
+    "open_30m": "Short",
+    "mid": "Short"
+  },
+  "horizon_decay": {
+    "w5_median": 5.0,
+    "w15_median": -0.5,
+    "w30_median": -1.5,
+    "giveback_w5_to_w30_median": 4.0,
+    "pct_w5_positive": 54.1,
+    "pct_w30_positive": 48.9
+  },
+  "by_dimension": {
+    "session_bucket": {
+      "close_1h": {
+        "n": 14,
+        "barrier_net_median": -7.5,
+        "w5_median": 10.5,
+        "w15_median": 10.5,
+        "w30_median": 10.5,
+        "giveback_median": -8.5,
+        "mfe_median": 15.0,
+        "mae_median": 16.5,
+        "mfe_mae_ratio_median": 1.21
+      },
+      "mid": {
+        "n": 96,
+        "barrier_net_median": -23.75,
+        "w5_median": 0.5,
+        "w15_median": -7.5,
+        "w30_median": -6.5,
+        "giveback_median": 17.5,
+        "mfe_median": 18.0,
+        "mae_median": 19.0,
+        "mfe_mae_ratio_median": 1.08
+      },
+      "open_30m": {
+        "n": 158,
+        "barrier_net_median": -23.75,
+        "w5_median": 8.0,
+        "w15_median": 2.0,
+        "w30_median": 2.5,
+        "giveback_median": 4.0,
+        "mfe_median": 18.0,
+        "mae_median": 19.0,
+        "mfe_mae_ratio_median": 0.85
+      }
+    },
+    "direction": {
+      "Long": {
+        "n": 137,
+        "barrier_net_median": -23.75,
+        "w5_median": -3.0,
+        "w15_median": -3.0,
+        "w30_median": -6.0,
+        "giveback_median": 9.0,
+        "mfe_median": 16.0,
+        "mae_median": 19.0,
+        "mfe_mae_ratio_median": 0.83
+      },
+      "Short": {
+        "n": 131,
+        "barrier_net_median": -12.0,
+        "w5_median": 13.0,
+        "w15_median": -0.0,
+        "w30_median": 2.0,
+        "giveback_median": 0.0,
+        "mfe_median": 21.0,
+        "mae_median": 19.0,
+        "mfe_mae_ratio_median": 1.11
+      }
+    },
+    "z_bucket": {
+      "z_2.0_2.25": {
+        "n": 257,
+        "barrier_net_median": -23.75,
+        "w5_median": 5.0,
+        "w15_median": -1.0,
+        "w30_median": -1.0,
+        "giveback_median": 3.0,
+        "mfe_median": 18.0,
+        "mae_median": 19.0,
+        "mfe_mae_ratio_median": 0.95
+      },
+      "z_2.25_2.75": {
+        "n": 1,
+        "barrier_net_median": -6.0,
+        "w5_median": 14.0,
+        "w15_median": -0.0,
+        "w30_median": -0.0,
+        "giveback_median": 14.0,
+        "mfe_median": 8.0,
+        "mae_median": 5.0,
+        "mfe_mae_ratio_median": 1.6
+      },
+      "z_2.75_plus": {
+        "n": 10,
+        "barrier_net_median": -23.75,
+        "w5_median": 3.5,
+        "w15_median": 0.0,
+        "w30_median": -9.0,
+        "giveback_median": 3.0,
+        "mfe_median": 12.5,
+        "mae_median": 19.0,
+        "mfe_mae_ratio_median": 0.74
+      }
+    }
+  },
+  "interpretation": [
+    "W5→W30 遞減 = 早段順向後被回吐（fade 典型）；非傳統固定 SL/TP 風報比。",
+    "風報比請看 mfe_mae_ratio（路徑內最大順/逆），非 W5/W15/W30 三點。",
+    "高 MFE 子集若 barrier 仍負 → 出場/持有時間問題；若 W30 也負 → 方向錯。"
+  ]
+}

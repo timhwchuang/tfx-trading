@@ -51,7 +51,7 @@
 | Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
 | AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · **[`ALPHA_RESEARCH_PLAYBOOK.md`](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)**（Alpha 儀式） · **[`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)**（策略 thesis gate） · [`workspaces/THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) · [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) · [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
 | 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
-| tick_cache 品質稽核 / 修復 | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit；`storage.cache_audit` / `storage.cache_repair` |
+| tick_cache 品質稽核 / 修復 | [`workspaces/CACHE_AUDIT.md`](../workspaces/CACHE_AUDIT.md)（何時重跑）；`storage.cache_audit` / `storage.cache_repair` |
 
 ## 5. 考古（勿當現行流程）
 

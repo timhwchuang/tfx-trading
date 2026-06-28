@@ -14,7 +14,7 @@
 | **Confirm** | **2026-07-01～** | 🔲 | Paper / shadow |
 | **Legacy** | 2026 01–03 / 04 / 05 | ✅ | FT-006～010 封存 |
 
-CF / sweep 前：`python -m storage.cache_audit --code TMFR1`（**無 FAIL**）。
+`cache_audit`：**非每次 CF**；最近一次 PASS 見 [`CACHE_AUDIT.md`](CACHE_AUDIT.md)。backfill 新日後增量掃即可。
 
 ---
 

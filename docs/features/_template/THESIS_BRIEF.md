@@ -41,6 +41,23 @@
 | 預期 gross/趟 | ___（須 > 5 才有機會 net 正） |
 | 預期 net/趟（扣 5 點） | ___ |
 
+### E.1 粗算錨點（MUST · 避免 P-001 式幻想）
+
+| 最接近同族 MVPClosed | 其 v2.1 train 實績（gross/net/median/n） |
+|----------------------|------------------------------------------|
+| FT-___ | ___ |
+
+**規則**：若新 thesis 預期 gross 比錨點高 **>3 點** 且無新進場機制，人類應 **Reject** 不進 CF。
+
+## E.2 進場機制標籤（MUST 勾一）
+
+- [ ] **Continuation**（順勢 / breakout 後持有）
+- [ ] **Mean-reversion**（fade / fill back）
+- [ ] **Liquidity / microstructure**（量價失衡）
+- [ ] **Other**：___
+
+若勾 mean-reversion 且觸發含 VWAP z-score / fade → 對照 Playbook §4 **VWAP fade 整族已死**。
+
 ## F. Pre-register grid（僅 2025 train）
 
 | 參數 | 值 / 範圍 |

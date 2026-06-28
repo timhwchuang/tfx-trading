@@ -13,7 +13,11 @@ from reporting.armed_forward_counterfactual import (
     _summarize_gross_net,
     simulate_atr_barrier_exit,
 )
-from reporting.forward_pnl import ForwardPnlPolicy, TickSeries, make_replay_forward_pnl
+from reporting.post_entry_diagnosis import (
+    enrich_rows_with_forward_windows,
+    summarize_post_entry_diagnosis,
+)
+from reporting.forward_pnl import ForwardPnlPolicy, make_replay_forward_pnl
 from reporting.volatility_baseline import (
     DEFAULT_ATR_PERIOD,
     atr_series_from_bars,
@@ -343,12 +347,19 @@ def build_vwap_stretch_fade_payload(
 
     summary_by_k: dict[str, Any] = {}
     summary_by_k_and_bucket: dict[str, dict[str, Any]] = {}
+    post_entry_by_k: dict[str, Any] = {}
     for k in stretch_ks:
         rows = all_by_k[k]
+        if rows:
+            enrich_rows_with_forward_windows(rows, series)
         summary_by_k[str(k)] = {
             "atr_barrier_180s": _summary_block(rows, "gross_atr_sim", "net_atr_sim"),
             "horizon_1800s": _summary_block(rows, "gross_horizon", "net_horizon"),
         }
+        post_entry_by_k[str(k)] = summarize_post_entry_diagnosis(
+            rows,
+            friction_points=friction_points,
+        )
         by_bucket = _group_summary(rows, "session_bucket")
         summary_by_k_and_bucket[str(k)] = by_bucket
 
@@ -375,6 +386,7 @@ def build_vwap_stretch_fade_payload(
         "phase0_gate": phase0_gate,
         "summary_by_k": summary_by_k,
         "summary_by_k_and_bucket": summary_by_k_and_bucket,
+        "post_entry_diagnosis_by_k": post_entry_by_k,
         "summary_by_direction": {
             str(k): _group_summary(all_by_k[k], "direction") for k in stretch_ks
         },
