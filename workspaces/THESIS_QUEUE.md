@@ -19,7 +19,7 @@
 | P-004 | Morning VWAP hold pullback long | `draft-proposal` | **continuation** | mean_robust | low | 等人類 Pick |
 | P-005 | Gap drive continuation | `draft-proposal` | **continuation** | **skew** 候選 | med | 等人類 Pick |
 | P-006 | Midday range expansion long | `draft-proposal` | **continuation** | mean_robust | med | 等人類 Pick |
-| P-007 | SuperTrend flip continuation | **`human-approved`** | **continuation** | mean_robust | low | **→ FT-013 Phase 0a** |
+| P-007 | SuperTrend flip continuation | **`mvpclosed`** | **continuation** | mean_robust | low | FT-013 · `stf_fingerprint_fail` |
 | P-008 | Bollinger squeeze breakout | `rejected` | **continuation** | — | **high** | breakout 族 · gross 天花板 |
 | P-009 | FVG retest pullback | `draft-proposal` | **liquidity** | **skew** 候選 | med | 等人類 Pick |
 
@@ -99,7 +99,9 @@
 
 ## P-007 — SuperTrend flip continuation → **FT-013**
 
-**狀態**：**`human-approved`** · **簽核**：Tim · **日期**：2026-06-28 · **class**：**mean_robust** · **FT**：[`supertrend-flip`](../../docs/features/supertrend-flip/SPEC.md)
+**狀態**：**`mvpclosed`** · **簽核**：Tim · **日期**：2026-06-28 · **class**：**mean_robust** · **FT**：[`supertrend-flip`](../../docs/features/supertrend-flip/SPEC.md)
+
+**結案（2026-06-28）**：Phase 0c-1 fingerprint 未過 — train 2025 W30 stop-less gross median **−10.0**（n=67）→ **`stf_fingerprint_fail`** · grid 跳過 · [`gate_report`](../../workspaces/stf-baseline/gate_report.md)
 
 **Phase 0 約束**（封印 · [`SPEC §5.1`](../../docs/features/supertrend-flip/SPEC.md)）：**long-only** · MUST-1 無 repaint · MUST-2 滑價/摩擦 · MUST-3 cooldown+12:00 · **0c-1 fingerprint 先於 grid**（W30 median 順勢指紋）。
 
@@ -146,13 +148,13 @@
 | P-001 | **mvpclosed** → FT-012 | 2026-06-28 | train 全負；regime 未救 VSF |
 | P-002 | **rejected** | 2026-06-28 | midday fade = fade 整族變形 |
 | P-008 | **rejected** | 2026-06-28 | breakout 族 + gross 天花板 < friction 5 |
-| P-007 | **human-approved** → FT-013 | 2026-06-28 | mean_robust · SuperTrend flip · long-only Phase 0 |
+| P-007 | **mvpclosed** → FT-013 | 2026-06-28 | train W30 med −10 · 0c-1 fingerprint fail |
 
 ---
 
 ## 人類操作
 
-1. **P-007 已批准** → 依 [`FT-013 PLAN`](../../docs/features/supertrend-flip/PLAN.md) 開 Phase **0a** CF + tests
-2. 下一 skew 候選：**P-009**（建議 **FT-014**，不與 FT-013 並行 train）
+1. **P-004 / P-006** continuation 候選 — 等人類 Pick
+2. 下一 skew 候選：**P-009**（建議 **FT-014**）
 3. P-004 / P-005 / P-006 仍 `draft-proposal` — 需另 Pick
 4. **v2.2.1 不復活 FT 屍體** — 見 Holdout §11

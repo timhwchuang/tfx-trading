@@ -20,6 +20,8 @@
 | **009** | valid | — | 19 | −25.88 | −22.0 | +5.0 | 33/28 | direction_ok_margin_thin |
 | **009** | holdout 05 | — | 19 | −33.34 | −17.0 | +56.0 | 25/38 | exit_kills_edge |
 | **011** | 2025 train rm30 | rm30 | 46 | −24.65 | −2.0 | −3.0 | 30/25.5 | direction_failed |
+| **013** | 2025 train fp | ap10_sm3 | 67 | −4.0 | −5.0 | **−10.0** | 7/15 | direction_failed |
+| **013** | 2026 Q1 valid fp | ap10_sm3 | 26 | +14.5 | +7.0 | +7.5 | 36/28 | direction_ok_margin_thin |
 | **008** | valid lb15 | — | 72 | −1.0 | +4.5 | −5.0 | 17/14 | direction_failed |
 | **007** | flow flip pilot | all | 108 | +2.5 | +1.5 | +1.0 | 8/7 | direction_weak |
 | **010** | 01–03 | — | 低 n | — | — | — | — | MVPClosed |

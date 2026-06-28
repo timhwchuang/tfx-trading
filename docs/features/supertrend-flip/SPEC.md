@@ -1,10 +1,12 @@
 ---
 id: FT-013
 slug: supertrend-flip
-status: InProgress
+status: MVPClosed
 thesis_class: mean_robust
 proposal_id: P-007
 opened: 2026-06-28
+closed: 2026-06-28
+outcome: stf_fingerprint_fail
 owner: Tim (human-approved 2026-06-28)
 target: Alpha Phase 0
 holdout_contract: v2.2.1
@@ -116,7 +118,9 @@ holdout_contract: v2.2.1
 | K 線 | SuperTrend **僅**用 **已收** 5m bar；**禁止** partial / 當根 intrabar 更新 band 或 flip 狀態 |
 | 暖機 | 當日 session 09:15 前 bar **不**產生 flip 信號；跨日 lookback 僅供 ATR/ST 計算，不觸發進場 |
 | Flip 判定 | bar `b` 收盤後：前一根 ST 方向 = bear，當根 = bull（演算法 **§5.1a**） |
-| **Flip 確認 tick** | `entry_arm_ts` = bar `b` 的 **5m bucket 收盤時戳**（exchange time）；**第一個**滿足 `tick.ts >= entry_arm_ts` **且** `tick.close > supertrend_line(b)` 的 tick 為 **唯一**合法進場錨點 |
+| **Flip 確認 tick（Long）** | `entry_arm_ts` = bar `b` 的 **5m bucket 收盤時戳**（exchange time）；**第一個**滿足 `tick.ts >= entry_arm_ts` **且** `tick.close > supertrend_line(b)` 的 tick 為 **唯一**合法進場錨點 |
+| **Flip 確認 tick（Short · 附錄）** | 同一 `entry_arm_ts`；**第一個** `tick.close < supertrend_line(b)`（bear 時 line = `final_ub[b]`）— **post_entry only**，不 fill |
+| **11:45 / 12:00 邊界** | **`last_entry_before` / `no_new_entry_after` 以確認 tick 的 exchange time 判定**（非 flip bar 收盤）；`tick.time >= 11:45` → 不 arm；`tick.time >= 12:00` → 禁止新進場 |
 | Fill 價 | 該確認 tick 的 `close`（與其他 CF 一致；**不加**額外 intrabar 理想價） |
 | 測試 | tests **MUST** 含：partial bar 不 flip、flip 後第二 tick 才 confirm、同 bar 內 ST 線漂移不補進場 |
 
@@ -184,7 +188,7 @@ flip_short[i] = (trend[i] == -1) and (trend[i-1] == +1)
 | 項目 | 封印定義 |
 |------|----------|
 | 方向 | Phase 0 **僅 Long** 成交；`flip_short` **detect 但不 fill** |
-| Short 附錄 | 對每個 `flip_short`：以 **假設 Short** @ 確認 tick 跑 **post_entry only**（W5/W15/W30 stop-less）；**不**計入 G1–G3 · **不**進 net PnL |
+| Short 附錄 | 對每個 `flip_short`：以 **假設 Short** @ **確認 tick**（`tick.close < supertrend_line(b)`，見 MUST-1）跑 **post_entry only**（W5/W15/W30 stop-less）；**不**計入 G1–G3 · **不**進 net PnL |
 | Cooldown | 兩次 **long** flip 進場間隔 ≥ `cooldown_bars` 根 **已收** 5m bar；冷卻期內 flip **忽略** |
 | 12:00 窗 | `tick.ts >= 12:00` → **禁止**新進場；持倉依 exit 規則 **日內 flatten** |
 | 尾盤 flip | 11:45 後新 flip **不** arm（pre-register `last_entry_before=11:45`，避免進場即 flatten 純送摩擦） |
