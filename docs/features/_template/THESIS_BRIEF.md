@@ -37,8 +37,8 @@
 
 | 項目 | 估計 |
 |------|------|
-| train 2025 預期 n | ___（須 ≥ 30） |
-| 預期 gross/趟 | ___（須 > 5 才有機會 net 正） |
+| train 2025 預期 n | ___（mean_robust **≥30** · skew **≥15**） |
+| 預期 gross/趟 | ___（須 **mean > 5** 才有機會 net 正；skew 可 median 負） |
 | 預期 net/趟（扣 5 點） | ___ |
 
 ### E.1 粗算錨點（MUST · 避免 P-001 式幻想）
@@ -58,6 +58,24 @@
 
 若勾 mean-reversion 且觸發含 VWAP z-score / fade → 對照 Playbook §4 **VWAP fade 整族已死**。
 
+### E.3 Thesis class（v2.2 · MUST 勾一）
+
+- [ ] **`mean_robust`**（預設）— Gate：[`HOLDOUT_CONTRACT_v2.md`](../ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) §3.1 · G3 n≥30
+- [ ] **`skew`**（低頻厚尾）— Gate：§3.2 · G3S n≥15；**須** pre-register 下表
+
+| 欄位（skew only） | pre-register 值 |
+|-------------------|-----------------|
+| `payoff_ratio_min` | ___（預設 2.5） |
+| `tail_gross_min_pts` | ___（預設 15） |
+| `max_consecutive_losses` | ___（預設 10） |
+| `max_consecutive_loss_pts` | ___（預設 150） |
+| `worst_month_net_pts` | ___（預設 −120） |
+| `top3_win_gross_share_max` | ___（預設 0.65） |
+| 預期 win_rate | ___% |
+| `k_sl × ATR`（**≥ 0.5**） | k = ___ |
+
+**Skew 禁止**：fade 整族 · 舊 FT 換皮 · 固定 6 點主 stop。
+
 ## F. Pre-register grid（僅 2025 train）
 
 | 參數 | 值 / 範圍 |
@@ -70,7 +88,8 @@
 
 - train net ≤ 0 → MVPClosed
 - train 過、valid net ≤ 0 → `overfit_suspect`
-- median / 單邊 disqualify → §3.1
+- mean_robust：median / 單邊 → §3.1
+- skew：G-SK1–SK5 任一未過 → disqualify；valid net≤0 → **不得 holdout**；holdout H3S/H4S 未過 → MVPClosed
 - ___
 
 ## H. 人類簽核

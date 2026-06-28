@@ -79,7 +79,7 @@
 
 | 優先 | 軌道 | 動作 |
 |------|------|------|
-| **P0** | Alpha | 人類 **Pick** [`THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) → Playbook Phase 0 CF |
+| **P0** | Alpha | **FT-013** Phase 0a — [`supertrend-flip`](features/supertrend-flip/PLAN.md) CF + tests（P-007 approved） |
 | **P1** | UAT 工程 | Phase 1+ 模擬交易日、fill 對帳、P4-13-F、累積 tick |
 | — | ~~P2 CAL-8~~ | **放棄** — 濾網綁定 `grid_no_viable_solution` 的 vwap-momentum |
 | — | Pilot / Live | **阻塞**，直至 Alpha P0 過關 + 人類 Go |

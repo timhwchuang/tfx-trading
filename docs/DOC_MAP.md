@@ -44,7 +44,7 @@
 
 | 主題 | 文件 |
 | ---- | ---- |
-| **Holdout 契約 v2**（train/valid/holdout、median、方向） | [`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
+| **Holdout 契約 v2**（train/valid/holdout、median、方向、**skew 厚尾 v2.2**） | [`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
 | 資料切分 SSOT | [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) |
 | 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
 | MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |

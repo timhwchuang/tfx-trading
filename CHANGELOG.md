@@ -352,6 +352,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Changed
 
+- **Holdout 契約 v2.2**（[`HOLDOUT_CONTRACT_v2.md`](docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)）：新增 `thesis_class: skew` 平行賽道（G3S n≥15 · §3.2 payoff/tail/連虧/月DD · §5.2b holdout · §11 屍體不復活）；`mean_robust` 維持 v2.1 預設。同步 [`THESIS_BRIEF.md`](docs/features/_template/THESIS_BRIEF.md) §E.3 · [`ALPHA_RESEARCH_PLAYBOOK.md`](docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · [`THESIS_QUEUE.md`](workspaces/THESIS_QUEUE.md)。
 - **`storage.cache_audit` severity**：tick 聚合 1m 與 `api.kbars` 的 OHLC/volume 漂移改為 **WARN**（券商 API 重抓仍不一致；回測以 ticks 為準）；結構性問題（空檔、尾盤缺段、kbar 根數不足）仍 **FAIL**。抽查腳本：`scripts/api_tick_kbar_spotcheck.py`。
 - **`sweep` package `__init__`**：移除對 `param_sweep` / `determinism_check` 的 eager import，修復 `python -m backtest` 循環 import。
 - **`sweep.sweep_progress` + `scripts/ft003_run_sweep.py`**：長時間 sweep 可觀測性——每 combo 增量寫入 `workspaces/<agent>/sweep_result.jsonl`、固定 `logs/sweep_progress.log`（JSONL 事件 + 120s heartbeat + 逐日進度）、結束印 `DONE`/`FAILED exit=N`。**勿**手動 redirect 到 `sweep_progress.log`。

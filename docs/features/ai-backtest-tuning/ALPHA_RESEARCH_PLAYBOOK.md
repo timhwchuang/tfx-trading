@@ -1,7 +1,7 @@
 ---
 id: ALPHA-PLAYBOOK
 slug: alpha-research-playbook
-version: 1.1
+version: 1.3
 status: Active
 opened: 2026-06-28
 owner: human+agent
@@ -143,16 +143,16 @@ PASS 後更新 `CACHE_AUDIT.md` stamp。
 
 ## 3. Train 過關線（摘要）
 
-完整定義：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md) §3–§5。
+完整定義：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md) **v2.2.1** §2.2 · §3–§5。
 
-| ID | Train 2025 | 未過 → |
-|----|------------|--------|
-| G1 | gross/趟 **> 5** | MVPClosed |
-| G2 | net/趟 **> 0**（摩擦 5 點） | MVPClosed |
-| G3 | n **≥ 30** | MVPClosed |
-| §3.1 | median、單邊 80%、單邊 net | disqualify |
+| Class | Train 2025 | 未過 → |
+|-------|------------|--------|
+| **mean_robust**（預設） | G1 gross>5 · G2 net>0 · G3 n≥30 · §3.1 | MVPClosed |
+| **skew**（v2.2.1） | G1–G2 同左 · **G3S n≥15** · **§3.2** G-SK1–SK5 · valid net≤0 **禁 holdout** | MVPClosed / disqualify |
 
-**設計日檢**：新 thesis 提議時就要粗算「預期趟數 / 預期 gross」；G1+G3 不可能同時滿足者 **不要開 CF**。
+**共用**：holdout 封印 **不**放寬；G1/G2 **不**放寬（mean 仍須壓過 5 點摩擦）。
+
+**設計日檢**：mean_robust 粗算 n≥30；skew 粗算 n≥15 且寫清 payoff 故事。**禁止**用 skew 標籤復活 MVPClosed FT（§11）。
 
 ---
 
@@ -193,6 +193,7 @@ SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.m
 3. **本質差異一句話**：必須寫清「進場觸發信號」與負面圖書館不同，非僅時段/regime 濾網
 4. **Post-entry 預判**：若 thesis 是 fade，註明「若 W30 stop-less median 仍 < 摩擦 → 整族放棄，不調 exit」
 5. **人類 Pick 前**：Agent 自評每案 `collision_risk: low|med|high`；high 預設不進 queue 或標 `draft-hold`
+6. **Thesis class**：低頻厚尾 MUST 標 `skew` + THESIS_BRIEF §E.3；其餘預設 `mean_robust`（v2.2）
 
 ---
 
@@ -209,8 +210,9 @@ SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.m
 ## 7. 給 Agent 的開工 prompt（複製用）
 
 ```text
-讀 ALPHA_RESEARCH_PLAYBOOK.md + strategy_diagnosis §8 + HOLDOUT_CONTRACT_v2 §2.1。
+讀 ALPHA_RESEARCH_PLAYBOOK.md + strategy_diagnosis §8 + HOLDOUT_CONTRACT_v2 §2.1–§2.2。
 任務：<proposal-id> 已 human-approved → 寫 SPEC/PLAN + Phase 0a 實作 CF + tests。
+MUST：SPEC 宣告 thesis_class（mean_robust | skew）；skew 須 §E.3 pre-register。
 MUST：Phase 0b code review PASS 後才跑 0c train。
 MUST NOT：每次 CF 前全庫 cache_audit（見 CACHE_AUDIT.md；僅 backfill/修復後增量掃）。
 MUST：grid 僅 2025 train；產 gate_report + funnel + Long/Short + **post_entry_diagnosis 附錄**。

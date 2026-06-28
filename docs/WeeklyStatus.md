@@ -9,6 +9,21 @@
 
 ---
 
+### 2026-06-28（Holdout v2.2.1 + P-007 → FT-013）
+
+**決策**
+- **Holdout v2.2.1** 落地：skew 賽道 + G-SK5 尾部集中度 + skew valid 硬擋 + friction@7 disqualify。
+- **P-007 SuperTrend flip** → **`human-approved`** · `thesis_class: mean_robust` · Phase 0 **long-only**。
+- **FT-013** [`supertrend-flip`](features/supertrend-flip/SPEC.md) 開案 — 下一步 Phase **0a** CF（未跑 train）。
+
+**人類必做**
+- Phase 0b code review PASS 後才跑 2025 train grid。
+
+**文件**
+- [`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) · [`THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) · [`features/README.md`](features/README.md)
+
+---
+
 ### 2026-06-28（雙軌共識 + CAL-8 放棄 — 文件收斂）
 
 **決策**

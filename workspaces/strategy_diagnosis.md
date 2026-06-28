@@ -171,9 +171,9 @@
 
 ### 8.3 Alpha 線下一步（主 focus）
 
-**儀式 SSOT**：[`ALPHA_RESEARCH_PLAYBOOK.md`](../docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · 提案佇列 [`THESIS_QUEUE.md`](THESIS_QUEUE.md)
+**儀式 SSOT**：[`ALPHA_RESEARCH_PLAYBOOK.md`](../docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · 提案佇列 [`THESIS_QUEUE.md`](THESIS_QUEUE.md) · **Holdout v2.2.1**（`mean_robust` | `skew` · 2026-06-28）
 
-1. **Thesis 提案**：Agent **可**填 queue 草稿；人類 **Pick → `human-approved`** 後才寫 SPEC / 跑 CF（見 Playbook §1.1）。
+1. **Thesis 提案**：Agent **可**填 queue 草稿；人類 **Pick → `human-approved`** 後才寫 SPEC / 跑 CF（見 Playbook §1.1）；Pick 時註明 **`thesis_class`**。
 2. **Phase 0 counterfactual only** — 未過不開 plugin、不進 UAT 替換。
 3. **禁止**：在 vwap-momentum 上繼續 sweep knob 指望轉正；禁止 ORB/SCB 變體無新編號重跑；**禁止** P6-1 / P6-SMC **CAL-8**（濾網綁定已失敗 base）。
 4. **可並行**：UAT 累積 tick / fill audit → 供未來 **Confirm** 段使用，不取代 train gate。**KBARS_ARCHIVE** 仍可開（通用資料），不為 CAL-8。

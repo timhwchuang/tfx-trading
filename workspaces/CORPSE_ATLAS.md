@@ -2,6 +2,7 @@
 
 > **用途**：對 MVPClosed thesis **一次性**補跑 `post_entry_diagnosis`（W5/W15/W30 + MFE/MAE）。  
 > **不是**重開 grid、不是救屍、**不得**依結果 tune。  
+> **v2.2 skew 契約不推翻本表** — 見 Holdout §11。
 > 彙總 JSON：[`CORPSE_ATLAS_results.json`](CORPSE_ATLAS_results.json)  
 > 腳本：`python scripts/run_corpse_atlas_batch.py` · `retrofit_post_entry_diagnosis.py`
 

@@ -19,6 +19,7 @@
 | FT-010 | [vwap-trend-pullback](vwap-trend-pullback/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §11](vwap-trend-pullback/SPEC.md) · [PLAN](vwap-trend-pullback/PLAN.md) · [`gate_report`](../../workspaces/vtp-baseline/gate_report.md) |
 | FT-011 | [session-confluence-breakout](session-confluence-breakout/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §10](session-confluence-breakout/SPEC.md) · [PLAN](session-confluence-breakout/PLAN.md) · [`gate_report`](../../workspaces/scb-baseline/gate_report.md) |
 | FT-012 | [regime-vwap-stretch-fade](regime-vwap-stretch-fade/SPEC.md) | **MVPClosed** | 2026-06-28 | — | [SPEC §8](regime-vwap-stretch-fade/SPEC.md) · [`gate_report`](../../workspaces/rvsf-baseline/gate_report.md) |
+| FT-013 | [supertrend-flip](supertrend-flip/SPEC.md) | **Draft** | 2026-06-28 | Alpha P0 | [SPEC](supertrend-flip/SPEC.md) · [PLAN](supertrend-flip/PLAN.md) · P-007 **`human-approved`** |
 
 ## 狀態定義
 
@@ -55,7 +56,7 @@ stateDiagram-v2
 4. 更新 [`DOC_MAP.md`](../DOC_MAP.md) §Features
 5. 可選：在 [`TODO.md`](../TODO.md) 加一行連結至 PLAN
 6. Phase 0 結束時 commit；`CHANGELOG.md` 記 docs 條目
-7. 新 **策略 thesis**（**FT-012+**）**MUST** 連結 [`HOLDOUT_CONTRACT_v2.md`](ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) **§2.1** 與 [`ALPHA_RESEARCH_PLAYBOOK.md`](ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)
+7. 新 **策略 thesis**（**FT-012+**）**MUST** 連結 [`HOLDOUT_CONTRACT_v2.md`](ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) **v2.2.1** 與 [`ALPHA_RESEARCH_PLAYBOOK.md`](ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)
 
 **Alpha 提案**：Agent 草稿 → [`workspaces/THESIS_QUEUE.md`](../../workspaces/THESIS_QUEUE.md) → 人類 `human-approved` → 複製 [`THESIS_BRIEF.md`](_template/THESIS_BRIEF.md) 進 SPEC。
 

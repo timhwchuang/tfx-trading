@@ -1,7 +1,8 @@
 # Thesis Queue — Alpha 提案佇列
 
 > **用法**：Agent **可**填 `draft-proposal`；人類 **Pick 一個**改 `human-approved` 後才准 Phase 0 CF。  
-> Playbook：[`ALPHA_RESEARCH_PLAYBOOK.md`](../docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · 提案規則 **§5.1**
+> Playbook：[`ALPHA_RESEARCH_PLAYBOOK.md`](../docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · 提案規則 **§5.1**  
+> **Gate SSOT**：[`HOLDOUT_CONTRACT_v2.md`](../docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) **v2.2.1** — `mean_robust`（預設）| **`skew`**（低頻厚尾）
 
 **狀態**：`draft-proposal` → `human-approved` → `in-cf` → `mvpclosed` | `holdout-pending` | `landed`  
 **Rejected** 列保留原因，避免重提案。
@@ -10,17 +11,17 @@
 
 ## 佇列總覽
 
-| ID | 工作標題 | 狀態 | 機制 | collision | 下一步 |
-|----|----------|------|------|-----------|--------|
-| P-001 | Regime VWAP stretch fade | `mvpclosed` | mean-reversion | — | FT-012 已結 |
-| P-002 | Midday liquidity pause fade | `rejected` | mean-reversion | **high** | fade 整族已死 |
-| P-003 | Opening gap inventory fade | `draft-hold` | mean-reversion | **high** | 需改觸發或否決 |
-| P-004 | Morning VWAP hold pullback long | `draft-proposal` | **continuation** | low | 等人類 Pick |
-| P-005 | Gap drive continuation | `draft-proposal` | **continuation** | med | 等人類 Pick |
-| P-006 | Midday range expansion long | `draft-proposal` | **continuation** | med | 等人類 Pick |
-| P-007 | SuperTrend flip continuation | `draft-proposal` | **continuation** | low | 等人類 Pick |
-| P-008 | Bollinger squeeze breakout | `draft-proposal` | **continuation** | **high** | 等人類 Pick（breakout 族） |
-| P-009 | FVG retest pullback | `draft-proposal` | **liquidity** | med | 等人類 Pick |
+| ID | 工作標題 | 狀態 | 機制 | class | collision | 下一步 |
+|----|----------|------|------|-------|-----------|--------|
+| P-001 | Regime VWAP stretch fade | `mvpclosed` | mean-reversion | — | — | FT-012 已結 |
+| P-002 | Midday liquidity pause fade | `rejected` | mean-reversion | — | **high** | fade 整族已死 |
+| P-003 | Opening gap inventory fade | `draft-hold` | mean-reversion | — | **high** | 需改觸發或否決 |
+| P-004 | Morning VWAP hold pullback long | `draft-proposal` | **continuation** | mean_robust | low | 等人類 Pick |
+| P-005 | Gap drive continuation | `draft-proposal` | **continuation** | **skew** 候選 | med | 等人類 Pick |
+| P-006 | Midday range expansion long | `draft-proposal` | **continuation** | mean_robust | med | 等人類 Pick |
+| P-007 | SuperTrend flip continuation | **`human-approved`** | **continuation** | mean_robust | low | **→ FT-013 Phase 0a** |
+| P-008 | Bollinger squeeze breakout | `rejected` | **continuation** | — | **high** | breakout 族 · gross 天花板 |
+| P-009 | FVG retest pullback | `draft-proposal` | **liquidity** | **skew** 候選 | med | 等人類 Pick |
 
 ---
 
@@ -58,9 +59,15 @@
 
 ---
 
+## P-008 — Bollinger squeeze breakout（**rejected**）
+
+**狀態**：`rejected` · **日期**：2026-06-28 · **原因**：資深交易員 + v2.2 前評估 — breakout 高碰撞；gross 目標 2–4 **< friction 5**（G1 前已死）。**不因 v2.2 skew 復活**（機制未變）。
+
+---
+
 ## P-005 — Gap drive continuation
 
-**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-28 · **collision**：med
+**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-28 · **collision**：med · **class 建議**：**skew**
 
 **故事**：開盤 gap > k×ATR（k∈{1.0,1.5}），前 30 分鐘 **回撤 < gap×40%** 後再破開盤後高點 → **順 gap 方向**進場（多 gap up / 空 gap down）。
 
@@ -90,11 +97,13 @@
 
 ---
 
-## P-007 — SuperTrend flip continuation
+## P-007 — SuperTrend flip continuation → **FT-013**
 
-**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-28 · **collision**：low · **來源**：TradingView SuperTrend
+**狀態**：**`human-approved`** · **簽核**：Tim · **日期**：2026-06-28 · **class**：**mean_robust** · **FT**：[`supertrend-flip`](../../docs/features/supertrend-flip/SPEC.md)
 
-**故事**：5m kbar 上 SuperTrend（HL/2 ± k×ATR）**翻多**後，09:15–12:00 內 tick 確認收在 trend line 上方 → **做多**；翻空對稱做空（或 Phase 0 先 **long-only** 對照 P-004）。
+**Phase 0 約束**（封印 · [`SPEC §5.1`](../../docs/features/supertrend-flip/SPEC.md)）：**long-only** · MUST-1 無 repaint · MUST-2 滑價/摩擦 · MUST-3 cooldown+12:00 · **0c-1 fingerprint 先於 grid**（W30 median 順勢指紋）。
+
+**故事**：5m kbar 上 SuperTrend（HL/2 ± k×ATR）**翻多**後，09:15–12:00 內 tick 確認收在 trend line 上方 → **做多**。
 
 **不是 FT-004/005 因為**：不用 tick `momentum_armed` + pullback 兩段式；觸發是 **kbar 級 band flip**，非秒級爆量觸發。
 
@@ -104,35 +113,15 @@
 
 **粗算錨點**：FT-004/005 continuation No-Go（armed 全進）— 本案有 **flip + cooldown** 過濾；預期 n **80–150**；gross 目標 **3–6**（保守）。
 
-**Pre-register 草圖**：ATR period ∈ {10,14} · mult ∈ {2.5,3.0,3.5} · cooldown_bars ∈ {3,6} · session 09:15–12:00。
+**Pre-register 草圖**：見 SPEC §5.0（grid 僅 fingerprint 過後 tune）。
 
-**Falsify**：train flip 後 W30 stop-less median ≤ 0 且 n≥30 → whipsaw 為主 → MVPClosed；Long/Short 單邊 §3.1。
-
----
-
-## P-008 — Bollinger squeeze breakout
-
-**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-28 · **collision**：**high** · **來源**：TradingView BB Breakout
-
-**故事**：5m Bollinger（period 20, σ∈{2,2.5}）**bandwidth < p20**（squeeze）後，**close 突破上軌** + vol_1s > 早盤 p50 → **做多**（09:30–11:30）；下破下軌做空（或 long-only）。
-
-**不是 FT-009 因為**：觸發是 **波動壓縮後擴張**（BB width percentile），非固定 OR 高低點 first break。
-
-**不是 P-006 因為**：P-006 用 midday **窄幅 range**；本案用 **BB bandwidth 分位** + 帶外 close，非 30m box。
-
-**不是 FT-011 因為**：不用 session confluence / OR 堆疊；單一 **squeeze → expansion** 條件鏈。
-
-**碰撞警告**：仍屬 **breakout 整族**（Playbook §4：009/011 train 皆負）；僅在「壓縮→爆發」機制與 OR 不同時才值得 CF。
-
-**粗算錨點**：FT-011 SCB train gross **+0.39** net **−4.61**（n=72）；FT-009 v2.1 train **全負** — 預期 gross **2–4**（不樂觀）；n 估 **50–100**。
-
-**Falsify**：squeeze 子集 net 仍 ≤ 0 → 波動擴張亦無 edge → MVPClosed；勿以 valid 單月 rm30 表面正（SCB overfit 前例）作 Go 依據。
+**Falsify**：0c-1 W30 stop-less median ≤ 0 → **即 MVPClosed**（不扫 mult）；§3.1 long 欄。
 
 ---
 
 ## P-009 — FVG retest pullback
 
-**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-28 · **collision**：med · **來源**：TradingView FVG Pullback / SMC
+**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-28 · **collision**：med · **class 建議**：**skew**
 
 **故事**：5m 偵測到 **同向 BOS** 後留下未 mitigated FVG；價格 **回測 FVG zone**（tick 進 zone 且 1m 量縮）→ **順 BOS 方向**進場（09:15–12:30）。FVG 定義複用 FT-002 §4.7（完全填補才 mitigated）。
 
@@ -156,12 +145,14 @@
 |----|------|------|------|
 | P-001 | **mvpclosed** → FT-012 | 2026-06-28 | train 全負；regime 未救 VSF |
 | P-002 | **rejected** | 2026-06-28 | midday fade = fade 整族變形 |
+| P-008 | **rejected** | 2026-06-28 | breakout 族 + gross 天花板 < friction 5 |
+| P-007 | **human-approved** → FT-013 | 2026-06-28 | mean_robust · SuperTrend flip · long-only Phase 0 |
 
 ---
 
 ## 人類操作
 
-1. 自 **P-004～P-009** **Pick 一個** → `human-approved`（或全否決附原因）
-2. **優先序建議**（Agent 自評）：P-007（低碰撞）≈ P-009（新機制）> P-004/005/006 > **P-008**（breakout 族高碰撞，除非明確想驗 squeeze）
-3. 批准後：「依 Playbook 開 FT-013 `<slug>` Phase 0」
-4. P-003 若要復活：先改 thesis 或明確反駁 §4 fade 整族禁令
+1. **P-007 已批准** → 依 [`FT-013 PLAN`](../../docs/features/supertrend-flip/PLAN.md) 開 Phase **0a** CF + tests
+2. 下一 skew 候選：**P-009**（建議 **FT-014**，不與 FT-013 並行 train）
+3. P-004 / P-005 / P-006 仍 `draft-proposal` — 需另 Pick
+4. **v2.2.1 不復活 FT 屍體** — 見 Holdout §11
