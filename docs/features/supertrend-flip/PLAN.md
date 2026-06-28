@@ -1,7 +1,7 @@
 ---
 id: FT-013
 slug: supertrend-flip
-status: Draft
+status: InProgress
 thesis_class: mean_robust
 proposal_id: P-007
 opened: 2026-06-28
@@ -17,10 +17,22 @@ blockers: []
 ## Phase 0a — Counterfactual（不得跑 train）
 
 - [x] SPEC + PLAN（本檔）
-- [ ] `reporting/supertrend_flip_counterfactual.py`（含 MUST-1/2/3 · funnel · post_entry hook）
+- [ ] `reporting/supertrend_flip_counterfactual.py`（`compute_supertrend_v1` · MUST-1/2/3 · funnel · post_entry hook）
 - [ ] `scripts/ft013_stf_counterfactual.py`（`--fingerprint-only` · `--grid` 子命令或旗標）
-- [ ] `tests/reporting/test_supertrend_flip_counterfactual.py`（partial bar · flip confirm tick · cooldown · 12:00 block）
-- [ ] SPEC §3 / §5.1 與程式逐條對照
+- [ ] `tests/reporting/test_supertrend_flip_counterfactual.py`（見 **§ 優先測試**）
+- [ ] SPEC §3 / §5.0b / §5.1a 與程式逐條對照
+
+### 優先測試（Phase 0a · 對照 SPEC）
+
+| # | Case |
+|---|------|
+| 1 | partial 5m bar **不**產生 flip |
+| 2 | flip 在 bar **收盤後**；**第一個** `tick.close > ST line` 才 entry |
+| 3 | cooldown 內第二次 long flip **忽略** |
+| 4 | **11:45** / **12:00** session 邊界各一 case |
+| 5 | `compute_supertrend_v1` ratchet fixture 與 TV 手算一致 |
+| 6 | payload 含 `slippage_ratio`（MUST-2） |
+| 7 | exit = `simulate_atr_barrier_exit(k_sl=1.0, tp=2.0, max_hold=180)` 與 §5.0b 一致 |
 
 ## Phase 0b — Code review（MUST 先於 train）
 
@@ -34,7 +46,8 @@ blockers: []
 
 ### 0c-1 Fingerprint（**先跑 · 單點參數**）
 
-凍結：`atr_period=10` · `st_mult=3.0` · `cooldown_bars=6` · `k_sl=1.0` · long-only
+凍結：`atr_period=10` · `st_mult=3.0` · `cooldown_bars=6` · `k_sl=1.0` · **`tp_atr_k=2.0`** · long-only  
+**Exit（封印）**：`simulate_atr_barrier_exit(hard_stop_atr_k=1.0, tp_atr_k=2.0, max_hold_sec=180)` · variant **`atr_barrier_180s`**
 
 ```bash
 cd apps/trading-app/src
@@ -42,7 +55,9 @@ python scripts/ft013_stf_counterfactual.py --cache-dir ../../../tick_cache --fin
 ```
 
 **通過線**：n≥30 · **W30 stop-less gross median > 0** · funnel 可解讀  
-**未過** → MVPClosed · **不跑 0c-2**
+**未過** → MVPClosed · **不跑 0c-2**（含 `stf_fingerprint_pass_g1_fail`：W30 過但 grid G1 不過）
+
+> **cache_audit**：預設跳過 — 見 [`CACHE_AUDIT.md`](../../../workspaces/CACHE_AUDIT.md)；backfill 後增量掃即可。
 
 ### 0c-2 Grid（fingerprint 過才跑）
 
