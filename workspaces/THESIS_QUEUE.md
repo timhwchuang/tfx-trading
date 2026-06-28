@@ -12,7 +12,7 @@
 
 | ID | 工作標題 | 狀態 | 本質差異（一句） | 下一步 |
 |----|----------|------|------------------|--------|
-| P-001 | Regime VWAP stretch fade | `draft-proposal` | 非 FT-006：加 **regime 門檻**（波動分位 + 時段），降頻拉高 gross | 等人類 Pick |
+| P-001 | Regime VWAP stretch fade | `mvpclosed` | 非 FT-006：regime + 早盤窗 | FT-012 **MVPClosed** Phase 0 |
 | P-002 | Midday liquidity pause fade | `draft-proposal` | 非 ORB/SCB：針對 **11:00–12:30** 低波動區間假突破 fade | 等人類 Pick |
 | P-003 | Opening gap inventory fade | `draft-proposal` | 非 FT-009：做 **開盤 gap vs 前收** 過度反應，非 opening range breakout | 等人類 Pick |
 
@@ -20,7 +20,7 @@
 
 ## P-001 — Regime VWAP stretch fade
 
-**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-28
+**狀態**：`human-approved` → **`in-cf`** · **提議者**：Agent · **日期**：2026-06-28 · **FT-012**
 
 **故事**：FT-006 證明「無條件 stretch fade」valid 可過但 holdout 掛。假設 edge 只存在 **低波動 regime**（當日 1m realized vol 分位 < p30）且 **早盤**（09:00–10:30），過度延伸後做市商/短線資金會拉回 VWAP。
 
@@ -70,7 +70,7 @@
 
 | ID | 決策 | 日期 | 原因 |
 |----|------|------|------|
-| — | — | — | — |
+| P-001 | **mvpclosed** → FT-012 | 2026-06-28 | train 2025 全負；regime 未救 VSF |
 
 ---
 

@@ -14,6 +14,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **FT-012 MVPClosed（2026-06-28）**：Regime VWAP Stretch Fade — train 2025 全 param net 負；[`gate_report`](workspaces/rvsf-baseline/gate_report.md)。
 - **Alpha Playbook v1.1（2026-06-28）**：Phase 0 拆 **0a 實作 → 0b code review → 0c train**；`THESIS_BRIEF` §I review 欄。
 - **FT-006 MVPClosed v2.1（2026-06-28）**：train 2025 未過（`thesis_c_v21_train_no_go`）；[`gate_report`](workspaces/vsf-baseline/gate_report.md) · v2.1 CF JSON。
 - **Doc sync（2026-06-28）**：雙軌 + CAL-8 放棄收斂 — `strategy_diagnosis` §8.1、`SHARED_ASSUMPTIONS` §2.1、`TODO.md`、`uat/APP.md`、`WeeklyStatus.md` 橫幅；`vwap-momentum` SPEC §6/§7.1 封存；`AGENT_ROSTER` → §8 + archived grid；FT-009 §8 v2.1 train 複驗；FT-011 §9 勾選。
@@ -21,6 +22,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-012 Phase 0（2026-06-28）**：`regime_vwap_stretch_fade_counterfactual.py` · `ft012_*` CLI · `rvsf-baseline/`。
 - **Alpha 研究儀式 v1.0（2026-06-28）**：[`ALPHA_RESEARCH_PLAYBOOK.md`](docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)；[`THESIS_BRIEF.md`](docs/features/_template/THESIS_BRIEF.md)；[`THESIS_QUEUE.md`](workspaces/THESIS_QUEUE.md)（P-001～003 草稿）。
 - **FT-002 MVPClosed（2026-06-28）**：SMC 濾網 CAL-8 / Land **放棄**（綁定 vwap-momentum）；工程 Phase 1–4 凍結。
 - **雙軌共識 + TODO 收斂（2026-06-28）**：[`strategy_diagnosis.md`](workspaces/strategy_diagnosis.md) §8；[`TODO.md`](docs/TODO.md) §已放棄 / §主 focus；Pilot 阻塞至新 alpha。

@@ -137,6 +137,8 @@
 
 **FT-011 結論（2026-06-28）**：Thesis H SCB — 2025 train **未過**（net 負、median 負）；valid Q1 rm30 **overfit_suspect**。見 [`scb-baseline/gate_report.md`](scb-baseline/gate_report.md)。
 
+**FT-012 結論（2026-06-28）**：Thesis I RVSF（P-001）— 2025 train **未過**（全 param net 負；k2_p30 net **−4.25**）；regime 濾網未優於早盤 VSF → **MVPClosed**。見 [`rvsf-baseline/gate_report.md`](rvsf-baseline/gate_report.md)。
+
 ---
 
 ## 8. 雙軌共識（2026-06-28 · 人類 + Agent）
@@ -161,6 +163,7 @@
 | FT-009 | ORB | legacy 過 / **2025 train 負** / holdout 未過 | MVPClosed |
 | FT-010 | VWAP trend pullback | Phase 0 未過 | MVPClosed |
 | FT-011 | Session confluence breakout | Phase 0 未過 | MVPClosed |
+| FT-012 | Regime VWAP stretch fade | Phase 0 未過 | MVPClosed |
 | FT-004～005、007～008 | 各 thesis | MVPClosed 或放棄 | — |
 | **FT-002** trend / SMC 濾網 + CAL-8 | 綁定 vwap-momentum | **放棄**（`structure_filter_enabled` false） |
 

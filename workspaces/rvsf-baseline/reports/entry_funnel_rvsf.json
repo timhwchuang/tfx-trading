@@ -1,0 +1,204 @@
+{
+  "train": {
+    "k2_p25": {
+      "days": 241,
+      "in_morning_window": 241,
+      "regime_ok": 179,
+      "stretch_ok": 83,
+      "entry": 83,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.7427,
+      "stretch_ok_rate": 0.3444,
+      "entry_rate": 0.3444
+    },
+    "k2_p30": {
+      "days": 241,
+      "in_morning_window": 241,
+      "regime_ok": 187,
+      "stretch_ok": 96,
+      "entry": 96,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.7759,
+      "stretch_ok_rate": 0.3983,
+      "entry_rate": 0.3983
+    },
+    "k2_p35": {
+      "days": 241,
+      "in_morning_window": 241,
+      "regime_ok": 196,
+      "stretch_ok": 101,
+      "entry": 101,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.8133,
+      "stretch_ok_rate": 0.4191,
+      "entry_rate": 0.4191
+    },
+    "k2p5_p25": {
+      "days": 241,
+      "in_morning_window": 241,
+      "regime_ok": 179,
+      "stretch_ok": 23,
+      "entry": 23,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.7427,
+      "stretch_ok_rate": 0.0954,
+      "entry_rate": 0.0954
+    },
+    "k2p5_p30": {
+      "days": 241,
+      "in_morning_window": 241,
+      "regime_ok": 187,
+      "stretch_ok": 31,
+      "entry": 31,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.7759,
+      "stretch_ok_rate": 0.1286,
+      "entry_rate": 0.1286
+    },
+    "k2p5_p35": {
+      "days": 241,
+      "in_morning_window": 241,
+      "regime_ok": 196,
+      "stretch_ok": 34,
+      "entry": 34,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.8133,
+      "stretch_ok_rate": 0.1411,
+      "entry_rate": 0.1411
+    },
+    "k3_p25": {
+      "days": 241,
+      "in_morning_window": 241,
+      "regime_ok": 179,
+      "stretch_ok": 6,
+      "entry": 6,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.7427,
+      "stretch_ok_rate": 0.0249,
+      "entry_rate": 0.0249
+    },
+    "k3_p30": {
+      "days": 241,
+      "in_morning_window": 241,
+      "regime_ok": 187,
+      "stretch_ok": 8,
+      "entry": 8,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.7759,
+      "stretch_ok_rate": 0.0332,
+      "entry_rate": 0.0332
+    },
+    "k3_p35": {
+      "days": 241,
+      "in_morning_window": 241,
+      "regime_ok": 196,
+      "stretch_ok": 9,
+      "entry": 9,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.8133,
+      "stretch_ok_rate": 0.0373,
+      "entry_rate": 0.0373
+    }
+  },
+  "valid": {
+    "k2_p25": {
+      "days": 54,
+      "in_morning_window": 54,
+      "regime_ok": 22,
+      "stretch_ok": 12,
+      "entry": 12,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.4074,
+      "stretch_ok_rate": 0.2222,
+      "entry_rate": 0.2222
+    },
+    "k2_p30": {
+      "days": 54,
+      "in_morning_window": 54,
+      "regime_ok": 23,
+      "stretch_ok": 13,
+      "entry": 13,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.4259,
+      "stretch_ok_rate": 0.2407,
+      "entry_rate": 0.2407
+    },
+    "k2_p35": {
+      "days": 54,
+      "in_morning_window": 54,
+      "regime_ok": 28,
+      "stretch_ok": 14,
+      "entry": 14,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.5185,
+      "stretch_ok_rate": 0.2593,
+      "entry_rate": 0.2593
+    },
+    "k2p5_p25": {
+      "days": 54,
+      "in_morning_window": 54,
+      "regime_ok": 22,
+      "stretch_ok": 7,
+      "entry": 7,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.4074,
+      "stretch_ok_rate": 0.1296,
+      "entry_rate": 0.1296
+    },
+    "k2p5_p30": {
+      "days": 54,
+      "in_morning_window": 54,
+      "regime_ok": 23,
+      "stretch_ok": 7,
+      "entry": 7,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.4259,
+      "stretch_ok_rate": 0.1296,
+      "entry_rate": 0.1296
+    },
+    "k2p5_p35": {
+      "days": 54,
+      "in_morning_window": 54,
+      "regime_ok": 28,
+      "stretch_ok": 8,
+      "entry": 8,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.5185,
+      "stretch_ok_rate": 0.1481,
+      "entry_rate": 0.1481
+    },
+    "k3_p25": {
+      "days": 54,
+      "in_morning_window": 54,
+      "regime_ok": 22,
+      "stretch_ok": 3,
+      "entry": 3,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.4074,
+      "stretch_ok_rate": 0.0556,
+      "entry_rate": 0.0556
+    },
+    "k3_p30": {
+      "days": 54,
+      "in_morning_window": 54,
+      "regime_ok": 23,
+      "stretch_ok": 3,
+      "entry": 3,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.4259,
+      "stretch_ok_rate": 0.0556,
+      "entry_rate": 0.0556
+    },
+    "k3_p35": {
+      "days": 54,
+      "in_morning_window": 54,
+      "regime_ok": 28,
+      "stretch_ok": 3,
+      "entry": 3,
+      "in_morning_window_rate": 1.0,
+      "regime_ok_rate": 0.5185,
+      "stretch_ok_rate": 0.0556,
+      "entry_rate": 0.0556
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "from_date": "2025-01-01",
+  "to_date": "2025-12-31",
+  "vsf_morning": {
+    "stretch_k": 2.0,
+    "window": "09:00-10:30",
+    "regime_filter": false,
+    "summary": {
+      "n": 650,
+      "gross_mean": 0.45,
+      "gross_median": -0.01,
+      "net_mean": -4.55,
+      "net_median": -5.01,
+      "gross_total": 294.9,
+      "net_total": -2955.1,
+      "quick_stop_loss_rate": 0.0
+    },
+    "n": 650,
+    "net_total": -2955.09
+  },
+  "note": "Compare RVSF champion in gate_report vs vsf_morning (same window, no regime)",
+  "rvsf_best": {
+    "param": null,
+    "n": 0,
+    "net_total": 0.0,
+    "net_mean": null
+  },
+  "delta": {
+    "net_delta_rvsf_minus_vsf_morning": 2955.09,
+    "rvsf_pass_rate_of_vsf": 0.0
+  }
+}
