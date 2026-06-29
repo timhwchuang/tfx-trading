@@ -67,7 +67,8 @@
 
 | 項目 | 值 |
 |------|-----|
-| outcome | `cfa_fingerprint_fail` |
+| outcome | **`spec_anchor_mismatch`**（canonical · 0-design） |
+| mislabel | `cfa_fingerprint_fail` — 非 fingerprint；見 Playbook §3.1a |
 | funnel | session=241 → compress=**0** → regime=233 → quiet=240 → attack=**236** → entry=**0** |
 | 10–12:30 compress bars | **0 / 36,391** |
 | min 30m range_M | 11.0 pt · 門檻 fingerprint ≈4.5–12 pt |
@@ -91,5 +92,5 @@
 2. **W900**（= hold 900s）与 **W1800**（legacy gate · 文档常称 W30m）**禁止混读** — 见 §Fingerprint 審計  
 3. W900 net median ≤ 0 → 无方向 edge（扣 5 点摩擦）  
 4. **`exit_gap` 大 + W900 正** → 考虑 **exit-led / 新 entry+exit FT**（Playbook §5.2），非 grid 改 k  
-5. **n=0 + compress_gate=0** → `spec_anchor_mismatch`；查 gate_report 驗屍，**禁止** grid 放寬 compress_k 救 n  
+5. **n=0 + compress_gate=0** → **`spec_anchor_mismatch`**；查 [`GATE_COVERAGE_PREFLIGHT.md`](../docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md) 附錄 A · gate_report 驗屍 — **禁止** grid 放寬 compress_k 救 n  
 6. 詳見 Playbook post_entry 附錄規則

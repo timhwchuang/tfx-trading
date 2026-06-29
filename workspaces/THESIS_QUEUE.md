@@ -22,7 +22,7 @@
 | P-007 | SuperTrend flip continuation | **`mvpclosed`** | **continuation** | mean_robust | low | FT-013 · `stf_fingerprint_fail` |
 | P-008 | Bollinger squeeze breakout | `rejected` | **continuation** | — | **high** | breakout 族 · gross 天花板 |
 | P-009 | FVG retest pullback | **`mvpclosed`** → FT-015 | **liquidity** | **skew** | med | W30 med −0 · n=211 |
-| P-010 | Compression flow attack | **`mvpclosed`** → FT-017 | **liquidity** | **skew** | med | `cfa_fingerprint_fail` · n=0 |
+| P-010 | Compression flow attack | **`mvpclosed`** → FT-017 | **liquidity** | **skew** | med | **`spec_anchor_mismatch`** · n=0（mislabel: `cfa_fingerprint_fail`） |
 | P-011 | Gap up drive trail | `draft-proposal` → FT-018 | **continuation** | **skew** | med | **0-design PASS** · 待 Pick → [`PLAN` Phase 0a prompt](../../docs/features/gap-up-drive-trail/PLAN.md) |
 | P-012 | Sweep FVG breakout trail | `draft-proposal` → FT-019 | **liquidity** | **skew** | med | **0-design PASS** · 待 Pick → [`PLAN`](../../docs/features/sweep-fvg-breakout-trail/PLAN.md) |
 
@@ -126,7 +126,7 @@
 
 ## P-010 — Compression flow attack → **FT-017**（**MVPClosed**）
 
-**狀態**：**`mvpclosed`** · **outcome**：`cfa_fingerprint_fail` · **class**：**skew** · [`gate_report`](cfa-baseline/gate_report.md)
+**狀態**：**`mvpclosed`** · **outcome**：**`spec_anchor_mismatch`**（canonical）· mislabel `cfa_fingerprint_fail` · **class**：**skew** · [`gate_report`](cfa-baseline/gate_report.md)
 
 **0c-1（2026-06-28）**：train n=**0** · W30 med **—** · funnel session=241 → compress=**0** → regime=233 → quiet=240 → attack=236 → entry=**0** · **瓶頸**：attack 觸發時 `signal_1m` 從未 compress_pass（封印 A 同時評估）· **grid 跳過**。
 
@@ -187,7 +187,7 @@
 | P-004 | **mvpclosed** → FT-014 | 2026-06-28 | train n=7 · `mvhp_fingerprint_fail` · grid 跳過 |
 | P-009 | **mvpclosed** → FT-015 | 2026-06-28 | W30 med −0 · n=211 · `frp_fingerprint_fail` |
 | P-005 | **mvpclosed** → FT-016 | 2026-06-28 | fingerprint W30 +13 · grid G1 fail · valid net−9 |
-| P-010 | **mvpclosed** → FT-017 | 2026-06-28 | n=0 · compress@trigger 瓶頸 · `cfa_fingerprint_fail` |
+| P-010 | **mvpclosed** → FT-017 | 2026-06-28 | n=0 · compress@trigger · **`spec_anchor_mismatch`** |
 
 ---
 

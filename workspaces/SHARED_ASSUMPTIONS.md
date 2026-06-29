@@ -2,7 +2,7 @@
 
 | 欄位 | 值 |
 |------|-----|
-| **版本** | **v1.6** |
+| **版本** | **v1.7** |
 | **更新日期** | 2026-06-28 |
 
 > **SSOT**：所有調參 agent **開工前 MUST 讀**；`grid.json` 邊界與 `analysis.md` 假說須與本檔一致。  
@@ -183,16 +183,24 @@ friction:
 
 **合併 config 時**：若 conservative 提高 `min_atr_threshold` 而 execution 放寬 `ioc_slippage_points`，須在 peer_review 註明是否邏輯衝突。
 
-## 8. 引用
+## 8. 新 thesis Gate Coverage Preflight（v1.7 · FT-011+ Alpha · MUST）
+
+- **SSOT**：[`GATE_COVERAGE_PREFLIGHT.md`](../docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md) · Playbook v1.6 §0-design-3 · THESIS_BRIEF §E.4
+- **順序**：Preflight **PASS** → `human-approved` → 0-design PASS → Phase 0a
+- **違反** preflight（核心 gate 觸發率 &lt;1% / &gt;95%、隱含 n 不足、baseline 欄位未映射）= **invalid thesis** — 類比 FT-003 invalid grid；Agent **不得**跳過
+- **upstream gate=0**：outcome = **`spec_anchor_mismatch`**（0-design）— **禁止** `*_fingerprint_*`、禁止 0a（漏網則立即停止 CF）
+
+## 9. 引用
 
 - Agent 編制：[`docs/features/ai-backtest-tuning/AGENT_ROSTER.md`](../docs/features/ai-backtest-tuning/AGENT_ROSTER.md)
 - Overfitting 協議：[`SPEC.md`](../docs/features/ai-backtest-tuning/SPEC.md) §4
 - 交易員身份：[`prompts/roles/senior-trading-professional.md`](../prompts/roles/senior-trading-professional.md)
 
-## 9. 版本紀錄
+## 10. 版本紀錄
 
 | 版本 | 日期 | 變更 |
 |------|------|------|
+| v1.7 | 2026-06-28 | §8 Gate Coverage Preflight · invalid thesis（FT-017 教訓） |
 | v1.0 | 2026-06-26 | 初版 |
 | v1.1 | 2026-06-26 | TMFR1 摩擦 5 點/趟（手續費 30 + 稅 20 NTD）上線；KPI 以 net 為準 |
 | v1.2 | 2026-06-27 | §4.1 停損停利 ATR/range 尺度；2026-01～05 實證表；連結 Phase 3.6 診斷 |

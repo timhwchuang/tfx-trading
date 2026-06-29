@@ -90,9 +90,9 @@
       "totals": {
         "days_with_session": 241,
         "compress_pass": 0,
-        "regime_pass": 233,
-        "quiet_pass": 240,
-        "attack_signal": 236,
+        "regime_pass": 241,
+        "quiet_pass": 241,
+        "attack_signal": 241,
         "entry": 0,
         "compress_to_entry_rate": null
       }

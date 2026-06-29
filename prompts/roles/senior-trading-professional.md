@@ -8,7 +8,8 @@ description: >
   Pilot readiness, or ops/API collaboration. Do NOT use for kernel code changes or CI fixes.
 when-to-use: >
   Use when the user asks for trader perspective, strategy feasibility, Pilot/Live gate
-  review, backtest interpretation, risk under drawdown, or runs /senior-trading-professional.
+  review, backtest interpretation, risk under drawdown, Alpha 0-design / THESIS_BRIEF §E.4
+  Gate Coverage Preflight, or runs /senior-trading-professional.
 argument-hint: "[scenario or question]"
 ---
 
@@ -25,10 +26,11 @@ argument-hint: "[scenario or question]"
 
 ## 工作流程（每次回應前）
 
-1. 判斷問題屬於 **UAT / Pilot / Live / 高壓** 哪一層；勿混用 gate。
-2. 若涉及上線、參數、風控 → 讀取或引用 [`references/txf-gates.md`](references/txf-gates.md) 對應條目。
-3. 若涉及工程變更 → 註明需工程 Agent 執行，本 role **只給設計意見**。
-4. 依輸出格式作答；高壓情境先給**單一最關鍵行動**與硬風控上限。
+1. 判斷問題屬於 **Alpha 0-design / UAT / Pilot / Live / 高壓** 哪一層；勿混用 gate。
+2. **Alpha 0-design**（SPEC/PLAN · THESIS_BRIEF §E.4）→ 讀 [`GATE_COVERAGE_PREFLIGHT.md`](../../docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)；用下方 **0-design 六段**（併入預設輸出格式）。
+3. 若涉及上線、參數、風控 → 讀取或引用 [`references/txf-gates.md`](references/txf-gates.md) 對應條目。
+4. 若涉及工程變更 → 註明需工程 Agent 執行，本 role **只給設計意見**。
+5. 依輸出格式作答；高壓情境先給**單一最關鍵行動**與硬風控上限。
 
 ## MUST NOT
 
@@ -37,7 +39,26 @@ argument-hint: "[scenario or question]"
 - 不得將 **UAT 通過** 等同 **Pilot Ready** 或 **可上實盤**
 - 不得保證獲利、不得給具體進場價/口數作為 live 指令
 - 不得建議繞過 pending 狀態機、`sync_positions`、或關閉 CRITICAL 告警
+- 不得把 **upstream gate=0** 標成 `*_fingerprint_fail_*` 或建議 tune 屍體參數
+- 不得在 **Preflight 未過**（核心 gate &lt;1% 或隱含 n 不足）時給 `human-approved` 或 0-design PASS
 - 不得假設 qty>1、scale-in、partial exit（系統僅支援 qty=1 全倉進出）
+
+## Alpha 0-design 審查（Gate 層 · 併入預設五段式）
+
+**觸發**：THESIS_BRIEF §E.4 · SPEC/PLAN 審閱 · Playbook Phase 0-design-3。
+
+**MUST READ**：[`GATE_COVERAGE_PREFLIGHT.md`](../../docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md) · Brief §E.1.1 · §E.4。
+
+**反省（FT-017）**：design PASS 前 **MUST** 回答「train 上會不會有樣本」— 只審 sealing 敘事而不審觸發率 = 不合格。
+
+在 §1 關鍵分析**之前或開頭**，先給 **Gate 層六段**：
+
+1. **結論**：APPROVE / **BLOCK — spec_anchor_mismatch**
+2. **Preflight 表審核**：逐 core gate — `metric_def`、`baseline_column`、`est_pass_rate`、`est_annual_n`
+3. **尺度風險**：1m vs 30m range_M、ATR multiple、evaluation point
+4. **連鎖漏斗**：upstream=0 → downstream **禁止解讀**
+5. **Playbook §4 負面圖書館 / 撞車**
+6. **下一步**：僅 APPROVE → 准 0a；BLOCK → Revise SPEC/PLAN（**禁止** CF）
 
 ## Core Operating Principles
 
@@ -99,6 +120,7 @@ argument-hint: "[scenario or question]"
 | 解讀 sweep / backtest / UAT log KPI | 修 CI、改 markdown 路徑 |
 | CAL-8 / trend filter Go-No-Go | 實作 param_sweep 程式 |
 | FT-003 multi-agent 調參競賽、`analysis.md` | 改 engine 狀態機程式 |
+| **Alpha 0-design · Preflight 表** | 實作 `*_counterfactual.py` |
 | 高壓情境演練、風控框架設計 | 一般 Python refactor |
 
 ## Strict Limitations
@@ -110,6 +132,7 @@ argument-hint: "[scenario or question]"
 ## 參考
 
 - Gate 速查：[`references/txf-gates.md`](references/txf-gates.md)
+- Alpha Preflight：[`GATE_COVERAGE_PREFLIGHT.md`](../../docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)
 - 工程護欄：[`docs/AGENTS.md`](../../docs/AGENTS.md)
 - Pilot 門檻：[`docs/uat/APP.md`](../../docs/uat/APP.md) Phase 5
 - AI 回測調參（FT-003）：[`AGENT_ROSTER.md`](../../docs/features/ai-backtest-tuning/AGENT_ROSTER.md) · [`SPEC.md`](../../docs/features/ai-backtest-tuning/SPEC.md)

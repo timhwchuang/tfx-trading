@@ -23,7 +23,7 @@
 | FT-014 | [morning-vwap-hold-pullback](morning-vwap-hold-pullback/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | [`mvhp_fingerprint_fail`](../../workspaces/mvhp-baseline/gate_report.md) · n=7 · W30 med +38 |
 | FT-015 | [fvg-retest-pullback](fvg-retest-pullback/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | [`frp_fingerprint_fail`](../../workspaces/fvg-baseline/gate_report.md) · n=211 · W30 −0 |
 | FT-016 | [gap-drive-continuation](gap-drive-continuation/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | [`gdc_fingerprint_pass_g1_fail`](../../workspaces/gdc-baseline/gate_report.md) · W30 +13 · G1 fail |
-| FT-017 | [compression-flow-attack](compression-flow-attack/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | [`cfa_fingerprint_fail`](../../workspaces/cfa-baseline/gate_report.md) · n=0 · compress@trigger 瓶頸 |
+| FT-017 | [compression-flow-attack](compression-flow-attack/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | **`spec_anchor_mismatch`** · n=0 · compress 錨點錯位 · [`gate_report`](../../workspaces/cfa-baseline/gate_report.md) |
 | FT-018 | [gap-up-drive-trail](gap-up-drive-trail/SPEC.md) | **Draft** | 2026-06-28 | Alpha P0 | [SPEC](gap-up-drive-trail/SPEC.md) · [PLAN](gap-up-drive-trail/PLAN.md) · P-011 **`draft-proposal`** · exit-led |
 | FT-019 | [sweep-fvg-breakout-trail](sweep-fvg-breakout-trail/SPEC.md) | **Draft** | 2026-06-29 | Alpha P0 | [SPEC](sweep-fvg-breakout-trail/SPEC.md) · [PLAN](sweep-fvg-breakout-trail/PLAN.md) · P-012 **`draft-proposal`** · sweep+FVG trail |
 

@@ -49,7 +49,7 @@
 | 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
 | MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
 | Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
-| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · **[`ALPHA_RESEARCH_PLAYBOOK.md`](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)**（Alpha 儀式） · **[`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)**（策略 thesis gate） · [`workspaces/THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) · [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) · [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
+| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · **[`ALPHA_RESEARCH_PLAYBOOK.md`](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)**（Alpha 儀式） · **[`GATE_COVERAGE_PREFLIGHT.md`](features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)**（0-design Preflight） · **[`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)**（策略 thesis gate） · [`workspaces/THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) · [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) · [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
 | 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
 | tick_cache 品質稽核 / 修復 | [`workspaces/CACHE_AUDIT.md`](../workspaces/CACHE_AUDIT.md)（何時重跑）；`storage.cache_audit` / `storage.cache_repair` |
 
@@ -83,7 +83,7 @@
 | FT-014 | morning-vwap-hold-pullback | **MVPClosed** | [SPEC](features/morning-vwap-hold-pullback/SPEC.md) · [`mvhp_fingerprint_fail`](../workspaces/mvhp-baseline/gate_report.md) |
 | FT-015 | fvg-retest-pullback | **MVPClosed** | [SPEC](features/fvg-retest-pullback/SPEC.md) · [`frp_fingerprint_fail`](../workspaces/fvg-baseline/gate_report.md) |
 | FT-016 | gap-drive-continuation | **MVPClosed** | [SPEC](features/gap-drive-continuation/SPEC.md) · `gdc_fingerprint_pass_g1_fail` |
-| FT-017 | compression-flow-attack | **MVPClosed** | [SPEC](features/compression-flow-attack/SPEC.md) · `cfa_fingerprint_fail` |
+| FT-017 | compression-flow-attack | **MVPClosed** | [SPEC](features/compression-flow-attack/SPEC.md) · **`spec_anchor_mismatch`**（mislabel: `cfa_fingerprint_fail`） |
 | FT-018 | gap-up-drive-trail | **Draft** | [SPEC](features/gap-up-drive-trail/SPEC.md) · [PLAN](features/gap-up-drive-trail/PLAN.md) · P-011 exit-led |
 | FT-019 | sweep-fvg-breakout-trail | **Draft** | [SPEC](features/sweep-fvg-breakout-trail/SPEC.md) · [PLAN](features/sweep-fvg-breakout-trail/PLAN.md) · P-012 |
 

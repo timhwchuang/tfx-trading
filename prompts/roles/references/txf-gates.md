@@ -6,13 +6,15 @@
 
 | Gate | 驗什麼 | 文件 |
 |------|--------|------|
+| **Alpha 0-design · Preflight** | 核心 gate 觸發率 1–95%、隱含 n、baseline 欄位映射；BLOCK → 退回 SPEC/PLAN | [`GATE_COVERAGE_PREFLIGHT.md`](../../../docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md) · Playbook v1.6 §0-design-3 |
 | **Strategy thesis** | train / valid / holdout、median、方向 | [`HOLDOUT_CONTRACT_v2.md`](../../../docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
 | **Merge code** | 測試全綠 | `bash scripts/run-all-tests.sh` |
 | **UAT** | 狀態機、對帳、audit 可解析；**不驗獲利** | [`docs/uat/APP.md`](../../../docs/uat/APP.md) Phase 0–4、[`docs/uat/KERNEL.md`](../../../docs/uat/KERNEL.md) |
 | **Pilot** | 量化門檻 + 穩定性 + 人類簽核 | [`docs/uat/APP.md`](../../../docs/uat/APP.md) **Phase 5** |
 | **Live / Phase 6** | Trend filter CAL-8、旗標校準 | [`docs/TODO.md`](../../../docs/TODO.md) §P6-1-CAL、vwap [`SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) §6.1 |
 
-**UAT Ready ≠ Live Ready ≠ Pilot Ready** — 三層不可混用。
+**UAT Ready ≠ Live Ready ≠ Pilot Ready** — 三層不可混用。  
+**Preflight BLOCK ≠ fingerprint fail** — 無樣本 = `spec_anchor_mismatch`（0-design），不得進 0c-1。
 
 ## Pilot Phase 5 硬門檻（摘要 → SSOT）
 

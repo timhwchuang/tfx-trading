@@ -14,6 +14,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **Alpha Playbook v1.6（2026-06-28）**：Gate Coverage Preflight（§0-design-3）· §3.1a 0-design outcomes · Preflight→human-approved 順序 · FT-017 負面圖書館；新建 [`GATE_COVERAGE_PREFLIGHT.md`](docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)；[`THESIS_BRIEF`](docs/features/_template/THESIS_BRIEF.md) §E.1.1/E.4/G 分層；[`senior-trading-professional`](prompts/roles/senior-trading-professional.md) Alpha 0-design 六段；[`SHARED_ASSUMPTIONS`](workspaces/SHARED_ASSUMPTIONS.md) v1.7 §7 invalid thesis；FT-017 outcome 統一 **`spec_anchor_mismatch`**（mislabel `cfa_fingerprint_fail`）。
 - **Alpha Playbook v1.5（2026-06-28）**：§3.1b fingerprint 窗對齊 · outcome 拆分 · §5.2 exit-led 路徑；[`THESIS_BRIEF`](docs/features/_template/THESIS_BRIEF.md) §D.1/F.1/G；[`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §Fingerprint 審計。
 - **FT-017 MVPClosed 驗屍（2026-06-28）**：compress 錨點錯位 — 全年 0 compress bar · [`gate_report`](workspaces/cfa-baseline/gate_report.md) · [`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §FT-017。
 - **FT-017 Phase 0b（2026-06-28）**：Bugbot 5 findings 修復 — attack_signal 與 compress/regime 解耦 · 僅合格 entry 停止掃描 · entry_ts<12:30 · per-second vol_1s p50/p60 · quiet 窗含零量秒。Gap drive continuation skew — fingerprint W30 med **+13**（n=79）· grid 36/36 G1 fail · valid net **−9.28** → `gdc_fingerprint_pass_g1_fail`；[`gate_report`](workspaces/gdc-baseline/gate_report.md)。

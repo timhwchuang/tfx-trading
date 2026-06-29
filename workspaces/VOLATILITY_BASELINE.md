@@ -257,6 +257,20 @@
 
 tick close price level is NOT minute range in points; volume is contracts not price amplitude
 
+### E.2 單根 1m range vs 30m range_M（Alpha 設計 · FT-017 教訓）
+
+| 指標 | 典型量級（10:00–12:30 · train 2025） | 誤用後果 |
+|------|--------------------------------------|----------|
+| **單根 `range_1m` p50** | ~9–12 pt | 敘事「死魚 ~12pt」常錨這裡 |
+| **30×1m `range_M`**（maxHigh−minLow） | min ~11 pt · **range_M/ATR p50 ≈ 5.32** | MUST-1 若用此聚合，門檻 `compress_k×ATR` 須同尺度 |
+| **設計隱含**（錯例） | `compress_k=0.45` → 門檻 ~4.5 pt | **0 / 36,391** bars 通過 compress |
+
+**規則**：SPEC 寫 compress／箱體時 **MUST** 標 `range_aggregate` 或 `range_1m`，並填 THESIS_BRIEF §E.1.1 — 見 [`GATE_COVERAGE_PREFLIGHT.md`](../docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)。
+
+### E.3 Alpha 設計引用
+
+新 thesis 參數錨點 **MUST** 通過 Gate Coverage Preflight（Playbook v1.6 · SHARED_ASSUMPTIONS v1.7）。違反 = **invalid thesis**。
+
 ---
 
 ## F. 機器可讀

@@ -249,6 +249,7 @@ design_review: senior-trader 2026-06-28 — PASS (P0 sealed)
 | 結論 | **P0 sealed** — 准 **Phase 0a** |
 | 檢查項 | `exhaustion_vol` 未用作死魚 ✅ · `min_stop_pts=8` ✅ · 10:00–12:30 與 FT-016 錯開 ✅ · skew §E.3 ✅ · fingerprint 先於 grid ✅ · 封印 A/B 已寫入 MUST-1/2 |
 | 備註 | Pilot 前 P6-5 追價路徑 + tick 分層；0c 不驗執行 |
+| **事後教訓** | compress=0 → **`spec_anchor_mismatch`**（非 fingerprint）— 見 [`GATE_COVERAGE_PREFLIGHT.md`](../ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md) 附錄 A；應 Preflight 擋下 |
 
 ## 9. CF code review（§I · Phase 0b · train 前必填）
 

@@ -1,8 +1,8 @@
 # Thesis Brief（FT-012+ 必填 · Pre-register）
 
 > 複製本檔內容到 `docs/features/<slug>/SPEC.md` §1–§3。  
-> **CF 開跑前** queue 狀態 MUST 為 `human-approved`。  
-> Playbook：[`ALPHA_RESEARCH_PLAYBOOK.md`](../ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)
+> **Preflight PASS**（§E.4）後 queue 狀態才可為 **`human-approved`**。  
+> Playbook：[`ALPHA_RESEARCH_PLAYBOOK.md`](../ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · Preflight SSOT：[`GATE_COVERAGE_PREFLIGHT.md`](../ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)
 
 ---
 
@@ -59,6 +59,14 @@
 
 **規則**：若新 thesis 預期 gross 比錨點高 **>3 點** 且無新進場機制，人類應 **Reject** 不進 CF。
 
+#### E.1.1 Baseline 欄位映射（MUST · 每核心 gate）
+
+> SSOT：[`GATE_COVERAGE_PREFLIGHT.md`](../ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md) §3 · [`VOLATILITY_BASELINE.md`](../../../workspaces/VOLATILITY_BASELINE.md)
+
+| gate / 參數 | metric 類型 | baseline 欄位或手算來源 | 備註 |
+|-------------|-------------|-------------------------|------|
+| ___ | `range_aggregate` / `atr_multiple` / … | 例：`range_1m.p50` · `vol_1s` threshold_coverage | **禁止**僅 narrative |
+
 ## E.2 進場機制標籤（MUST 勾一）
 
 - [ ] **Continuation**（順勢 / breakout 後持有）
@@ -86,6 +94,23 @@
 
 **Skew 禁止**：fade 整族 · 舊 FT 換皮 · 固定 6 點主 stop。
 
+### E.4 Gate Coverage Preflight（MUST · human-approved 之前）
+
+> 方法：[`GATE_COVERAGE_PREFLIGHT.md`](../ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)  
+> **BLOCK** → `design-revise` / `design-closed` — **禁止** 0a 與 fingerprint。
+
+| gate_id | metric_def | baseline_column | threshold | est_pass_rate_train | est_annual_n | core? | verdict |
+|---------|------------|-----------------|-----------|---------------------|--------------|-------|---------|
+| ___ | ___ | ___ | ___ | ___% | ___ | Y/N | PASS/BLOCK |
+
+**硬規則**：任一 **core** gate 觸發率 &lt;1% 或 &gt;95% → BLOCK；`est_annual_n` &lt; 15（mean_robust）或 &lt; 8（skew）→ BLOCK。
+
+| Preflight 整案 | |
+|----------------|--|
+| 結果 | PASS / BLOCK |
+| 日期 | |
+| 審核 | Agent 填表 · Senior/人類 簽數字 |
+
 ## F. Pre-register grid（僅 2025 train）
 
 | 參數 | 值 / 範圍 |
@@ -101,19 +126,34 @@
 
 **封印**：valid `2026-01-01`～`2026-03-31`、holdout `2026-04-01`～`2026-06-30` — **不得**依結果增刪參。
 
+**前提**：§E.4 Preflight **PASS** 且 entry 路徑可產生樣本 — 否則 **不適用** 本節 fingerprint outcome。
+
 ## G. Falsify 條件（什麼結果算 thesis 錯了）
+
+### G.1 0-design（Preflight · 退回 SPEC/PLAN）
+
+| Outcome | 條件 | 處置 |
+|---------|------|------|
+| **`spec_anchor_mismatch`** | 錨點／尺度錯位；核心 gate 不可達；upstream=0 | **Revise SPEC/PLAN** 或 **`design-closed`** — **禁止** fingerprint |
+| └ 備註子類 | 例：`compress_gate_unreachable` | 同上 |
+
+### G.2 Train / valid（0c 之後）
 
 - train net ≤ 0 → MVPClosed
 - train 過、valid net ≤ 0 → `overfit_suspect`
 - mean_robust：median / 單邊 → §3.1
 - skew：G-SK1–SK5 任一未過 → disqualify；valid net≤0 → **不得 holdout**；holdout H3S/H4S 未過 → MVPClosed
-- **Fingerprint outcome（0c-1 · 細分 · 新 FT MUST）**：
-  - `*_fingerprint_fail_direction` — n 達下限 · 封印窗 median ≤ 0
-  - `*_fingerprint_fail_n` — 方向可正 · **n 未達** G3/G3S
-  - `*_fingerprint_pass_g1_fail` — 0c-1 過 · grid G1/G2 不過
+
+### G.3 Fingerprint outcome（0c-1 only · 前提：§E.4 PASS 且 n&gt;0 路徑）
+
+- `*_fingerprint_fail_direction` — n 達下限 · 封印窗 median ≤ 0
+- `*_fingerprint_fail_n` — 方向可正 · **n 未達** G3/G3S
+- `*_fingerprint_pass_g1_fail` — 0c-1 過 · grid G1/G2 不過
 - ___
 
 ## H. 人類簽核（queue · human-approved）
+
+> **MUST**：§E.4 Preflight **PASS** 後才可 `approved`。
 
 | 欄位 | 值 |
 |------|-----|
@@ -130,7 +170,7 @@
 | 審閱方式 | 人類 / 資深 TXF / Bugbot（SPEC+PLAN only） |
 | 審閱日期 | |
 | 審閱檔案 | `docs/features/<slug>/SPEC.md` · `PLAN.md` |
-| 結果 | PASS / Revise / blocked |
+| 結果 | PASS / Revise / **blocked — spec_anchor_mismatch** |
 | P0/P1 修正 | （摘要 · 須併入 SPEC 後才 0a） |
 
 ## I. CF code review（Phase 0b · train 前必填）

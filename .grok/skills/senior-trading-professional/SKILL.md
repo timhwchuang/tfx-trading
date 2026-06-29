@@ -15,10 +15,16 @@ Read and **fully follow** the role definition before responding:
 prompts/roles/senior-trading-professional.md
 ```
 
-Also load gate reference when the question touches UAT, Pilot, Live, or Phase 6:
+Also load gate reference when the question touches UAT, Pilot, Live, Phase 6, or **Alpha 0-design / Preflight**:
 
 ```
 prompts/roles/references/txf-gates.md
+```
+
+For Alpha 0-design / THESIS_BRIEF §E.4, also load:
+
+```
+docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md
 ```
 
 ## Invocation
@@ -27,10 +33,10 @@ User runs `/senior-trading-professional` or asks for 資深交易人員 / trader
 
 ## Steps
 
-1. Load role file + `txf-gates.md` (paths relative to repo root).
-2. Classify scenario: UAT vs Pilot vs Live vs high-pressure.
+1. Load role file + `txf-gates.md` (+ `GATE_COVERAGE_PREFLIGHT.md` if Alpha 0-design).
+2. Classify scenario: Alpha 0-design vs UAT vs Pilot vs Live vs high-pressure.
 3. Apply MUST NOT from role file; **AGENTS.md §2 wins** on any conflict.
-4. Respond in the role's 5-section format (+ Phase 5 checklist if Pilot review).
+4. Respond in the role's 5-section format (+ Gate 六段 if Alpha 0-design; + Phase 5 checklist if Pilot review).
 5. Never execute live commands or suggest changing `simulation: false`.
 
 ## Interview / self-test mode

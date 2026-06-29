@@ -1,7 +1,7 @@
 ---
 id: ALPHA-PLAYBOOK
 slug: alpha-research-playbook
-version: 1.5
+version: 1.6
 status: Active
 opened: 2026-06-28
 owner: human+agent
@@ -35,24 +35,28 @@ applies_to: FT-012+
 
 - Agent 的強項：讀遍 `strategy_diagnosis`、`gate_report`、funnel，**系統性避開已死路徑**，產出可 falsify 的假說草稿。
 - Agent 的弱項：沒有你的盤感與風險偏好；回測外推 ≠ 真實 queue；容易在已知族內變形（ORB+1 條件）而非新 thesis。
-- **規則**：任何 CF / 程式碼之前，queue 該列 MUST **`human-approved`**，且 **Phase 0-design 審閱 PASS**（SPEC §8 + PLAN 勾選）；`owner` 含人類簽核日期。
+- **規則**：任何 CF / 程式碼之前，queue 該列 MUST **§E.4 Preflight PASS** → **`human-approved`** → **Phase 0-design 審閱 PASS**（SPEC §8 + PLAN 勾選）；`owner` 含人類簽核日期。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[Agent 草稿提案] --> B[THESIS_QUEUE]
   B --> C{人類 Pick?}
   C -->|否| D[rejected 歸檔]
-  C -->|是| E[SPEC + PLAN 草稿]
-  E --> DR{Phase 0-design<br/>審閱 PASS?}
+  C -->|是| E[SPEC + PLAN + E.4 Preflight]
+  E --> PF{核心 gate 1-95%<br/>且隱含 n OK?}
+  PF -->|BLOCK| DR2[design-revise / design-closed]
+  DR2 --> E
+  PF -->|PASS| HA[human-approved]
+  HA --> DR{0-design 審閱 PASS?}
   DR -->|Revise| E
-  DR -->|否| D2[blocked]
+  DR -->|blocked| D2[spec_anchor_mismatch]
   DR -->|是| F[Phase 0a CF + tests]
-  F --> R{Phase 0b<br/>Code review?}
+  F --> R{Phase 0b Code review?}
   R -->|未過| F
   R -->|過| T[0c train CF]
-  T --> G{2025 train}
+  T --> G{2025 train / fingerprint}
   G -->|未過| H[MVPClosed]
-  G -->|過| I[valid 對照 → plugin → holdout]
+  G -->|過| I[valid → plugin → holdout]
 ```
 
 **實務建議（知識差距大時）**
@@ -70,7 +74,7 @@ flowchart LR
 - [ ] Agent 或人類填 [`THESIS_BRIEF.md`](../_template/THESIS_BRIEF.md)（可併入 SPEC §1–§3）
 - [ ] 更新 [`THESIS_QUEUE.md`](../../../workspaces/THESIS_QUEUE.md) 一列
 - [ ] **撞車檢查**：與 §4 負面圖書館 + §8.2 策略表；寫明「不是 FT-00x 因為…」
-- [ ] 人類狀態 → **`human-approved`**
+- [ ] **§E.4 Gate Coverage Preflight** — 見 [`GATE_COVERAGE_PREFLIGHT.md`](GATE_COVERAGE_PREFLIGHT.md)；**PASS 後**人類狀態 → **`human-approved`**
 
 ### Phase 0-design — SPEC/PLAN 審閱（**MUST 先於 0a 實作**）
 
@@ -94,6 +98,7 @@ flowchart LR
 
 **審閱 MUST 對照（Alpha CF）**
 
+- [ ] **§E.4 Preflight PASS**（或明確 BLOCK → 退回 SPEC/PLAN，不進 0a）
 - [ ] 進場觸發可程式化、無 lookahead 歧義
 - [ ] Pre-register grid **僅** train 窗；valid/holdout 日期封印
 - [ ] Phase 0 exit sim（variant · `max_hold_sec` · 摩擦）寫死
@@ -110,6 +115,17 @@ flowchart LR
 - [ ] **此時才准** 進入 Phase 0a
 
 **MUST NOT**：審閱 PASS 前實作 `*_counterfactual.py`、跑 0c train、或將 queue 標 `in-cf`。
+
+### Phase 0-design-3 — Gate Coverage Preflight（**MUST 先於 human-approved**）
+
+> **SSOT**：[`GATE_COVERAGE_PREFLIGHT.md`](GATE_COVERAGE_PREFLIGHT.md) · Brief §E.4  
+> **教訓（FT-017）**：compress=0 → entry=0 — **不是** fingerprint 失敗；應在 SPEC 階段 `spec_anchor_mismatch`，不得跑 21min CF 再驗屍。
+
+- [ ] 每 **core** MUST gate：`metric_def` · `baseline_column` · `est_pass_rate_train` · `est_annual_n`
+- [ ] Bar 率 **1%–95%**；隱含 n ≥ 15（mean_robust）或 ≥ 8（skew）— 否則 **BLOCK**
+- [ ] Senior / 人類審 **數字**（非 sealing 敘事 alone）
+- [ ] **BLOCK** → queue `design-revise` 或 `design-closed` — **禁止** `human-approved`、0a、`*_fingerprint_*`
+- [ ] **0a 漏網**（upstream gate=0）→ 立即停止；outcome=`spec_anchor_mismatch`；**禁止** 0c-1
 
 ### Phase 0 — Counterfactual only（主戰場）
 
@@ -197,7 +213,21 @@ PASS 後更新 `CACHE_AUDIT.md` stamp。
 
 **設計日檢**：mean_robust 粗算 n≥30；skew 粗算 n≥15 且寫清 payoff 故事。**禁止**用 skew 標籤復活 MVPClosed FT（§11）。
 
-### 3.1b Fingerprint 契約（v1.5 · FT-012+ 0c-1）
+### 3.1a 0-design outcomes（v1.6 · Preflight / 設計不可達）
+
+> **與 §3.1b fingerprint 分表** — 無進場樣本時 **不得** 使用 fingerprint outcome。
+
+| Outcome | 階段 | 前提 | 下一步 |
+|---------|------|------|--------|
+| **`spec_anchor_mismatch`** | **0-design** | 錨點／尺度／核心 gate 不可達 | Revise SPEC/PLAN 或 **`design-closed`** |
+| └ 備註子類 | 0-design | 例：`compress_gate_unreachable` | 同上 |
+| `cfa_fingerprint_fail`（FT-017 等） | — | **mislabel** | → **`spec_anchor_mismatch`** |
+
+**新案** upstream core gate=0 → **`design-closed`**，**不得**標 `MVPClosed`。已跑完 CF 的歷史案可保留 MVPClosed **事實**，但文件 canonical = `spec_anchor_mismatch`。
+
+### 3.1b Fingerprint 契約（v1.5+ · FT-012+ 0c-1）
+
+> **前提（v1.6 MUST）**：§E.4 Preflight PASS **且** entry 路徑已產生樣本（n&gt;0 路徑）。否則見 §3.1a。
 
 **SSOT**：SPEC §5.0c · [`THESIS_BRIEF`](../_template/THESIS_BRIEF.md) §F.1。
 
@@ -239,6 +269,7 @@ PASS 後更新 `CACHE_AUDIT.md` stamp。
 | ORB | 009 | 2025 train 全負 | 無新編號 ORB 掃參 |
 | VWAP pullback | 010 | n≪30 | 低頻 pullback |
 | Session confluence | 011 | train 負 | SCB/OR 堆條件 |
+| **壓縮尺度錯位** | **017** | **`spec_anchor_mismatch` · n=0** | 30m compress 用 1m range 敘事；**tune `compress_k` rescue** |
 | Trend / SMC 濾網 | 002 | 放棄 | CAL-8、filter on |
 
 SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §6–§8.2 · 各 `workspaces/*/gate_report.md`。
@@ -265,6 +296,7 @@ SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.m
 4. **Post-entry 預判**：若 thesis 是 fade，註明「若 W30 stop-less median 仍 < 摩擦 → 整族放棄，不調 exit」
 5. **人類 Pick 前**：Agent 自評每案 `collision_risk: low|med|high`；high 預設不進 queue 或標 `draft-hold`
 6. **Thesis class**：低頻厚尾 MUST 標 `skew` + THESIS_BRIEF §E.3；其餘預設 `mean_robust`（v2.2）
+7. **Gate Coverage Preflight**：§E.4 表 + [`GATE_COVERAGE_PREFLIGHT.md`](GATE_COVERAGE_PREFLIGHT.md) — **human-approved 之前**；BLOCK 不得 0a
 
 ### 5.2 Exit-led thesis（v1.5 · 新 FT 編號）
 
@@ -300,9 +332,11 @@ SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.m
 
 ```text
 讀 ALPHA_RESEARCH_PLAYBOOK.md + strategy_diagnosis §8 + HOLDOUT_CONTRACT_v2 §2.1–§2.2。
-任務：<proposal-id> 已 human-approved → 寫 SPEC/PLAN → **停等 Phase 0-design 審閱 PASS** → Phase 0a CF + tests。
+任務：<proposal-id> Pick 後 → 寫 SPEC/PLAN + **§E.4 Preflight** → PASS → human-approved → **停等 0-design 審閱 PASS** → Phase 0a CF + tests。
+MUST：§E.4 Preflight PASS 後才 human-approved；BLOCK → design-revise（禁止 0a）。
 MUST：SPEC 宣告 thesis_class（mean_robust | skew）；skew 須 §E.3 pre-register。
 MUST：0-design PASS 後才寫 *_counterfactual.py；Phase 0b code review PASS 後才跑 0c train。
+MUST：讀 GATE_COVERAGE_PREFLIGHT.md；upstream gate=0 → spec_anchor_mismatch（非 fingerprint）。
 MUST NOT：SPEC/PLAN 未審即實作 CF、未 0b 即 train、每次 CF 前全庫 cache_audit（見 CACHE_AUDIT.md）。
 MUST：grid 僅 2025 train；產 gate_report + funnel + Long/Short + **post_entry_diagnosis 附錄**。
 MUST NOT：plugin、valid tune、重跑負面圖書館家族。
@@ -325,3 +359,4 @@ MUST NOT：plugin、valid tune、重跑負面圖書館家族。
 - 診斷：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md)
 - 提案佇列：[`THESIS_QUEUE.md`](../../../workspaces/THESIS_QUEUE.md)
 - 模板：[`THESIS_BRIEF.md`](../_template/THESIS_BRIEF.md)
+- Preflight：[`GATE_COVERAGE_PREFLIGHT.md`](GATE_COVERAGE_PREFLIGHT.md)
