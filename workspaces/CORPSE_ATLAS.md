@@ -21,6 +21,8 @@
 | **009** | holdout 05 | — | 19 | −33.34 | −17.0 | +56.0 | 25/38 | exit_kills_edge |
 | **011** | 2025 train rm30 | rm30 | 46 | −24.65 | −2.0 | −3.0 | 30/25.5 | direction_failed |
 | **016** | 2025 train fp | gk1_rt0p4 | 79 | −1.0 | 3.0 | **+13.0** | 25/21 | exit_kills_edge |
+| **018** | 2025 train fp | gk1_rt0p4 | 53 | 3.0 | 3.0 | **+8.0**（W900） | 26/21 | direction_ok_margin_thin |
+| **018** | 2026 Q1 valid fp | gk1_rt0p4 | 11 | 0.0 | — | **+8.0**（W900 path） | 49/27 | valid net−2 · holdout_blocked |
 | **016** | 2026 Q1 valid fp | gk1_rt0p4 | 15 | — | — | — | — | holdout_blocked |
 | **014** | 2025 train fp | hm10 | 7 | 50.0 | 36.0 | **+38.0** | 50/15 | direction_ok_margin_thin |
 | **013** | 2025 train fp | ap10_sm3 | 67 | −4.0 | −5.0 | **−10.0** | 7/15 | direction_failed |
@@ -50,6 +52,7 @@
 | FT | hold `max_hold_sec` | gate fingerprint 窗 | W900 med | Long W900 | trail exit? | barrier med | legacy W1800 med | MFE med | `exit_gap`≈ | 設計含意 |
 |----|---------------------|---------------------|----------|-----------|-------------|-------------|------------------|---------|-------------|----------|
 | **016** GDC | 900 | W1800（legacy W30m） | — | — | 否 · barrier | −1.0 | **+13** | 25 | **~26** | **exit_kills_edge** → FT-018 |
+| **018** GUDT | 900 | **W900** | **+8.0** | **+8.0** | 是 · trail | 3.0（fp）/ 0（grid med） | +21（W30 附錄） | 26 | **~23** | **entry validated · execution failed** · train champion corpse |
 | **015** FRP | 900 | W1800（legacy W30m） | **+1.0** | **+3.0** | 否 · barrier | −3.0 | **−0.0** | 17 | **~20** | **exit_kills_edge**（非 direction_failed）→ FT-019 锚点 |
 | **013** STF | 900 | W1800 | — | — | 否 | −4.0 | −10.0 | 7 | ~11 | direction_failed |
 | **014** MVHP | 900 | W1800 | — | — | 否 | 50.0 | +38 | 50 | ~0 | funnel 過稀 · n=7 |
@@ -57,6 +60,26 @@
 | **006** VSF | — | W1800 | — | — | 否 | −18.8 | −1.5 | 18 | ~37 | direction_failed |
 
 **FT-018 / FT-019 對齊**：`fingerprint_window_sec=900`（**W900**）· 與 hold 一致 · **禁止** legacy W1800 作新 FT gate。
+
+---
+
+## §FT-018 驗屍（exit-led · train champion · 2026-06-29）
+
+> **MVPClosed** · outcome `gudt_no_skew_champion` · 詳述 [`gudt-baseline/gate_report.md`](gudt-baseline/gate_report.md)
+
+| 項目 | 值 |
+|------|-----|
+| 進場 | reuse FT-016 GDC P0 · long-only · **方向未 falsify** |
+| 出場 | `atr_trail_skew_900s` · exit-led 一輪完畢 · **禁第三 exit** |
+| 0c-1 | n=**53** · W900 med **+8** · fingerprint **通過** |
+| 0c-2 | grid G1/G2 **通過** · best gross **8.28** · net **3.28** · gross med **0** |
+| skew | payoff **1.45** < 2.5 · `gudt_no_skew_champion` |
+| valid Q1 | n=**11** · net **−2.03**/趟 · **holdout_blocked** |
+| exit_gap | **~23**（fp）· trail 未收斂至可交易典型單筆 |
+
+**Verdict**：`entry validated · execution failed` — **全線 train 帳面最佳**，但典型單筆 net 負、樣本外不過。  
+**Reuse**：GDC gap-up **entry P0** · **勿** reuse trail 參數或 grid best。  
+**下一案**：P-012 新進場鏈 + 新 exit 錨（非 FT-018 魔改）。
 
 ---
 

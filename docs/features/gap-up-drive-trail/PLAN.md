@@ -1,12 +1,12 @@
 ---
 id: FT-018
 slug: gap-up-drive-trail
-status: Draft
+status: MVPClosed
 thesis_class: skew
 proposal_id: P-011
 opened: 2026-06-28
 phases: [0]
-blockers: [FT-017-0c, human-approved-P-011]
+blockers: []
 design_review: senior-trader 2026-06-29 — Conditional PASS (P0 sealed)
 parent_ft: FT-016
 ---
@@ -17,7 +17,7 @@ parent_ft: FT-016
 > **class**：**skew** · G3S n≥15 · §3.2 · **fingerprint W900**  
 > **封印 MUST**：[`SPEC.md`](SPEC.md) §5.0–§5.1 · **診斷順序**：§5.2  
 > **Workspace**：[`gudt-baseline/`](../../../workspaces/gudt-baseline/)  
-> **Milestone**：**0-design 完成**（2026-06-29 · 資深 TXF Conditional PASS）· **本檔下一里程碑 = Phase 0a**（CF + tests · **不含** 0c train）
+> **Milestone**：**MVPClosed**（2026-06-29）· `gudt_no_skew_champion` · train champion corpse · 下一 Pick → P-012
 
 ## Phase 0-design — SPEC/PLAN 審閱
 
@@ -67,12 +67,12 @@ MUST NOT：
 
 ## Phase 0a — Counterfactual（不得跑 train）
 
-- [ ] `reporting/gap_up_drive_trail_counterfactual.py`（entry reuse GDC · **`simulate_atr_trail_skew_exit`** · W900 fingerprint · funnel · post_entry · skew_gate）
-- [ ] `reporting/simulate_atr_trail_skew_exit.py` 或 `armed_forward_counterfactual.py` 內新函式
-- [ ] `scripts/ft018_gudt_counterfactual.py`（`--fingerprint-only` · `--grid`）
-- [ ] `tests/reporting/test_gap_up_drive_trail_counterfactual.py`
-- [ ] `tests/reporting/test_simulate_atr_trail_skew_exit.py`
-- [ ] 對照 [`gap_drive_continuation_counterfactual.py`](../../../apps/trading-app/src/reporting/gap_drive_continuation_counterfactual.py)：entry P0 比特一致（long-only 子集）
+- [x] `reporting/gap_up_drive_trail_counterfactual.py`（entry reuse GDC · **`simulate_atr_trail_skew_exit`** · W900 fingerprint · funnel · post_entry · skew_gate）
+- [x] `reporting/simulate_atr_trail_skew_exit.py`
+- [x] `scripts/ft018_gudt_counterfactual.py`（`--fingerprint-only` · `--grid`）
+- [x] `tests/reporting/test_gap_up_drive_trail_counterfactual.py`
+- [x] `tests/reporting/test_simulate_atr_trail_skew_exit.py`
+- [x] 對照 GDC：entry P0 比特一致（long-only 子集 · fp `gk1_rt0p4`）
 
 ### Trail sim 優先測試（0a · MUST 先於 CF 整合）
 
@@ -104,12 +104,12 @@ MUST NOT：
 
 ## Phase 0b — Code review（MUST 先於 train）
 
-- [ ] Bugbot / 人類 review PASS
-- [ ] MUST-1 entry reuse · long-only · 無 P0 漂移
-- [ ] MUST-2 trail sim · BE/trail/TP 順序 · tie-break
-- [ ] MUST-3 W900 fingerprint · 與 post_entry 一致
-- [ ] MUST-4 摩擦 5 · skew_gate hook · exit_gap 附錄
-- [ ] §5.2 fingerprint / grid 路徑分離
+- [x] Bugbot / 人類 review PASS（agent 2026-06-29）
+- [x] MUST-1 entry reuse · long-only · 無 P0 漂移
+- [x] MUST-2 trail sim · BE/trail/TP 順序 · tie-break
+- [x] MUST-3 W900 fingerprint · 與 post_entry 一致
+- [x] MUST-4 摩擦 5 · skew_gate hook · exit_gap 附錄
+- [x] §5.2 fingerprint / grid 路徑分離
 
 ## Phase 0c — Train 2025（兩段 · 禁止跳步）
 
@@ -135,8 +135,8 @@ python scripts/ft018_gudt_counterfactual.py --cache-dir ../../../tick_cache --gr
 
 ## Phase 0 完成定義
 
-- [ ] 0-design PASS · 0a tests green · 0b PASS · 0c gate_report 決策表
-- [ ] outcome code 寫入 SPEC YAML · THESIS_QUEUE · DOC_MAP · CHANGELOG
+- [x] 0-design PASS · 0a tests green · 0b PASS · 0c gate_report 決策表
+- [x] outcome code 寫入 gate_report · THESIS_QUEUE · CHANGELOG
 
 ## 參考
 

@@ -102,7 +102,7 @@ def _median(values: list[float]) -> float | None:
 
 
 def _barrier_mfe_mae(row: dict[str, Any]) -> tuple[float | None, float | None]:
-    sim = row.get("atr_barrier_sim") or row.get("scalp_sim")
+    sim = row.get("atr_barrier_sim") or row.get("atr_trail_sim") or row.get("scalp_sim")
     if not isinstance(sim, dict):
         return None, None
     mfe = sim.get("mfe")

@@ -1,7 +1,7 @@
 ---
 id: FT-018
 slug: gap-up-drive-trail
-status: Draft
+status: MVPClosed
 thesis_class: skew
 proposal_id: P-011
 opened: 2026-06-28
@@ -264,9 +264,9 @@ exit_led: true
 
 | 欄位 | 值 |
 |------|-----|
-| 簽核人 | |
-| 日期 | |
-| 決策 | **pending**（`draft-proposal` · 待 FT-017 0c 後 Pick） |
+| 簽核人 | Tim |
+| 日期 | 2026-06-29 |
+| 決策 | **MVPClosed** · `gudt_no_skew_champion` · entry validated · execution failed · valid net≤0 · 禁 holdout · 不開 plugin |
 
 ## 8. 設計審閱（Phase 0-design · 非 Pilot Go）
 
@@ -309,5 +309,5 @@ exit_led: true
 
 | 欄位 | 值 |
 |------|-----|
-| Review 日期 | |
-| 結果 | pending |
+| Review 日期 | 2026-06-29 |
+| 結果 | PASS（agent · trail T1–T8 + CF tests） |

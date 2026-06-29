@@ -24,7 +24,7 @@
 | FT-015 | [fvg-retest-pullback](fvg-retest-pullback/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | [`frp_fingerprint_fail`](../../workspaces/fvg-baseline/gate_report.md) · n=211 · W30 −0 |
 | FT-016 | [gap-drive-continuation](gap-drive-continuation/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | [`gdc_fingerprint_pass_g1_fail`](../../workspaces/gdc-baseline/gate_report.md) · W30 +13 · G1 fail |
 | FT-017 | [compression-flow-attack](compression-flow-attack/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | **`spec_anchor_mismatch`** · n=0 · compress 錨點錯位 · [`gate_report`](../../workspaces/cfa-baseline/gate_report.md) |
-| FT-018 | [gap-up-drive-trail](gap-up-drive-trail/SPEC.md) | **Draft** | 2026-06-28 | Alpha P0 | [SPEC](gap-up-drive-trail/SPEC.md) · [PLAN](gap-up-drive-trail/PLAN.md) · P-011 **`draft-proposal`** · exit-led |
+| FT-018 | [gap-up-drive-trail](gap-up-drive-trail/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | P-011 · `gudt_no_skew_champion` · [`gate_report`](../../workspaces/gudt-baseline/gate_report.md) |
 | FT-019 | [sweep-fvg-breakout-trail](sweep-fvg-breakout-trail/SPEC.md) | **Draft** | 2026-06-29 | Alpha P0 | [SPEC](sweep-fvg-breakout-trail/SPEC.md) · [PLAN](sweep-fvg-breakout-trail/PLAN.md) · P-012 **`draft-proposal`** · sweep+FVG trail |
 | FT-020 | [bear-streak-flip-long](bear-streak-flip-long/SPEC.md) | **Draft** | 2026-06-29 | Alpha P0 | [SPEC](bear-streak-flip-long/SPEC.md) · [PLAN](bear-streak-flip-long/PLAN.md) · P-013 **`draft-proposal`** · 0-design Conditional PASS |
 

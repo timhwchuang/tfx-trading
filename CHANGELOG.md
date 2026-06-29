@@ -33,6 +33,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 #### Added
 
 - **FT-019 Draft（2026-06-29）**：P-012 Sweep FVG breakout trail — long-only · sweep→reclaim→5m FVG breakout · `fvg_mid_trail_skew_900s` · W900 fingerprint · [`sweep-fvg-breakout-trail/SPEC.md`](docs/features/sweep-fvg-breakout-trail/SPEC.md) · [`PLAN`](docs/features/sweep-fvg-breakout-trail/PLAN.md) · **0-design Conditional PASS**（2026-06-29 · 資深 TXF · P0 封印）。
+- **FT-018 MVPClosed（2026-06-29）**：P-011 Gap up drive trail — fingerprint W900 **+8**（n=53）· train grid G1 pass gross **8.28** · skew §3.2 fail · valid net **−2.03** → `gudt_no_skew_champion` · **entry validated · execution failed** · train champion corpse；[`gate_report`](workspaces/gudt-baseline/gate_report.md) · [`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §FT-018。
+- **FT-018 Phase 0（2026-06-29）**：`simulate_atr_trail_skew_exit.py` · `gap_up_drive_trail_counterfactual.py` · `ft018_gudt_counterfactual.py` · 17 unit tests · `gudt-baseline/` — fingerprint W900 med **+8.0**（n=53）· grid G1 pass gross **8.28** · skew §3.2 disqualify · valid net **−2.03** → `gudt_no_skew_champion`；[`gate_report`](workspaces/gudt-baseline/gate_report.md)。
 - **FT-018 Draft（2026-06-28）**：P-011 Gap up drive trail — **exit-led** · reuse FT-016 entry · `atr_trail_skew_900s` · long-only · W900 fingerprint · [`gap-up-drive-trail/SPEC.md`](docs/features/gap-up-drive-trail/SPEC.md) · [`PLAN`](docs/features/gap-up-drive-trail/PLAN.md) · **0-design Conditional PASS**（2026-06-29 · 資深 TXF · P0 封印）。
 - **FT-017 Phase 0a（2026-06-28）**：`compression_flow_attack_counterfactual.py` · `ft017_cfa_counterfactual.py` · 13 unit tests · `cfa-baseline/` 預留。
 - **FT-017 0-design PASS（2026-06-28）**：P-010 Compression flow attack — 資深 TXF 封印 A/B · `human-approved` → Phase 0a。
@@ -374,6 +376,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Changed
 
+- **FT-018 MVPClosed（2026-06-29）**：`gudt_no_skew_champion` · THESIS_QUEUE · CORPSE_ATLAS §FT-018 · SPEC/PLAN status。
 - **Holdout 契約 v2.2.1**（[`HOLDOUT_CONTRACT_v2.md`](docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)）：skew 賽道補強 G-SK5 尾部集中度、valid 硬擋、friction@7 disqualify。
 - **FT-013 SPEC**：§5.1a 選項 A — ST/exit 共用 `atr_series_from_bars`（SMA TR）；`min_atr=25` · entry slippage 語意 · PLAN 0c-1/0c-2 分離。
 - **Holdout 契約 v2.2**（[`HOLDOUT_CONTRACT_v2.md`](docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)）：新增 `thesis_class: skew` 平行賽道（G3S n≥15 · §3.2 payoff/tail/連虧/月DD · §5.2b holdout · §11 屍體不復活）；`mean_robust` 維持 v2.1 預設。同步 [`THESIS_BRIEF.md`](docs/features/_template/THESIS_BRIEF.md) §E.3 · [`ALPHA_RESEARCH_PLAYBOOK.md`](docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · [`THESIS_QUEUE.md`](workspaces/THESIS_QUEUE.md)。
@@ -389,6 +392,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Added
 
+- **FT-018 Phase 0**：`reporting/simulate_atr_trail_skew_exit.py` · `gap_up_drive_trail_counterfactual.py` · `scripts/ft018_gudt_counterfactual.py`；測試 `test_simulate_atr_trail_skew_exit.py` · `test_gap_up_drive_trail_counterfactual.py`；`post_entry_diagnosis` 支援 `atr_trail_sim` MFE/MAE。
 - **FT-004**：`reporting/armed_forward_counterfactual.py`；`scripts/ft004_armed_forward_counterfactual.py`（Phase 0 counterfactual）；`scripts/ft004_run_baseline.py`（`momentum_continuation` 2026-04 baseline）；`integrations/engine_wiring.load_named_strategy("momentum_continuation")`；測試 `tests/reporting/test_armed_forward_counterfactual.py`。
 - **FT-003 Phase 3.6 §C 進場漏斗**：`reporting/entry_funnel.py`（`IndicatorState` tick 回放、armed forward W30/60/180/300、vol 分位、§C markdown merge）；`scripts/ft003_episode_diagnosis.py` → `workspaces/reports/entry_funnel.json` + `VOLATILITY_BASELINE.md` §C；測試 `tests/reporting/test_entry_funnel.py`、`tests/scripts/test_ft003_episode_diagnosis.py`。
 - **FT-003 Phase 3.6 市場尺度診斷**：`reporting/volatility_baseline.py`、`reporting/exit_diagnosis.py`；`scripts/ft003_volatility_baseline.py`（kbars P0 + 可選 tick P1 → `workspaces/reports/volatility_baseline.json`）；`scripts/ft003_exit_diagnosis.py`（baseline valid → `VOLATILITY_BASELINE.md` §D）；測試 `tests/scripts/test_ft003_volatility_baseline.py`、`test_ft003_exit_diagnosis.py`。
