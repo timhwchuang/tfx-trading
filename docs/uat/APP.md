@@ -3,7 +3,7 @@
 > **目標**：讓**任何人**（包含未來的你或下一個 AI session）都能**照表抄課**，一步一步、踏實地、**不會漏關鍵步驟**地從模擬環境走到可以上正式 CA 的小規模 Pilot。
 > 這份文件是**單一真相來源**（Single Source of Truth）。所有進度、證據、簽名都在這裡或明確連結到這裡。
 
-> **⛔ CAL-8 已放棄（2026-06-28）**：P6-1 / P6-SMC **濾網校準**不再執行（綁定 `grid_no_viable_solution` 的 vwap-momentum）。UAT 照常累積 tick/kbar；**不得**以 CAL-8 為 UAT / Pilot gate。SSOT：[`strategy_diagnosis.md`](../../workspaces/strategy_diagnosis.md) §8.2 · [`TODO.md`](../TODO.md) §已放棄。
+> **⛔ CAL-8 已放棄（2026-06-28）**：P6-1 / P6-SMC **濾網校準**不再執行 — 因 **vwap-momentum 已 `grid_no_viable_solution`**（濾網無法救活已死的 host；**≠** filter 對新 thesis 普適無效，見 Playbook 附錄 A）。UAT 照常累積 tick/kbar；**不得**以 CAL-8 為 UAT / Pilot gate。SSOT：[`strategy_diagnosis.md`](../../workspaces/strategy_diagnosis.md) §8.2.1 · [`TODO.md`](../TODO.md) §已放棄。
 
 ## 目前進度一目瞭然（每天結束必須更新）
 

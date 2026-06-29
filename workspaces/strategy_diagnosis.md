@@ -167,7 +167,19 @@
 | FT-004～005、007～008 | 各 thesis | MVPClosed 或放棄 | — |
 | **FT-002** trend / SMC 濾網 + CAL-8 | 綁定 vwap-momentum | **放棄**（`structure_filter_enabled` false） |
 
-**共識**：上表 **無一項** 可作為「已驗證可獲利」的 live 策略；**濾網 CAL-8 亦放棄**。工程線完成 **不** 自動解鎖 Pilot。
+#### 8.2.1 CAL-8 常見誤解（每次 session 對齊）
+
+> **CAL-8 取消 ≠「濾網沒用」**。取消原因是 **host 策略 vwap-momentum（FT-003）已 `grid_no_viable_solution`** — 進場本身無 edge，濾網無法把全負 grid 變正。
+
+| 說法 | 對錯 |
+|------|------|
+| 「FT-002 證明 EMA/SMC filter 無 alpha」 | **錯** — 只證明在 **已死的 vwap-momentum** 上無法補 edge |
+| 「新 FT 不能加 filter」 | **錯** — 可 **pre-register** 進場條件；禁止的是 **事後** 用 filter 救 MVPClosed grid |
+| 「Playbook §5.2 禁 filter」 | **窄化** — 禁的是 **post-hoc rescue** + **vwap-momentum 上 CAL-8** |
+
+詳述：Playbook [附錄 A](../docs/features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · FT-002 [SPEC §12](../docs/features/smc-structure-filter/SPEC.md)
+
+**共識**：上表 **無一項** 可作為「已驗證可獲利」的 live 策略；**vwap-momentum 上的濾網 CAL-8 亦放棄**（見 §8.2.1）。工程線完成 **不** 自動解鎖 Pilot。
 
 ### 8.3 Alpha 線下一步（主 focus）
 

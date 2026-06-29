@@ -1,0 +1,181 @@
+{
+  "slug": "frp",
+  "split": "train",
+  "tier": "primary",
+  "n": 211,
+  "baseline": {
+    "n": 211,
+    "tier": "descriptive_ci",
+    "mde_note": null,
+    "path": {
+      "pct_w5_pos": 52.6,
+      "pct_w15_pos": 51.2,
+      "pct_w30_pos": 49.3,
+      "w5_median": 1.0,
+      "w15_median": 1.0,
+      "w30_median": -0.0,
+      "w30_bootstrap_ci": {
+        "median": -0.0,
+        "ci_low": -5.0,
+        "ci_high": 4.0
+      }
+    },
+    "contract": {
+      "gross_median": -3.0,
+      "net_median": -8.0,
+      "pct_net_pos": 36.5,
+      "mfe_median": 17.0,
+      "mae_median": 18.0,
+      "exit_gap_median": 19.0
+    }
+  },
+  "regime_r2_cohorts": {
+    "counter_trend": {
+      "n": 3,
+      "tier": "underpowered",
+      "mde_note": null,
+      "path": {
+        "pct_w5_pos": 66.7,
+        "pct_w15_pos": 66.7,
+        "pct_w30_pos": 33.3,
+        "w5_median": 7.0,
+        "w15_median": 3.0,
+        "w30_median": -1.0
+      },
+      "contract": {
+        "gross_median": 3.0,
+        "net_median": -2.0,
+        "pct_net_pos": 33.3,
+        "mfe_median": 15.0,
+        "mae_median": 18.0,
+        "exit_gap_median": 17.0
+      }
+    },
+    "neutral": {
+      "n": 1,
+      "tier": "underpowered",
+      "mde_note": null,
+      "path": {
+        "pct_w5_pos": 0.0,
+        "pct_w15_pos": 100.0,
+        "pct_w30_pos": 100.0,
+        "w5_median": -16.0,
+        "w15_median": 34.0,
+        "w30_median": 71.0
+      },
+      "contract": {
+        "gross_median": 34.0,
+        "net_median": 29.0,
+        "pct_net_pos": 100.0,
+        "mfe_median": 36.0,
+        "mae_median": 20.0,
+        "exit_gap_median": 2.0
+      }
+    },
+    "with_trend": {
+      "n": 207,
+      "tier": "descriptive_ci",
+      "mde_note": null,
+      "path": {
+        "pct_w5_pos": 52.7,
+        "pct_w15_pos": 50.7,
+        "pct_w30_pos": 49.3,
+        "w5_median": 1.0,
+        "w15_median": 1.0,
+        "w30_median": -0.0,
+        "w30_bootstrap_ci": {
+          "median": -0.0,
+          "ci_low": -6.0,
+          "ci_high": 4.0
+        }
+      },
+      "contract": {
+        "gross_median": -3.0,
+        "net_median": -8.0,
+        "pct_net_pos": 36.2,
+        "mfe_median": 17.0,
+        "mae_median": 18.0,
+        "exit_gap_median": 20.0
+      }
+    }
+  },
+  "regime_r1_cohorts": {
+    "counter_trend": {
+      "n": 9,
+      "tier": "underpowered",
+      "mde_note": "underpowered_for_15pp_need_n~168",
+      "path": {
+        "pct_w5_pos": 66.7,
+        "pct_w15_pos": 44.4,
+        "pct_w30_pos": 33.3,
+        "w5_median": 7.0,
+        "w15_median": -3.0,
+        "w30_median": -4.0
+      },
+      "contract": {
+        "gross_median": -3.0,
+        "net_median": -8.0,
+        "pct_net_pos": 33.3,
+        "mfe_median": 24.0,
+        "mae_median": 20.0,
+        "exit_gap_median": 17.0
+      }
+    },
+    "with_trend": {
+      "n": 202,
+      "tier": "descriptive_ci",
+      "mde_note": null,
+      "path": {
+        "pct_w5_pos": 52.0,
+        "pct_w15_pos": 51.5,
+        "pct_w30_pos": 50.0,
+        "w5_median": 1.0,
+        "w15_median": 1.5,
+        "w30_median": 0.5,
+        "w30_bootstrap_ci": {
+          "median": 0.5,
+          "ci_low": -5.0,
+          "ci_high": 4.5
+        }
+      },
+      "contract": {
+        "gross_median": -2.5,
+        "net_median": -7.5,
+        "pct_net_pos": 36.6,
+        "mfe_median": 16.0,
+        "mae_median": 18.0,
+        "exit_gap_median": 19.0
+      }
+    }
+  },
+  "regime_agreement": {
+    "n": 211,
+    "pairwise_agreement": {
+      "r1_vs_r2": {
+        "agreement_rate": 0.962,
+        "n": 210
+      },
+      "r1_vs_r3": {
+        "agreement_rate": 0.095,
+        "n": 211
+      },
+      "r2_vs_r3": {
+        "agreement_rate": 0.095,
+        "n": 210
+      }
+    }
+  },
+  "robustness": {
+    "friction": {
+      "n": 211,
+      "pct_net_pos_friction_5": 36.5,
+      "pct_net_pos_friction_7": 35.5
+    },
+    "regime_perm": {
+      "observed_with_minus_counter_med": 1.0,
+      "perm_diff_p90": 37.0,
+      "perm_exceeds_observed_pct": 97.6,
+      "exploratory_only": true
+    }
+  }
+}

@@ -1,0 +1,3144 @@
+{
+  "code": "TMFR1",
+  "content_sha256": "f172bc082fe7635aaca9c62900dae4bc103eaddd93f43ac4fa5709ca353051e9",
+  "entries": [
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 301,
+        "mae": 9.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1767318600,
+      "day": "2026-01-02",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -118.0,
+        "mfe_mae_ratio": 5.56,
+        "w15": 95.0,
+        "w30": 165.0,
+        "w5": 47.0
+      },
+      "direction": "Long",
+      "entry_price": 29172.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 4,
+      "fvg_high": 29172.0,
+      "fvg_low": 29124.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 167.0,
+          "close_delta": 165.0,
+          "signed_return_over_atr": 6.6
+        },
+        "W300": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 48.0,
+          "close_delta": 47.0,
+          "signed_return_over_atr": 1.88
+        },
+        "W900": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 120.0,
+          "close_delta": 95.0,
+          "signed_return_over_atr": 3.8
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 94.3,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.96,
+        "trend_dir": "Long",
+        "trend_strength": 103.6
+      },
+      "ts": 1767318971,
+      "vol_1s": 5
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 85,
+        "mae": 25.0,
+        "mfe": 27.0
+      },
+      "bos_ts": 1767580200,
+      "day": "2026-01-05",
+      "derived": {
+        "exit_gap": 52.0,
+        "giveback_w5_to_w30": -123.0,
+        "mfe_mae_ratio": 1.08,
+        "w15": 18.0,
+        "w30": 93.0,
+        "w5": -30.0
+      },
+      "direction": "Long",
+      "entry_price": 30354.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 30355.0,
+      "fvg_low": 30346.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 77.0,
+          "MFE_delta": 96.0,
+          "close_delta": 93.0,
+          "signed_return_over_atr": 3.72
+        },
+        "W300": {
+          "MAE_delta": 77.0,
+          "MFE_delta": 27.0,
+          "close_delta": -30.0,
+          "signed_return_over_atr": -1.2
+        },
+        "W900": {
+          "MAE_delta": 77.0,
+          "MFE_delta": 28.0,
+          "close_delta": 18.0,
+          "signed_return_over_atr": 0.72
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 56.9,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 9.88,
+        "trend_dir": "Long",
+        "trend_strength": 206.0
+      },
+      "ts": 1767580521,
+      "vol_1s": 2
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 141,
+        "mae": 25.0,
+        "mfe": 13.0
+      },
+      "bos_ts": 1767668700,
+      "day": "2026-01-06",
+      "derived": {
+        "exit_gap": 38.0,
+        "giveback_w5_to_w30": 5.0,
+        "mfe_mae_ratio": 0.52,
+        "w15": 21.0,
+        "w30": -10.0,
+        "w5": -5.0
+      },
+      "direction": "Long",
+      "entry_price": 30541.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 30559.0,
+      "fvg_low": 30531.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 31.0,
+          "close_delta": -10.0,
+          "signed_return_over_atr": -0.4
+        },
+        "W300": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 13.0,
+          "close_delta": -5.0,
+          "signed_return_over_atr": -0.2
+        },
+        "W900": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 22.0,
+          "close_delta": 21.0,
+          "signed_return_over_atr": 0.84
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 83.3,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 7.54,
+        "trend_dir": "Long",
+        "trend_strength": 165.95
+      },
+      "ts": 1767669002,
+      "vol_1s": 6
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 489,
+        "mae": 6.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1767755100,
+      "day": "2026-01-07",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -11.0,
+        "mfe_mae_ratio": 8.33,
+        "w15": 47.0,
+        "w30": 30.0,
+        "w5": 19.0
+      },
+      "direction": "Long",
+      "entry_price": 30590.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 30590.0,
+      "fvg_low": 30575.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 6.0,
+          "MFE_delta": 87.0,
+          "close_delta": 30.0,
+          "signed_return_over_atr": 1.2
+        },
+        "W300": {
+          "MAE_delta": 6.0,
+          "MFE_delta": 24.0,
+          "close_delta": 19.0,
+          "signed_return_over_atr": 0.76
+        },
+        "W900": {
+          "MAE_delta": 6.0,
+          "MFE_delta": 60.0,
+          "close_delta": 47.0,
+          "signed_return_over_atr": 1.88
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 78.5,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.14,
+        "trend_dir": "Long",
+        "trend_strength": 58.25
+      },
+      "ts": 1767755411,
+      "vol_1s": 1
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 631,
+        "mae": 9.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1767837000,
+      "day": "2026-01-08",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -59.0,
+        "mfe_mae_ratio": 5.56,
+        "w15": 82.0,
+        "w30": 65.0,
+        "w5": 6.0
+      },
+      "direction": "Long",
+      "entry_price": 30555.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 30555.0,
+      "fvg_low": 30452.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 107.0,
+          "close_delta": 65.0,
+          "signed_return_over_atr": 2.6
+        },
+        "W300": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 30.0,
+          "close_delta": 6.0,
+          "signed_return_over_atr": 0.24
+        },
+        "W900": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 94.0,
+          "close_delta": 82.0,
+          "signed_return_over_atr": 3.28
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 71.0,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 3.0,
+        "trend_dir": "Long",
+        "trend_strength": 85.1
+      },
+      "ts": 1767837358,
+      "vol_1s": 7
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 626,
+        "mae": 11.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1768188300,
+      "day": "2026-01-12",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -1.0,
+        "mfe_mae_ratio": 4.55,
+        "w15": -1.0,
+        "w30": 19.0,
+        "w5": 18.0
+      },
+      "direction": "Long",
+      "entry_price": 30687.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 30687.0,
+      "fvg_low": 30677.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 11.0,
+          "MFE_delta": 52.0,
+          "close_delta": 19.0,
+          "signed_return_over_atr": 0.76
+        },
+        "W300": {
+          "MAE_delta": 11.0,
+          "MFE_delta": 18.0,
+          "close_delta": 18.0,
+          "signed_return_over_atr": 0.72
+        },
+        "W900": {
+          "MAE_delta": 11.0,
+          "MFE_delta": 52.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.04
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 72.8,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 1.46,
+        "trend_dir": "Long",
+        "trend_strength": 39.35
+      },
+      "ts": 1768188916,
+      "vol_1s": 2
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 9,
+        "mae": 25.0,
+        "mfe": 3.0
+      },
+      "bos_ts": 1768270500,
+      "day": "2026-01-13",
+      "derived": {
+        "exit_gap": 28.0,
+        "giveback_w5_to_w30": 3.0,
+        "mfe_mae_ratio": 0.12,
+        "w15": -58.0,
+        "w30": -63.0,
+        "w5": -60.0
+      },
+      "direction": "Short",
+      "entry_price": 30728.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 30756.0,
+      "fvg_low": 30728.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 109.0,
+          "MFE_delta": 3.0,
+          "close_delta": -63.0,
+          "signed_return_over_atr": -2.52
+        },
+        "W300": {
+          "MAE_delta": 68.0,
+          "MFE_delta": 3.0,
+          "close_delta": -60.0,
+          "signed_return_over_atr": -2.4
+        },
+        "W900": {
+          "MAE_delta": 109.0,
+          "MFE_delta": 3.0,
+          "close_delta": -58.0,
+          "signed_return_over_atr": -2.32
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 32.4,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 8.44,
+        "trend_dir": "Short",
+        "trend_strength": 218.05
+      },
+      "ts": 1768271290,
+      "vol_1s": 10
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 142,
+        "mae": 9.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1768356300,
+      "day": "2026-01-14",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": 103.0,
+        "mfe_mae_ratio": 5.56,
+        "w15": 102.0,
+        "w30": -73.0,
+        "w5": 30.0
+      },
+      "direction": "Long",
+      "entry_price": 31054.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 31055.0,
+      "fvg_low": 31036.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 100.0,
+          "MFE_delta": 107.0,
+          "close_delta": -73.0,
+          "signed_return_over_atr": -2.92
+        },
+        "W300": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 54.0,
+          "close_delta": 30.0,
+          "signed_return_over_atr": 1.2
+        },
+        "W900": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 107.0,
+          "close_delta": 102.0,
+          "signed_return_over_atr": 4.08
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 70.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 1.36,
+        "trend_dir": "Long",
+        "trend_strength": 67.95
+      },
+      "ts": 1768356605,
+      "vol_1s": 6
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 145,
+        "mae": 25.0,
+        "mfe": 6.0
+      },
+      "bos_ts": 1768449000,
+      "day": "2026-01-15",
+      "derived": {
+        "exit_gap": 31.0,
+        "giveback_w5_to_w30": 83.0,
+        "mfe_mae_ratio": 0.24,
+        "w15": -81.0,
+        "w30": -120.0,
+        "w5": -37.0
+      },
+      "direction": "Short",
+      "entry_price": 30786.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 30786.0,
+      "fvg_low": 30778.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 137.0,
+          "MFE_delta": 6.0,
+          "close_delta": -120.0,
+          "signed_return_over_atr": -4.8
+        },
+        "W300": {
+          "MAE_delta": 44.0,
+          "MFE_delta": 6.0,
+          "close_delta": -37.0,
+          "signed_return_over_atr": -1.48
+        },
+        "W900": {
+          "MAE_delta": 89.0,
+          "MFE_delta": 6.0,
+          "close_delta": -81.0,
+          "signed_return_over_atr": -3.24
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 76.3,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 2.94,
+        "trend_dir": "Short",
+        "trend_strength": 23.15
+      },
+      "ts": 1768449604,
+      "vol_1s": 1
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 62,
+        "mae": 25.0,
+        "mfe": 3.0
+      },
+      "bos_ts": 1768530000,
+      "day": "2026-01-16",
+      "derived": {
+        "exit_gap": 28.0,
+        "giveback_w5_to_w30": -30.0,
+        "mfe_mae_ratio": 0.12,
+        "w15": 53.0,
+        "w30": 42.0,
+        "w5": 12.0
+      },
+      "direction": "Long",
+      "entry_price": 31336.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 31336.0,
+      "fvg_low": 31311.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 60.0,
+          "close_delta": 42.0,
+          "signed_return_over_atr": 1.68
+        },
+        "W300": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 17.0,
+          "close_delta": 12.0,
+          "signed_return_over_atr": 0.48
+        },
+        "W900": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 60.0,
+          "close_delta": 53.0,
+          "signed_return_over_atr": 2.12
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 68.7,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.06,
+        "trend_dir": "Long",
+        "trend_strength": 62.55
+      },
+      "ts": 1768530319,
+      "vol_1s": 2
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 697,
+        "mae": 1.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1768790700,
+      "day": "2026-01-19",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": 12.0,
+        "mfe_mae_ratio": 50.0,
+        "w15": 39.0,
+        "w30": 12.0,
+        "w5": 24.0
+      },
+      "direction": "Long",
+      "entry_price": 31497.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 31498.0,
+      "fvg_low": 31494.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 59.0,
+          "close_delta": 12.0,
+          "signed_return_over_atr": 0.48
+        },
+        "W300": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 26.0,
+          "close_delta": 24.0,
+          "signed_return_over_atr": 0.96
+        },
+        "W900": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 57.0,
+          "close_delta": 39.0,
+          "signed_return_over_atr": 1.56
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 71.1,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 6.56,
+        "trend_dir": "Long",
+        "trend_strength": 83.05
+      },
+      "ts": 1768791274,
+      "vol_1s": 7
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 486,
+        "mae": 22.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1768875300,
+      "day": "2026-01-20",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -125.0,
+        "mfe_mae_ratio": 2.27,
+        "w15": 111.0,
+        "w30": 131.0,
+        "w5": 6.0
+      },
+      "direction": "Long",
+      "entry_price": 31578.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 31589.0,
+      "fvg_low": 31545.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 162.0,
+          "close_delta": 131.0,
+          "signed_return_over_atr": 5.24
+        },
+        "W300": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 27.0,
+          "close_delta": 6.0,
+          "signed_return_over_atr": 0.24
+        },
+        "W900": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 124.0,
+          "close_delta": 111.0,
+          "signed_return_over_atr": 4.44
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 52.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 4.7,
+        "trend_dir": "Long",
+        "trend_strength": 103.8
+      },
+      "ts": 1768875679,
+      "vol_1s": 5
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 17,
+        "mae": 25.0,
+        "mfe": 5.0
+      },
+      "bos_ts": 1768968000,
+      "day": "2026-01-21",
+      "derived": {
+        "exit_gap": 30.0,
+        "giveback_w5_to_w30": -63.0,
+        "mfe_mae_ratio": 0.2,
+        "w15": -15.0,
+        "w30": 51.0,
+        "w5": -12.0
+      },
+      "direction": "Short",
+      "entry_price": 31303.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 31335.0,
+      "fvg_low": 31301.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 36.0,
+          "MFE_delta": 61.0,
+          "close_delta": 51.0,
+          "signed_return_over_atr": 2.04
+        },
+        "W300": {
+          "MAE_delta": 36.0,
+          "MFE_delta": 11.0,
+          "close_delta": -12.0,
+          "signed_return_over_atr": -0.48
+        },
+        "W900": {
+          "MAE_delta": 36.0,
+          "MFE_delta": 11.0,
+          "close_delta": -15.0,
+          "signed_return_over_atr": -0.6
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 60.8,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 7.08,
+        "trend_dir": "Short",
+        "trend_strength": 109.3
+      },
+      "ts": 1768968302,
+      "vol_1s": 3
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 333,
+        "mae": 25.0,
+        "mfe": 29.0
+      },
+      "bos_ts": 1769046000,
+      "day": "2026-01-22",
+      "derived": {
+        "exit_gap": 54.0,
+        "giveback_w5_to_w30": -128.0,
+        "mfe_mae_ratio": 1.16,
+        "w15": 70.0,
+        "w30": 111.0,
+        "w5": -17.0
+      },
+      "direction": "Long",
+      "entry_price": 31928.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 3,
+      "fvg_high": 31932.0,
+      "fvg_low": 31925.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 38.0,
+          "MFE_delta": 126.0,
+          "close_delta": 111.0,
+          "signed_return_over_atr": 4.44
+        },
+        "W300": {
+          "MAE_delta": 24.0,
+          "MFE_delta": 29.0,
+          "close_delta": -17.0,
+          "signed_return_over_atr": -0.68
+        },
+        "W900": {
+          "MAE_delta": 38.0,
+          "MFE_delta": 77.0,
+          "close_delta": 70.0,
+          "signed_return_over_atr": 2.8
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 53.0,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 1.24,
+        "trend_dir": "Long",
+        "trend_strength": 217.95
+      },
+      "ts": 1769046732,
+      "vol_1s": 3
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 675,
+        "mae": 13.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1769138100,
+      "day": "2026-01-23",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": 12.0,
+        "mfe_mae_ratio": 3.85,
+        "w15": 27.0,
+        "w30": 7.0,
+        "w5": 19.0
+      },
+      "direction": "Long",
+      "entry_price": 32094.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 32098.0,
+      "fvg_low": 32080.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 31.0,
+          "MFE_delta": 54.0,
+          "close_delta": 7.0,
+          "signed_return_over_atr": 0.28
+        },
+        "W300": {
+          "MAE_delta": 13.0,
+          "MFE_delta": 20.0,
+          "close_delta": 19.0,
+          "signed_return_over_atr": 0.76
+        },
+        "W900": {
+          "MAE_delta": 13.0,
+          "MFE_delta": 54.0,
+          "close_delta": 27.0,
+          "signed_return_over_atr": 1.08
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 73.4,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 3.7,
+        "trend_dir": "Long",
+        "trend_strength": 83.6
+      },
+      "ts": 1769138450,
+      "vol_1s": 7
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 248,
+        "mae": 25.0,
+        "mfe": 19.0
+      },
+      "bos_ts": 1769394600,
+      "day": "2026-01-26",
+      "derived": {
+        "exit_gap": 44.0,
+        "giveback_w5_to_w30": -50.0,
+        "mfe_mae_ratio": 0.76,
+        "w15": -36.0,
+        "w30": -1.0,
+        "w5": -51.0
+      },
+      "direction": "Long",
+      "entry_price": 32186.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 3,
+      "fvg_high": 32188.0,
+      "fvg_low": 32180.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 77.0,
+          "MFE_delta": 19.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.04
+        },
+        "W300": {
+          "MAE_delta": 56.0,
+          "MFE_delta": 19.0,
+          "close_delta": -51.0,
+          "signed_return_over_atr": -2.04
+        },
+        "W900": {
+          "MAE_delta": 74.0,
+          "MFE_delta": 19.0,
+          "close_delta": -36.0,
+          "signed_return_over_atr": -1.44
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 69.3,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 1.6,
+        "trend_dir": "Long",
+        "trend_strength": 25.15
+      },
+      "ts": 1769395203,
+      "vol_1s": 3
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "horizon",
+        "gross_pnl": -17.0,
+        "hold_sec": 900,
+        "mae": 21.0,
+        "mfe": 4.0
+      },
+      "bos_ts": 1769481600,
+      "day": "2026-01-27",
+      "derived": {
+        "exit_gap": 21.0,
+        "giveback_w5_to_w30": 67.0,
+        "mfe_mae_ratio": 0.19,
+        "w15": -17.0,
+        "w30": -72.0,
+        "w5": -5.0
+      },
+      "direction": "Long",
+      "entry_price": 32507.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 32507.0,
+      "fvg_low": 32504.0,
+      "gross_atr_sim": -17.0,
+      "net_atr_sim": -22.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 95.0,
+          "MFE_delta": 4.0,
+          "close_delta": -72.0,
+          "signed_return_over_atr": -2.88
+        },
+        "W300": {
+          "MAE_delta": 13.0,
+          "MFE_delta": 4.0,
+          "close_delta": -5.0,
+          "signed_return_over_atr": -0.2
+        },
+        "W900": {
+          "MAE_delta": 21.0,
+          "MFE_delta": 4.0,
+          "close_delta": -17.0,
+          "signed_return_over_atr": -0.68
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 82.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 5.82,
+        "trend_dir": "Long",
+        "trend_strength": 40.35
+      },
+      "ts": 1769484920,
+      "vol_1s": 2
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "horizon",
+        "gross_pnl": 48.0,
+        "hold_sec": 900,
+        "mae": 5.0,
+        "mfe": 48.0
+      },
+      "bos_ts": 1769571300,
+      "day": "2026-01-28",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -13.0,
+        "mfe_mae_ratio": 9.6,
+        "w15": 48.0,
+        "w30": 29.0,
+        "w5": 16.0
+      },
+      "direction": "Long",
+      "entry_price": 32762.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 32762.0,
+      "fvg_low": 32756.0,
+      "gross_atr_sim": 48.0,
+      "net_atr_sim": 43.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 5.0,
+          "MFE_delta": 48.0,
+          "close_delta": 29.0,
+          "signed_return_over_atr": 1.16
+        },
+        "W300": {
+          "MAE_delta": 5.0,
+          "MFE_delta": 16.0,
+          "close_delta": 16.0,
+          "signed_return_over_atr": 0.64
+        },
+        "W900": {
+          "MAE_delta": 5.0,
+          "MFE_delta": 48.0,
+          "close_delta": 48.0,
+          "signed_return_over_atr": 1.92
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 83.5,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 0.72,
+        "trend_dir": "Long",
+        "trend_strength": 16.05
+      },
+      "ts": 1769573913,
+      "vol_1s": 1
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 76,
+        "mae": 25.0,
+        "mfe": 19.0
+      },
+      "bos_ts": 1769652600,
+      "day": "2026-01-29",
+      "derived": {
+        "exit_gap": 44.0,
+        "giveback_w5_to_w30": -122.0,
+        "mfe_mae_ratio": 0.76,
+        "w15": -90.0,
+        "w30": 59.0,
+        "w5": -63.0
+      },
+      "direction": "Short",
+      "entry_price": 32704.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 32706.0,
+      "fvg_low": 32704.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 124.0,
+          "MFE_delta": 64.0,
+          "close_delta": 59.0,
+          "signed_return_over_atr": 2.36
+        },
+        "W300": {
+          "MAE_delta": 82.0,
+          "MFE_delta": 19.0,
+          "close_delta": -63.0,
+          "signed_return_over_atr": -2.52
+        },
+        "W900": {
+          "MAE_delta": 124.0,
+          "MFE_delta": 19.0,
+          "close_delta": -90.0,
+          "signed_return_over_atr": -3.6
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 29.0,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 6.46,
+        "trend_dir": "Short",
+        "trend_strength": 146.55
+      },
+      "ts": 1769653142,
+      "vol_1s": 12
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 39,
+        "mae": 26.0,
+        "mfe": 4.0
+      },
+      "bos_ts": 1769742300,
+      "day": "2026-01-30",
+      "derived": {
+        "exit_gap": 29.0,
+        "giveback_w5_to_w30": -8.0,
+        "mfe_mae_ratio": 0.15,
+        "w15": -12.0,
+        "w30": -38.0,
+        "w5": -46.0
+      },
+      "direction": "Long",
+      "entry_price": 32337.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 32338.0,
+      "fvg_low": 32291.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 77.0,
+          "MFE_delta": 4.0,
+          "close_delta": -38.0,
+          "signed_return_over_atr": -1.52
+        },
+        "W300": {
+          "MAE_delta": 58.0,
+          "MFE_delta": 4.0,
+          "close_delta": -46.0,
+          "signed_return_over_atr": -1.84
+        },
+        "W900": {
+          "MAE_delta": 65.0,
+          "MFE_delta": 4.0,
+          "close_delta": -12.0,
+          "signed_return_over_atr": -0.48
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 38.5,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.2,
+        "trend_dir": "Long",
+        "trend_strength": 135.05
+      },
+      "ts": 1769742880,
+      "vol_1s": 7
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 199,
+        "mae": 22.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1769997600,
+      "day": "2026-02-02",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": 146.0,
+        "mfe_mae_ratio": 2.27,
+        "w15": 13.0,
+        "w30": -44.0,
+        "w5": 102.0
+      },
+      "direction": "Short",
+      "entry_price": 31580.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 3,
+      "fvg_high": 31592.0,
+      "fvg_low": 31580.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 70.0,
+          "MFE_delta": 107.0,
+          "close_delta": -44.0,
+          "signed_return_over_atr": -1.76
+        },
+        "W300": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 107.0,
+          "close_delta": 102.0,
+          "signed_return_over_atr": 4.08
+        },
+        "W900": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 107.0,
+          "close_delta": 13.0,
+          "signed_return_over_atr": 0.52
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 15.0,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 5.64,
+        "trend_dir": "Short",
+        "trend_strength": 252.55
+      },
+      "ts": 1769997979,
+      "vol_1s": 9
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 325,
+        "mae": 10.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1770084600,
+      "day": "2026-02-03",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -60.0,
+        "mfe_mae_ratio": 5.0,
+        "w15": 60.0,
+        "w30": 86.0,
+        "w5": 26.0
+      },
+      "direction": "Short",
+      "entry_price": 32145.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 32162.0,
+      "fvg_low": 32145.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 10.0,
+          "MFE_delta": 125.0,
+          "close_delta": 86.0,
+          "signed_return_over_atr": 3.44
+        },
+        "W300": {
+          "MAE_delta": 10.0,
+          "MFE_delta": 47.0,
+          "close_delta": 26.0,
+          "signed_return_over_atr": 1.04
+        },
+        "W900": {
+          "MAE_delta": 10.0,
+          "MFE_delta": 119.0,
+          "close_delta": 60.0,
+          "signed_return_over_atr": 2.4
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 31.2,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 7.74,
+        "trend_dir": "Short",
+        "trend_strength": 192.8
+      },
+      "ts": 1770085176,
+      "vol_1s": 6
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 35,
+        "mae": 25.0,
+        "mfe": 4.0
+      },
+      "bos_ts": 1770171000,
+      "day": "2026-02-04",
+      "derived": {
+        "exit_gap": 29.0,
+        "giveback_w5_to_w30": -17.0,
+        "mfe_mae_ratio": 0.16,
+        "w15": -46.0,
+        "w30": -10.0,
+        "w5": -27.0
+      },
+      "direction": "Long",
+      "entry_price": 32381.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 32391.0,
+      "fvg_low": 32375.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 123.0,
+          "MFE_delta": 11.0,
+          "close_delta": -10.0,
+          "signed_return_over_atr": -0.4
+        },
+        "W300": {
+          "MAE_delta": 35.0,
+          "MFE_delta": 4.0,
+          "close_delta": -27.0,
+          "signed_return_over_atr": -1.08
+        },
+        "W900": {
+          "MAE_delta": 123.0,
+          "MFE_delta": 4.0,
+          "close_delta": -46.0,
+          "signed_return_over_atr": -1.84
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 42.9,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 6.9,
+        "trend_dir": "Long",
+        "trend_strength": 188.5
+      },
+      "ts": 1770171460,
+      "vol_1s": 6
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 360,
+        "mae": 15.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1770262500,
+      "day": "2026-02-05",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -9.0,
+        "mfe_mae_ratio": 3.33,
+        "w15": 60.0,
+        "w30": 37.0,
+        "w5": 28.0
+      },
+      "direction": "Short",
+      "entry_price": 31877.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 31896.0,
+      "fvg_low": 31877.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 15.0,
+          "MFE_delta": 77.0,
+          "close_delta": 37.0,
+          "signed_return_over_atr": 1.48
+        },
+        "W300": {
+          "MAE_delta": 15.0,
+          "MFE_delta": 33.0,
+          "close_delta": 28.0,
+          "signed_return_over_atr": 1.12
+        },
+        "W900": {
+          "MAE_delta": 15.0,
+          "MFE_delta": 73.0,
+          "close_delta": 60.0,
+          "signed_return_over_atr": 2.4
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 38.6,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 5.9,
+        "trend_dir": "Short",
+        "trend_strength": 107.9
+      },
+      "ts": 1770262965,
+      "vol_1s": 6
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 87,
+        "mae": 3.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1770345300,
+      "day": "2026-02-06",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -24.0,
+        "mfe_mae_ratio": 16.67,
+        "w15": 38.0,
+        "w30": 34.0,
+        "w5": 10.0
+      },
+      "direction": "Long",
+      "entry_price": 31757.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 31758.0,
+      "fvg_low": 31753.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 3.0,
+          "MFE_delta": 76.0,
+          "close_delta": 34.0,
+          "signed_return_over_atr": 1.36
+        },
+        "W300": {
+          "MAE_delta": 3.0,
+          "MFE_delta": 65.0,
+          "close_delta": 10.0,
+          "signed_return_over_atr": 0.4
+        },
+        "W900": {
+          "MAE_delta": 3.0,
+          "MFE_delta": 70.0,
+          "close_delta": 38.0,
+          "signed_return_over_atr": 1.52
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 14.5,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 9.66,
+        "trend_dir": "Long",
+        "trend_strength": 261.85
+      },
+      "ts": 1770345813,
+      "vol_1s": 9
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 464,
+        "mae": 25.0,
+        "mfe": 16.0
+      },
+      "bos_ts": 1770696600,
+      "day": "2026-02-10",
+      "derived": {
+        "exit_gap": 41.0,
+        "giveback_w5_to_w30": -34.0,
+        "mfe_mae_ratio": 0.64,
+        "w15": 9.0,
+        "w30": 28.0,
+        "w5": -6.0
+      },
+      "direction": "Long",
+      "entry_price": 33134.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 33135.0,
+      "fvg_low": 33134.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 29.0,
+          "MFE_delta": 33.0,
+          "close_delta": 28.0,
+          "signed_return_over_atr": 1.12
+        },
+        "W300": {
+          "MAE_delta": 6.0,
+          "MFE_delta": 16.0,
+          "close_delta": -6.0,
+          "signed_return_over_atr": -0.24
+        },
+        "W900": {
+          "MAE_delta": 29.0,
+          "MFE_delta": 16.0,
+          "close_delta": 9.0,
+          "signed_return_over_atr": 0.36
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 71.8,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 5.42,
+        "trend_dir": "Long",
+        "trend_strength": 46.8
+      },
+      "ts": 1770697144,
+      "vol_1s": 6
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 610,
+        "mae": 1.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1770775500,
+      "day": "2026-02-11",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -79.0,
+        "mfe_mae_ratio": 50.0,
+        "w15": 81.0,
+        "w30": 100.0,
+        "w5": 21.0
+      },
+      "direction": "Long",
+      "entry_price": 33526.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 33527.0,
+      "fvg_low": 33522.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 136.0,
+          "close_delta": 100.0,
+          "signed_return_over_atr": 4.0
+        },
+        "W300": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 30.0,
+          "close_delta": 21.0,
+          "signed_return_over_atr": 0.84
+        },
+        "W900": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 103.0,
+          "close_delta": 81.0,
+          "signed_return_over_atr": 3.24
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 57.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 4.78,
+        "trend_dir": "Long",
+        "trend_strength": 121.65
+      },
+      "ts": 1770775873,
+      "vol_1s": 7
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 83,
+        "mae": 25.0,
+        "mfe": 5.0
+      },
+      "bos_ts": 1771904100,
+      "day": "2026-02-24",
+      "derived": {
+        "exit_gap": 30.0,
+        "giveback_w5_to_w30": -48.0,
+        "mfe_mae_ratio": 0.2,
+        "w15": -43.0,
+        "w30": -1.0,
+        "w5": -49.0
+      },
+      "direction": "Long",
+      "entry_price": 34858.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 34862.0,
+      "fvg_low": 34858.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 97.0,
+          "MFE_delta": 5.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.04
+        },
+        "W300": {
+          "MAE_delta": 53.0,
+          "MFE_delta": 5.0,
+          "close_delta": -49.0,
+          "signed_return_over_atr": -1.96
+        },
+        "W900": {
+          "MAE_delta": 97.0,
+          "MFE_delta": 5.0,
+          "close_delta": -43.0,
+          "signed_return_over_atr": -1.72
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 58.5,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 15.22,
+        "trend_dir": "Long",
+        "trend_strength": 124.0
+      },
+      "ts": 1771904565,
+      "vol_1s": 8
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 230,
+        "mae": 25.0,
+        "mfe": 26.0
+      },
+      "bos_ts": 1772070300,
+      "day": "2026-02-26",
+      "derived": {
+        "exit_gap": 51.0,
+        "giveback_w5_to_w30": -48.0,
+        "mfe_mae_ratio": 1.04,
+        "w15": 24.0,
+        "w30": 31.0,
+        "w5": -17.0
+      },
+      "direction": "Long",
+      "entry_price": 35532.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 35549.0,
+      "fvg_low": 35491.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 37.0,
+          "MFE_delta": 65.0,
+          "close_delta": 31.0,
+          "signed_return_over_atr": 1.24
+        },
+        "W300": {
+          "MAE_delta": 37.0,
+          "MFE_delta": 26.0,
+          "close_delta": -17.0,
+          "signed_return_over_atr": -0.68
+        },
+        "W900": {
+          "MAE_delta": 37.0,
+          "MFE_delta": 65.0,
+          "close_delta": 24.0,
+          "signed_return_over_atr": 0.96
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 21.9,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 3.88,
+        "trend_dir": "Long",
+        "trend_strength": 103.7
+      },
+      "ts": 1772070641,
+      "vol_1s": 13
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 27.86,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -27.86,
+        "hold_sec": 38,
+        "mae": 28.0,
+        "mfe": 24.0
+      },
+      "bos_ts": 1772677800,
+      "day": "2026-03-05",
+      "derived": {
+        "exit_gap": 51.86,
+        "giveback_w5_to_w30": 88.0,
+        "mfe_mae_ratio": 0.86,
+        "w15": -370.0,
+        "w30": -206.0,
+        "w5": -118.0
+      },
+      "direction": "Short",
+      "entry_price": 33527.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 33595.0,
+      "fvg_low": 33527.0,
+      "gross_atr_sim": -27.86,
+      "net_atr_sim": -32.86,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 400.0,
+          "MFE_delta": 24.0,
+          "close_delta": -206.0,
+          "signed_return_over_atr": -7.39
+        },
+        "W300": {
+          "MAE_delta": 172.0,
+          "MFE_delta": 24.0,
+          "close_delta": -118.0,
+          "signed_return_over_atr": -4.24
+        },
+        "W900": {
+          "MAE_delta": 376.0,
+          "MFE_delta": 24.0,
+          "close_delta": -370.0,
+          "signed_return_over_atr": -13.28
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 1.8,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 14.68,
+        "trend_dir": "Short",
+        "trend_strength": 472.2
+      },
+      "ts": 1772678149,
+      "vol_1s": 17
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 314,
+        "mae": 25.0,
+        "mfe": 40.0
+      },
+      "bos_ts": 1772764200,
+      "day": "2026-03-06",
+      "derived": {
+        "exit_gap": 65.0,
+        "giveback_w5_to_w30": 55.0,
+        "mfe_mae_ratio": 1.6,
+        "w15": -84.0,
+        "w30": -62.0,
+        "w5": -7.0
+      },
+      "direction": "Long",
+      "entry_price": 33714.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 4,
+      "fvg_high": 33730.0,
+      "fvg_low": 33700.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 149.0,
+          "MFE_delta": 40.0,
+          "close_delta": -62.0,
+          "signed_return_over_atr": -2.48
+        },
+        "W300": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 40.0,
+          "close_delta": -7.0,
+          "signed_return_over_atr": -0.28
+        },
+        "W900": {
+          "MAE_delta": 92.0,
+          "MFE_delta": 40.0,
+          "close_delta": -84.0,
+          "signed_return_over_atr": -3.36
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 4.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 8.8,
+        "trend_dir": "Long",
+        "trend_strength": 235.35
+      },
+      "ts": 1772764542,
+      "vol_1s": 13
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 38.86,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -38.86,
+        "hold_sec": 761,
+        "mae": 39.0,
+        "mfe": 27.0
+      },
+      "bos_ts": 1773108000,
+      "day": "2026-03-10",
+      "derived": {
+        "exit_gap": 65.86,
+        "giveback_w5_to_w30": 31.0,
+        "mfe_mae_ratio": 0.69,
+        "w15": -41.0,
+        "w30": -30.0,
+        "w5": 1.0
+      },
+      "direction": "Long",
+      "entry_price": 33179.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 33182.0,
+      "fvg_low": 33114.0,
+      "gross_atr_sim": -38.86,
+      "net_atr_sim": -43.86,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 118.0,
+          "MFE_delta": 27.0,
+          "close_delta": -30.0,
+          "signed_return_over_atr": -0.77
+        },
+        "W300": {
+          "MAE_delta": 25.0,
+          "MFE_delta": 27.0,
+          "close_delta": 1.0,
+          "signed_return_over_atr": 0.03
+        },
+        "W900": {
+          "MAE_delta": 86.0,
+          "MFE_delta": 27.0,
+          "close_delta": -41.0,
+          "signed_return_over_atr": -1.06
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 24.4,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.87,
+        "trend_dir": "Long",
+        "trend_strength": 268.15
+      },
+      "ts": 1773108503,
+      "vol_1s": 11
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.71,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.71,
+        "hold_sec": 330,
+        "mae": 26.0,
+        "mfe": 28.0
+      },
+      "bos_ts": 1773195900,
+      "day": "2026-03-11",
+      "derived": {
+        "exit_gap": 53.71,
+        "giveback_w5_to_w30": -157.0,
+        "mfe_mae_ratio": 1.08,
+        "w15": 50.0,
+        "w30": 155.0,
+        "w5": -2.0
+      },
+      "direction": "Long",
+      "entry_price": 33801.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 33802.0,
+      "fvg_low": 33800.0,
+      "gross_atr_sim": -25.71,
+      "net_atr_sim": -30.71,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 44.0,
+          "MFE_delta": 162.0,
+          "close_delta": 155.0,
+          "signed_return_over_atr": 6.03
+        },
+        "W300": {
+          "MAE_delta": 16.0,
+          "MFE_delta": 28.0,
+          "close_delta": -2.0,
+          "signed_return_over_atr": -0.08
+        },
+        "W900": {
+          "MAE_delta": 44.0,
+          "MFE_delta": 70.0,
+          "close_delta": 50.0,
+          "signed_return_over_atr": 1.94
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 25.0,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 10.11,
+        "trend_dir": "Long",
+        "trend_strength": 224.1
+      },
+      "ts": 1773196254,
+      "vol_1s": 9
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 34,
+        "mae": 25.0,
+        "mfe": 9.0
+      },
+      "bos_ts": 1773279600,
+      "day": "2026-03-12",
+      "derived": {
+        "exit_gap": 34.0,
+        "giveback_w5_to_w30": 59.0,
+        "mfe_mae_ratio": 0.36,
+        "w15": -191.0,
+        "w30": -195.0,
+        "w5": -136.0
+      },
+      "direction": "Long",
+      "entry_price": 33827.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 33827.0,
+      "fvg_low": 33782.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 239.0,
+          "MFE_delta": 9.0,
+          "close_delta": -195.0,
+          "signed_return_over_atr": -7.8
+        },
+        "W300": {
+          "MAE_delta": 142.0,
+          "MFE_delta": 9.0,
+          "close_delta": -136.0,
+          "signed_return_over_atr": -5.44
+        },
+        "W900": {
+          "MAE_delta": 226.0,
+          "MFE_delta": 9.0,
+          "close_delta": -191.0,
+          "signed_return_over_atr": -7.64
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 11.3,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 8.88,
+        "trend_dir": "Long",
+        "trend_strength": 55.4
+      },
+      "ts": 1773280089,
+      "vol_1s": 10
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 59,
+        "mae": 25.0,
+        "mfe": 17.0
+      },
+      "bos_ts": 1773367800,
+      "day": "2026-03-13",
+      "derived": {
+        "exit_gap": 42.0,
+        "giveback_w5_to_w30": 65.0,
+        "mfe_mae_ratio": 0.68,
+        "w15": -131.0,
+        "w30": -94.0,
+        "w5": -29.0
+      },
+      "direction": "Long",
+      "entry_price": 33369.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 33373.0,
+      "fvg_low": 33257.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 149.0,
+          "MFE_delta": 29.0,
+          "close_delta": -94.0,
+          "signed_return_over_atr": -3.76
+        },
+        "W300": {
+          "MAE_delta": 47.0,
+          "MFE_delta": 29.0,
+          "close_delta": -29.0,
+          "signed_return_over_atr": -1.16
+        },
+        "W900": {
+          "MAE_delta": 149.0,
+          "MFE_delta": 29.0,
+          "close_delta": -131.0,
+          "signed_return_over_atr": -5.24
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 2.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 13.28,
+        "trend_dir": "Long",
+        "trend_strength": 237.45
+      },
+      "ts": 1773368126,
+      "vol_1s": 14
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 150,
+        "mae": 26.0,
+        "mfe": 17.0
+      },
+      "bos_ts": 1773632400,
+      "day": "2026-03-16",
+      "derived": {
+        "exit_gap": 42.0,
+        "giveback_w5_to_w30": 7.0,
+        "mfe_mae_ratio": 0.65,
+        "w15": 1.0,
+        "w30": -3.0,
+        "w5": 4.0
+      },
+      "direction": "Long",
+      "entry_price": 33483.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 33486.0,
+      "fvg_low": 33439.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 34.0,
+          "MFE_delta": 32.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.12
+        },
+        "W300": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 17.0,
+          "close_delta": 4.0,
+          "signed_return_over_atr": 0.16
+        },
+        "W900": {
+          "MAE_delta": 34.0,
+          "MFE_delta": 17.0,
+          "close_delta": 1.0,
+          "signed_return_over_atr": 0.04
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 15.9,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 4.92,
+        "trend_dir": "Long",
+        "trend_strength": 190.4
+      },
+      "ts": 1773632903,
+      "vol_1s": 6
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 7,
+        "mae": 25.0,
+        "mfe": 2.0
+      },
+      "bos_ts": 1773711300,
+      "day": "2026-03-17",
+      "derived": {
+        "exit_gap": 27.0,
+        "giveback_w5_to_w30": -52.0,
+        "mfe_mae_ratio": 0.08,
+        "w15": 5.0,
+        "w30": -58.0,
+        "w5": -110.0
+      },
+      "direction": "Long",
+      "entry_price": 33888.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 33888.0,
+      "fvg_low": 33815.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 154.0,
+          "MFE_delta": 60.0,
+          "close_delta": -58.0,
+          "signed_return_over_atr": -2.32
+        },
+        "W300": {
+          "MAE_delta": 154.0,
+          "MFE_delta": 2.0,
+          "close_delta": -110.0,
+          "signed_return_over_atr": -4.4
+        },
+        "W900": {
+          "MAE_delta": 154.0,
+          "MFE_delta": 7.0,
+          "close_delta": 5.0,
+          "signed_return_over_atr": 0.2
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 12.7,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 5.54,
+        "trend_dir": "Long",
+        "trend_strength": 432.35
+      },
+      "ts": 1773711711,
+      "vol_1s": 10
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 77,
+        "mae": 25.0,
+        "mfe": 6.0
+      },
+      "bos_ts": 1773805500,
+      "day": "2026-03-18",
+      "derived": {
+        "exit_gap": 31.0,
+        "giveback_w5_to_w30": -14.0,
+        "mfe_mae_ratio": 0.24,
+        "w15": -27.0,
+        "w30": -22.0,
+        "w5": -36.0
+      },
+      "direction": "Long",
+      "entry_price": 34379.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 34382.0,
+      "fvg_low": 34359.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 47.0,
+          "MFE_delta": 6.0,
+          "close_delta": -22.0,
+          "signed_return_over_atr": -0.88
+        },
+        "W300": {
+          "MAE_delta": 47.0,
+          "MFE_delta": 6.0,
+          "close_delta": -36.0,
+          "signed_return_over_atr": -1.44
+        },
+        "W900": {
+          "MAE_delta": 47.0,
+          "MFE_delta": 6.0,
+          "close_delta": -27.0,
+          "signed_return_over_atr": -1.08
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 45.1,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 4.76,
+        "trend_dir": "Long",
+        "trend_strength": 106.3
+      },
+      "ts": 1773805813,
+      "vol_1s": 3
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 333,
+        "mae": 25.0,
+        "mfe": 38.0
+      },
+      "bos_ts": 1773975000,
+      "day": "2026-03-20",
+      "derived": {
+        "exit_gap": 63.0,
+        "giveback_w5_to_w30": 48.0,
+        "mfe_mae_ratio": 1.52,
+        "w15": -21.0,
+        "w30": -25.0,
+        "w5": 23.0
+      },
+      "direction": "Long",
+      "entry_price": 33736.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 33740.0,
+      "fvg_low": 33734.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 33.0,
+          "MFE_delta": 38.0,
+          "close_delta": -25.0,
+          "signed_return_over_atr": -1.0
+        },
+        "W300": {
+          "MAE_delta": 18.0,
+          "MFE_delta": 38.0,
+          "close_delta": 23.0,
+          "signed_return_over_atr": 0.92
+        },
+        "W900": {
+          "MAE_delta": 25.0,
+          "MFE_delta": 38.0,
+          "close_delta": -21.0,
+          "signed_return_over_atr": -0.84
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 10.0,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 8.12,
+        "trend_dir": "Long",
+        "trend_strength": 159.95
+      },
+      "ts": 1773975402,
+      "vol_1s": 7
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 36.71,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -36.71,
+        "hold_sec": 141,
+        "mae": 37.0,
+        "mfe": 19.0
+      },
+      "bos_ts": 1774231500,
+      "day": "2026-03-23",
+      "derived": {
+        "exit_gap": 55.71,
+        "giveback_w5_to_w30": 92.0,
+        "mfe_mae_ratio": 0.51,
+        "w15": -178.0,
+        "w30": -138.0,
+        "w5": -46.0
+      },
+      "direction": "Long",
+      "entry_price": 32750.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 32751.0,
+      "fvg_low": 32735.0,
+      "gross_atr_sim": -36.71,
+      "net_atr_sim": -41.71,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 234.0,
+          "MFE_delta": 19.0,
+          "close_delta": -138.0,
+          "signed_return_over_atr": -3.76
+        },
+        "W300": {
+          "MAE_delta": 63.0,
+          "MFE_delta": 19.0,
+          "close_delta": -46.0,
+          "signed_return_over_atr": -1.25
+        },
+        "W900": {
+          "MAE_delta": 213.0,
+          "MFE_delta": 19.0,
+          "close_delta": -178.0,
+          "signed_return_over_atr": -4.85
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 16.3,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 5.97,
+        "trend_dir": "Long",
+        "trend_strength": 108.45
+      },
+      "ts": 1774233020,
+      "vol_1s": 10
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 31.93,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -31.93,
+        "hold_sec": 35,
+        "mae": 32.0,
+        "mfe": 3.0
+      },
+      "bos_ts": 1774325400,
+      "day": "2026-03-24",
+      "derived": {
+        "exit_gap": 34.93,
+        "giveback_w5_to_w30": 27.0,
+        "mfe_mae_ratio": 0.09,
+        "w15": -47.0,
+        "w30": -58.0,
+        "w5": -31.0
+      },
+      "direction": "Long",
+      "entry_price": 32963.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 32964.0,
+      "fvg_low": 32936.0,
+      "gross_atr_sim": -31.93,
+      "net_atr_sim": -36.93,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 88.0,
+          "MFE_delta": 6.0,
+          "close_delta": -58.0,
+          "signed_return_over_atr": -1.82
+        },
+        "W300": {
+          "MAE_delta": 63.0,
+          "MFE_delta": 3.0,
+          "close_delta": -31.0,
+          "signed_return_over_atr": -0.97
+        },
+        "W900": {
+          "MAE_delta": 88.0,
+          "MFE_delta": 3.0,
+          "close_delta": -47.0,
+          "signed_return_over_atr": -1.47
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 18.7,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 3.9,
+        "trend_dir": "Long",
+        "trend_strength": 205.4
+      },
+      "ts": 1774325718,
+      "vol_1s": 8
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 500,
+        "mae": 8.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1774405200,
+      "day": "2026-03-25",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -108.0,
+        "mfe_mae_ratio": 6.25,
+        "w15": 45.0,
+        "w30": 136.0,
+        "w5": 28.0
+      },
+      "direction": "Short",
+      "entry_price": 33627.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 33631.0,
+      "fvg_low": 33625.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 146.0,
+          "close_delta": 136.0,
+          "signed_return_over_atr": 5.44
+        },
+        "W300": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 47.0,
+          "close_delta": 28.0,
+          "signed_return_over_atr": 1.12
+        },
+        "W900": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 75.0,
+          "close_delta": 45.0,
+          "signed_return_over_atr": 1.8
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 12.7,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 4.84,
+        "trend_dir": "Short",
+        "trend_strength": 84.65
+      },
+      "ts": 1774405699,
+      "vol_1s": 10
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "counter_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 30.36,
+      "atr_barrier_sim": {
+        "exit_reason": "horizon",
+        "gross_pnl": 9.0,
+        "hold_sec": 900,
+        "mae": 18.0,
+        "mfe": 52.0
+      },
+      "bos_ts": 1774493100,
+      "day": "2026-03-26",
+      "derived": {
+        "exit_gap": 43.0,
+        "giveback_w5_to_w30": 41.0,
+        "mfe_mae_ratio": 2.89,
+        "w15": 9.0,
+        "w30": -8.0,
+        "w5": 33.0
+      },
+      "direction": "Short",
+      "entry_price": 33662.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 33666.0,
+      "fvg_low": 33655.0,
+      "gross_atr_sim": 9.0,
+      "net_atr_sim": 4.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 34.0,
+          "MFE_delta": 52.0,
+          "close_delta": -8.0,
+          "signed_return_over_atr": -0.26
+        },
+        "W300": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 39.0,
+          "close_delta": 33.0,
+          "signed_return_over_atr": 1.09
+        },
+        "W900": {
+          "MAE_delta": 18.0,
+          "MFE_delta": 52.0,
+          "close_delta": 9.0,
+          "signed_return_over_atr": 0.3
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 51.5,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 2.16,
+        "trend_dir": "Long",
+        "trend_strength": 64.6
+      },
+      "ts": 1774497600,
+      "vol_1s": 7
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "take_profit",
+        "gross_pnl": 50.0,
+        "hold_sec": 836,
+        "mae": 13.0,
+        "mfe": 50.0
+      },
+      "bos_ts": 1774582800,
+      "day": "2026-03-27",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": 9.0,
+        "mfe_mae_ratio": 3.85,
+        "w15": 52.0,
+        "w30": -3.0,
+        "w5": 6.0
+      },
+      "direction": "Long",
+      "entry_price": 32993.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 1,
+      "fvg_high": 32994.0,
+      "fvg_low": 32970.0,
+      "gross_atr_sim": 50.0,
+      "net_atr_sim": 45.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 56.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.12
+        },
+        "W300": {
+          "MAE_delta": 13.0,
+          "MFE_delta": 27.0,
+          "close_delta": 6.0,
+          "signed_return_over_atr": 0.24
+        },
+        "W900": {
+          "MAE_delta": 13.0,
+          "MFE_delta": 56.0,
+          "close_delta": 52.0,
+          "signed_return_over_atr": 2.08
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 29.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 6.54,
+        "trend_dir": "Long",
+        "trend_strength": 133.95
+      },
+      "ts": 1774583104,
+      "vol_1s": 2
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "with_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 178,
+        "mae": 25.0,
+        "mfe": 32.0
+      },
+      "bos_ts": 1774838100,
+      "day": "2026-03-30",
+      "derived": {
+        "exit_gap": 57.0,
+        "giveback_w5_to_w30": 165.0,
+        "mfe_mae_ratio": 1.28,
+        "w15": -121.0,
+        "w30": -248.0,
+        "w5": -83.0
+      },
+      "direction": "Short",
+      "entry_price": 32357.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 4,
+      "fvg_high": 32425.0,
+      "fvg_low": 32357.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 285.0,
+          "MFE_delta": 32.0,
+          "close_delta": -248.0,
+          "signed_return_over_atr": -9.92
+        },
+        "W300": {
+          "MAE_delta": 93.0,
+          "MFE_delta": 32.0,
+          "close_delta": -83.0,
+          "signed_return_over_atr": -3.32
+        },
+        "W900": {
+          "MAE_delta": 166.0,
+          "MFE_delta": 32.0,
+          "close_delta": -121.0,
+          "signed_return_over_atr": -4.84
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 11.1,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 0.06,
+        "trend_dir": "Short",
+        "trend_strength": 83.55
+      },
+      "ts": 1774838599,
+      "vol_1s": 6
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "n/a",
+        "r1": "counter_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "low_vol"
+      },
+      "atr": 25.0,
+      "atr_barrier_sim": {
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 68,
+        "mae": 25.0,
+        "mfe": 20.0
+      },
+      "bos_ts": 1774921200,
+      "day": "2026-03-31",
+      "derived": {
+        "exit_gap": 45.0,
+        "giveback_w5_to_w30": -7.0,
+        "mfe_mae_ratio": 0.8,
+        "w15": 52.0,
+        "w30": -2.0,
+        "w5": -9.0
+      },
+      "direction": "Long",
+      "entry_price": 32301.0,
+      "exit_variant": "atr_barrier_900s",
+      "fvg_age_bars": 2,
+      "fvg_high": 32302.0,
+      "fvg_low": 32274.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "param": "sl3_age6_vp0p4_ksl1_tp2",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 40.0,
+          "MFE_delta": 105.0,
+          "close_delta": -2.0,
+          "signed_return_over_atr": -0.08
+        },
+        "W300": {
+          "MAE_delta": 33.0,
+          "MFE_delta": 26.0,
+          "close_delta": -9.0,
+          "signed_return_over_atr": -0.36
+        },
+        "W900": {
+          "MAE_delta": 33.0,
+          "MFE_delta": 105.0,
+          "close_delta": 52.0,
+          "signed_return_over_atr": 2.08
+        }
+      },
+      "regime": {
+        "atr_percentile_session": 1.7,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 6.84,
+        "trend_dir": "Short",
+        "trend_strength": 1.0
+      },
+      "ts": 1774921563,
+      "vol_1s": 16
+    }
+  ],
+  "from_date": "2026-01-01",
+  "ft": "FT-015",
+  "git_commit": "fd4cdab11d226c775553b1e35acf7a953d7df8eb",
+  "n": 46,
+  "p0_key": "sl3_age6_vp0p4_ksl1_tp2",
+  "schema_version": 1,
+  "slug": "frp",
+  "split": "valid",
+  "tier": "primary",
+  "to_date": "2026-03-31"
+}

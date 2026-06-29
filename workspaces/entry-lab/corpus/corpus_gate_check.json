@@ -1,0 +1,5 @@
+{
+  "phase": "1.5",
+  "all_pass": true,
+  "checks": "see corpus_manifest.json gate_check per slug_split"
+}

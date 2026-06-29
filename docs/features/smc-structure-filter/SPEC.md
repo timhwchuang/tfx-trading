@@ -13,7 +13,7 @@ structure_algo_version: 1
 # FT-002 — SMC Structure Filter（SPEC）
 
 > **目標**：用永豐 `api.kbars`（1m OHLCV）在背景算出 SMC 結構狀態，作為 **戰場濾網**（zone + 方向）；**tick 開槍邏輯不變**（momentum armed → pullback entry）。  
-> **治理（2026-06-28 更新）**：工程 Phase 1–4 已落地；**CAL-8 / Land 放棄** — 濾網綁定 `grid_no_viable_solution` 的 vwap-momentum，否決層無法補 edge。`structure_filter_enabled` **維持 false**。  
+> **治理（2026-06-28 更新）**：工程 Phase 1–4 已落地；**CAL-8 / Land 放棄** — 因 **vwap-momentum 已 `grid_no_viable_solution`**，濾網無法把全負 base 變正（**≠** filter 對新 thesis 普適無效；見 §12.1 · Playbook 附錄 A）。`structure_filter_enabled` **維持 false**。  
 > 實作順序見 [`PLAN.md`](PLAN.md)。設計審閱見 [`REVIEW.md`](REVIEW.md)。
 
 ## 1. Summary
@@ -445,7 +445,19 @@ ft **Landed** 前 MUST 併入：
 | CAL-8 / Phase 5 Land | **放棄** — 濾網僅服務 vwap-momentum；FT-003 **`grid_no_viable_solution`** |
 | 執行 | `structure_filter_enabled` / `trend_filter_enabled` **維持 false** |
 | 新 thesis | 若未來新 plugin 需要 regime 濾網，**另開 ft** 重評；不沿用本輪 CAL-8 |
-| 參考 | [`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §8 |
+| 參考 | [`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §8.2.1 |
+
+### 12.1 常見誤解（Agent / session 對齊）
+
+**本輪 CAL-8 放棄的因果**：vwap-momentum hybrid **進場已無可交易 edge**（淨期望全負、§6.1 逆向選擇）→ trend/structure 濾網在 harness 上 **無法創造 alpha** → 停止 CAL-8 / Land。
+
+**不得推論為**：
+
+- 「EMA / SMC / regime filter 對 **所有** 策略無用」
+- 「Playbook 禁止新 FT 含 filter」（禁止的是 **事後 rescue** 已結案 grid，見 Playbook 附錄 A）
+- 「FT-016 GDC / FT-019 SFBT 等 liquidity 族不可探索時段或 regime 子群」（Entry Lab 允許；須 pre-register 才進 gate）
+
+**一句話**：濾網沒救活 **已死的 host**；不代表濾網對 **新進場機制** 沒火花。
 
 ---
 

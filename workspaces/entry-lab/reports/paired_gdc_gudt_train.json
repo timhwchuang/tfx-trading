@@ -1,0 +1,565 @@
+{
+  "n_paired": 53,
+  "delta_net_median": 0.0,
+  "path_contract_flip_count": 1,
+  "exit_transition_top": [
+    {
+      "barrier": "horizon",
+      "trail": "horizon",
+      "n": 20
+    },
+    {
+      "barrier": "stop_loss",
+      "trail": "stop_loss",
+      "n": 20
+    },
+    {
+      "barrier": "take_profit",
+      "trail": "trail_stop",
+      "n": 8
+    },
+    {
+      "barrier": "horizon",
+      "trail": "breakeven",
+      "n": 3
+    },
+    {
+      "barrier": "take_profit",
+      "trail": "horizon",
+      "n": 2
+    }
+  ],
+  "per_entry": [
+    {
+      "day": "2025-01-06",
+      "ts": 1736127900,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 2.0,
+      "trail_net": 2.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-01-07",
+      "ts": 1736214300,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 27.0,
+      "trail_net": 27.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-01-20",
+      "ts": 1737337685,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.64,
+      "trail_net": -30.64,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-01-22",
+      "ts": 1737510300,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 21.0,
+      "trail_net": 21.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-02-04",
+      "ts": 1738634593,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 18.0,
+      "trail_net": 18.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-02-05",
+      "ts": 1738721641,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-02-17",
+      "ts": 1739757242,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -18.0,
+      "trail_net": -18.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-03-12",
+      "ts": 1741743900,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 27.0,
+      "trail_net": 27.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-03-17",
+      "ts": 1742175900,
+      "delta_w900": 0.0,
+      "delta_net": 12.57,
+      "barrier_net": 45.86,
+      "trail_net": 33.29,
+      "barrier_reason": "take_profit",
+      "trail_reason": "trail_stop"
+    },
+    {
+      "day": "2025-03-25",
+      "ts": 1742867100,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-04-01",
+      "ts": 1743471900,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -37.36,
+      "trail_net": -37.36,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-04-11",
+      "ts": 1744336628,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -71.57,
+      "trail_net": -71.57,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-04-15",
+      "ts": 1744682363,
+      "delta_w900": 0.0,
+      "delta_net": -7.86,
+      "barrier_net": 62.14,
+      "trail_net": 70.0,
+      "barrier_reason": "take_profit",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-04-23",
+      "ts": 1745375126,
+      "delta_w900": 0.0,
+      "delta_net": -3.0,
+      "barrier_net": 55.0,
+      "trail_net": 58.0,
+      "barrier_reason": "take_profit",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-04-28",
+      "ts": 1745804765,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-05-02",
+      "ts": 1746151734,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-05-12",
+      "ts": 1747015297,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -31.43,
+      "trail_net": -31.43,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-06-04",
+      "ts": 1749001532,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-06-05",
+      "ts": 1749087900,
+      "delta_w900": 0.0,
+      "delta_net": -2.0,
+      "barrier_net": -7.0,
+      "trail_net": -5.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "breakeven"
+    },
+    {
+      "day": "2025-06-10",
+      "ts": 1749519900,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 18.0,
+      "trail_net": 18.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-06-17",
+      "ts": 1750124716,
+      "delta_w900": 0.0,
+      "delta_net": 8.5,
+      "barrier_net": 45.0,
+      "trail_net": 36.5,
+      "barrier_reason": "take_profit",
+      "trail_reason": "trail_stop"
+    },
+    {
+      "day": "2025-07-03",
+      "ts": 1751508654,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -18.0,
+      "trail_net": -18.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-07-16",
+      "ts": 1752630300,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 12.0,
+      "trail_net": 12.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-07-30",
+      "ts": 1753841830,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -31.93,
+      "trail_net": -31.93,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-08-05",
+      "ts": 1754358300,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-08-07",
+      "ts": 1754531428,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -32.86,
+      "trail_net": -32.86,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-08-13",
+      "ts": 1755049626,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-08-21",
+      "ts": 1755740715,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 20.0,
+      "trail_net": 20.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-08-25",
+      "ts": 1756087454,
+      "delta_w900": 0.0,
+      "delta_net": 6.68,
+      "barrier_net": 57.14,
+      "trail_net": 50.46,
+      "barrier_reason": "take_profit",
+      "trail_reason": "trail_stop"
+    },
+    {
+      "day": "2025-08-27",
+      "ts": 1756259100,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 3.0,
+      "trail_net": 3.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-09-04",
+      "ts": 1756950300,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.36,
+      "trail_net": -30.36,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-09-05",
+      "ts": 1757038054,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-09-09",
+      "ts": 1757382300,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 15.0,
+      "trail_net": 15.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-09-10",
+      "ts": 1757469142,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 3.0,
+      "trail_net": 3.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-09-11",
+      "ts": 1757557429,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -31.14,
+      "trail_net": -31.14,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-09-12",
+      "ts": 1757642400,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-09-16",
+      "ts": 1757989793,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 18.0,
+      "trail_net": 18.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-09-23",
+      "ts": 1758592088,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 17.0,
+      "trail_net": 17.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-10-02",
+      "ts": 1759369660,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -5.0,
+      "trail_net": -5.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-10-07",
+      "ts": 1759801925,
+      "delta_w900": 0.0,
+      "delta_net": 14.96,
+      "barrier_net": 60.57,
+      "trail_net": 45.61,
+      "barrier_reason": "take_profit",
+      "trail_reason": "trail_stop"
+    },
+    {
+      "day": "2025-10-15",
+      "ts": 1760492700,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 42.0,
+      "trail_net": 42.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-10-16",
+      "ts": 1760579182,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 38.0,
+      "trail_net": 38.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-10-21",
+      "ts": 1761013251,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -34.43,
+      "trail_net": -34.43,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-10-27",
+      "ts": 1761529501,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -40.0,
+      "trail_net": -40.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-10-29",
+      "ts": 1761703984,
+      "delta_w900": 0.0,
+      "delta_net": 8.5,
+      "barrier_net": 45.0,
+      "trail_net": 36.5,
+      "barrier_reason": "take_profit",
+      "trail_reason": "trail_stop"
+    },
+    {
+      "day": "2025-11-12",
+      "ts": 1762912861,
+      "delta_w900": 0.0,
+      "delta_net": -6.29,
+      "barrier_net": 47.57,
+      "trail_net": 53.86,
+      "barrier_reason": "take_profit",
+      "trail_reason": "trail_stop"
+    },
+    {
+      "day": "2025-11-27",
+      "ts": 1764208447,
+      "delta_w900": 0.0,
+      "delta_net": -1.0,
+      "barrier_net": -6.0,
+      "trail_net": -5.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "breakeven"
+    },
+    {
+      "day": "2025-12-03",
+      "ts": 1764728004,
+      "delta_w900": 0.0,
+      "delta_net": 18.0,
+      "barrier_net": 13.0,
+      "trail_net": -5.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "breakeven"
+    },
+    {
+      "day": "2025-12-08",
+      "ts": 1765158300,
+      "delta_w900": 0.0,
+      "delta_net": 11.5,
+      "barrier_net": 45.0,
+      "trail_net": 33.5,
+      "barrier_reason": "take_profit",
+      "trail_reason": "trail_stop"
+    },
+    {
+      "day": "2025-12-19",
+      "ts": 1766109003,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -30.0,
+      "trail_net": -30.0,
+      "barrier_reason": "stop_loss",
+      "trail_reason": "stop_loss"
+    },
+    {
+      "day": "2025-12-22",
+      "ts": 1766369856,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": -2.0,
+      "trail_net": -2.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-12-26",
+      "ts": 1766714331,
+      "delta_w900": 0.0,
+      "delta_net": 0.0,
+      "barrier_net": 9.0,
+      "trail_net": 9.0,
+      "barrier_reason": "horizon",
+      "trail_reason": "horizon"
+    },
+    {
+      "day": "2025-12-29",
+      "ts": 1766972729,
+      "delta_w900": 0.0,
+      "delta_net": -13.5,
+      "barrier_net": 45.0,
+      "trail_net": 58.5,
+      "barrier_reason": "take_profit",
+      "trail_reason": "trail_stop"
+    }
+  ],
+  "note": "Paired on (day, ts, entry_price). Selection: GUDT long-only subset of GDC-eligible days."
+}

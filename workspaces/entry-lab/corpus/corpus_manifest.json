@@ -1,0 +1,98 @@
+{
+  "frp_train": {
+    "gate_check": {
+      "baseline_path": "C:\\Users\\Tim\\Desktop\\tfx-trading\\workspaces\\fvg-baseline\\reports\\counterfactual_frp_fingerprint.json",
+      "expected_n": 211,
+      "exported_n": 211,
+      "p0_key": "sl3_age6_vp0p4_ksl1_tp2",
+      "pass": true
+    },
+    "n": 211,
+    "path": "workspaces\\entry-lab\\corpus\\frp_train_entries.json",
+    "sha256": "2edd1b212d22910667966bd7364ee04040bc24c38a2121fe2e201d12ec5d940f"
+  },
+  "frp_valid": {
+    "gate_check": {
+      "baseline_path": "C:\\Users\\Tim\\Desktop\\tfx-trading\\workspaces\\fvg-baseline\\reports\\counterfactual_frp_valid.json",
+      "expected_n": 46,
+      "exported_n": 46,
+      "p0_key": "sl3_age6_vp0p4_ksl1_tp2",
+      "pass": true
+    },
+    "n": 46,
+    "path": "workspaces\\entry-lab\\corpus\\frp_valid_entries.json",
+    "sha256": "f172bc082fe7635aaca9c62900dae4bc103eaddd93f43ac4fa5709ca353051e9"
+  },
+  "gdc_train": {
+    "gate_check": {
+      "baseline_path": "C:\\Users\\Tim\\Desktop\\tfx-trading\\workspaces\\gdc-baseline\\reports\\counterfactual_gdc_fingerprint.json",
+      "expected_n": 79,
+      "exported_n": 79,
+      "p0_key": "gk1_rt0p4_ksl1_tp2",
+      "pass": true
+    },
+    "n": 79,
+    "path": "workspaces\\entry-lab\\corpus\\gdc_train_entries.json",
+    "sha256": "e6a1524318fdf92b4d0b2616a3cb0c2fac08e5fa7ea5a675ad7f2335a3b34a84"
+  },
+  "gdc_valid": {
+    "gate_check": {
+      "baseline_path": "C:\\Users\\Tim\\Desktop\\tfx-trading\\workspaces\\gdc-baseline\\reports\\counterfactual_gdc_valid.json",
+      "expected_n": 15,
+      "exported_n": 15,
+      "p0_key": "gk1_rt0p4_ksl1_tp2",
+      "pass": true
+    },
+    "n": 15,
+    "path": "workspaces\\entry-lab\\corpus\\gdc_valid_entries.json",
+    "sha256": "5daa5bf5a4b312f6b03d51adfaaef1c59aed34cf57b0bfb03317b7136d4e5a93"
+  },
+  "gudt_train": {
+    "gate_check": {
+      "baseline_path": "C:\\Users\\Tim\\Desktop\\tfx-trading\\workspaces\\gudt-baseline\\reports\\counterfactual_gudt_fingerprint.json",
+      "expected_n": 53,
+      "exported_n": 53,
+      "p0_key": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "pass": true
+    },
+    "n": 53,
+    "path": "workspaces\\entry-lab\\corpus\\gudt_train_entries.json",
+    "sha256": "ae61d15a4ef17629ec8cb8ce400f6973eb947bd7a2e52d03f97db1e81b78b1f0"
+  },
+  "gudt_valid": {
+    "gate_check": {
+      "baseline_path": "C:\\Users\\Tim\\Desktop\\tfx-trading\\workspaces\\gudt-baseline\\reports\\counterfactual_gudt_valid.json",
+      "expected_n": 11,
+      "exported_n": 11,
+      "p0_key": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "pass": true
+    },
+    "n": 11,
+    "path": "workspaces\\entry-lab\\corpus\\gudt_valid_entries.json",
+    "sha256": "9a126008b61a2b9d7cdb08843ffa3a18c0e2a2d64935306c837e1e44ebbb443a"
+  },
+  "sfbt_train": {
+    "gate_check": {
+      "baseline_path": "C:\\Users\\Tim\\Desktop\\tfx-trading\\workspaces\\sfbt-baseline\\reports\\counterfactual_sfbt_fingerprint.json",
+      "expected_n": 229,
+      "exported_n": 229,
+      "p0_key": "slb45_sk0p25_rc120_sw3_age6_be1_tar2_taa1p5_td0p5_tp4",
+      "pass": true
+    },
+    "n": 229,
+    "path": "workspaces\\entry-lab\\corpus\\sfbt_train_entries.json",
+    "sha256": "a802efd29cff380510a370f47909303a24dfea374cb66429559814de939767c5"
+  },
+  "sfbt_valid": {
+    "gate_check": {
+      "baseline_path": "C:\\Users\\Tim\\Desktop\\tfx-trading\\workspaces\\sfbt-baseline\\reports\\counterfactual_sfbt_valid.json",
+      "expected_n": 52,
+      "exported_n": 52,
+      "p0_key": "slb45_sk0p25_rc120_sw3_age6_be1_tar2_taa1p5_td0p5_tp4",
+      "pass": true
+    },
+    "n": 52,
+    "path": "workspaces\\entry-lab\\corpus\\sfbt_valid_entries.json",
+    "sha256": "a89da27ba5bc6dd5d733340a4547e7a5ec666ba270319e80be4a7cff0da2a9b9"
+  }
+}

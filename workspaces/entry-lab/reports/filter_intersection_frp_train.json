@@ -1,0 +1,24 @@
+{
+  "jaccard": {
+    "r2_with_trend": {
+      "r2_with_trend": 1.0,
+      "risk_unit_low": 0.0,
+      "structure_long": 0.531
+    },
+    "risk_unit_low": {
+      "r2_with_trend": 0.0,
+      "risk_unit_low": null,
+      "structure_long": 0.0
+    },
+    "structure_long": {
+      "r2_with_trend": 0.531,
+      "risk_unit_low": 0.0,
+      "structure_long": 1.0
+    }
+  },
+  "filter_names": [
+    "r2_with_trend",
+    "risk_unit_low",
+    "structure_long"
+  ]
+}

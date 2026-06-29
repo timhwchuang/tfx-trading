@@ -1,7 +1,7 @@
 ---
 id: ALPHA-PLAYBOOK
 slug: alpha-research-playbook
-version: 1.6
+version: 1.6.1
 status: Active
 opened: 2026-06-28
 owner: human+agent
@@ -13,6 +13,26 @@ applies_to: FT-012+
 > **SSOT**：新策略 thesis 從提案到 MVPClosed / Holdout 的**固定流程**。  
 > **雙軌**：UAT 持續 = 工程線；本檔只管 **Alpha 線**。敘事總覽：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §8。  
 > **Gate 數字**：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md)（v2.1：2025 train · 2026 Q1 valid · 2026 Q2 holdout）。
+
+---
+
+## 附錄 A — CAL-8 / trend·structure filter 常見誤解（Agent MUST READ）
+
+> **一句話**：CAL-8 取消，是因為 **vwap-momentum（FT-003）已死到不能再死**（`grid_no_viable_solution`），不是因為「濾網普適無 alpha」。
+
+| 常見誤解 | 真相 |
+|----------|------|
+| 「CAL-8 放棄 = EMA / SMC filter 永遠沒用」 | **否**。FT-002 harness 顯示：在 **已無 gross edge 的 host** 上 veto 也補不出期望；**未**證明 filter 對 gap drive、FVG、sweep 等新進場機制無效。 |
+| 「Playbook 禁止所有 filter」 | **否**。禁止的是：(1) 在 **已 MVPClosed 的 exit_kills_edge FT 上事後加 filter 重跑 grid**（post-hoc rescue）；(2) 在 **vwap-momentum** 上繼續 P6-1 / P6-SMC CAL-8。 |
+| 「新 thesis 不能含 regime / 時段條件」 | **否**。**pre-register 進場** 可含 filter；§5.1「本質差異」是指不能只改濾網而 **進場觸發信號** 與負面圖書館相同（見 FT-012）。 |
+
+**因果鏈（封存）**：FT-003 hybrid 淨期望全負 → FT-002 濾網綁定同一 host → CAL-8 **無統計力 / 無增量** → **放棄 Land**，`structure_filter_enabled` / `trend_filter_enabled` 維持 false。
+
+**新 plugin 若需 regime 濾網**：**另開 ft** 重評（FT-002 §12）；Entry Lab 探索 filter **不** 違反本附錄，但產出 **不得** 直接當 gate 結論。
+
+**Entry Lab**（平行 R&D）：[`workspaces/entry-lab/`](../../../workspaces/entry-lab/) · `python -m scripts.run_entry_lab` — 固定 P0 進場診斷，**非** gate。
+
+SSOT：[`smc-structure-filter/SPEC.md`](../smc-structure-filter/SPEC.md) §12 · [`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §8.2.1
 
 ---
 
@@ -270,7 +290,7 @@ PASS 後更新 `CACHE_AUDIT.md` stamp。
 | VWAP pullback | 010 | n≪30 | 低頻 pullback |
 | Session confluence | 011 | train 負 | SCB/OR 堆條件 |
 | **壓縮尺度錯位** | **017** | **`spec_anchor_mismatch` · n=0** | 30m compress 用 1m range 敘事；**tune `compress_k` rescue** |
-| Trend / SMC 濾網 | 002 | 放棄 | CAL-8、filter on |
+| Trend / SMC 濾網 | 002 | 放棄 | **僅 vwap-momentum host**；CAL-8 取消因 base 已死（附錄 A），≠ filter 普適無效 |
 
 SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §6–§8.2 · 各 `workspaces/*/gate_report.md`。
 
@@ -308,7 +328,7 @@ SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.m
 | **進場** | **MAY** 重用已封印 P0 MUST（import / 共用 builder）；**MUST** 在 SPEC 寫清與母 FT 差異 |
 | **出場** | **MUST** 新 `EXIT_VARIANT` + 新 `simulate_*`（例：`atr_trail_skew_900s`） |
 | **Grid** | exit k **可** tune；**禁止**同時改進場 + 出場（雙變形） |
-| **CAL-8 / trend filter** | **禁止** 以 EMA/趨勢濾網「救」exit_kills_edge — CAL-8 已放棄；vwap-momentum host 失效 ≠ EMA 普適 |
+| **CAL-8 / trend filter** | **禁止** 以 EMA/趨勢濾網 **事後**「救」exit_kills_edge（post-hoc grid rescue）。CAL-8 放棄因 **vwap-momentum 已 `grid_no_viable_solution`**（附錄 A）— **≠** 新 thesis 不可 pre-register filter |
 
 **gate_report 附錄（非 gate）**：`exit_gap` · `pct_mfe_ge_1atr` — 診斷 trail/BE 觸發率 vs barrier 契約落差。
 

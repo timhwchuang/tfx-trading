@@ -150,7 +150,7 @@ blockers: []
 
 ### Phase 5 — UAT + CAL-8 + Land — **⛔ 放棄（2026-06-28）**
 
-> 濾網綁定 `grid_no_viable_solution` 的 vwap-momentum；CAL-8 無法創造 alpha。Harness **保留**；不再簽核。
+> **vwap-momentum 已死**（`grid_no_viable_solution`）— 濾網無法創造 alpha；**非**「filter 普適無效」（見 SPEC §12.1 · Playbook 附錄 A）。Harness **保留**；不再簽核。
 
 - [x] ~~UAT ≥5 日~~ — **放棄**
 - [x] ~~CAL-8 → WeeklyStatus~~ — **放棄**

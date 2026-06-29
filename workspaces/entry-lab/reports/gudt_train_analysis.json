@@ -1,0 +1,160 @@
+{
+  "slug": "gudt",
+  "split": "train",
+  "tier": "tertiary",
+  "n": 53,
+  "baseline": {
+    "n": 53,
+    "tier": "descriptive_ci",
+    "mde_note": "underpowered_for_15pp_need_n~156",
+    "path": {
+      "pct_w5_pos": 54.7,
+      "pct_w15_pos": 56.6,
+      "pct_w30_pos": 58.5,
+      "w5_median": 3.0,
+      "w15_median": 8.0,
+      "w30_median": 21.0,
+      "w30_bootstrap_ci": {
+        "median": 21.0,
+        "ci_low": -6.0,
+        "ci_high": 41.0
+      }
+    },
+    "contract": {
+      "gross_median": 3.0,
+      "net_median": -2.0,
+      "pct_net_pos": 49.1,
+      "mfe_median": 26.0,
+      "mae_median": 21.0,
+      "exit_gap_median": 19.0
+    }
+  },
+  "regime_r2_cohorts": {
+    "counter_trend": {
+      "n": 6,
+      "tier": "underpowered",
+      "mde_note": "underpowered_for_15pp_need_n~133",
+      "path": {
+        "pct_w5_pos": 33.3,
+        "pct_w15_pos": 66.7,
+        "pct_w30_pos": 66.7,
+        "w5_median": -3.5,
+        "w15_median": 8.5,
+        "w30_median": 32.0
+      },
+      "contract": {
+        "gross_median": 8.5,
+        "net_median": 3.5,
+        "pct_net_pos": 50.0,
+        "mfe_median": 19.0,
+        "mae_median": 20.5,
+        "exit_gap_median": 12.57
+      }
+    },
+    "neutral": {
+      "n": 34,
+      "tier": "descriptive_ci",
+      "mde_note": "underpowered_for_15pp_need_n~148",
+      "path": {
+        "pct_w5_pos": 55.9,
+        "pct_w15_pos": 55.9,
+        "pct_w30_pos": 61.8,
+        "w5_median": 4.5,
+        "w15_median": 13.5,
+        "w30_median": 22.0,
+        "w30_bootstrap_ci": {
+          "median": 22.0,
+          "ci_low": -6.0,
+          "ci_high": 41.0
+        }
+      },
+      "contract": {
+        "gross_median": 0.0,
+        "net_median": -5.0,
+        "pct_net_pos": 47.1,
+        "mfe_median": 29.5,
+        "mae_median": 22.0,
+        "exit_gap_median": 23.0
+      }
+    },
+    "with_trend": {
+      "n": 13,
+      "tier": "hypothesis_only",
+      "mde_note": "underpowered_for_15pp_need_n~173",
+      "path": {
+        "pct_w5_pos": 61.5,
+        "pct_w15_pos": 53.8,
+        "pct_w30_pos": 46.2,
+        "w5_median": 2.0,
+        "w15_median": 8.0,
+        "w30_median": -8.0
+      },
+      "contract": {
+        "gross_median": 8.0,
+        "net_median": 3.0,
+        "pct_net_pos": 53.8,
+        "mfe_median": 26.0,
+        "mae_median": 13.0,
+        "exit_gap_median": 19.0
+      }
+    }
+  },
+  "regime_r1_cohorts": {
+    "with_trend": {
+      "n": 53,
+      "tier": "descriptive_ci",
+      "mde_note": "underpowered_for_15pp_need_n~156",
+      "path": {
+        "pct_w5_pos": 54.7,
+        "pct_w15_pos": 56.6,
+        "pct_w30_pos": 58.5,
+        "w5_median": 3.0,
+        "w15_median": 8.0,
+        "w30_median": 21.0,
+        "w30_bootstrap_ci": {
+          "median": 21.0,
+          "ci_low": -6.0,
+          "ci_high": 41.0
+        }
+      },
+      "contract": {
+        "gross_median": 3.0,
+        "net_median": -2.0,
+        "pct_net_pos": 49.1,
+        "mfe_median": 26.0,
+        "mae_median": 21.0,
+        "exit_gap_median": 19.0
+      }
+    }
+  },
+  "regime_agreement": {
+    "n": 53,
+    "pairwise_agreement": {
+      "r1_vs_r2": {
+        "agreement_rate": 0.684,
+        "n": 19
+      },
+      "r1_vs_r3": {
+        "agreement_rate": 0.132,
+        "n": 53
+      },
+      "r2_vs_r3": {
+        "agreement_rate": 0.211,
+        "n": 19
+      }
+    }
+  },
+  "robustness": {
+    "friction": {
+      "n": 53,
+      "pct_net_pos_friction_5": 49.1,
+      "pct_net_pos_friction_7": 47.2
+    },
+    "regime_perm": {
+      "observed_with_minus_counter_med": -40.0,
+      "perm_diff_p90": 44.5,
+      "perm_exceeds_observed_pct": 23.9,
+      "exploratory_only": true
+    }
+  }
+}

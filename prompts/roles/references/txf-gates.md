@@ -11,7 +11,7 @@
 | **Merge code** | 測試全綠 | `bash scripts/run-all-tests.sh` |
 | **UAT** | 狀態機、對帳、audit 可解析；**不驗獲利** | [`docs/uat/APP.md`](../../../docs/uat/APP.md) Phase 0–4、[`docs/uat/KERNEL.md`](../../../docs/uat/KERNEL.md) |
 | **Pilot** | 量化門檻 + 穩定性 + 人類簽核 | [`docs/uat/APP.md`](../../../docs/uat/APP.md) **Phase 5** |
-| **Live / Phase 6** | Trend filter CAL-8、旗標校準 | [`docs/TODO.md`](../../../docs/TODO.md) §P6-1-CAL、vwap [`SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) §6.1 |
+| **Live / Phase 6** | ~~Trend filter CAL-8~~ **已放棄**（vwap-momentum host 已死；見 Playbook 附錄 A）；旗標校準 | [`docs/TODO.md`](../../../docs/TODO.md) §P6-1-CAL、vwap [`SPEC.md`](../../../packages/strategies/vwap-momentum/SPEC.md) §6.1 |
 
 **UAT Ready ≠ Live Ready ≠ Pilot Ready** — 三層不可混用。  
 **Preflight BLOCK ≠ fingerprint fail** — 無樣本 = `spec_anchor_mismatch`（0-design），不得進 0c-1。
@@ -27,7 +27,7 @@
 | 項目 | 現況 |
 |------|------|
 | 持倉 | **qty=1**、全倉進出；無 scale-in / partial exit | engine SPEC §4.2.1 |
-| Trend filter | 預設 **false**；開啟需 CAL-8 人類簽核 | TODO §P6-1-CAL |
+| Trend filter | 預設 **false**；**vwap-momentum 上 CAL-8 已放棄**（host 無 edge，非 filter 普適無效） | TODO §P6-1-CAL · Playbook 附錄 A |
 | 回測成交 | 啟發式 slippage；非 order book | backtest SPEC §9 |
 | UAT KPI | 秒停損率等為 **Pilot 觀測**，非 UAT pass 條件 | AGENTS §4.1 |
 

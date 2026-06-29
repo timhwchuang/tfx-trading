@@ -1,7 +1,7 @@
 ---
 id: FT-019
 slug: sweep-fvg-breakout-trail
-status: Draft
+status: MVPClosed
 thesis_class: skew
 proposal_id: P-012
 opened: 2026-06-29

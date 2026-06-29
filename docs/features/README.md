@@ -8,7 +8,7 @@
 | ID | Slug | Status | Opened | Target | 文件 |
 |----|------|--------|--------|--------|------|
 | FT-001 | [audit-event-replay](audit-event-replay/SPEC.md) | **Landed** | 2026-06-17 | UAT→Pilot | [SPEC](audit-event-replay/SPEC.md) · [PLAN](audit-event-replay/PLAN.md) · [REVIEW](audit-event-replay/REVIEW.md) · **`/audit-event-replay`** |
-| FT-002 | [smc-structure-filter](smc-structure-filter/SPEC.md) | **MVPClosed** | 2026-06-18 | — | [SPEC §12](smc-structure-filter/SPEC.md) · 工程 1–4 ✅ · **CAL-8 放棄** |
+| FT-002 | [smc-structure-filter](smc-structure-filter/SPEC.md) | **MVPClosed** | 2026-06-18 | — | [SPEC §12](smc-structure-filter/SPEC.md) · 工程 1–4 ✅ · **CAL-8 放棄**（vwap-momentum host 已死，≠ filter 普適無效） |
 | FT-003 | [ai-backtest-tuning](ai-backtest-tuning/SPEC.md) | **MVPClosed** | 2026-06-26 | Strategy v2 | [SPEC](ai-backtest-tuning/SPEC.md) · [PLAN](ai-backtest-tuning/PLAN.md) · [**ROSTER**](ai-backtest-tuning/AGENT_ROSTER.md) · [`election_report.md`](../../workspaces/election_report.md) · [`workspaces/`](../../workspaces/) |
 | FT-004 | [momentum-continuation](momentum-continuation/SPEC.md) | **MVPClosed** | 2026-06-27 | Pilot-prep | [SPEC](momentum-continuation/SPEC.md) §8 · [PLAN](momentum-continuation/PLAN.md) · [`gate_report`](../../workspaces/mc-baseline/gate_report.md) |
 | FT-005 | [timeout-continuation](timeout-continuation/SPEC.md) | **MVPClosed** | 2026-06-28 | Pilot-prep | [SPEC](timeout-continuation/SPEC.md) §8 · [PLAN](timeout-continuation/PLAN.md) · [`gate_report`](../../workspaces/tc-baseline/gate_report.md) |
@@ -25,7 +25,7 @@
 | FT-016 | [gap-drive-continuation](gap-drive-continuation/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | [`gdc_fingerprint_pass_g1_fail`](../../workspaces/gdc-baseline/gate_report.md) · W30 +13 · G1 fail |
 | FT-017 | [compression-flow-attack](compression-flow-attack/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | **`spec_anchor_mismatch`** · n=0 · compress 錨點錯位 · [`gate_report`](../../workspaces/cfa-baseline/gate_report.md) |
 | FT-018 | [gap-up-drive-trail](gap-up-drive-trail/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | P-011 · `gudt_no_skew_champion` · [`gate_report`](../../workspaces/gudt-baseline/gate_report.md) |
-| FT-019 | [sweep-fvg-breakout-trail](sweep-fvg-breakout-trail/SPEC.md) | **Draft** | 2026-06-29 | Alpha P0 | [SPEC](sweep-fvg-breakout-trail/SPEC.md) · [PLAN](sweep-fvg-breakout-trail/PLAN.md) · P-012 **`draft-proposal`** · sweep+FVG trail |
+| FT-019 | [sweep-fvg-breakout-trail](sweep-fvg-breakout-trail/SPEC.md) | **MVPClosed** | 2026-06-29 | Alpha P0 | P-012 · `sfbt_fingerprint_pass_g1_fail` · [`gate_report`](../../workspaces/sfbt-baseline/gate_report.md) |
 | FT-020 | [bear-streak-flip-long](bear-streak-flip-long/SPEC.md) | **Draft** | 2026-06-29 | Alpha P0 | [SPEC](bear-streak-flip-long/SPEC.md) · [PLAN](bear-streak-flip-long/PLAN.md) · P-013 **`draft-proposal`** · 0-design Conditional PASS |
 
 ## 狀態定義

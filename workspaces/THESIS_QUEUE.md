@@ -24,7 +24,7 @@
 | P-009 | FVG retest pullback | **`mvpclosed`** → FT-015 | **liquidity** | **skew** | med | W30 med −0 · n=211 |
 | P-010 | Compression flow attack | **`mvpclosed`** → FT-017 | **liquidity** | **skew** | med | **`spec_anchor_mismatch`** · n=0（mislabel: `cfa_fingerprint_fail`） |
 | P-011 | Gap up drive trail | **`mvpclosed`** → FT-018 | **continuation** | **skew** | med | **train champion corpse** · entry OK · valid net−2 · 禁第三 exit |
-| P-012 | Sweep FVG breakout trail | `draft-proposal` → FT-019 | **liquidity** | **skew** | med | **0-design PASS** · 待 Pick → [`PLAN`](../../docs/features/sweep-fvg-breakout-trail/PLAN.md) |
+| P-012 | Sweep FVG breakout trail | `mvpclosed` → FT-019 | **liquidity** | **skew** | med | **`sfbt_fingerprint_pass_g1_fail`** · [`gate_report`](../sfbt-baseline/gate_report.md) |
 | P-013 | Bear streak flip long | `draft-proposal` → FT-020 | **mean-reversion** | mean_robust | **med** | **0-design Conditional PASS** · Preflight PASS · 待 Pick → [`PLAN`](../../docs/features/bear-streak-flip-long/PLAN.md) |
 
 ---
@@ -159,9 +159,9 @@
 
 ---
 
-## P-012 — Sweep FVG breakout trail → **FT-019**（**draft-proposal**）
+## P-012 — Sweep FVG breakout trail → **FT-019**（**mvpclosed**）
 
-**狀態**：`draft-proposal` · **提議者**：Agent · **日期**：2026-06-29 · **class**：**skew** · **FT**：[`sweep-fvg-breakout-trail`](../../docs/features/sweep-fvg-breakout-trail/SPEC.md) · **0-design Conditional PASS**（2026-06-29 · P0 封印）
+**狀態**：`mvpclosed` · **提議者**：Agent · **日期**：2026-06-29 · **class**：**skew** · **FT**：[`sweep-fvg-breakout-trail`](../../docs/features/sweep-fvg-breakout-trail/SPEC.md) · **outcome** `sfbt_fingerprint_pass_g1_fail`
 
 **故事**：**Long-only** — 1m swing low **浅扫**（`sweep_k×ATR`）→ **120s reclaim** → **5m bullish FVG** → tick **breakout > fvg_high**；初始 stop **`fvg_mid`**；动态 **`fvg_mid_trail_skew_900s`**（BE/trail 锚 `risk_unit`）；`fingerprint W900`。
 
@@ -177,7 +177,9 @@
 
 **Falsify**：W900 ≤ 0 → `sfbt_fingerprint_fail_direction`；n<15 → `sfbt_fingerprint_fail_n`；G1 fail + 大 exit_gap → MVPClosed。
 
-**下一步**：P-011 已結 · 人類 **`human-approved`** Pick → Phase 0a → [`PLAN`](../../docs/features/sweep-fvg-breakout-trail/PLAN.md)。
+**下一步**：已結案 · 見 [`gate_report`](../sfbt-baseline/gate_report.md) · **下一 Pick** P-013。
+
+**0c（2026-06-29）**：fingerprint W900 med **+1.0** · n=**229** · trail gross **1.19** · gross med **0** · G1 **fail** · skew payoff **1.575** · valid net **−1.89** · **exit_gap ~17** → `sfbt_fingerprint_pass_g1_fail` · **禁 holdout** · **禁** FT-015 zone retest 復活。
 
 ---
 
@@ -216,12 +218,12 @@
 | P-005 | **mvpclosed** → FT-016 | 2026-06-28 | fingerprint W30 +13 · grid G1 fail · valid net−9 |
 | P-010 | **mvpclosed** → FT-017 | 2026-06-28 | n=0 · compress@trigger · **`spec_anchor_mismatch`** |
 | P-011 | **mvpclosed** → FT-018 | 2026-06-29 | entry OK · train G1 pass · skew §3.2 fail · valid net−2 · `gudt_no_skew_champion` |
+| P-012 | **mvpclosed** → FT-019 | 2026-06-29 | fingerprint W900 +1 · n=229 · G1 fail gross 1.19 · valid net−1.89 · `sfbt_fingerprint_pass_g1_fail` |
 
 ---
 
 ## 人類操作
 
-1. **P-012 / FT-019** — **下一個 Pick**（0-design PASS）→ [`sweep-fvg-breakout-trail/PLAN`](../docs/features/sweep-fvg-breakout-trail/PLAN.md) Phase 0a prompt
-2. **P-013 / FT-020** — 0-design Conditional PASS · Preflight PASS · P-011 已結後 Pick → [`bear-streak-flip-long/PLAN`](../docs/features/bear-streak-flip-long/PLAN.md)
-3. **P-006** — 仍 `draft-proposal` · 等人類 Pick
+1. **P-013 / FT-020** — **下一個 Pick**（0-design Conditional PASS）→ [`bear-streak-flip-long/PLAN`](../docs/features/bear-streak-flip-long/PLAN.md)
+2. **P-006** — 仍 `draft-proposal` · 等人類 Pick
 4. **v2.2.1 不復活 FT 屍體** — 見 Holdout §11

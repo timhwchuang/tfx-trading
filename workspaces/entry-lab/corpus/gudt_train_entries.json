@@ -1,0 +1,4044 @@
+{
+  "code": "TMFR1",
+  "content_sha256": "ae61d15a4ef17629ec8cb8ce400f6973eb947bd7a2e52d03f97db1e81b78b1f0",
+  "entries": [
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 23421.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 7.0,
+        "hold_sec": 900,
+        "mae": 8.0,
+        "mfe": 25.0,
+        "trail_armed": false
+      },
+      "day": "2025-01-06",
+      "derived": {
+        "exit_gap": 18.0,
+        "giveback_w5_to_w30": -29.0,
+        "mfe_mae_ratio": 3.12,
+        "w15": 7.0,
+        "w30": 33.0,
+        "w5": 4.0
+      },
+      "direction": "Long",
+      "drive_high": 23413.0,
+      "drive_low": 23320.0,
+      "entry_price": 23414.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 2.0,
+        "1": 1.0,
+        "2": 0.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 247.0,
+      "gross_atr_sim": 7.0,
+      "net_atr_sim": 2.0,
+      "open_0845": 23225.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 36.0,
+          "close_delta": 33.0,
+          "signed_return_over_atr": 1.32
+        },
+        "W300": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 20.0,
+          "close_delta": 4.0,
+          "signed_return_over_atr": 0.16
+        },
+        "W900": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 25.0,
+          "close_delta": 7.0,
+          "signed_return_over_atr": 0.28
+        }
+      },
+      "prior_close": 22978.0,
+      "regime": {
+        "atr_percentile_session": 91.5,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 222.2
+      },
+      "ts": 1736127900
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "with_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 23930.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 32.0,
+        "hold_sec": 900,
+        "mae": 14.0,
+        "mfe": 32.0,
+        "trail_armed": false
+      },
+      "day": "2025-01-07",
+      "derived": {
+        "exit_gap": 0.0,
+        "giveback_w5_to_w30": -28.0,
+        "mfe_mae_ratio": 2.29,
+        "w15": 32.0,
+        "w30": 33.0,
+        "w5": 5.0
+      },
+      "direction": "Long",
+      "drive_high": 23896.0,
+      "drive_low": 23833.0,
+      "entry_price": 23898.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 27.0,
+        "1": 26.0,
+        "2": 25.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 350.0,
+      "gross_atr_sim": 32.0,
+      "net_atr_sim": 27.0,
+      "open_0845": 23961.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 14.0,
+          "MFE_delta": 41.0,
+          "close_delta": 33.0,
+          "signed_return_over_atr": 1.32
+        },
+        "W300": {
+          "MAE_delta": 14.0,
+          "MFE_delta": 17.0,
+          "close_delta": 5.0,
+          "signed_return_over_atr": 0.2
+        },
+        "W900": {
+          "MAE_delta": 14.0,
+          "MFE_delta": 32.0,
+          "close_delta": 32.0,
+          "signed_return_over_atr": 1.28
+        }
+      },
+      "prior_close": 23611.0,
+      "regime": {
+        "atr_percentile_session": 86.4,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 116.35
+      },
+      "ts": 1736214300
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.64,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 23337.36,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.64,
+        "hold_sec": 247,
+        "mae": 26.0,
+        "mfe": 2.0,
+        "trail_armed": false
+      },
+      "day": "2025-01-20",
+      "derived": {
+        "exit_gap": 27.64,
+        "giveback_w5_to_w30": 22.0,
+        "mfe_mae_ratio": 0.08,
+        "w15": -35.0,
+        "w30": -43.0,
+        "w5": -21.0
+      },
+      "direction": "Long",
+      "drive_high": 23362.0,
+      "drive_low": 23283.0,
+      "entry_price": 23363.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.64,
+        "1": -31.64,
+        "2": -32.64
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 78.0,
+      "gross_atr_sim": -25.64,
+      "net_atr_sim": -30.64,
+      "open_0845": 23273.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 51.0,
+          "MFE_delta": 2.0,
+          "close_delta": -43.0,
+          "signed_return_over_atr": -1.68
+        },
+        "W300": {
+          "MAE_delta": 32.0,
+          "MFE_delta": 2.0,
+          "close_delta": -21.0,
+          "signed_return_over_atr": -0.82
+        },
+        "W900": {
+          "MAE_delta": 51.0,
+          "MFE_delta": 2.0,
+          "close_delta": -35.0,
+          "signed_return_over_atr": -1.37
+        }
+      },
+      "prior_close": 23195.0,
+      "regime": {
+        "atr_percentile_session": 85.5,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 89.3
+      },
+      "ts": 1737337685
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 23677.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 26.0,
+        "hold_sec": 900,
+        "mae": 12.0,
+        "mfe": 42.0,
+        "trail_armed": false
+      },
+      "day": "2025-01-22",
+      "derived": {
+        "exit_gap": 16.0,
+        "giveback_w5_to_w30": -42.0,
+        "mfe_mae_ratio": 3.5,
+        "w15": 26.0,
+        "w30": 41.0,
+        "w5": -1.0
+      },
+      "direction": "Long",
+      "drive_high": 23650.0,
+      "drive_low": 23575.0,
+      "entry_price": 23651.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 21.0,
+        "1": 20.0,
+        "2": 19.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 227.0,
+      "gross_atr_sim": 26.0,
+      "net_atr_sim": 21.0,
+      "open_0845": 23595.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 45.0,
+          "close_delta": 41.0,
+          "signed_return_over_atr": 1.64
+        },
+        "W300": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 15.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.04
+        },
+        "W900": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 42.0,
+          "close_delta": 26.0,
+          "signed_return_over_atr": 1.04
+        }
+      },
+      "prior_close": 23368.0,
+      "regime": {
+        "atr_percentile_session": 94.9,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 122.15
+      },
+      "ts": 1737510300
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "with_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 22896.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 23.0,
+        "hold_sec": 897,
+        "mae": 2.0,
+        "mfe": 33.0,
+        "trail_armed": false
+      },
+      "day": "2025-02-04",
+      "derived": {
+        "exit_gap": 10.0,
+        "giveback_w5_to_w30": 24.0,
+        "mfe_mae_ratio": 16.5,
+        "w15": 23.0,
+        "w30": -6.0,
+        "w5": 18.0
+      },
+      "direction": "Long",
+      "drive_high": 22872.0,
+      "drive_low": 22812.0,
+      "entry_price": 22873.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 18.0,
+        "1": 17.0,
+        "2": 16.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 314.0,
+      "gross_atr_sim": 23.0,
+      "net_atr_sim": 18.0,
+      "open_0845": 22909.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 10.0,
+          "MFE_delta": 33.0,
+          "close_delta": -6.0,
+          "signed_return_over_atr": -0.24
+        },
+        "W300": {
+          "MAE_delta": 2.0,
+          "MFE_delta": 26.0,
+          "close_delta": 18.0,
+          "signed_return_over_atr": 0.72
+        },
+        "W900": {
+          "MAE_delta": 2.0,
+          "MFE_delta": 33.0,
+          "close_delta": 23.0,
+          "signed_return_over_atr": 0.92
+        }
+      },
+      "prior_close": 22595.0,
+      "regime": {
+        "atr_percentile_session": 89.6,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 44.15
+      },
+      "ts": 1738634593
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 23245.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 205,
+        "mae": 25.0,
+        "mfe": 11.0,
+        "trail_armed": false
+      },
+      "day": "2025-02-05",
+      "derived": {
+        "exit_gap": 36.0,
+        "giveback_w5_to_w30": 7.0,
+        "mfe_mae_ratio": 0.44,
+        "w15": -43.0,
+        "w30": -41.0,
+        "w5": -34.0
+      },
+      "direction": "Long",
+      "drive_high": 23269.0,
+      "drive_low": 23192.0,
+      "entry_price": 23270.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 241.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 23066.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 55.0,
+          "MFE_delta": 11.0,
+          "close_delta": -41.0,
+          "signed_return_over_atr": -1.64
+        },
+        "W300": {
+          "MAE_delta": 36.0,
+          "MFE_delta": 11.0,
+          "close_delta": -34.0,
+          "signed_return_over_atr": -1.36
+        },
+        "W900": {
+          "MAE_delta": 55.0,
+          "MFE_delta": 11.0,
+          "close_delta": -43.0,
+          "signed_return_over_atr": -1.72
+        }
+      },
+      "prior_close": 22825.0,
+      "regime": {
+        "atr_percentile_session": 90.9,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 100.55
+      },
+      "ts": 1738721641
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 23443.0,
+        "exit_reason": "horizon",
+        "gross_pnl": -13.0,
+        "hold_sec": 900,
+        "mae": 22.0,
+        "mfe": 10.0,
+        "trail_armed": false
+      },
+      "day": "2025-02-17",
+      "derived": {
+        "exit_gap": 23.0,
+        "giveback_w5_to_w30": 13.0,
+        "mfe_mae_ratio": 0.45,
+        "w15": -13.0,
+        "w30": -13.0,
+        "w5": 0.0
+      },
+      "direction": "Long",
+      "drive_high": 23455.0,
+      "drive_low": 23336.0,
+      "entry_price": 23456.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -18.0,
+        "1": -19.0,
+        "2": -20.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 125.0,
+      "gross_atr_sim": -13.0,
+      "net_atr_sim": -18.0,
+      "open_0845": 23300.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 27.0,
+          "MFE_delta": 10.0,
+          "close_delta": -13.0,
+          "signed_return_over_atr": -0.52
+        },
+        "W300": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 10.0,
+          "close_delta": 0.0,
+          "signed_return_over_atr": 0.0
+        },
+        "W900": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 10.0,
+          "close_delta": -13.0,
+          "signed_return_over_atr": -0.52
+        }
+      },
+      "prior_close": 23175.0,
+      "regime": {
+        "atr_percentile_session": 92.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 117.45
+      },
+      "ts": 1739757242
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 22209.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 32.0,
+        "hold_sec": 900,
+        "mae": 2.0,
+        "mfe": 46.0,
+        "trail_armed": false
+      },
+      "day": "2025-03-12",
+      "derived": {
+        "exit_gap": 14.0,
+        "giveback_w5_to_w30": -38.0,
+        "mfe_mae_ratio": 23.0,
+        "w15": 32.0,
+        "w30": 64.0,
+        "w5": 26.0
+      },
+      "direction": "Long",
+      "drive_high": 22175.0,
+      "drive_low": 22110.0,
+      "entry_price": 22177.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 27.0,
+        "1": 26.0,
+        "2": 25.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 65.0,
+      "gross_atr_sim": 32.0,
+      "net_atr_sim": 27.0,
+      "open_0845": 22090.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 2.0,
+          "MFE_delta": 74.0,
+          "close_delta": 64.0,
+          "signed_return_over_atr": 2.56
+        },
+        "W300": {
+          "MAE_delta": 2.0,
+          "MFE_delta": 27.0,
+          "close_delta": 26.0,
+          "signed_return_over_atr": 1.04
+        },
+        "W900": {
+          "MAE_delta": 2.0,
+          "MFE_delta": 46.0,
+          "close_delta": 32.0,
+          "signed_return_over_atr": 1.28
+        }
+      },
+      "prior_close": 22025.0,
+      "regime": {
+        "atr_percentile_session": 81.4,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.58,
+        "trend_dir": "Long",
+        "trend_strength": 87.6
+      },
+      "ts": 1741743900
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.43,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 22290.29,
+        "exit_reason": "trail_stop",
+        "gross_pnl": 38.29,
+        "hold_sec": 354,
+        "mae": 0.0,
+        "mfe": 51.0,
+        "trail_armed": true
+      },
+      "day": "2025-03-17",
+      "derived": {
+        "exit_gap": 12.71,
+        "giveback_w5_to_w30": 114.0,
+        "mfe_mae_ratio": null,
+        "w15": 22.0,
+        "w30": -75.0,
+        "w5": 39.0
+      },
+      "direction": "Long",
+      "drive_high": 22221.0,
+      "drive_low": 22145.0,
+      "entry_price": 22252.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 33.29,
+        "1": 32.29,
+        "2": 31.29
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 206.0,
+      "gross_atr_sim": 38.29,
+      "net_atr_sim": 33.29,
+      "open_0845": 22170.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 96.0,
+          "MFE_delta": 58.0,
+          "close_delta": -75.0,
+          "signed_return_over_atr": -2.95
+        },
+        "W300": {
+          "MAE_delta": -0.0,
+          "MFE_delta": 40.0,
+          "close_delta": 39.0,
+          "signed_return_over_atr": 1.53
+        },
+        "W900": {
+          "MAE_delta": -0.0,
+          "MFE_delta": 58.0,
+          "close_delta": 22.0,
+          "signed_return_over_atr": 0.87
+        }
+      },
+      "prior_close": 21964.0,
+      "regime": {
+        "atr_percentile_session": 86.4,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 104.45
+      },
+      "ts": 1742175900
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 22397.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 401,
+        "mae": 25.0,
+        "mfe": 21.0,
+        "trail_armed": false
+      },
+      "day": "2025-03-25",
+      "derived": {
+        "exit_gap": 46.0,
+        "giveback_w5_to_w30": 137.0,
+        "mfe_mae_ratio": 0.84,
+        "w15": -106.0,
+        "w30": -138.0,
+        "w5": -1.0
+      },
+      "direction": "Long",
+      "drive_high": 22421.0,
+      "drive_low": 22335.0,
+      "entry_price": 22422.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 179.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 22334.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 155.0,
+          "MFE_delta": 21.0,
+          "close_delta": -138.0,
+          "signed_return_over_atr": -5.52
+        },
+        "W300": {
+          "MAE_delta": 14.0,
+          "MFE_delta": 21.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.04
+        },
+        "W900": {
+          "MAE_delta": 110.0,
+          "MFE_delta": 21.0,
+          "close_delta": -106.0,
+          "signed_return_over_atr": -4.24
+        }
+      },
+      "prior_close": 22155.0,
+      "regime": {
+        "atr_percentile_session": 89.8,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 1.84,
+        "trend_dir": "Long",
+        "trend_strength": 137.35
+      },
+      "ts": 1742867100
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 32.36,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 21086.64,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -32.36,
+        "hold_sec": 752,
+        "mae": 33.0,
+        "mfe": 29.0,
+        "trail_armed": false
+      },
+      "day": "2025-04-01",
+      "derived": {
+        "exit_gap": 61.36,
+        "giveback_w5_to_w30": -18.0,
+        "mfe_mae_ratio": 0.88,
+        "w15": -39.0,
+        "w30": 29.0,
+        "w5": 11.0
+      },
+      "direction": "Long",
+      "drive_high": 21100.0,
+      "drive_low": 20957.0,
+      "entry_price": 21119.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -37.36,
+        "1": -38.36,
+        "2": -39.36
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 254.0,
+      "gross_atr_sim": -32.36,
+      "net_atr_sim": -37.36,
+      "open_0845": 21023.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 44.0,
+          "MFE_delta": 36.0,
+          "close_delta": 29.0,
+          "signed_return_over_atr": 0.9
+        },
+        "W300": {
+          "MAE_delta": 14.0,
+          "MFE_delta": 24.0,
+          "close_delta": 11.0,
+          "signed_return_over_atr": 0.34
+        },
+        "W900": {
+          "MAE_delta": 42.0,
+          "MFE_delta": 29.0,
+          "close_delta": -39.0,
+          "signed_return_over_atr": -1.21
+        }
+      },
+      "prior_close": 20769.0,
+      "regime": {
+        "atr_percentile_session": 83.1,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 184.5
+      },
+      "ts": 1743471900
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 66.57,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 19016.43,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -66.57,
+        "hold_sec": 400,
+        "mae": 67.0,
+        "mfe": 26.0,
+        "trail_armed": false
+      },
+      "day": "2025-04-11",
+      "derived": {
+        "exit_gap": 92.57,
+        "giveback_w5_to_w30": -225.0,
+        "mfe_mae_ratio": 0.39,
+        "w15": -50.0,
+        "w30": 183.0,
+        "w5": -42.0
+      },
+      "direction": "Long",
+      "drive_high": 19082.0,
+      "drive_low": 18656.0,
+      "entry_price": 19083.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -71.57,
+        "1": -72.57,
+        "2": -73.57
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 1363.0,
+      "gross_atr_sim": -66.57,
+      "net_atr_sim": -71.57,
+      "open_0845": 18561.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 144.0,
+          "MFE_delta": 185.0,
+          "close_delta": 183.0,
+          "signed_return_over_atr": 2.75
+        },
+        "W300": {
+          "MAE_delta": 56.0,
+          "MFE_delta": 26.0,
+          "close_delta": -42.0,
+          "signed_return_over_atr": -0.63
+        },
+        "W900": {
+          "MAE_delta": 144.0,
+          "MFE_delta": 26.0,
+          "close_delta": -50.0,
+          "signed_return_over_atr": -0.75
+        }
+      },
+      "prior_close": 17198.0,
+      "regime": {
+        "atr_percentile_session": 71.8,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 604.1
+      },
+      "ts": 1744336628
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 33.57,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 19738.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 75.0,
+        "hold_sec": 900,
+        "mae": 22.0,
+        "mfe": 81.0,
+        "trail_armed": true
+      },
+      "day": "2025-04-15",
+      "derived": {
+        "exit_gap": 6.0,
+        "giveback_w5_to_w30": -50.0,
+        "mfe_mae_ratio": 3.68,
+        "w15": 75.0,
+        "w30": 47.0,
+        "w5": -3.0
+      },
+      "direction": "Long",
+      "drive_high": 19662.0,
+      "drive_low": 19572.0,
+      "entry_price": 19663.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 70.0,
+        "1": 69.0,
+        "2": 68.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 87.0,
+      "gross_atr_sim": 75.0,
+      "net_atr_sim": 70.0,
+      "open_0845": 19583.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 98.0,
+          "close_delta": 47.0,
+          "signed_return_over_atr": 1.4
+        },
+        "W300": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 13.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.09
+        },
+        "W900": {
+          "MAE_delta": 22.0,
+          "MFE_delta": 81.0,
+          "close_delta": 75.0,
+          "signed_return_over_atr": 2.23
+        }
+      },
+      "prior_close": 19496.0,
+      "regime": {
+        "atr_percentile_session": 83.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 73.8
+      },
+      "ts": 1744682363
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 30.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 19513.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 63.0,
+        "hold_sec": 900,
+        "mae": 7.0,
+        "mfe": 65.0,
+        "trail_armed": true
+      },
+      "day": "2025-04-23",
+      "derived": {
+        "exit_gap": 2.0,
+        "giveback_w5_to_w30": -36.0,
+        "mfe_mae_ratio": 9.29,
+        "w15": 63.0,
+        "w30": 44.0,
+        "w5": 8.0
+      },
+      "direction": "Long",
+      "drive_high": 19449.0,
+      "drive_low": 19348.0,
+      "entry_price": 19450.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 58.0,
+        "1": 57.0,
+        "2": 56.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 441.0,
+      "gross_atr_sim": 63.0,
+      "net_atr_sim": 58.0,
+      "open_0845": 19240.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 7.0,
+          "MFE_delta": 73.0,
+          "close_delta": 44.0,
+          "signed_return_over_atr": 1.47
+        },
+        "W300": {
+          "MAE_delta": 7.0,
+          "MFE_delta": 9.0,
+          "close_delta": 8.0,
+          "signed_return_over_atr": 0.27
+        },
+        "W900": {
+          "MAE_delta": 7.0,
+          "MFE_delta": 65.0,
+          "close_delta": 63.0,
+          "signed_return_over_atr": 2.1
+        }
+      },
+      "prior_close": 18799.0,
+      "regime": {
+        "atr_percentile_session": 89.9,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 4.02,
+        "trend_dir": "Long",
+        "trend_strength": 69.9
+      },
+      "ts": 1745375126
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 20019.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 299,
+        "mae": 25.0,
+        "mfe": 8.0,
+        "trail_armed": false
+      },
+      "day": "2025-04-28",
+      "derived": {
+        "exit_gap": 33.0,
+        "giveback_w5_to_w30": 19.0,
+        "mfe_mae_ratio": 0.32,
+        "w15": -51.0,
+        "w30": -38.0,
+        "w5": -19.0
+      },
+      "direction": "Long",
+      "drive_high": 20043.0,
+      "drive_low": 19980.0,
+      "entry_price": 20044.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 95.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 19971.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 70.0,
+          "MFE_delta": 8.0,
+          "close_delta": -38.0,
+          "signed_return_over_atr": -1.52
+        },
+        "W300": {
+          "MAE_delta": 25.0,
+          "MFE_delta": 8.0,
+          "close_delta": -19.0,
+          "signed_return_over_atr": -0.76
+        },
+        "W900": {
+          "MAE_delta": 62.0,
+          "MFE_delta": 8.0,
+          "close_delta": -51.0,
+          "signed_return_over_atr": -2.04
+        }
+      },
+      "prior_close": 19876.0,
+      "regime": {
+        "atr_percentile_session": 91.7,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 73.45
+      },
+      "ts": 1745804765
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 20556.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 682,
+        "mae": 25.0,
+        "mfe": 13.0,
+        "trail_armed": false
+      },
+      "day": "2025-05-02",
+      "derived": {
+        "exit_gap": 38.0,
+        "giveback_w5_to_w30": -52.0,
+        "mfe_mae_ratio": 0.52,
+        "w15": 0.0,
+        "w30": 40.0,
+        "w5": -12.0
+      },
+      "direction": "Long",
+      "drive_high": 20580.0,
+      "drive_low": 20482.0,
+      "entry_price": 20581.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 324.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 20472.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 37.0,
+          "MFE_delta": 47.0,
+          "close_delta": 40.0,
+          "signed_return_over_atr": 1.6
+        },
+        "W300": {
+          "MAE_delta": 17.0,
+          "MFE_delta": 13.0,
+          "close_delta": -12.0,
+          "signed_return_over_atr": -0.48
+        },
+        "W900": {
+          "MAE_delta": 37.0,
+          "MFE_delta": 13.0,
+          "close_delta": 0.0,
+          "signed_return_over_atr": 0.0
+        }
+      },
+      "prior_close": 20148.0,
+      "regime": {
+        "atr_percentile_session": 87.8,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 92.35
+      },
+      "ts": 1746151734
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_up_structure_bear",
+        "r1": "with_trend",
+        "r2": "counter_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 26.43,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 21100.57,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -26.43,
+        "hold_sec": 133,
+        "mae": 27.0,
+        "mfe": 2.0,
+        "trail_armed": false
+      },
+      "day": "2025-05-12",
+      "derived": {
+        "exit_gap": 28.43,
+        "giveback_w5_to_w30": 21.0,
+        "mfe_mae_ratio": 0.07,
+        "w15": -3.0,
+        "w30": -18.0,
+        "w5": 3.0
+      },
+      "direction": "Long",
+      "drive_high": 21126.0,
+      "drive_low": 21041.0,
+      "entry_price": 21127.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -31.43,
+        "1": -32.43,
+        "2": -33.43
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 154.0,
+      "gross_atr_sim": -26.43,
+      "net_atr_sim": -31.43,
+      "open_0845": 21002.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 39.0,
+          "MFE_delta": 6.0,
+          "close_delta": -18.0,
+          "signed_return_over_atr": -0.68
+        },
+        "W300": {
+          "MAE_delta": 27.0,
+          "MFE_delta": 6.0,
+          "close_delta": 3.0,
+          "signed_return_over_atr": 0.11
+        },
+        "W900": {
+          "MAE_delta": 27.0,
+          "MFE_delta": 6.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.11
+        }
+      },
+      "prior_close": 20848.0,
+      "regime": {
+        "atr_percentile_session": 80.0,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 1.49,
+        "trend_dir": "Long",
+        "trend_strength": 93.95
+      },
+      "ts": 1747015297
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 21430.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 84,
+        "mae": 25.0,
+        "mfe": 4.0,
+        "trail_armed": false
+      },
+      "day": "2025-06-04",
+      "derived": {
+        "exit_gap": 29.0,
+        "giveback_w5_to_w30": -8.0,
+        "mfe_mae_ratio": 0.16,
+        "w15": -20.0,
+        "w30": 11.0,
+        "w5": 3.0
+      },
+      "direction": "Long",
+      "drive_high": 21454.0,
+      "drive_low": 21338.0,
+      "entry_price": 21455.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 297.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 21269.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 27.0,
+          "MFE_delta": 28.0,
+          "close_delta": 11.0,
+          "signed_return_over_atr": 0.44
+        },
+        "W300": {
+          "MAE_delta": 27.0,
+          "MFE_delta": 4.0,
+          "close_delta": 3.0,
+          "signed_return_over_atr": 0.12
+        },
+        "W900": {
+          "MAE_delta": 27.0,
+          "MFE_delta": 8.0,
+          "close_delta": -20.0,
+          "signed_return_over_atr": -0.8
+        }
+      },
+      "prior_close": 20972.0,
+      "regime": {
+        "atr_percentile_session": 84.7,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 215.15
+      },
+      "ts": 1749001532
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 21649.0,
+        "exit_reason": "breakeven",
+        "gross_pnl": 0.0,
+        "hold_sec": 552,
+        "mae": 1.0,
+        "mfe": 27.0,
+        "trail_armed": false
+      },
+      "day": "2025-06-05",
+      "derived": {
+        "exit_gap": 27.0,
+        "giveback_w5_to_w30": 97.0,
+        "mfe_mae_ratio": 27.0,
+        "w15": -2.0,
+        "w30": -71.0,
+        "w5": 26.0
+      },
+      "direction": "Long",
+      "drive_high": 21648.0,
+      "drive_low": 21580.0,
+      "entry_price": 21649.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -5.0,
+        "1": -6.0,
+        "2": -7.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 106.0,
+      "gross_atr_sim": 0.0,
+      "net_atr_sim": -5.0,
+      "open_0845": 21586.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 93.0,
+          "MFE_delta": 27.0,
+          "close_delta": -71.0,
+          "signed_return_over_atr": -2.84
+        },
+        "W300": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 27.0,
+          "close_delta": 26.0,
+          "signed_return_over_atr": 1.04
+        },
+        "W900": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 27.0,
+          "close_delta": -2.0,
+          "signed_return_over_atr": -0.08
+        }
+      },
+      "prior_close": 21480.0,
+      "regime": {
+        "atr_percentile_session": 93.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 1.94,
+        "trend_dir": "Long",
+        "trend_strength": 87.8
+      },
+      "ts": 1749087900
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 22124.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 23.0,
+        "hold_sec": 900,
+        "mae": 23.0,
+        "mfe": 34.0,
+        "trail_armed": false
+      },
+      "day": "2025-06-10",
+      "derived": {
+        "exit_gap": 11.0,
+        "giveback_w5_to_w30": 5.0,
+        "mfe_mae_ratio": 1.48,
+        "w15": 23.0,
+        "w30": 21.0,
+        "w5": 26.0
+      },
+      "direction": "Long",
+      "drive_high": 22099.0,
+      "drive_low": 21907.0,
+      "entry_price": 22101.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 18.0,
+        "1": 17.0,
+        "2": 16.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 132.0,
+      "gross_atr_sim": 23.0,
+      "net_atr_sim": 18.0,
+      "open_0845": 21859.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 23.0,
+          "MFE_delta": 34.0,
+          "close_delta": 21.0,
+          "signed_return_over_atr": 0.84
+        },
+        "W300": {
+          "MAE_delta": 23.0,
+          "MFE_delta": 28.0,
+          "close_delta": 26.0,
+          "signed_return_over_atr": 1.04
+        },
+        "W900": {
+          "MAE_delta": 23.0,
+          "MFE_delta": 34.0,
+          "close_delta": 23.0,
+          "signed_return_over_atr": 0.92
+        }
+      },
+      "prior_close": 21727.0,
+      "regime": {
+        "atr_percentile_session": 93.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 241.05
+      },
+      "ts": 1749519900
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "with_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 22231.5,
+        "exit_reason": "trail_stop",
+        "gross_pnl": 41.5,
+        "hold_sec": 590,
+        "mae": 1.0,
+        "mfe": 54.0,
+        "trail_armed": true
+      },
+      "day": "2025-06-17",
+      "derived": {
+        "exit_gap": 12.5,
+        "giveback_w5_to_w30": 139.0,
+        "mfe_mae_ratio": 54.0,
+        "w15": 37.0,
+        "w30": -103.0,
+        "w5": 36.0
+      },
+      "direction": "Long",
+      "drive_high": 22189.0,
+      "drive_low": 22135.0,
+      "entry_price": 22190.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 36.5,
+        "1": 35.5,
+        "2": 34.5
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 110.0,
+      "gross_atr_sim": 41.5,
+      "net_atr_sim": 36.5,
+      "open_0845": 22145.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 106.0,
+          "MFE_delta": 54.0,
+          "close_delta": -103.0,
+          "signed_return_over_atr": -4.12
+        },
+        "W300": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 45.0,
+          "close_delta": 36.0,
+          "signed_return_over_atr": 1.44
+        },
+        "W900": {
+          "MAE_delta": 1.0,
+          "MFE_delta": 54.0,
+          "close_delta": 37.0,
+          "signed_return_over_atr": 1.48
+        }
+      },
+      "prior_close": 22035.0,
+      "regime": {
+        "atr_percentile_session": 91.5,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 56.65
+      },
+      "ts": 1750124716
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 22684.0,
+        "exit_reason": "horizon",
+        "gross_pnl": -13.0,
+        "hold_sec": 894,
+        "mae": 21.0,
+        "mfe": 9.0,
+        "trail_armed": false
+      },
+      "day": "2025-07-03",
+      "derived": {
+        "exit_gap": 22.0,
+        "giveback_w5_to_w30": 31.0,
+        "mfe_mae_ratio": 0.43,
+        "w15": -13.0,
+        "w30": -35.0,
+        "w5": -4.0
+      },
+      "direction": "Long",
+      "drive_high": 22696.0,
+      "drive_low": 22591.0,
+      "entry_price": 22697.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -18.0,
+        "1": -19.0,
+        "2": -20.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 186.0,
+      "gross_atr_sim": -13.0,
+      "net_atr_sim": -18.0,
+      "open_0845": 22576.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 52.0,
+          "MFE_delta": 9.0,
+          "close_delta": -35.0,
+          "signed_return_over_atr": -1.4
+        },
+        "W300": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 5.0,
+          "close_delta": -4.0,
+          "signed_return_over_atr": -0.16
+        },
+        "W900": {
+          "MAE_delta": 21.0,
+          "MFE_delta": 9.0,
+          "close_delta": -13.0,
+          "signed_return_over_atr": -0.52
+        }
+      },
+      "prior_close": 22390.0,
+      "regime": {
+        "atr_percentile_session": 89.3,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.74,
+        "trend_dir": "Long",
+        "trend_strength": 83.75
+      },
+      "ts": 1751508654
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 23034.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 17.0,
+        "hold_sec": 900,
+        "mae": 13.0,
+        "mfe": 36.0,
+        "trail_armed": false
+      },
+      "day": "2025-07-16",
+      "derived": {
+        "exit_gap": 19.0,
+        "giveback_w5_to_w30": -15.0,
+        "mfe_mae_ratio": 2.77,
+        "w15": 17.0,
+        "w30": 21.0,
+        "w5": 6.0
+      },
+      "direction": "Long",
+      "drive_high": 23016.0,
+      "drive_low": 22941.0,
+      "entry_price": 23017.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 12.0,
+        "1": 11.0,
+        "2": 10.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 40.0,
+      "gross_atr_sim": 17.0,
+      "net_atr_sim": 12.0,
+      "open_0845": 22850.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 13.0,
+          "MFE_delta": 36.0,
+          "close_delta": 21.0,
+          "signed_return_over_atr": 0.84
+        },
+        "W300": {
+          "MAE_delta": 13.0,
+          "MFE_delta": 16.0,
+          "close_delta": 6.0,
+          "signed_return_over_atr": 0.24
+        },
+        "W900": {
+          "MAE_delta": 13.0,
+          "MFE_delta": 36.0,
+          "close_delta": 17.0,
+          "signed_return_over_atr": 0.68
+        }
+      },
+      "prior_close": 22810.0,
+      "regime": {
+        "atr_percentile_session": 96.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 3.1,
+        "trend_dir": "Long",
+        "trend_strength": 113.8
+      },
+      "ts": 1752630300
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 26.93,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 23351.07,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -26.93,
+        "hold_sec": 78,
+        "mae": 27.0,
+        "mfe": 15.0,
+        "trail_armed": false
+      },
+      "day": "2025-07-30",
+      "derived": {
+        "exit_gap": 41.93,
+        "giveback_w5_to_w30": 19.0,
+        "mfe_mae_ratio": 0.56,
+        "w15": -28.0,
+        "w30": -17.0,
+        "w5": 2.0
+      },
+      "direction": "Long",
+      "drive_high": 23377.0,
+      "drive_low": 23200.0,
+      "entry_price": 23378.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -31.93,
+        "1": -32.93,
+        "2": -33.93
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 42.0,
+      "gross_atr_sim": -26.93,
+      "net_atr_sim": -31.93,
+      "open_0845": 23207.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 63.0,
+          "MFE_delta": 24.0,
+          "close_delta": -17.0,
+          "signed_return_over_atr": -0.63
+        },
+        "W300": {
+          "MAE_delta": 30.0,
+          "MFE_delta": 15.0,
+          "close_delta": 2.0,
+          "signed_return_over_atr": 0.07
+        },
+        "W900": {
+          "MAE_delta": 44.0,
+          "MFE_delta": 24.0,
+          "close_delta": -28.0,
+          "signed_return_over_atr": -1.04
+        }
+      },
+      "prior_close": 23165.0,
+      "regime": {
+        "atr_percentile_session": 75.8,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 1.95,
+        "trend_dir": "Long",
+        "trend_strength": 58.15
+      },
+      "ts": 1753841830
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 23496.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 119,
+        "mae": 25.0,
+        "mfe": 2.0,
+        "trail_armed": false
+      },
+      "day": "2025-08-05",
+      "derived": {
+        "exit_gap": 27.0,
+        "giveback_w5_to_w30": 9.0,
+        "mfe_mae_ratio": 0.08,
+        "w15": -7.0,
+        "w30": -24.0,
+        "w5": -15.0
+      },
+      "direction": "Long",
+      "drive_high": 23520.0,
+      "drive_low": 23420.0,
+      "entry_price": 23521.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 173.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 23430.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 42.0,
+          "MFE_delta": 4.0,
+          "close_delta": -24.0,
+          "signed_return_over_atr": -0.96
+        },
+        "W300": {
+          "MAE_delta": 42.0,
+          "MFE_delta": 2.0,
+          "close_delta": -15.0,
+          "signed_return_over_atr": -0.6
+        },
+        "W900": {
+          "MAE_delta": 42.0,
+          "MFE_delta": 2.0,
+          "close_delta": -7.0,
+          "signed_return_over_atr": -0.28
+        }
+      },
+      "prior_close": 23257.0,
+      "regime": {
+        "atr_percentile_session": 86.4,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 124.15
+      },
+      "ts": 1754358300
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 27.86,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 23992.14,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -27.86,
+        "hold_sec": 701,
+        "mae": 28.0,
+        "mfe": 18.0,
+        "trail_armed": false
+      },
+      "day": "2025-08-07",
+      "derived": {
+        "exit_gap": 45.86,
+        "giveback_w5_to_w30": -12.0,
+        "mfe_mae_ratio": 0.64,
+        "w15": -8.0,
+        "w30": -5.0,
+        "w5": -17.0
+      },
+      "direction": "Long",
+      "drive_high": 24019.0,
+      "drive_low": 23877.0,
+      "entry_price": 24020.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -32.86,
+        "1": -33.86,
+        "2": -34.86
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 201.0,
+      "gross_atr_sim": -27.86,
+      "net_atr_sim": -32.86,
+      "open_0845": 23624.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 18.0,
+          "close_delta": -5.0,
+          "signed_return_over_atr": -0.18
+        },
+        "W300": {
+          "MAE_delta": 17.0,
+          "MFE_delta": 18.0,
+          "close_delta": -17.0,
+          "signed_return_over_atr": -0.61
+        },
+        "W900": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 18.0,
+          "close_delta": -8.0,
+          "signed_return_over_atr": -0.29
+        }
+      },
+      "prior_close": 23423.0,
+      "regime": {
+        "atr_percentile_session": 79.7,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 265.85
+      },
+      "ts": 1754531428
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 24286.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 137,
+        "mae": 25.0,
+        "mfe": 3.0,
+        "trail_armed": false
+      },
+      "day": "2025-08-13",
+      "derived": {
+        "exit_gap": 28.0,
+        "giveback_w5_to_w30": -94.0,
+        "mfe_mae_ratio": 0.12,
+        "w15": 11.0,
+        "w30": 91.0,
+        "w5": -3.0
+      },
+      "direction": "Long",
+      "drive_high": 24310.0,
+      "drive_low": 24246.0,
+      "entry_price": 24311.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 163.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 24305.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 25.0,
+          "MFE_delta": 93.0,
+          "close_delta": 91.0,
+          "signed_return_over_atr": 3.64
+        },
+        "W300": {
+          "MAE_delta": 25.0,
+          "MFE_delta": 3.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.12
+        },
+        "W900": {
+          "MAE_delta": 25.0,
+          "MFE_delta": 35.0,
+          "close_delta": 11.0,
+          "signed_return_over_atr": 0.44
+        }
+      },
+      "prior_close": 24142.0,
+      "regime": {
+        "atr_percentile_session": 98.4,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 42.95
+      },
+      "ts": 1755049626
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.36,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 23926.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 25.0,
+        "hold_sec": 900,
+        "mae": 6.0,
+        "mfe": 39.0,
+        "trail_armed": false
+      },
+      "day": "2025-08-21",
+      "derived": {
+        "exit_gap": 14.0,
+        "giveback_w5_to_w30": 65.0,
+        "mfe_mae_ratio": 6.5,
+        "w15": 25.0,
+        "w30": -46.0,
+        "w5": 19.0
+      },
+      "direction": "Long",
+      "drive_high": 23900.0,
+      "drive_low": 23801.0,
+      "entry_price": 23901.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 20.0,
+        "1": 19.0,
+        "2": 18.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 59.0,
+      "gross_atr_sim": 25.0,
+      "net_atr_sim": 20.0,
+      "open_0845": 23722.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 74.0,
+          "MFE_delta": 39.0,
+          "close_delta": -46.0,
+          "signed_return_over_atr": -1.81
+        },
+        "W300": {
+          "MAE_delta": 6.0,
+          "MFE_delta": 39.0,
+          "close_delta": 19.0,
+          "signed_return_over_atr": 0.75
+        },
+        "W900": {
+          "MAE_delta": 6.0,
+          "MFE_delta": 39.0,
+          "close_delta": 25.0,
+          "signed_return_over_atr": 0.99
+        }
+      },
+      "prior_close": 23663.0,
+      "regime": {
+        "atr_percentile_session": 78.0,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 146.15
+      },
+      "ts": 1755740715
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "with_trend",
+        "r4": "high_vol"
+      },
+      "atr": 31.07,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 24204.46,
+        "exit_reason": "trail_stop",
+        "gross_pnl": 55.46,
+        "hold_sec": 196,
+        "mae": 4.0,
+        "mfe": 71.0,
+        "trail_armed": true
+      },
+      "day": "2025-08-25",
+      "derived": {
+        "exit_gap": 15.54,
+        "giveback_w5_to_w30": -86.0,
+        "mfe_mae_ratio": 17.75,
+        "w15": 120.0,
+        "w30": 155.0,
+        "w5": 69.0
+      },
+      "direction": "Long",
+      "drive_high": 24148.0,
+      "drive_low": 24082.0,
+      "entry_price": 24149.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 50.46,
+        "1": 49.46,
+        "2": 48.46
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 375.0,
+      "gross_atr_sim": 55.46,
+      "net_atr_sim": 50.46,
+      "open_0845": 24123.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 4.0,
+          "MFE_delta": 161.0,
+          "close_delta": 155.0,
+          "signed_return_over_atr": 4.99
+        },
+        "W300": {
+          "MAE_delta": 4.0,
+          "MFE_delta": 71.0,
+          "close_delta": 69.0,
+          "signed_return_over_atr": 2.22
+        },
+        "W900": {
+          "MAE_delta": 4.0,
+          "MFE_delta": 120.0,
+          "close_delta": 120.0,
+          "signed_return_over_atr": 3.86
+        }
+      },
+      "prior_close": 23748.0,
+      "regime": {
+        "atr_percentile_session": 91.0,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 86.2
+      },
+      "ts": 1756087454
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 24453.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 8.0,
+        "hold_sec": 900,
+        "mae": 14.0,
+        "mfe": 11.0,
+        "trail_armed": false
+      },
+      "day": "2025-08-27",
+      "derived": {
+        "exit_gap": 3.0,
+        "giveback_w5_to_w30": 4.0,
+        "mfe_mae_ratio": 0.79,
+        "w15": 8.0,
+        "w30": -8.0,
+        "w5": -4.0
+      },
+      "direction": "Long",
+      "drive_high": 24443.0,
+      "drive_low": 24371.0,
+      "entry_price": 24445.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 3.0,
+        "1": 2.0,
+        "2": 1.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 93.0,
+      "gross_atr_sim": 8.0,
+      "net_atr_sim": 3.0,
+      "open_0845": 24352.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 14.0,
+          "MFE_delta": 11.0,
+          "close_delta": -8.0,
+          "signed_return_over_atr": -0.32
+        },
+        "W300": {
+          "MAE_delta": 14.0,
+          "MFE_delta": 3.0,
+          "close_delta": -4.0,
+          "signed_return_over_atr": -0.16
+        },
+        "W900": {
+          "MAE_delta": 14.0,
+          "MFE_delta": 11.0,
+          "close_delta": 8.0,
+          "signed_return_over_atr": 0.32
+        }
+      },
+      "prior_close": 24259.0,
+      "regime": {
+        "atr_percentile_session": 91.5,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.08,
+        "trend_dir": "Long",
+        "trend_strength": 104.1
+      },
+      "ts": 1756259100
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.36,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 24263.64,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.36,
+        "hold_sec": 164,
+        "mae": 26.0,
+        "mfe": 10.0,
+        "trail_armed": false
+      },
+      "day": "2025-09-04",
+      "derived": {
+        "exit_gap": 35.36,
+        "giveback_w5_to_w30": -84.0,
+        "mfe_mae_ratio": 0.38,
+        "w15": -2.0,
+        "w30": 58.0,
+        "w5": -26.0
+      },
+      "direction": "Long",
+      "drive_high": 24286.0,
+      "drive_low": 24196.0,
+      "entry_price": 24289.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.36,
+        "1": -31.36,
+        "2": -32.36
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 188.0,
+      "gross_atr_sim": -25.36,
+      "net_atr_sim": -30.36,
+      "open_0845": 24187.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 34.0,
+          "MFE_delta": 61.0,
+          "close_delta": 58.0,
+          "signed_return_over_atr": 2.29
+        },
+        "W300": {
+          "MAE_delta": 34.0,
+          "MFE_delta": 10.0,
+          "close_delta": -26.0,
+          "signed_return_over_atr": -1.03
+        },
+        "W900": {
+          "MAE_delta": 34.0,
+          "MFE_delta": 10.0,
+          "close_delta": -2.0,
+          "signed_return_over_atr": -0.08
+        }
+      },
+      "prior_close": 23999.0,
+      "regime": {
+        "atr_percentile_session": 71.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 135.45
+      },
+      "ts": 1756950300
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 24345.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 112,
+        "mae": 25.0,
+        "mfe": 6.0,
+        "trail_armed": false
+      },
+      "day": "2025-09-05",
+      "derived": {
+        "exit_gap": 31.0,
+        "giveback_w5_to_w30": -56.0,
+        "mfe_mae_ratio": 0.24,
+        "w15": 16.0,
+        "w30": 42.0,
+        "w5": -14.0
+      },
+      "direction": "Long",
+      "drive_high": 24369.0,
+      "drive_low": 24301.0,
+      "entry_price": 24370.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 227.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 24361.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 29.0,
+          "MFE_delta": 44.0,
+          "close_delta": 42.0,
+          "signed_return_over_atr": 1.68
+        },
+        "W300": {
+          "MAE_delta": 29.0,
+          "MFE_delta": 6.0,
+          "close_delta": -14.0,
+          "signed_return_over_atr": -0.56
+        },
+        "W900": {
+          "MAE_delta": 29.0,
+          "MFE_delta": 20.0,
+          "close_delta": 16.0,
+          "signed_return_over_atr": 0.64
+        }
+      },
+      "prior_close": 24134.0,
+      "regime": {
+        "atr_percentile_session": 91.4,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 39.75
+      },
+      "ts": 1757038054
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 24750.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 20.0,
+        "hold_sec": 900,
+        "mae": 12.0,
+        "mfe": 30.0,
+        "trail_armed": false
+      },
+      "day": "2025-09-09",
+      "derived": {
+        "exit_gap": 10.0,
+        "giveback_w5_to_w30": -88.0,
+        "mfe_mae_ratio": 2.5,
+        "w15": 20.0,
+        "w30": 102.0,
+        "w5": 14.0
+      },
+      "direction": "Long",
+      "drive_high": 24729.0,
+      "drive_low": 24666.0,
+      "entry_price": 24730.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 15.0,
+        "1": 14.0,
+        "2": 13.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 165.0,
+      "gross_atr_sim": 20.0,
+      "net_atr_sim": 15.0,
+      "open_0845": 24720.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 106.0,
+          "close_delta": 102.0,
+          "signed_return_over_atr": 4.08
+        },
+        "W300": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 14.0,
+          "close_delta": 14.0,
+          "signed_return_over_atr": 0.56
+        },
+        "W900": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 30.0,
+          "close_delta": 20.0,
+          "signed_return_over_atr": 0.8
+        }
+      },
+      "prior_close": 24555.0,
+      "regime": {
+        "atr_percentile_session": 96.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 71.3
+      },
+      "ts": 1757382300
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 25110.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 8.0,
+        "hold_sec": 899,
+        "mae": 11.0,
+        "mfe": 15.0,
+        "trail_armed": false
+      },
+      "day": "2025-09-10",
+      "derived": {
+        "exit_gap": 7.0,
+        "giveback_w5_to_w30": -59.0,
+        "mfe_mae_ratio": 1.36,
+        "w15": 8.0,
+        "w30": 56.0,
+        "w5": -3.0
+      },
+      "direction": "Long",
+      "drive_high": 25101.0,
+      "drive_low": 24990.0,
+      "entry_price": 25102.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 3.0,
+        "1": 2.0,
+        "2": 1.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 166.0,
+      "gross_atr_sim": 8.0,
+      "net_atr_sim": 3.0,
+      "open_0845": 24970.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 11.0,
+          "MFE_delta": 62.0,
+          "close_delta": 56.0,
+          "signed_return_over_atr": 2.24
+        },
+        "W300": {
+          "MAE_delta": 3.0,
+          "MFE_delta": 15.0,
+          "close_delta": -3.0,
+          "signed_return_over_atr": -0.12
+        },
+        "W900": {
+          "MAE_delta": 11.0,
+          "MFE_delta": 15.0,
+          "close_delta": 8.0,
+          "signed_return_over_atr": 0.32
+        }
+      },
+      "prior_close": 24804.0,
+      "regime": {
+        "atr_percentile_session": 92.4,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.26,
+        "trend_dir": "Long",
+        "trend_strength": 131.05
+      },
+      "ts": 1757469142
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 26.14,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 25394.86,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -26.14,
+        "hold_sec": 762,
+        "mae": 27.0,
+        "mfe": 16.0,
+        "trail_armed": false
+      },
+      "day": "2025-09-11",
+      "derived": {
+        "exit_gap": 42.14,
+        "giveback_w5_to_w30": 11.0,
+        "mfe_mae_ratio": 0.59,
+        "w15": -17.0,
+        "w30": -9.0,
+        "w5": 2.0
+      },
+      "direction": "Long",
+      "drive_high": 25420.0,
+      "drive_low": 25326.0,
+      "entry_price": 25421.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -31.14,
+        "1": -32.14,
+        "2": -33.14
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 211.0,
+      "gross_atr_sim": -26.14,
+      "net_atr_sim": -31.14,
+      "open_0845": 25383.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 35.0,
+          "MFE_delta": 16.0,
+          "close_delta": -9.0,
+          "signed_return_over_atr": -0.34
+        },
+        "W300": {
+          "MAE_delta": 16.0,
+          "MFE_delta": 16.0,
+          "close_delta": 2.0,
+          "signed_return_over_atr": 0.08
+        },
+        "W900": {
+          "MAE_delta": 35.0,
+          "MFE_delta": 16.0,
+          "close_delta": -17.0,
+          "signed_return_over_atr": -0.65
+        }
+      },
+      "prior_close": 25172.0,
+      "regime": {
+        "atr_percentile_session": 89.7,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 1.72,
+        "trend_dir": "Long",
+        "trend_strength": 17.25
+      },
+      "ts": 1757557429
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_up_structure_bear",
+        "r1": "with_trend",
+        "r2": "counter_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 25429.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 163,
+        "mae": 25.0,
+        "mfe": 1.0,
+        "trail_armed": false
+      },
+      "day": "2025-09-12",
+      "derived": {
+        "exit_gap": 26.0,
+        "giveback_w5_to_w30": -15.0,
+        "mfe_mae_ratio": 0.04,
+        "w15": -21.0,
+        "w30": -4.0,
+        "w5": -19.0
+      },
+      "direction": "Long",
+      "drive_high": 25453.0,
+      "drive_low": 25350.0,
+      "entry_price": 25454.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 175.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 25410.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 37.0,
+          "MFE_delta": 5.0,
+          "close_delta": -4.0,
+          "signed_return_over_atr": -0.16
+        },
+        "W300": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 1.0,
+          "close_delta": -19.0,
+          "signed_return_over_atr": -0.76
+        },
+        "W900": {
+          "MAE_delta": 28.0,
+          "MFE_delta": 5.0,
+          "close_delta": -21.0,
+          "signed_return_over_atr": -0.84
+        }
+      },
+      "prior_close": 25235.0,
+      "regime": {
+        "atr_percentile_session": 97.3,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 1.34,
+        "trend_dir": "Long",
+        "trend_strength": 70.45
+      },
+      "ts": 1757642400
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.07,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 25634.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 23.0,
+        "hold_sec": 894,
+        "mae": 8.0,
+        "mfe": 31.0,
+        "trail_armed": false
+      },
+      "day": "2025-09-16",
+      "derived": {
+        "exit_gap": 8.0,
+        "giveback_w5_to_w30": 3.0,
+        "mfe_mae_ratio": 3.88,
+        "w15": 23.0,
+        "w30": 19.0,
+        "w5": 22.0
+      },
+      "direction": "Long",
+      "drive_high": 25610.0,
+      "drive_low": 25520.0,
+      "entry_price": 25611.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 18.0,
+        "1": 17.0,
+        "2": 16.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 70.0,
+      "gross_atr_sim": 23.0,
+      "net_atr_sim": 18.0,
+      "open_0845": 25421.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 31.0,
+          "close_delta": 19.0,
+          "signed_return_over_atr": 0.76
+        },
+        "W300": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 31.0,
+          "close_delta": 22.0,
+          "signed_return_over_atr": 0.88
+        },
+        "W900": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 31.0,
+          "close_delta": 23.0,
+          "signed_return_over_atr": 0.92
+        }
+      },
+      "prior_close": 25351.0,
+      "regime": {
+        "atr_percentile_session": 88.3,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 34.25
+      },
+      "ts": 1757989793
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_up_structure_bear",
+        "r1": "with_trend",
+        "r2": "counter_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 26.14,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 26153.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 22.0,
+        "hold_sec": 900,
+        "mae": 21.0,
+        "mfe": 28.0,
+        "trail_armed": false
+      },
+      "day": "2025-09-23",
+      "derived": {
+        "exit_gap": 6.0,
+        "giveback_w5_to_w30": -66.0,
+        "mfe_mae_ratio": 1.33,
+        "w15": 22.0,
+        "w30": 57.0,
+        "w5": -9.0
+      },
+      "direction": "Long",
+      "drive_high": 26130.0,
+      "drive_low": 26023.0,
+      "entry_price": 26131.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 17.0,
+        "1": 16.0,
+        "2": 15.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 167.0,
+      "gross_atr_sim": 22.0,
+      "net_atr_sim": 17.0,
+      "open_0845": 26057.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 21.0,
+          "MFE_delta": 62.0,
+          "close_delta": 57.0,
+          "signed_return_over_atr": 2.18
+        },
+        "W300": {
+          "MAE_delta": 21.0,
+          "MFE_delta": 8.0,
+          "close_delta": -9.0,
+          "signed_return_over_atr": -0.34
+        },
+        "W900": {
+          "MAE_delta": 21.0,
+          "MFE_delta": 28.0,
+          "close_delta": 22.0,
+          "signed_return_over_atr": 0.84
+        }
+      },
+      "prior_close": 25890.0,
+      "regime": {
+        "atr_percentile_session": 80.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 0.94,
+        "trend_dir": "Long",
+        "trend_strength": 103.25
+      },
+      "ts": 1758592088
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 36.79,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 26485.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 0.0,
+        "hold_sec": 899,
+        "mae": 21.0,
+        "mfe": 23.0,
+        "trail_armed": false
+      },
+      "day": "2025-10-02",
+      "derived": {
+        "exit_gap": 23.0,
+        "giveback_w5_to_w30": 28.0,
+        "mfe_mae_ratio": 1.1,
+        "w15": 0.0,
+        "w30": -15.0,
+        "w5": 13.0
+      },
+      "direction": "Long",
+      "drive_high": 26484.0,
+      "drive_low": 26380.0,
+      "entry_price": 26485.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -5.0,
+        "1": -6.0,
+        "2": -7.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 405.0,
+      "gross_atr_sim": 0.0,
+      "net_atr_sim": -5.0,
+      "open_0845": 26455.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 29.0,
+          "MFE_delta": 23.0,
+          "close_delta": -15.0,
+          "signed_return_over_atr": -0.41
+        },
+        "W300": {
+          "MAE_delta": 11.0,
+          "MFE_delta": 23.0,
+          "close_delta": 13.0,
+          "signed_return_over_atr": 0.35
+        },
+        "W900": {
+          "MAE_delta": 21.0,
+          "MFE_delta": 23.0,
+          "close_delta": 0.0,
+          "signed_return_over_atr": 0.0
+        }
+      },
+      "prior_close": 26050.0,
+      "regime": {
+        "atr_percentile_session": 85.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 161.4
+      },
+      "ts": 1759369660
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 32.79,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 27253.61,
+        "exit_reason": "trail_stop",
+        "gross_pnl": 50.61,
+        "hold_sec": 253,
+        "mae": 19.0,
+        "mfe": 67.0,
+        "trail_armed": true
+      },
+      "day": "2025-10-07",
+      "derived": {
+        "exit_gap": 16.39,
+        "giveback_w5_to_w30": -6.0,
+        "mfe_mae_ratio": 3.53,
+        "w15": 87.0,
+        "w30": 63.0,
+        "w5": 57.0
+      },
+      "direction": "Long",
+      "drive_high": 27202.0,
+      "drive_low": 27112.0,
+      "entry_price": 27203.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 45.61,
+        "1": 44.61,
+        "2": 43.61
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 469.0,
+      "gross_atr_sim": 50.61,
+      "net_atr_sim": 45.61,
+      "open_0845": 27217.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 19.0,
+          "MFE_delta": 96.0,
+          "close_delta": 63.0,
+          "signed_return_over_atr": 1.92
+        },
+        "W300": {
+          "MAE_delta": 19.0,
+          "MFE_delta": 67.0,
+          "close_delta": 57.0,
+          "signed_return_over_atr": 1.74
+        },
+        "W900": {
+          "MAE_delta": 19.0,
+          "MFE_delta": 87.0,
+          "close_delta": 87.0,
+          "signed_return_over_atr": 2.65
+        }
+      },
+      "prior_close": 26748.0,
+      "regime": {
+        "atr_percentile_session": 74.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 182.45
+      },
+      "ts": 1759801925
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 41.86,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 27017.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 47.0,
+        "hold_sec": 900,
+        "mae": 27.0,
+        "mfe": 50.0,
+        "trail_armed": false
+      },
+      "day": "2025-10-15",
+      "derived": {
+        "exit_gap": 3.0,
+        "giveback_w5_to_w30": -48.0,
+        "mfe_mae_ratio": 1.85,
+        "w15": 47.0,
+        "w30": 55.0,
+        "w5": 7.0
+      },
+      "direction": "Long",
+      "drive_high": 26955.0,
+      "drive_low": 26844.0,
+      "entry_price": 26970.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 42.0,
+        "1": 41.0,
+        "2": 40.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 122.0,
+      "gross_atr_sim": 47.0,
+      "net_atr_sim": 42.0,
+      "open_0845": 26841.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 27.0,
+          "MFE_delta": 94.0,
+          "close_delta": 55.0,
+          "signed_return_over_atr": 1.31
+        },
+        "W300": {
+          "MAE_delta": 27.0,
+          "MFE_delta": 20.0,
+          "close_delta": 7.0,
+          "signed_return_over_atr": 0.17
+        },
+        "W900": {
+          "MAE_delta": 27.0,
+          "MFE_delta": 50.0,
+          "close_delta": 47.0,
+          "signed_return_over_atr": 1.12
+        }
+      },
+      "prior_close": 26719.0,
+      "regime": {
+        "atr_percentile_session": 83.1,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 88.6
+      },
+      "ts": 1760492700
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 30.29,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 27709.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 43.0,
+        "hold_sec": 900,
+        "mae": 5.0,
+        "mfe": 51.0,
+        "trail_armed": false
+      },
+      "day": "2025-10-16",
+      "derived": {
+        "exit_gap": 8.0,
+        "giveback_w5_to_w30": -9.0,
+        "mfe_mae_ratio": 10.2,
+        "w15": 43.0,
+        "w30": 42.0,
+        "w5": 33.0
+      },
+      "direction": "Long",
+      "drive_high": 27665.0,
+      "drive_low": 27476.0,
+      "entry_price": 27666.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 38.0,
+        "1": 37.0,
+        "2": 36.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 231.0,
+      "gross_atr_sim": 43.0,
+      "net_atr_sim": 38.0,
+      "open_0845": 27527.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 5.0,
+          "MFE_delta": 66.0,
+          "close_delta": 42.0,
+          "signed_return_over_atr": 1.39
+        },
+        "W300": {
+          "MAE_delta": 5.0,
+          "MFE_delta": 40.0,
+          "close_delta": 33.0,
+          "signed_return_over_atr": 1.09
+        },
+        "W900": {
+          "MAE_delta": 5.0,
+          "MFE_delta": 51.0,
+          "close_delta": 43.0,
+          "signed_return_over_atr": 1.42
+        }
+      },
+      "prior_close": 27296.0,
+      "regime": {
+        "atr_percentile_session": 75.0,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 3.02,
+        "trend_dir": "Long",
+        "trend_strength": 239.7
+      },
+      "ts": 1760579182
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 29.43,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 27979.57,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -29.43,
+        "hold_sec": 372,
+        "mae": 30.0,
+        "mfe": 26.0,
+        "trail_armed": false
+      },
+      "day": "2025-10-21",
+      "derived": {
+        "exit_gap": 55.43,
+        "giveback_w5_to_w30": 28.0,
+        "mfe_mae_ratio": 0.87,
+        "w15": -1.0,
+        "w30": -41.0,
+        "w5": -13.0
+      },
+      "direction": "Long",
+      "drive_high": 28008.0,
+      "drive_low": 27900.0,
+      "entry_price": 28009.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -34.43,
+        "1": -35.43,
+        "2": -36.43
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 123.0,
+      "gross_atr_sim": -29.43,
+      "net_atr_sim": -34.43,
+      "open_0845": 27905.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 74.0,
+          "MFE_delta": 26.0,
+          "close_delta": -41.0,
+          "signed_return_over_atr": -1.39
+        },
+        "W300": {
+          "MAE_delta": 16.0,
+          "MFE_delta": 26.0,
+          "close_delta": -13.0,
+          "signed_return_over_atr": -0.44
+        },
+        "W900": {
+          "MAE_delta": 34.0,
+          "MFE_delta": 26.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.03
+        }
+      },
+      "prior_close": 27782.0,
+      "regime": {
+        "atr_percentile_session": 89.4,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 2.28,
+        "trend_dir": "Long",
+        "trend_strength": 55.45
+      },
+      "ts": 1761013251
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 35.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 28176.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -35.0,
+        "hold_sec": 116,
+        "mae": 35.0,
+        "mfe": 3.0,
+        "trail_armed": false
+      },
+      "day": "2025-10-27",
+      "derived": {
+        "exit_gap": 38.0,
+        "giveback_w5_to_w30": 2.0,
+        "mfe_mae_ratio": 0.09,
+        "w15": -62.0,
+        "w30": -83.0,
+        "w5": -81.0
+      },
+      "direction": "Long",
+      "drive_high": 28210.0,
+      "drive_low": 28094.0,
+      "entry_price": 28211.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -40.0,
+        "1": -41.0,
+        "2": -42.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 677.0,
+      "gross_atr_sim": -35.0,
+      "net_atr_sim": -40.0,
+      "open_0845": 28234.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 95.0,
+          "MFE_delta": 3.0,
+          "close_delta": -83.0,
+          "signed_return_over_atr": -2.37
+        },
+        "W300": {
+          "MAE_delta": 95.0,
+          "MFE_delta": 3.0,
+          "close_delta": -81.0,
+          "signed_return_over_atr": -2.31
+        },
+        "W900": {
+          "MAE_delta": 95.0,
+          "MFE_delta": 3.0,
+          "close_delta": -62.0,
+          "signed_return_over_atr": -1.77
+        }
+      },
+      "prior_close": 27557.0,
+      "regime": {
+        "atr_percentile_session": 83.1,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 269.95
+      },
+      "ts": 1761529501
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 28390.5,
+        "exit_reason": "trail_stop",
+        "gross_pnl": 41.5,
+        "hold_sec": 675,
+        "mae": 16.0,
+        "mfe": 54.0,
+        "trail_armed": true
+      },
+      "day": "2025-10-29",
+      "derived": {
+        "exit_gap": 12.5,
+        "giveback_w5_to_w30": -43.0,
+        "mfe_mae_ratio": 3.38,
+        "w15": 43.0,
+        "w30": 76.0,
+        "w5": 33.0
+      },
+      "direction": "Long",
+      "drive_high": 28348.0,
+      "drive_low": 28238.0,
+      "entry_price": 28349.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 36.5,
+        "1": 35.5,
+        "2": 34.5
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 206.0,
+      "gross_atr_sim": 41.5,
+      "net_atr_sim": 36.5,
+      "open_0845": 28210.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 16.0,
+          "MFE_delta": 80.0,
+          "close_delta": 76.0,
+          "signed_return_over_atr": 3.04
+        },
+        "W300": {
+          "MAE_delta": 16.0,
+          "MFE_delta": 33.0,
+          "close_delta": 33.0,
+          "signed_return_over_atr": 1.32
+        },
+        "W900": {
+          "MAE_delta": 16.0,
+          "MFE_delta": 61.0,
+          "close_delta": 43.0,
+          "signed_return_over_atr": 1.72
+        }
+      },
+      "prior_close": 28004.0,
+      "regime": {
+        "atr_percentile_session": 80.5,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 62.65
+      },
+      "ts": 1761703984
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_up_structure_bear",
+        "r1": "with_trend",
+        "r2": "counter_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 26.29,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 28006.86,
+        "exit_reason": "trail_stop",
+        "gross_pnl": 58.86,
+        "hold_sec": 561,
+        "mae": 12.0,
+        "mfe": 72.0,
+        "trail_armed": true
+      },
+      "day": "2025-11-12",
+      "derived": {
+        "exit_gap": 13.14,
+        "giveback_w5_to_w30": -65.0,
+        "mfe_mae_ratio": 6.0,
+        "w15": 99.0,
+        "w30": 78.0,
+        "w5": 13.0
+      },
+      "direction": "Long",
+      "drive_high": 27947.0,
+      "drive_low": 27858.0,
+      "entry_price": 27948.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 53.86,
+        "1": 52.86,
+        "2": 51.86
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 115.0,
+      "gross_atr_sim": 58.86,
+      "net_atr_sim": 53.86,
+      "open_0845": 27895.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 111.0,
+          "close_delta": 78.0,
+          "signed_return_over_atr": 2.97
+        },
+        "W300": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 27.0,
+          "close_delta": 13.0,
+          "signed_return_over_atr": 0.49
+        },
+        "W900": {
+          "MAE_delta": 12.0,
+          "MFE_delta": 105.0,
+          "close_delta": 99.0,
+          "signed_return_over_atr": 3.77
+        }
+      },
+      "prior_close": 27780.0,
+      "regime": {
+        "atr_percentile_session": 72.0,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 0.1,
+        "trend_dir": "Long",
+        "trend_strength": 38.75
+      },
+      "ts": 1762912861
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 27587.0,
+        "exit_reason": "breakeven",
+        "gross_pnl": 0.0,
+        "hold_sec": 852,
+        "mae": 7.0,
+        "mfe": 33.0,
+        "trail_armed": false
+      },
+      "day": "2025-11-27",
+      "derived": {
+        "exit_gap": 33.0,
+        "giveback_w5_to_w30": -24.0,
+        "mfe_mae_ratio": 4.71,
+        "w15": -1.0,
+        "w30": 46.0,
+        "w5": 22.0
+      },
+      "direction": "Long",
+      "drive_high": 27586.0,
+      "drive_low": 27519.0,
+      "entry_price": 27587.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -5.0,
+        "1": -6.0,
+        "2": -7.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 183.0,
+      "gross_atr_sim": 0.0,
+      "net_atr_sim": -5.0,
+      "open_0845": 27517.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 17.0,
+          "MFE_delta": 49.0,
+          "close_delta": 46.0,
+          "signed_return_over_atr": 1.84
+        },
+        "W300": {
+          "MAE_delta": 7.0,
+          "MFE_delta": 30.0,
+          "close_delta": 22.0,
+          "signed_return_over_atr": 0.88
+        },
+        "W900": {
+          "MAE_delta": 7.0,
+          "MFE_delta": 33.0,
+          "close_delta": -1.0,
+          "signed_return_over_atr": -0.04
+        }
+      },
+      "prior_close": 27334.0,
+      "regime": {
+        "atr_percentile_session": 88.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 80.25
+      },
+      "ts": 1764208447
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "with_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 27844.0,
+        "exit_reason": "breakeven",
+        "gross_pnl": 0.0,
+        "hold_sec": 552,
+        "mae": 4.0,
+        "mfe": 45.0,
+        "trail_armed": false
+      },
+      "day": "2025-12-03",
+      "derived": {
+        "exit_gap": 45.0,
+        "giveback_w5_to_w30": 107.0,
+        "mfe_mae_ratio": 11.25,
+        "w15": 18.0,
+        "w30": -71.0,
+        "w5": 36.0
+      },
+      "direction": "Long",
+      "drive_high": 27843.0,
+      "drive_low": 27767.0,
+      "entry_price": 27844.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -5.0,
+        "1": -6.0,
+        "2": -7.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 239.0,
+      "gross_atr_sim": 0.0,
+      "net_atr_sim": -5.0,
+      "open_0845": 27802.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 123.0,
+          "MFE_delta": 45.0,
+          "close_delta": -71.0,
+          "signed_return_over_atr": -2.84
+        },
+        "W300": {
+          "MAE_delta": 4.0,
+          "MFE_delta": 45.0,
+          "close_delta": 36.0,
+          "signed_return_over_atr": 1.44
+        },
+        "W900": {
+          "MAE_delta": 8.0,
+          "MFE_delta": 45.0,
+          "close_delta": 18.0,
+          "signed_return_over_atr": 0.72
+        }
+      },
+      "prior_close": 27563.0,
+      "regime": {
+        "atr_percentile_session": 97.7,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 15.55
+      },
+      "ts": 1764728004
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "with_trend",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 28165.5,
+        "exit_reason": "trail_stop",
+        "gross_pnl": 38.5,
+        "hold_sec": 460,
+        "mae": 2.0,
+        "mfe": 51.0,
+        "trail_armed": true
+      },
+      "day": "2025-12-08",
+      "derived": {
+        "exit_gap": 12.5,
+        "giveback_w5_to_w30": -12.0,
+        "mfe_mae_ratio": 25.5,
+        "w15": 23.0,
+        "w30": 47.0,
+        "w5": 35.0
+      },
+      "direction": "Long",
+      "drive_high": 28123.0,
+      "drive_low": 28043.0,
+      "entry_price": 28127.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 33.5,
+        "1": 32.5,
+        "2": 31.5
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 33.0,
+      "gross_atr_sim": 38.5,
+      "net_atr_sim": 33.5,
+      "open_0845": 28051.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 2.0,
+          "MFE_delta": 63.0,
+          "close_delta": 47.0,
+          "signed_return_over_atr": 1.88
+        },
+        "W300": {
+          "MAE_delta": 2.0,
+          "MFE_delta": 35.0,
+          "close_delta": 35.0,
+          "signed_return_over_atr": 1.4
+        },
+        "W900": {
+          "MAE_delta": 2.0,
+          "MFE_delta": 51.0,
+          "close_delta": 23.0,
+          "signed_return_over_atr": 0.92
+        }
+      },
+      "prior_close": 28018.0,
+      "regime": {
+        "atr_percentile_session": 89.8,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Long",
+        "structure_last_bos": "bullish",
+        "structure_strength": 1.6,
+        "trend_dir": "Long",
+        "trend_strength": 77.75
+      },
+      "ts": 1765158300
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 27885.0,
+        "exit_reason": "stop_loss",
+        "gross_pnl": -25.0,
+        "hold_sec": 245,
+        "mae": 25.0,
+        "mfe": 2.0,
+        "trail_armed": false
+      },
+      "day": "2025-12-19",
+      "derived": {
+        "exit_gap": 27.0,
+        "giveback_w5_to_w30": -22.0,
+        "mfe_mae_ratio": 0.08,
+        "w15": -31.0,
+        "w30": 7.0,
+        "w5": -15.0
+      },
+      "direction": "Long",
+      "drive_high": 27909.0,
+      "drive_low": 27843.0,
+      "entry_price": 27910.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -30.0,
+        "1": -31.0,
+        "2": -32.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 213.0,
+      "gross_atr_sim": -25.0,
+      "net_atr_sim": -30.0,
+      "open_0845": 27802.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 40.0,
+          "MFE_delta": 33.0,
+          "close_delta": 7.0,
+          "signed_return_over_atr": 0.28
+        },
+        "W300": {
+          "MAE_delta": 29.0,
+          "MFE_delta": 2.0,
+          "close_delta": -15.0,
+          "signed_return_over_atr": -0.6
+        },
+        "W900": {
+          "MAE_delta": 40.0,
+          "MFE_delta": 2.0,
+          "close_delta": -31.0,
+          "signed_return_over_atr": -1.24
+        }
+      },
+      "prior_close": 27589.0,
+      "regime": {
+        "atr_percentile_session": 90.6,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 113.3
+      },
+      "ts": 1766109003
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_up_structure_bear",
+        "r1": "with_trend",
+        "r2": "counter_trend",
+        "r3": "with_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": false,
+        "exit_price": 28248.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 3.0,
+        "hold_sec": 899,
+        "mae": 20.0,
+        "mfe": 12.0,
+        "trail_armed": false
+      },
+      "day": "2025-12-22",
+      "derived": {
+        "exit_gap": 9.0,
+        "giveback_w5_to_w30": -66.0,
+        "mfe_mae_ratio": 0.6,
+        "w15": 3.0,
+        "w30": 64.0,
+        "w5": -2.0
+      },
+      "direction": "Long",
+      "drive_high": 28244.0,
+      "drive_low": 28170.0,
+      "entry_price": 28245.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": -2.0,
+        "1": -3.0,
+        "2": -4.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 363.0,
+      "gross_atr_sim": 3.0,
+      "net_atr_sim": -2.0,
+      "open_0845": 28260.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 20.0,
+          "MFE_delta": 80.0,
+          "close_delta": 64.0,
+          "signed_return_over_atr": 2.56
+        },
+        "W300": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 12.0,
+          "close_delta": -2.0,
+          "signed_return_over_atr": -0.08
+        },
+        "W900": {
+          "MAE_delta": 20.0,
+          "MFE_delta": 12.0,
+          "close_delta": 3.0,
+          "signed_return_over_atr": 0.12
+        }
+      },
+      "prior_close": 27897.0,
+      "regime": {
+        "atr_percentile_session": 96.7,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 0.76,
+        "trend_dir": "Long",
+        "trend_strength": 23.9
+      },
+      "ts": 1766369856
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_up_structure_bear",
+        "r1": "with_trend",
+        "r2": "counter_trend",
+        "r3": "with_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 28603.0,
+        "exit_reason": "horizon",
+        "gross_pnl": 14.0,
+        "hold_sec": 899,
+        "mae": 17.0,
+        "mfe": 26.0,
+        "trail_armed": false
+      },
+      "day": "2025-12-26",
+      "derived": {
+        "exit_gap": 12.0,
+        "giveback_w5_to_w30": -12.0,
+        "mfe_mae_ratio": 1.53,
+        "w15": 14.0,
+        "w30": 7.0,
+        "w5": -5.0
+      },
+      "direction": "Long",
+      "drive_high": 28588.0,
+      "drive_low": 28537.0,
+      "entry_price": 28589.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 9.0,
+        "1": 8.0,
+        "2": 7.0
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 111.0,
+      "gross_atr_sim": 14.0,
+      "net_atr_sim": 9.0,
+      "open_0845": 28580.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 17.0,
+          "MFE_delta": 27.0,
+          "close_delta": 7.0,
+          "signed_return_over_atr": 0.28
+        },
+        "W300": {
+          "MAE_delta": 9.0,
+          "MFE_delta": 7.0,
+          "close_delta": -5.0,
+          "signed_return_over_atr": -0.2
+        },
+        "W900": {
+          "MAE_delta": 17.0,
+          "MFE_delta": 26.0,
+          "close_delta": 14.0,
+          "signed_return_over_atr": 0.56
+        }
+      },
+      "prior_close": 28469.0,
+      "regime": {
+        "atr_percentile_session": 94.4,
+        "in_discount": true,
+        "in_premium": false,
+        "structure_bias": "Short",
+        "structure_last_bos": "bearish",
+        "structure_strength": 1.7,
+        "trend_dir": "Long",
+        "trend_strength": 20.2
+      },
+      "ts": 1766714331
+    },
+    {
+      "alignment": {
+        "gdc_gap_structure": "gap_aligned",
+        "r1": "with_trend",
+        "r2": "neutral",
+        "r3": "counter_trend",
+        "r4": "high_vol"
+      },
+      "atr": 25.0,
+      "atr_trail_sim": {
+        "be_armed": true,
+        "exit_price": 28915.5,
+        "exit_reason": "trail_stop",
+        "gross_pnl": 63.5,
+        "hold_sec": 513,
+        "mae": 11.0,
+        "mfe": 76.0,
+        "trail_armed": true
+      },
+      "day": "2025-12-29",
+      "derived": {
+        "exit_gap": 12.5,
+        "giveback_w5_to_w30": -5.0,
+        "mfe_mae_ratio": 6.91,
+        "w15": 39.0,
+        "w30": 23.0,
+        "w5": 18.0
+      },
+      "direction": "Long",
+      "drive_high": 28851.0,
+      "drive_low": 28762.0,
+      "entry_price": 28852.0,
+      "entry_slippage_sensitivity_pts": {
+        "0": 58.5,
+        "1": 57.5,
+        "2": 56.5
+      },
+      "exit_variant": "atr_trail_skew_900s",
+      "gap_pts": 65.0,
+      "gross_atr_sim": 63.5,
+      "net_atr_sim": 58.5,
+      "open_0845": 28739.0,
+      "param": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+      "post_entry_forward": {
+        "W1800": {
+          "MAE_delta": 11.0,
+          "MFE_delta": 76.0,
+          "close_delta": 23.0,
+          "signed_return_over_atr": 0.92
+        },
+        "W300": {
+          "MAE_delta": 11.0,
+          "MFE_delta": 20.0,
+          "close_delta": 18.0,
+          "signed_return_over_atr": 0.72
+        },
+        "W900": {
+          "MAE_delta": 11.0,
+          "MFE_delta": 76.0,
+          "close_delta": 39.0,
+          "signed_return_over_atr": 1.56
+        }
+      },
+      "prior_close": 28674.0,
+      "regime": {
+        "atr_percentile_session": 93.2,
+        "in_discount": false,
+        "in_premium": true,
+        "structure_bias": "Neutral",
+        "structure_last_bos": null,
+        "structure_strength": 0.0,
+        "trend_dir": "Long",
+        "trend_strength": 99.55
+      },
+      "ts": 1766972729
+    }
+  ],
+  "from_date": "2025-01-01",
+  "ft": "FT-018",
+  "git_commit": "fd4cdab11d226c775553b1e35acf7a953d7df8eb",
+  "n": 53,
+  "p0_key": "gk1_rt0p4_ksl1_be1_ta2_td0p5_tp4",
+  "schema_version": 1,
+  "slug": "gudt",
+  "split": "train",
+  "tier": "tertiary",
+  "to_date": "2025-12-31"
+}

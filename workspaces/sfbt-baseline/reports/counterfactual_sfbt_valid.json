@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "thesis": "sweep_fvg_breakout_trail",
+  "thesis_class": "skew",
+  "variant": "sfbt_fingerprint_v1",
+  "mode": "fingerprint",
+  "from_date": "2026-01-01",
+  "to_date": "2026-03-31",
+  "code": "TMFR1",
+  "friction_points_per_round_trip": 5.0,
+  "entry_model": "sweep_reclaim_fvg_breakout_long_only",
+  "sim_params": {
+    "entry_window": "09:15–12:30",
+    "max_trades_per_day": 1,
+    "atr_period": 14,
+    "min_atr_pts": 25.0,
+    "min_risk_pts": 8.0,
+    "structure_tf_min": 5,
+    "exit_variant": "fvg_mid_trail_skew_900s",
+    "max_hold_sec": 900,
+    "fingerprint_window_sec": 900
+  },
+  "fingerprint_params": {
+    "sweep_lookback_min": 45,
+    "sweep_k": 0.25,
+    "reclaim_window_sec": 120,
+    "swing_lookback": 3,
+    "max_fvg_age_bars": 6,
+    "be_risk_k": 1.0,
+    "trail_arm_risk_k": 2.0,
+    "trail_arm_atr_k": 1.5,
+    "trail_dist_atr_k": 0.5,
+    "hard_tp_risk_k": 4.0,
+    "fingerprint_window_sec": 900
+  },
+  "fingerprint_gate": {
+    "pass": true,
+    "min_n": 15,
+    "fingerprint_window_sec": 900,
+    "w900_stop_less_gross_median_min": 0,
+    "w900_stop_less_gross_median": 13.0,
+    "n": 52,
+    "direction_ok": true,
+    "n_ok": true
+  },
+  "phase0_gate": {
+    "pass": false,
+    "gross_mean_min": 5.0,
+    "net_mean_min": 0.0,
+    "min_n": 15,
+    "thesis_class": "skew",
+    "best_passing": null
+  },
+  "skew_gate_by_param": {
+    "slb45_sk0p25_rc120_sw3_age6_be1_tar2_taa1p5_td0p5_tp4": {
+      "disqualified": true,
+      "reasons": [
+        "payoff_ratio",
+        "max_consecutive_loss_pts",
+        "worst_month_net",
+        "net_mean_at_friction_7"
+      ],
+      "payoff_ratio": 1.238,
+      "tail_count": 21,
+      "max_consecutive_losses": 4,
+      "max_consecutive_loss_pts": 210.0,
+      "worst_month_net": -270.2,
+      "top3_win_gross_share": 0.282,
+      "net_mean_at_friction_7": -3.89,
+      "win_rate": 0.481,
+      "n": 52
+    }
+  },
+  "entry_slippage_sensitivity_by_param": {
+    "slb45_sk0p25_rc120_sw3_age6_be1_tar2_taa1p5_td0p5_tp4": {
+      "extra_0": -1.89,
+      "extra_1": -2.89,
+      "extra_2": -3.89
+    }
+  },
+  "exit_diagnostics_by_param": {
+    "slb45_sk0p25_rc120_sw3_age6_be1_tar2_taa1p5_td0p5_tp4": {
+      "exit_gap": 35.5,
+      "pct_mfe_ge_1atr": 0.4231,
+      "pct_hit_2R": 0.0962,
+      "mfe_median": 35.5,
+      "barrier_gross_median": 0.0
+    }
+  },
+  "outcome_hint": null,
+  "summary_by_param": {
+    "slb45_sk0p25_rc120_sw3_age6_be1_tar2_taa1p5_td0p5_tp4": {
+      "fvg_mid_trail_skew_900s": {
+        "n": 52,
+        "gross_mean": 3.11,
+        "gross_median": 0.0,
+        "net_mean": -1.89,
+        "net_median": -5.0,
+        "gross_total": 161.7,
+        "net_total": -98.3
+      }
+    }
+  },
+  "post_entry_diagnosis_by_param": {
+    "slb45_sk0p25_rc120_sw3_age6_be1_tar2_taa1p5_td0p5_tp4": {
+      "n": 52,
+      "barrier": {
+        "gross_mean": 3.11,
+        "gross_median": 0.0,
+        "net_mean": -1.89,
+        "net_median": -5.0
+      },
+      "barrier_path": {
+        "MFE_mean": 45.79,
+        "MFE_median": 35.5,
+        "MAE_mean": 37.94,
+        "MAE_median": 23.0
+      },
+      "forward": {
+        "W300": {
+          "close_delta_mean": 7.85,
+          "close_delta_median": 5.5,
+          "net_median": 0.5,
+          "MFE_median": 23.0,
+          "MAE_median": 25.5
+        },
+        "W900": {
+          "close_delta_mean": 18.12,
+          "close_delta_median": 13.0,
+          "net_median": 8.0,
+          "MFE_median": 60.0,
+          "MAE_median": 36.0
+        },
+        "W1800": {
+          "close_delta_mean": 9.85,
+          "close_delta_median": 14.5,
+          "net_median": 9.5,
+          "MFE_median": 68.5,
+          "MAE_median": 59.0
+        }
+      },
+      "by_direction": {
+        "Long": {
+          "n": 52,
+          "barrier": {
+            "gross_mean": 3.11,
+            "gross_median": 0.0,
+            "net_mean": -1.89,
+            "net_median": -5.0
+          },
+          "barrier_path": {
+            "MFE_mean": 45.79,
+            "MFE_median": 35.5,
+            "MAE_mean": 37.94,
+            "MAE_median": 23.0
+          },
+          "forward": {
+            "W300": {
+              "close_delta_mean": 7.85,
+              "close_delta_median": 5.5,
+              "net_median": 0.5,
+              "MFE_median": 23.0,
+              "MAE_median": 25.5
+            },
+            "W900": {
+              "close_delta_mean": 18.12,
+              "close_delta_median": 13.0,
+              "net_median": 8.0,
+              "MFE_median": 60.0,
+              "MAE_median": 36.0
+            },
+            "W1800": {
+              "close_delta_mean": 9.85,
+              "close_delta_median": 14.5,
+              "net_median": 9.5,
+              "MFE_median": 68.5,
+              "MAE_median": 59.0
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "verdict": "direction_ok_margin_thin",
+        "notes": [
+          "W30 stop-less 有正 median，仍須看 barrier 與 valid",
+          "180s 內 MFE median 35.5 > MAE 23.0（路徑曾順向）"
+        ],
+        "policy_note": "stop-less forward 順向 ≠ net edge；不得用診斷結果回頭 tune train grid。"
+      }
+    }
+  },
+  "funnel_by_param": {
+    "slb45_sk0p25_rc120_sw3_age6_be1_tar2_taa1p5_td0p5_tp4": {
+      "totals": {
+        "days_with_session": 54,
+        "sweep_signal": 54,
+        "reclaim_ok": 54,
+        "fvg_active": 52,
+        "breakout_signal": 52,
+        "entry": 52,
+        "fvg_to_entry_rate": 1.0
+      }
+    }
+  },
+  "entry_count_by_param": {
+    "slb45_sk0p25_rc120_sw3_age6_be1_tar2_taa1p5_td0p5_tp4": 52
+  }
+}

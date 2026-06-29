@@ -52,6 +52,7 @@
 | FT | hold `max_hold_sec` | gate fingerprint 窗 | W900 med | Long W900 | trail exit? | barrier med | legacy W1800 med | MFE med | `exit_gap`≈ | 設計含意 |
 |----|---------------------|---------------------|----------|-----------|-------------|-------------|------------------|---------|-------------|----------|
 | **016** GDC | 900 | W1800（legacy W30m） | — | — | 否 · barrier | −1.0 | **+13** | 25 | **~26** | **exit_kills_edge** → FT-018 |
+| **019** SFBT | 900 | **W900** | **+1.0** | **+1.0** | 是 · fvg_mid trail | 0（fp med） | +1.0 | 17 | **~17** | **exit_kills_edge** · G1 fail → FT-019 結案 |
 | **018** GUDT | 900 | **W900** | **+8.0** | **+8.0** | 是 · trail | 3.0（fp）/ 0（grid med） | +21（W30 附錄） | 26 | **~23** | **entry validated · execution failed** · train champion corpse |
 | **015** FRP | 900 | W1800（legacy W30m） | **+1.0** | **+3.0** | 否 · barrier | −3.0 | **−0.0** | 17 | **~20** | **exit_kills_edge**（非 direction_failed）→ FT-019 锚点 |
 | **013** STF | 900 | W1800 | — | — | 否 | −4.0 | −10.0 | 7 | ~11 | direction_failed |
@@ -79,7 +80,27 @@
 
 **Verdict**：`entry validated · execution failed` — **全線 train 帳面最佳**，但典型單筆 net 負、樣本外不過。  
 **Reuse**：GDC gap-up **entry P0** · **勿** reuse trail 參數或 grid best。  
-**下一案**：P-012 新進場鏈 + 新 exit 錨（非 FT-018 魔改）。
+**下一案**：P-013 新進場鏈（bear streak flip · 非 SFBT 魔改）。
+
+---
+
+## §FT-019 驗屍（exit-led · 2026-06-29）
+
+> **MVPClosed** · outcome `sfbt_fingerprint_pass_g1_fail` · 詳述 [`sfbt-baseline/gate_report.md`](sfbt-baseline/gate_report.md)
+
+| 項目 | 值 |
+|------|-----|
+| 進場 | sweep→reclaim→5m FVG breakout · long-only · **方向未 falsify**（W900 med **+1**） |
+| 出場 | `fvg_mid_trail_skew_900s` · exit-led 一輪完畢 |
+| 0c-1 | n=**229** · W900 med **+1.0** · fingerprint **通過** |
+| 0c-2 | fingerprint frozen exit · G1 **fail**（gross **1.19** < 5）· gross med **0** |
+| skew | payoff **1.575** < 2.5 · disqualify |
+| valid Q1 | n=**52** · net **−1.89**/趟 · **holdout_blocked** |
+| exit_gap | **~17**（fp）· 母 FT-015 叙事延續 |
+
+**Verdict**：`exit_kills_edge` — 進場方向弱正 · **典型單筆 net 負** · trail 未收斂 G1。  
+**Reuse**：**勿** reuse SFBT sweep+FVG entry 或 fvg_mid trail 參數。  
+**下一案**：P-013 新進場鏈（非 SFBT 魔改）。
 
 ---
 

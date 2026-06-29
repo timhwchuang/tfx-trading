@@ -68,7 +68,7 @@
 | ID | Slug | Status | 文件 |
 | ---- | ---- | ------ | ---- |
 | FT-001 | audit-event-replay | Landed | [SPEC](features/audit-event-replay/SPEC.md) · [PLAN](features/audit-event-replay/PLAN.md) · [REVIEW](features/audit-event-replay/REVIEW.md) |
-| FT-002 | smc-structure-filter | **MVPClosed** | [SPEC §12](features/smc-structure-filter/SPEC.md) · CAL-8 **放棄** |
+| FT-002 | smc-structure-filter | **MVPClosed** | [SPEC §12](features/smc-structure-filter/SPEC.md) · CAL-8 **放棄**（**vwap-momentum host 已死**，≠ filter 普適無效） |
 | FT-003 | ai-backtest-tuning | MVPClosed | [SPEC](features/ai-backtest-tuning/SPEC.md) · [PLAN](features/ai-backtest-tuning/PLAN.md) · [**ROSTER**](features/ai-backtest-tuning/AGENT_ROSTER.md) · [`election_report.md`](../workspaces/election_report.md) · [`workspaces/`](../workspaces/) |
 | FT-004 | momentum-continuation | **MVPClosed** | [SPEC](features/momentum-continuation/SPEC.md) §8 · [PLAN](features/momentum-continuation/PLAN.md) · [`mc-baseline/`](../workspaces/mc-baseline/) |
 | FT-005 | timeout-continuation | **MVPClosed** | [SPEC](features/timeout-continuation/SPEC.md) §8 · [PLAN](features/timeout-continuation/PLAN.md) · [`tc-baseline/`](../workspaces/tc-baseline/) |
@@ -85,7 +85,7 @@
 | FT-016 | gap-drive-continuation | **MVPClosed** | [SPEC](features/gap-drive-continuation/SPEC.md) · `gdc_fingerprint_pass_g1_fail` |
 | FT-017 | compression-flow-attack | **MVPClosed** | [SPEC](features/compression-flow-attack/SPEC.md) · **`spec_anchor_mismatch`**（mislabel: `cfa_fingerprint_fail`） |
 | FT-018 | gap-up-drive-trail | **MVPClosed** | [SPEC](features/gap-up-drive-trail/SPEC.md) · [`gate_report`](../workspaces/gudt-baseline/gate_report.md) · P-011 train champion corpse |
-| FT-019 | sweep-fvg-breakout-trail | **Draft** | [SPEC](features/sweep-fvg-breakout-trail/SPEC.md) · [PLAN](features/sweep-fvg-breakout-trail/PLAN.md) · P-012 |
+| FT-019 | sweep-fvg-breakout-trail | **MVPClosed** | [SPEC](features/sweep-fvg-breakout-trail/SPEC.md) · [PLAN](features/sweep-fvg-breakout-trail/PLAN.md) · [`gate_report`](../../workspaces/sfbt-baseline/gate_report.md) |
 | FT-020 | bear-streak-flip-long | **Draft** | [SPEC](features/bear-streak-flip-long/SPEC.md) · [PLAN](features/bear-streak-flip-long/PLAN.md) · P-013 |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
@@ -115,6 +115,8 @@
 | 規劃中能力 / 開 ft？ | [`features/README.md`](features/README.md) |
 | Audit 事件回放？ | **FT-001** → [`features/audit-event-replay/`](features/audit-event-replay/) |
 | SMC 結構濾網？ | **FT-002** → [`features/smc-structure-filter/`](features/smc-structure-filter/) |
+| CAL-8 為何放棄？濾網還能用嗎？ | **vwap-momentum 已死**，非 filter 普適無效 → Playbook [附錄 A](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · [`strategy_diagnosis` §8.2.1](../workspaces/strategy_diagnosis.md) |
+| Entry Lab（進場診斷） | [`workspaces/entry-lab/`](../workspaces/entry-lab/) · `python -m scripts.run_entry_lab` |
 | 回測調參 / AI 競賽？ | **FT-003** → [ROSTER](features/ai-backtest-tuning/AGENT_ROSTER.md)（編制表）· [SPEC](features/ai-backtest-tuning/SPEC.md) · 角色 [`senior-trading-professional`](../prompts/roles/senior-trading-professional.md) |
 | 補歷史 tick/kbar 快取？ | `python -m backfilldata date …` → [`backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
 | 回測前 tick×kbar 品質？ | `python -m storage.cache_audit --code TMFR1`；修復 `python -m storage.cache_repair --fix` → [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit |
