@@ -30,6 +30,8 @@ Prerequisites: [trading-engine README § Go-Live](../../packages/trading-engine/
 | B5 | Invalid strategy signal (test `qty=0`) | ☐ | Warning log; **no** arm | |
 | B6 | `get_state_snapshot()` matches broker after sync | ☐ | `snap.position_qty` / `dir` consistent | |
 | B7 | Order callback routing (Shioaji `OrderState`) | ☐ | `python -m live.order_smoke` → `委託回報` + `FILL_AUDIT`; no spurious pending timeout | See [`LIVE_SAFETY.md`](../ops/LIVE_SAFETY.md) |
+| B8 | Exit single-flight under delayed `list_positions` | ☐ | `test_exit_single_flight.py` green; mock delay: first exit fills but position report lags → **no second exit**; at most one live flatten | [`LIVE_SAFETY.md`](../ops/LIVE_SAFETY.md) exit L3 RCA |
+| B9 | Severe drift HALT (Flat/Long) | ☐ | `test_position_reconcile.py::test_severe_drift_flat_vs_long_halts` green; reconcile detects kernel Flat + broker qty>0 → `_position_unconfirmed` + market converge | |
 
 ---
 

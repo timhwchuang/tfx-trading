@@ -42,6 +42,12 @@ class StrategyParams:
         return int(self._live("EXIT_GRACE_SEC", "exit_grace_sec"))
 
     @property
+    def exit_grace_suppress_trailing(self) -> bool:
+        return bool(
+            self._live("EXIT_GRACE_SUPPRESS_TRAILING", "exit_grace_suppress_trailing")
+        )
+
+    @property
     def fixed_tp_points(self) -> float:
         return float(self._live("FIXED_TP_POINTS", "fixed_tp_points"))
 

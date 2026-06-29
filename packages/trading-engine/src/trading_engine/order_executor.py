@@ -54,6 +54,16 @@ class OrderExecutorMixin:
                 signal.intent,
             )
             return False
+        # Kernel-owned market flatten is pending (stop-loss miss / L1 cancel).
+        # Block strategy re-arm until _maybe_emergency_market_flatten runs.
+        if self._stop_market_flatten_request and not getattr(
+            self, "_kernel_converging", False
+        ):
+            logger.warning(
+                "拒絕 OrderSignal: kernel 市價平倉待送出 (intent=%s)",
+                signal.intent,
+            )
+            return False
         if signal.intent == "entry":
             if self.block_new_entry:
                 logger.warning("拒絕 entry OrderSignal: block_new_entry=True")
@@ -659,7 +669,7 @@ class OrderExecutorMixin:
                     )
             with self.lock:
                 if self.is_pending:
-                    self._clear_pending()
+                    self._clear_pending(watch_late_fill=True)
             return True
 
         if broker_qty > kernel_qty or broker_dir != kernel_dir:
@@ -934,7 +944,7 @@ class OrderExecutorMixin:
                     logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
                 except Exception:
                     pass
-                self._clear_pending()
+                self._clear_pending(watch_late_fill=True)
 
     def _handle_futures_deal(self, msg) -> bool:
         self._log_callback_latency(msg, event="deal")
@@ -951,6 +961,23 @@ class OrderExecutorMixin:
         )
 
         if not self.is_pending:
+            recent = self._lookup_recent_cleared_order(order_id)
+            if recent is not None:
+                _oid, cleared_intent = recent
+                logger.warning(
+                    "遲到成交於已清 pending → HALT | order=%s intent=%s qty=%d @ %.1f",
+                    order_id,
+                    cleared_intent,
+                    qty,
+                    price,
+                )
+                self.block_new_entry = True
+                self._position_unconfirmed = True
+                self._stage_critical_alert(
+                    f"遲到成交於已清 pending | order={order_id} intent={cleared_intent} "
+                    f"qty={qty} @ {price} → 已 HALT；請人工核對券商部位"
+                )
+                return True
             # P0-2: an orphan deal (no pending) almost always means a real broker
             # fill whose callback arrived after we cleared pending on timeout.
             # Do NOT silently drop it: force a reconcile + circuit-break new entry.
@@ -1159,6 +1186,9 @@ class OrderExecutorMixin:
                 self.daily_pnl,
                 self.consecutive_loss,
             )
+            self._post_exit_reconcile_until = self._clock() + max(
+                0, int(self._cfg.post_exit_reconcile_sec)
+            )
             return True  # re-sync to confirm broker is truly flat
 
         if intent == PendingIntent.EXIT and not self.has_position and self._pending_exit_pnl == 0:
@@ -1236,7 +1266,7 @@ class OrderExecutorMixin:
             self._position_unconfirmed = True
             self.block_new_entry = True
             if clear_pending and self.is_pending:
-                self._clear_pending()
+                self._clear_pending(watch_late_fill=True)
             # A still-live pending means a kernel order may be working at the
             # broker; do not disturb it (no clear, no sync) to stay single-flight.
             keep_live_order = self.is_pending
@@ -1355,34 +1385,16 @@ class OrderExecutorMixin:
                 if need_sync:
                     self.sync_positions()
                 return need_sync
-            # No-fill but broker confirms the position is unchanged, consistent,
-            # and within the ceiling → safe to clear pending; normal operation
-            # resumes (a confirmed, in-bounds position may be re-exited by the
-            # strategy on a later tick).
-            #
-            # CRITICAL single-flight rule: do NOT infer-clear during HALT
-            # (`_position_unconfirmed`). Under multi-minute broker report latency a
-            # live flatten can sit unreflected; clearing it here would let
-            # convergence send a SECOND flatten and over-flatten. During HALT an
-            # exit resolves ONLY on a real reduction (above) or an explicit
-            # Cancelled callback (`_handle_futures_order`); otherwise keep settling.
+            # L3 unchanged read is NEVER terminal for exits (single-flight).
+            # A live IOC may have filled while list_positions still shows the
+            # pre-flatten position. Resolution only via L1/L2 or time-gated
+            # ``_resolve_exit_missed`` in ``_settle_via_reconcile``.
             if (
                 broker_qty == kernel_qty
                 and broker_dir == kernel_dir
                 and within_ceiling
             ):
-                with self.lock:
-                    if not self.is_pending:
-                        return True
-                    if self._position_unconfirmed:
-                        return False
-                    logger.info(
-                        "結算對帳：exit 未成交但部位與券商一致（%s %d口）→ 清除 pending 回復正常",
-                        broker_dir,
-                        broker_qty,
-                    )
-                    self._clear_pending()
-                return True
+                return False
             # Broker holds MORE than the kernel believed → extra/unattributed lots.
             # A flatten may still be live here; keep it (single-flight) so
             # convergence does not double-send.
@@ -1438,7 +1450,38 @@ class OrderExecutorMixin:
 
         with self.lock:
             if self.is_pending:
-                self._clear_pending()
+                self._clear_pending(watch_late_fill=True)
+
+    def _resolve_exit_missed(self) -> None:
+        """Exit IOC declared missed after stable unchanged-position debounce.
+
+        Stop-loss paths escalate to kernel-owned market flatten (never strategy
+        limit retry). Profit/trailing exits clear pending for a single retry.
+        """
+        with self.lock:
+            if not self.is_pending or self.pending_intent != PendingIntent.EXIT:
+                return
+            exit_reason = self.pending_exit_reason or ""
+            order_id = self.pending_order_id or ""
+
+        logger.warning(
+            "exit IOC 未成交 → 視為 miss | order=%s reason=%s",
+            order_id,
+            exit_reason,
+        )
+
+        if exit_reason in _STOP_LOSS_REASONS and self._cfg.emergency_market_orders:
+            with self.lock:
+                if self.is_pending and self.pending_intent == PendingIntent.EXIT:
+                    self._stop_market_flatten_request = True
+                    logger.warning(
+                        "停損 IOC 未成交（L3 miss）→ 安排市價平倉 | reason=%s",
+                        exit_reason,
+                    )
+
+        with self.lock:
+            if self.is_pending:
+                self._clear_pending(watch_late_fill=True)
 
     def _settle_via_reconcile(self) -> None:
         """P0-5 settle loop: while SETTLING, poll the broker on a fast cadence and
@@ -1450,6 +1493,8 @@ class OrderExecutorMixin:
                 return
             settle_since = self._settle_since
             intent = self.pending_intent
+            kernel_qty = self.position_qty
+            kernel_dir = self.position_dir
         clear_on_halt = intent == PendingIntent.ENTRY
 
         # Flag-gated only (see _check_pending_timeout): catch a Cancelled in ~1s
@@ -1481,6 +1526,17 @@ class OrderExecutorMixin:
                 and self._clock() - settle_since >= self._cfg.entry_miss_confirm_sec
             ):
                 self._resolve_entry_missed()
+                return
+
+            # Exit: stable unchanged position past confirm window → MISSED.
+            if (
+                intent == PendingIntent.EXIT
+                and broker_qty == kernel_qty
+                and broker_dir == kernel_dir
+                and kernel_qty > 0
+                and self._clock() - settle_since >= self._cfg.exit_miss_confirm_sec
+            ):
+                self._resolve_exit_missed()
                 return
 
         # Exit: settle window exhausted without resolution → HALT (single-flight).
@@ -1711,3 +1767,51 @@ class OrderExecutorMixin:
             )
             # Kick off the first reconcile attempt immediately.
             self._settle_via_reconcile()
+
+    def _reconcile_recent_cleared_deals(self) -> None:
+        """Scan order_deal_records for fills on recently cleared pending orders."""
+        if int(self._cfg.cleared_order_registry_sec) <= 0:
+            return
+        with self.lock:
+            if self.is_pending:
+                return
+            self._prune_cleared_orders()
+            if not self._recent_cleared_orders:
+                return
+            target_ids = {oid for oid, _, _ in self._recent_cleared_orders}
+
+        try:
+            records = self._call_api(self.api.order_deal_records)
+        except Exception as e:
+            logger.warning("order_deal_records 遲到成交掃描失敗: %s", e)
+            return
+
+        for state, event in records:
+            if not is_futures_deal(state):
+                continue
+            oid = str(event.get("trade_id", ""))
+            if oid not in target_ids:
+                continue
+            with self.lock:
+                if self.is_pending:
+                    return
+                recent = self._lookup_recent_cleared_order(oid)
+                if recent is None:
+                    continue
+                _oid, cleared_intent = recent
+                qty = int(event.get("quantity", 0))
+                price = float(event.get("price", 0))
+                logger.warning(
+                    "order_deal_records 發現已清 pending 的遲到成交 | order=%s intent=%s",
+                    oid,
+                    cleared_intent,
+                )
+                self.block_new_entry = True
+                self._position_unconfirmed = True
+                self._stage_critical_alert(
+                    f"order_deal_records 遲到成交（已清 pending）| order={oid} "
+                    f"intent={cleared_intent} qty={qty} @ {price} → 已 HALT；請人工核對"
+                )
+            self.sync_positions()
+            self._flush_staged_critical_alert()
+            return

@@ -101,15 +101,14 @@ class TestOrderSmoke(unittest.TestCase):
     def test_simulation_timeout_when_no_callback(self):
         """P0-5: exit placed, no callback, broker confirms position unchanged.
 
-        Timeout = UNKNOWN, not FAILED. The reconcile reads the broker and sees the
-        exit did not fill but the position is unchanged, consistent, and within the
-        ceiling → it is SAFE to clear the pending (no HALT, no block). The strategy
-        may re-issue the exit on a later tick against a confirmed position.
+        Timeout = UNKNOWN → SETTLING; L3 infer-clear is forbidden. After
+        exit_miss_confirm_sec the exit is declared missed and pending clears.
         """
         alerts = MagicMock()
         host = make_host()
         host._alerts = alerts
         host._cfg.simulation = True
+        host._cfg.reconcile_confirm_reads = 1
         host._validate_order_signal = MagicMock(return_value=True)
 
         host._arm_pending(
@@ -118,6 +117,7 @@ class TestOrderSmoke(unittest.TestCase):
         host.position_qty = 1
         host.position_dir = "Long"
         host.contract = MagicMock(code="TXFR1")
+        host.api.futopt_account = MagicMock()
         host.api.list_positions.return_value = [
             SimpleNamespace(code="TXFR1", quantity=1, direction="Buy", price=18000.0)
         ]
@@ -126,11 +126,16 @@ class TestOrderSmoke(unittest.TestCase):
 
         host._check_pending_timeout()
 
-        self.assertFalse(host.is_pending)
-        self.assertFalse(host._settling)
+        self.assertTrue(host.is_pending)
+        self.assertTrue(host._settling)
         self.assertFalse(host.block_new_entry)
         self.assertFalse(host._position_unconfirmed)
-        self.assertEqual(host.position_qty, 1)  # still held; exit simply did not fill
+
+        host._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
+        host._settle_via_reconcile()
+
+        self.assertFalse(host.is_pending)
+        self.assertEqual(host.position_qty, 1)
 
     def test_simulation_timeout_resolves_when_broker_shows_exit_filled(self):
         """P1-2: sim reconcile confirms a real fill via broker snapshot.

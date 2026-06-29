@@ -32,6 +32,7 @@ class Settings:
     ioc_slippage_points: int
     exit_grace_ticks: int
     exit_grace_sec: int
+    exit_grace_suppress_trailing: bool
     hard_stop_points: int
     vwap_stop_points: int
     no_tick_timeout_sec: int
@@ -105,6 +106,13 @@ class Settings:
     # (live IOC is ms-level; 5s is conservative). Sim may mis-infer and trigger
     # the ceiling/convergence backstop — that is intentional for UAT==live.
     entry_miss_confirm_sec: int = 5
+    # Exit IOC: stable unchanged broker position duration before declaring MISSED
+    # (never infer-clear on a single L3 read — prevents double-exit over-flatten).
+    exit_miss_confirm_sec: int = 5
+    # After a full exit fill, poll broker at reconcile_fast_sec for this many seconds.
+    post_exit_reconcile_sec: int = 15
+    # TTL for recently cleared pending order_ids (late deal attribution / HALT).
+    cleared_order_registry_sec: int = 120
     # Consecutive entry misses before HALT+CRITICAL (structural failure, e.g.
     # orders not reaching the exchange). 0 = disable circuit breaker.
     max_consecutive_missed_entries: int = 3

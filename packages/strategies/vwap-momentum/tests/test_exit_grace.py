@@ -28,6 +28,7 @@ def _make_strategy_and_settings():
             "hard_stop_points",
             "exit_grace_ticks",
             "exit_grace_sec",
+            "exit_grace_suppress_trailing",
             "atr_vwap_stop_enabled",
             "vwap_stop_points_floor",
             "vwap_stop_atr_k",
@@ -124,6 +125,50 @@ class TestExitGracePeriod(unittest.TestCase):
             price=18000.0 + self.s.vwap_stop_points, vwap=18000.0 + self.s.vwap_stop_points, ts=1010
         )
         sig, _ = self.strategy.manage_exit(mkt, pos)
+        self.assertIsNone(sig)
+
+    def test_in_grace_trailing_fires_by_default(self):
+        """Trailing stop is active during grace unless exit_grace_suppress_trailing."""
+        pos = self._long_pos(ticks=5)
+        pos = PositionSnapshot(
+            has_position=True,
+            position_dir="Long",
+            qty=1,
+            entry_price=18000.0,
+            entry_exchange_ts=1000,
+            trailing_peak=18010.0,
+            ticks_since_entry=5,
+        )
+        trail = self.s.trail_points
+        mkt = _mk_market(price=18010.0 - trail, vwap=18000.0, ts=1010)
+        sig, _ = self.strategy.manage_exit(mkt, pos)
+        self.assertIsNotNone(sig)
+        assert sig is not None
+        self.assertEqual(sig.audit.reason, "trailing_stop")
+
+    def test_in_grace_trailing_suppressed_when_flag_set(self):
+        from dataclasses import replace
+
+        from trading_engine.core.runtime_config import RuntimeConfig
+        from trading_engine.testing.defaults import default_test_settings
+
+        cfg = RuntimeConfig(
+            replace(default_test_settings(), exit_grace_suppress_trailing=True)
+        )
+        params = StrategyParams(_cfg=cfg)
+        strategy = VWAPMomentumStrategy(params=params)
+        pos = PositionSnapshot(
+            has_position=True,
+            position_dir="Long",
+            qty=1,
+            entry_price=18000.0,
+            entry_exchange_ts=1000,
+            trailing_peak=18010.0,
+            ticks_since_entry=5,
+        )
+        trail = self.s.trail_points
+        mkt = _mk_market(price=18010.0 - trail, vwap=18000.0, ts=1010)
+        sig, _ = strategy.manage_exit(mkt, pos)
         self.assertIsNone(sig)
 
 

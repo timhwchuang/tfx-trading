@@ -10,6 +10,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from trading_engine.core.trading_state import PendingIntent
 from trading_engine.core.types import OrderSignal
 from trading_engine.testing.helpers import (
     arm_pending_entry,
@@ -130,15 +131,15 @@ class TestSettleResolution(unittest.TestCase):
         host.pending_trade = MagicMock()
         host.pending_since = host._clock() - host._cfg.pending_timeout_sec - 1
 
-    def test_exit_nofill_consistent_resolves_cleanly(self) -> None:
+    def test_exit_nofill_consistent_keeps_settling(self) -> None:
         host = make_host()
         self._arm_timed_out_exit(host)
         host.api.list_positions.return_value = [_pos(1, "Buy")]  # unchanged
 
         host._check_pending_timeout()
 
-        self.assertFalse(host.is_pending)
-        self.assertFalse(host._settling)
+        self.assertTrue(host.is_pending)
+        self.assertTrue(host._settling)
         self.assertFalse(host._position_unconfirmed)
         self.assertFalse(host.block_new_entry)
         self.assertEqual(host.position_qty, 1)
@@ -507,6 +508,22 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
         host._maybe_emergency_market_flatten()
         self.assertEqual(len(placed), 1)
 
+    def test_strategy_blocked_while_market_flatten_pending(self) -> None:
+        """Bugbot: strategy must not re-arm limit stop between miss-clear and market."""
+        host = self._market_host()
+        host.position_qty = 1
+        host.position_dir = "Short"
+        host._stop_market_flatten_request = True
+        host._settling = False
+
+        sig = OrderSignal(
+            "Buy", 1, 18000.0, "exit", exchange_ts=100, audit=None
+        )
+        self.assertFalse(host._validate_order_signal(sig))
+
+        host._kernel_converging = True
+        self.assertTrue(host._validate_order_signal(sig))
+
     def test_profit_exit_ioc_miss_does_not_escalate(self) -> None:
         host = self._market_host()
         host.position_qty = 1
@@ -603,8 +620,8 @@ class TestHaltNoConsistentClear(unittest.TestCase):
         self.assertTrue(host.is_pending)  # live flatten retained (single-flight)
         self.assertEqual(host.pending_order_id, "F1")
 
-    def test_consistent_read_clears_when_not_halted(self) -> None:
-        # Same read OUTSIDE halt → legacy behavior: clear and resume.
+    def test_consistent_read_never_infer_clears_exit(self) -> None:
+        # L3 unchanged read must NOT clear exit pending (single-flight).
         host = make_host()
         host.position_qty = 1
         host.position_dir = "Long"
@@ -612,42 +629,136 @@ class TestHaltNoConsistentClear(unittest.TestCase):
 
         resolved = host._apply_pending_broker_truth(1, "Long")
 
-        self.assertTrue(resolved)
-        self.assertFalse(host.is_pending)
+        self.assertFalse(resolved)
+        self.assertTrue(host.is_pending)
+        self.assertEqual(host.pending_order_id, "F1")
 
-    def test_halt_set_during_l3_infer_clear_keeps_pending(self) -> None:
-        """TOCTOU: HALT raised after broker consistency check but before
-        infer-clear must not drop a live flatten (30-lot residual-hole guard)."""
+    def test_l3_unchanged_never_clears_even_if_halt_races(self) -> None:
+        """L3 unchanged read never infer-clears exit pending (single-flight)."""
         host = make_host()
         host.position_qty = 1
         host.position_dir = "Long"
         arm_pending_exit(host, order_id="F1", exit_reason="stop_loss", qty=1)
-        host._position_unconfirmed = False
         host._settling = True
 
-        real_lock = host.lock
-        acquire_count = {"n": 0}
-
-        class CountingLock:
-            def __enter__(self):
-                acquire_count["n"] += 1
-                if acquire_count["n"] == 2:
-                    host._halt_position_unconfirmed(
-                        "race: HALT between broker check and infer-clear",
-                        clear_pending=False,
-                    )
-                return real_lock.__enter__()
-
-            def __exit__(self, *exc):
-                return real_lock.__exit__(*exc)
-
-        host.lock = CountingLock()
         resolved = host._apply_pending_broker_truth(1, "Long")
 
         self.assertFalse(resolved)
         self.assertTrue(host.is_pending)
         self.assertEqual(host.pending_order_id, "F1")
+
+
+class TestExitMissResolve(unittest.TestCase):
+    def _arm(self, host):
+        host.contract = MagicMock(code="TXFR1")
+        host.api.futopt_account = MagicMock()
+
+    def test_exit_miss_after_confirm_clears_take_profit(self) -> None:
+        host = make_host()
+        self._arm(host)
+        host._cfg.reconcile_confirm_reads = 1
+        host.position_qty = 1
+        host.position_dir = "Long"
+        arm_pending_exit(host, order_id="tp-1", exit_reason="take_profit", qty=1)
+        host._settling = True
+        host._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
+        host.api.list_positions.return_value = [_pos(1, "Buy")]
+
+        host._settle_via_reconcile()
+
+        self.assertFalse(host.is_pending)
+        self.assertFalse(host._stop_market_flatten_request)
+
+    def test_exit_miss_stop_loss_escalates_market(self) -> None:
+        host = make_host()
+        self._arm(host)
+        host._cfg.reconcile_confirm_reads = 1
+        host.position_qty = 1
+        host.position_dir = "Short"
+        arm_pending_exit(host, order_id="sl-1", exit_reason="stop_loss", qty=1)
+        host._settling = True
+        host._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
+        host.api.list_positions.return_value = [_pos(1, "Sell")]
+
+        host._settle_via_reconcile()
+
+        self.assertFalse(host.is_pending)
+        self.assertTrue(host._stop_market_flatten_request)
+
+    def test_exit_miss_blocks_strategy_before_market_flatten(self) -> None:
+        host = make_host()
+        self._arm(host)
+        host._cfg.reconcile_confirm_reads = 1
+        host.position_qty = 1
+        host.position_dir = "Short"
+        arm_pending_exit(host, order_id="sl-2", exit_reason="stop_loss", qty=1)
+        host._settling = True
+        host._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
+        host.api.list_positions.return_value = [_pos(1, "Sell")]
+
+        host._settle_via_reconcile()
+
+        self.assertFalse(host.is_pending)
+        self.assertTrue(host._stop_market_flatten_request)
+        sig = OrderSignal("Buy", 1, 18000.0, "exit", exchange_ts=200)
+        self.assertFalse(host._validate_order_signal(sig))
+
+    def test_late_deal_on_cleared_exit_halts(self) -> None:
+        host = make_host()
+        host._alerts = MagicMock()
+        host.position_qty = 0
+        host.position_dir = "Flat"
+        host._recent_cleared_orders.append(
+            ("old-exit", PendingIntent.EXIT, host._clock())
+        )
+
+        needs_sync = False
+        with host.lock:
+            needs_sync = host._handle_futures_deal(
+                {
+                    "price": "18000",
+                    "quantity": 1,
+                    "action": "Buy",
+                    "trade_id": "old-exit",
+                }
+            )
+        self.assertTrue(needs_sync)
         self.assertTrue(host._position_unconfirmed)
+        self.assertTrue(host.block_new_entry)
+
+    def test_normal_fill_clear_does_not_register_for_late_deal_scan(self) -> None:
+        """Bugbot: successful fill clear must not spuriously HALT on deal_records."""
+        host = make_host()
+        host._alerts = MagicMock()
+        host.position_qty = 1
+        host.position_dir = "Short"
+        arm_pending_exit(host, order_id="filled-exit", exit_reason="stop_loss", qty=1)
+        host.filled_qty = 1
+        host._pending_exit_pnl = -5.0
+
+        with host.lock:
+            host._apply_deal_fill(18000.0, is_buy=True, deal_qty=1)
+
+        self.assertFalse(host.is_pending)
+        self.assertEqual(len(host._recent_cleared_orders), 0)
+
+        host.api.order_deal_records = MagicMock(
+            return_value=[
+                (
+                    "Filled",
+                    {
+                        "trade_id": "filled-exit",
+                        "quantity": 1,
+                        "price": 18000.0,
+                    },
+                )
+            ]
+        )
+        host._reconcile_recent_cleared_deals()
+
+        self.assertFalse(host._position_unconfirmed)
+        self.assertFalse(host.block_new_entry)
+        host._alerts.send.assert_not_called()
 
 
 if __name__ == "__main__":

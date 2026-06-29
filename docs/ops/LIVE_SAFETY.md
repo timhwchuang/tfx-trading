@@ -126,6 +126,20 @@ This document describes what the kernel does when things go wrong during live op
 
 ---
 
+### Exit L3 infer-clear double-exit RCA (2026-06-29)
+
+| | |
+|---|---|
+| **Incident** | Live stop-loss exit #1 placed while broker still showed Short; kernel L3 infer-clear cleared pending → strategy sent exit #2 → kernel Flat, broker Long 1 → CRITICAL ~26s later with extra loss. |
+| **Root cause** | Exit branch in `_apply_pending_broker_truth` treated an unchanged `list_positions` read as proof of non-fill and cleared pending during normal operation. Entry already had `entry_miss_confirm_sec`; exit did not. |
+| **Kernel behavior (fixed)** | L3 unchanged **never** clears exit pending. After debounced unchanged + `exit_miss_confirm_sec` (default 5): L2 query first, then `_resolve_exit_missed` — stop_loss → market flatten request; take_profit/trailing → clear with WARNING. `settle_timeout_sec` still → HALT with pending kept (single-flight). Severe drift (Flat/Long, direction flip) → immediate HALT + market converge. Post-exit fast reconcile (`post_exit_reconcile_sec`, default 15). Cleared-order registry catches late deals on cleared exits. |
+| **Expected outcome** | At most one live exit in flight; over-flatten detected within seconds, not ~60s. |
+| **Operator action** | Keep `order_status_query_enabled: true` in live config. Run `test_exit_single_flight.py` before deploy. Treat `持倉漂移` with kernel Flat + broker qty>0 as HALT-worthy — do not manually clear until broker reconciled. |
+
+**Code:** `order_executor.py:_apply_pending_broker_truth`, `_resolve_exit_missed`, `_settle_via_reconcile`; `engine.py:_is_severe_drift`, `_check_position_reconcile`
+
+---
+
 ### Position ceiling exceeded (P0-4, `max_position_qty`)
 
 | | |

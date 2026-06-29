@@ -149,17 +149,18 @@ class TestPendingArmedAudit(unittest.TestCase):
         self.assertEqual(host.position_qty, 1)
 
     def test_sim_timeout_resolves_cleanly_when_broker_consistent(self):
-        """P0-5: timeout with an empty order_id, but the broker confirms the
-        position is unchanged and consistent → clean resolution (no HALT, no
-        block). Outcome is UNKNOWN-then-confirmed, not FAILED."""
+        """P0-5: timeout with empty order_id + unchanged broker → SETTLING until
+        exit_miss_confirm_sec, then clean miss (no HALT)."""
         alerts = MagicMock()
         host = make_host()
         host._alerts = alerts
         host._cfg.simulation = True
+        host._cfg.reconcile_confirm_reads = 1
         arm_pending_exit(host, order_id="")
         host.position_qty = 1
         host.position_dir = "Long"
         host.contract = MagicMock(code="TXFR1")
+        host.api.futopt_account = MagicMock()
         host.api.list_positions.return_value = [
             SimpleNamespace(code="TXFR1", quantity=1, direction="Buy", price=18000.0)
         ]
@@ -168,8 +169,13 @@ class TestPendingArmedAudit(unittest.TestCase):
 
         host._check_pending_timeout()
 
+        self.assertTrue(host.is_pending)
+        self.assertTrue(host._settling)
+
+        host._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
+        host._settle_via_reconcile()
+
         self.assertFalse(host.is_pending)
-        self.assertFalse(host._settling)
         self.assertFalse(host.block_new_entry)
         self.assertFalse(host._position_unconfirmed)
         self.assertEqual(host.position_qty, 1)

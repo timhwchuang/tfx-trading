@@ -572,6 +572,9 @@ class VWAPMomentumStrategy(BaseStrategy):
             sl_hit, sl_reason = self._stop_loss_hit(market, position, is_long=True)
             tp_hit = market.price >= position.entry_price + self.params.fixed_tp_points
             trail_hit = market.price <= position.trailing_peak - trail_pts
+            if trail_hit and self._in_exit_grace_period(market.ts, position):
+                if self.params.exit_grace_suppress_trailing:
+                    trail_hit = False
             if sl_hit or tp_hit or trail_hit:
                 reason = sl_reason if sl_hit else "take_profit" if tp_hit else "trailing_stop"
                 return (
@@ -600,6 +603,9 @@ class VWAPMomentumStrategy(BaseStrategy):
             sl_hit, sl_reason = self._stop_loss_hit(market, position, is_long=False)
             tp_hit = market.price <= position.entry_price - self.params.fixed_tp_points
             trail_hit = market.price >= position.trailing_peak + trail_pts
+            if trail_hit and self._in_exit_grace_period(market.ts, position):
+                if self.params.exit_grace_suppress_trailing:
+                    trail_hit = False
             if sl_hit or tp_hit or trail_hit:
                 reason = sl_reason if sl_hit else "take_profit" if tp_hit else "trailing_stop"
                 return (

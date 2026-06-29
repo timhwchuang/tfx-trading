@@ -51,6 +51,7 @@ class Settings:
     ioc_slippage_points: int
     exit_grace_ticks: int
     exit_grace_sec: int
+    exit_grace_suppress_trailing: bool
     hard_stop_points: int
     vwap_stop_points: int
     no_tick_timeout_sec: int
@@ -131,6 +132,9 @@ class Settings:
     reconcile_confirm_reads: int
     emergency_market_orders: bool
     entry_miss_confirm_sec: int
+    exit_miss_confirm_sec: int
+    post_exit_reconcile_sec: int
+    cleared_order_registry_sec: int
     max_consecutive_missed_entries: int
     order_status_query_enabled: bool
     order_status_query_timeout_ms: int
@@ -189,6 +193,9 @@ def load_config(path: str | Path | None = None) -> Settings:
         ioc_slippage_points=int(strategy.get("ioc_slippage_points", 3)),
         exit_grace_ticks=int(strategy.get("exit_grace_ticks", 60)),
         exit_grace_sec=int(strategy.get("exit_grace_sec", 30)),
+        exit_grace_suppress_trailing=bool(
+            strategy.get("exit_grace_suppress_trailing", False)
+        ),
         hard_stop_points=int(strategy.get("hard_stop_points", 6)),
         vwap_stop_points=int(strategy.get("vwap_stop_points", 3)),
         no_tick_timeout_sec=int(strategy.get("no_tick_timeout_sec", 45)),
@@ -287,6 +294,11 @@ def load_config(path: str | Path | None = None) -> Settings:
         reconcile_confirm_reads=int(operations.get("reconcile_confirm_reads", 3)),
         emergency_market_orders=bool(operations.get("emergency_market_orders", True)),
         entry_miss_confirm_sec=int(operations.get("entry_miss_confirm_sec", 5)),
+        exit_miss_confirm_sec=int(operations.get("exit_miss_confirm_sec", 5)),
+        post_exit_reconcile_sec=int(operations.get("post_exit_reconcile_sec", 15)),
+        cleared_order_registry_sec=int(
+            operations.get("cleared_order_registry_sec", 120)
+        ),
         max_consecutive_missed_entries=int(
             operations.get("max_consecutive_missed_entries", 3)
         ),

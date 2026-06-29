@@ -11,6 +11,10 @@ from unittest.mock import MagicMock
 from trading_engine.testing.helpers import make_host
 
 
+def _pos(qty: int, direction: str, price: float = 18000.0) -> SimpleNamespace:
+    return SimpleNamespace(code="TXFR1", quantity=qty, direction=direction, price=price)
+
+
 def _arm_reconcile(host, *, kernel_qty, kernel_dir, broker_positions):
     host._alerts = MagicMock()
     host._api_connected = True
@@ -63,6 +67,84 @@ class TestPositionReconcile(unittest.TestCase):
         self.assertFalse(host.block_new_entry)
         self.assertFalse(host._position_drift_detected)
         host._alerts.send.assert_not_called()
+
+    def test_severe_drift_flat_vs_long_halts(self):
+        host = make_host()
+        _arm_reconcile(
+            host,
+            kernel_qty=0,
+            kernel_dir="Flat",
+            broker_positions=[_pos(1, "Buy", price=45490.0)],
+        )
+        host._cfg.reconcile_confirm_reads = 1
+        host._order_sync_mode = True
+        placed = []
+        host.place_order = lambda sig: placed.append(sig)
+
+        host._check_position_reconcile()
+
+        self.assertTrue(host._position_unconfirmed)
+        self.assertTrue(host.block_new_entry)
+        self.assertEqual(host.position_qty, 1)
+        self.assertEqual(host.position_dir, "Long")
+        host._maybe_converge_flatten()
+        self.assertEqual(len(placed), 1)
+        self.assertTrue(placed[0].market)
+
+    def test_severe_drift_requires_debounce_reads(self) -> None:
+        host = make_host()
+        _arm_reconcile(
+            host,
+            kernel_qty=0,
+            kernel_dir="Flat",
+            broker_positions=[_pos(1, "Buy", price=45490.0)],
+        )
+        host._cfg.reconcile_confirm_reads = 3
+        host._post_exit_reconcile_until = host._clock() + 15
+        t = [host._clock()]
+
+        def _tick_clock() -> float:
+            return t[0]
+
+        host._clock = _tick_clock
+
+        host._check_position_reconcile()
+        self.assertFalse(host._position_unconfirmed)
+        t[0] += 2
+        host._check_position_reconcile()
+        self.assertFalse(host._position_unconfirmed)
+        t[0] += 2
+        host._check_position_reconcile()
+        self.assertTrue(host._position_unconfirmed)
+
+    def test_post_exit_transient_broker_lag_no_spurious_halt(self) -> None:
+        host = make_host()
+        _arm_reconcile(
+            host,
+            kernel_qty=0,
+            kernel_dir="Flat",
+            broker_positions=[_pos(1, "Buy", price=45490.0)],
+        )
+        host._cfg.reconcile_confirm_reads = 3
+        host._post_exit_reconcile_until = host._clock() + 15
+        t = [host._clock()]
+        host._clock = lambda: t[0]
+        reads = {"n": 0}
+
+        def _list_positions(**_kwargs):
+            reads["n"] += 1
+            if reads["n"] == 1:
+                return [_pos(1, "Buy", price=45490.0)]
+            return []
+
+        host.api.list_positions.side_effect = _list_positions
+
+        host._check_position_reconcile()
+        t[0] += 2
+        host._check_position_reconcile()
+
+        self.assertFalse(host._position_unconfirmed)
+        self.assertFalse(host.block_new_entry)
 
     def test_throttled_within_interval(self):
         host = make_host()

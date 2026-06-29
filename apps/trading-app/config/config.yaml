@@ -81,6 +81,8 @@ strategy:
   # 進場後亂流保護：未滿足 tick 數且未滿秒數前，僅硬停損、不啟用 VWAP 停損
   exit_grace_ticks: 60
   exit_grace_sec: 30
+  # Grace 期間是否也 suppress trailing stop（預設 false = 僅 suppress VWAP stop）
+  exit_grace_suppress_trailing: false
 
   # 硬停損點數（entry ± N）；保護期內唯一停損
   hard_stop_points: 6
@@ -224,6 +226,12 @@ operations:
   emergency_market_orders: true
   # entry IOC 穩定 flat 多久後視為 miss（恢復正常進場，不 sticky HALT）。live IOC ms 級，5s 保守。
   entry_miss_confirm_sec: 5
+  # exit IOC 穩定「部位不變」多久後才視為 miss（禁止 L3 瞬間 infer-clear，防雙重平倉）。
+  exit_miss_confirm_sec: 5
+  # 平倉完成後快速對帳窗口（秒）；偵測 over-flatten / 方向反轉漂移。
+  post_exit_reconcile_sec: 15
+  # 已清 pending 的 order_id 保留多久（遲到成交歸屬 / HALT）。
+  cleared_order_registry_sec: 120
   # 連續 N 筆 entry miss → HALT+CRITICAL（結構性問題）。0 = 關閉熔斷。
   max_consecutive_missed_entries: 3
   # Layer 2：IOC 終態查詢（order worker 上 update_status(trade)）。由此 flag 單獨控制（不看 simulation）。

@@ -4,6 +4,7 @@ import datetime
 import queue
 import threading
 import time
+from collections import deque
 from collections.abc import Callable
 from enum import Enum, auto
 from typing import Any, NamedTuple
@@ -165,6 +166,9 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._position_unconfirmed = False
         self._reconcile_last_read: tuple[int, str] | None = None
         self._reconcile_read_streak = 0
+        # Debounce severe-drift HALT in periodic reconcile (post-exit broker lag).
+        self._severe_drift_broker_read: tuple[int, str] | None = None
+        self._severe_drift_read_streak = 0
         self._converge_flatten_at = 0.0
         # P0-5: consecutive entry IOC misses (clean resume path); circuit breaker
         # trips to HALT when max_consecutive_missed_entries is exceeded.
@@ -177,6 +181,10 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         # Monotonic pending generation: bumped on every arm so a stale Layer-2
         # query (enqueued for a prior pending, esp. with empty order_id) is rejected.
         self._pending_generation = 0
+        # Post-exit fast reconcile window (over-flatten detection).
+        self._post_exit_reconcile_until = 0.0
+        # Recently cleared pending orders for late-deal attribution.
+        self._recent_cleared_orders: deque[tuple[str, str, float]] = deque(maxlen=64)
 
         self.indicators = IndicatorState(
             vwap_window_min=self._cfg.vwap_window_min,
@@ -819,6 +827,76 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         logger.warning(msg)
         self._alerts.send(msg, level="CRITICAL")
 
+    @staticmethod
+    def _is_severe_drift(
+        kernel_qty: int,
+        kernel_dir: str,
+        broker_qty: int,
+        broker_dir: str,
+    ) -> bool:
+        """Over-flatten or direction reversal — must HALT, not strategy retry."""
+        if kernel_qty == 0 and broker_qty > 0:
+            return True
+        if (
+            kernel_qty > 0
+            and broker_qty > 0
+            and kernel_dir not in ("Flat", "")
+            and broker_dir not in ("Flat", "")
+            and kernel_dir != broker_dir
+        ):
+            return True
+        return False
+
+    def _severe_drift_confirmed(
+        self,
+        kernel_qty: int,
+        kernel_dir: str,
+        broker_qty: int,
+        broker_dir: str,
+    ) -> bool:
+        """True once severe drift is seen on debounced consecutive broker reads."""
+        if not self._is_severe_drift(
+            kernel_qty, kernel_dir, broker_qty, broker_dir
+        ):
+            with self.lock:
+                self._severe_drift_broker_read = None
+                self._severe_drift_read_streak = 0
+            return False
+        broker = (broker_qty, broker_dir)
+        need = max(1, int(self._cfg.reconcile_confirm_reads))
+        with self.lock:
+            if self._severe_drift_broker_read == broker:
+                self._severe_drift_read_streak += 1
+            else:
+                self._severe_drift_broker_read = broker
+                self._severe_drift_read_streak = 1
+            return self._severe_drift_read_streak >= need
+
+    def _prune_cleared_orders(self) -> None:
+        ttl = int(self._cfg.cleared_order_registry_sec)
+        if ttl <= 0:
+            return
+        now = self._clock()
+        while self._recent_cleared_orders and now - self._recent_cleared_orders[0][2] > ttl:
+            self._recent_cleared_orders.popleft()
+
+    def _record_cleared_pending(self) -> None:
+        """Caller holds lock."""
+        order_id = self.pending_order_id
+        intent = self.pending_intent
+        if not order_id or not intent:
+            return
+        if int(self._cfg.cleared_order_registry_sec) <= 0:
+            return
+        self._recent_cleared_orders.append((order_id, intent, self._clock()))
+
+    def _lookup_recent_cleared_order(self, order_id: str) -> tuple[str, str] | None:
+        self._prune_cleared_orders()
+        for oid, intent, _ in self._recent_cleared_orders:
+            if oid == order_id:
+                return oid, intent
+        return None
+
     def _check_position_reconcile(self) -> None:
         """P0-3: periodically reconcile kernel position with the broker.
 
@@ -853,9 +931,12 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             kernel_qty = self.position_qty
             kernel_dir = self.position_dir
             unconfirmed = self._position_unconfirmed
+            post_exit = self._clock() < self._post_exit_reconcile_until
 
         interval = (
-            max(1, int(self._cfg.reconcile_fast_sec)) if unconfirmed else steady
+            max(1, int(self._cfg.reconcile_fast_sec))
+            if (unconfirmed or post_exit)
+            else steady
         )
         now = self._clock()
         if now - self._last_reconcile_wall < interval:
@@ -881,12 +962,44 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             )
             return
 
+        if self._is_severe_drift(kernel_qty, kernel_dir, broker_qty, broker_dir):
+            if not self._severe_drift_confirmed(
+                kernel_qty, kernel_dir, broker_qty, broker_dir
+            ):
+                return
+            self._position_drift_detected = True
+            logger.warning(
+                "嚴重持倉漂移 | kernel=%s %d口 broker=%s %d口 → HALT 並收斂平倉",
+                kernel_dir,
+                kernel_qty,
+                broker_dir,
+                broker_qty,
+            )
+            with self.lock:
+                self._severe_drift_broker_read = None
+                self._severe_drift_read_streak = 0
+            self._halt_position_unconfirmed(
+                f"週期對帳嚴重漂移 | kernel={kernel_dir} {kernel_qty}口 "
+                f"broker={broker_dir} {broker_qty}口",
+                clear_pending=False,
+            )
+            self.sync_positions()
+            self._alerts.send(
+                f"嚴重持倉漂移 | kernel={kernel_dir} {kernel_qty}口 vs "
+                f"broker={broker_dir} {broker_qty}口 → 已 HALT 並收斂平倉；請人工核對",
+                level="CRITICAL",
+            )
+            return
+
         if broker_qty == kernel_qty and broker_dir == kernel_dir:
             if self._position_drift_detected:
                 logger.info(
                     "週期對帳 | 已恢復一致 | %s %d口", kernel_dir, kernel_qty
                 )
             self._position_drift_detected = False
+            with self.lock:
+                self._severe_drift_broker_read = None
+                self._severe_drift_read_streak = 0
             return
 
         logger.warning(
@@ -918,6 +1031,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 self._check_session_watchdog()
                 self._check_no_tick_watchdog()
                 self._check_position_reconcile()
+                self._reconcile_recent_cleared_deals()
                 self._maybe_log_tick_type_summary()
             except BaseException as e:
                 # Catch PanicException etc. from PyO3 to prevent silent thread death.
@@ -1063,7 +1177,9 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             )
         return True
 
-    def _clear_pending(self):
+    def _clear_pending(self, *, watch_late_fill: bool = False):
+        if watch_late_fill:
+            self._record_cleared_pending()
         self.is_pending = False
         self.pending_intent = None
         self.exit_pending = False
