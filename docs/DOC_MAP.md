@@ -86,6 +86,7 @@
 | FT-017 | compression-flow-attack | **MVPClosed** | [SPEC](features/compression-flow-attack/SPEC.md) · **`spec_anchor_mismatch`**（mislabel: `cfa_fingerprint_fail`） |
 | FT-018 | gap-up-drive-trail | **Draft** | [SPEC](features/gap-up-drive-trail/SPEC.md) · [PLAN](features/gap-up-drive-trail/PLAN.md) · P-011 exit-led |
 | FT-019 | sweep-fvg-breakout-trail | **Draft** | [SPEC](features/sweep-fvg-breakout-trail/SPEC.md) · [PLAN](features/sweep-fvg-breakout-trail/PLAN.md) · P-012 |
+| FT-020 | bear-streak-flip-long | **Draft** | [SPEC](features/bear-streak-flip-long/SPEC.md) · [PLAN](features/bear-streak-flip-long/PLAN.md) · P-013 |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 

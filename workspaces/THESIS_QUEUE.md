@@ -25,6 +25,7 @@
 | P-010 | Compression flow attack | **`mvpclosed`** → FT-017 | **liquidity** | **skew** | med | **`spec_anchor_mismatch`** · n=0（mislabel: `cfa_fingerprint_fail`） |
 | P-011 | Gap up drive trail | `draft-proposal` → FT-018 | **continuation** | **skew** | med | **0-design PASS** · 待 Pick → [`PLAN` Phase 0a prompt](../../docs/features/gap-up-drive-trail/PLAN.md) |
 | P-012 | Sweep FVG breakout trail | `draft-proposal` → FT-019 | **liquidity** | **skew** | med | **0-design PASS** · 待 Pick → [`PLAN`](../../docs/features/sweep-fvg-breakout-trail/PLAN.md) |
+| P-013 | Bear streak flip long | `draft-proposal` → FT-020 | **mean-reversion** | mean_robust | **med** | **0-design Conditional PASS** · Preflight PASS · 待 Pick → [`PLAN`](../../docs/features/bear-streak-flip-long/PLAN.md) |
 
 ---
 
@@ -176,6 +177,28 @@
 
 ---
 
+## P-013 — Bear streak flip long → **FT-020**（**draft-proposal**）
+
+**狀態**：`draft-proposal` · **提議者**：Tim · **日期**：2026-06-29 · **class**：**mean_robust** · **FT**：[`bear-streak-flip-long`](../../docs/features/bear-streak-flip-long/SPEC.md) · **0-design Conditional PASS**（2026-06-29 · P0 封印）· **Preflight PASS**（§E.4 · stall_price 列 · Senior 簽數字 2026-06-29）
+
+**故事**：**Long-only** — 1m **連續 ≥4 根黑K**（`close < open`）→ **反轉陽K收盤** → tick **買盤 ratio 湧入**（`flip_window` · buy_ratio≥0.55）→ **做多**；停損 = **最後一根黑K最低** + ATR/min_pts 地板；停利 = **`tp_r × risk_unit`**（`structure_r_barrier_900s`）；fingerprint **W900**。
+
+**不是 FT-007 因為**：無 impulse body/climax/footprint scalp；**結構 stop + R-multiple TP** · 非固定 10pt SL/12pt TP。
+
+**不是 FT-006/012 因為**：**非 VWAP z-score fade** · 純 K 線 streak + tick flow confirm。
+
+**不是 FT-013 因為**：**1m 反轉 revert** · 非 5m SuperTrend flip continuation。
+
+**粗算錨點**：FT-007 n=108 gross **+1.25** net **−3.75** · FT-012 W30 med **+4** margin thin → 預期 gross **2–5** · n **60–120**/年（Preflight §E.4）。
+
+**碰撞風險**：**med** — mean-reversion 族 + FT-007 近親 · **非** fade 整族變形。
+
+**Falsify**：W900 median ≤ 0 → `bsfl_fingerprint_fail_direction`；streak 多 flip 稀 n<30 → `bsfl_fingerprint_fail_n`；G1 fail → MVPClosed。
+
+**下一步**：0-design **Conditional PASS**（P0 已封印）→ 人類 **`human-approved`**（**不**與 P-011 並行 Pick · 建議 **P-011 0c-1 後**）→ copy PLAN Phase 0a prompt → Phase 0a。
+
+---
+
 ## 已決議
 
 | ID | 決策 | 日期 | 原因 |
@@ -194,5 +217,6 @@
 ## 人類操作
 
 1. **P-011 / FT-018** · **P-012 / FT-019** — 0-design 審閱 / Pick（建议 **串行** · 一次 Pick 一個）→ [`gap-up-drive-trail/PLAN`](../docs/features/gap-up-drive-trail/PLAN.md) · [`sweep-fvg-breakout-trail/PLAN`](../docs/features/sweep-fvg-breakout-trail/PLAN.md) Phase 0a prompt
-2. **P-006** — 仍 `draft-proposal` · 等人類 Pick
-3. **v2.2.1 不復活 FT 屍體** — 見 Holdout §11
+2. **P-013 / FT-020** — **0-design Conditional PASS** · Preflight PASS · **不搶 P-011** · Pick 後 copy Phase 0a prompt → [`bear-streak-flip-long/PLAN`](../docs/features/bear-streak-flip-long/PLAN.md)
+3. **P-006** — 仍 `draft-proposal` · 等人類 Pick
+4. **v2.2.1 不復活 FT 屍體** — 見 Holdout §11
