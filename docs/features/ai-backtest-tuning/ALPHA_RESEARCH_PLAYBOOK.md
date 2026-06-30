@@ -1,7 +1,7 @@
 ---
 id: ALPHA-PLAYBOOK
 slug: alpha-research-playbook
-version: 1.6.1
+version: 1.7.0
 status: Active
 opened: 2026-06-28
 owner: human+agent
@@ -12,7 +12,8 @@ applies_to: FT-012+
 
 > **SSOT**：新策略 thesis 從提案到 MVPClosed / Holdout 的**固定流程**。  
 > **雙軌**：UAT 持續 = 工程線；本檔只管 **Alpha 線**。敘事總覽：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md) §8。  
-> **Gate 數字**：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md)（v2.1：2025 train · 2026 Q1 valid · 2026 Q2 holdout）。
+> **Gate 數字**：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md)（v2.3：2025 train · 2026 Q1 valid · 2026 Q2 holdout）。  
+> **結案分類**：[`OUTCOME_REGISTRY.md`](OUTCOME_REGISTRY.md) · **meta-review**：[`META_REVIEW_BRIEF.md`](META_REVIEW_BRIEF.md)
 
 ---
 
@@ -184,8 +185,8 @@ PASS 後更新 `CACHE_AUDIT.md` stamp。
 
 | 檔案 | 內容 |
 |------|------|
-| `gate_report.md` | train G1–G3、§3.1 disqualify、valid 對照、決策 |
-| `reports/counterfactual_*_train.json` | 參數 grid、Long/Short、單月 |
+| `gate_report.md` | **§Train 帳面**（net_total）· train G1–G3 · `outcome_class` · valid 對照 · 決策 |
+| `reports/counterfactual_*_train.json` | 參數 grid、Long/Short、**`gate_summary`** 欄位 |
 | funnel / delta | 事件數、瓶頸階段 |
 | **`post_entry_diagnosis`** | W5/W15/W30 stop-less + MFE/MAE + Long/Short（**非 gate**） |
 
@@ -222,7 +223,7 @@ PASS 後更新 `CACHE_AUDIT.md` stamp。
 
 ## 3. Train 過關線（摘要）
 
-完整定義：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md) **v2.2.1** §2.2 · §3–§5。
+完整定義：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md) **v2.3** §2.2 · §3–§5。
 
 | Class | Train 2025 | 未過 → |
 |-------|------------|--------|
@@ -274,6 +275,38 @@ PASS 後更新 `CACHE_AUDIT.md` stamp。
 - **`pct_mfe_ge_1atr`**（0a 實作後）：進場後 MFE ≥ 1×ATR 的筆數占比 — 診斷 trail/BE 是否常觸發
 
 屍体指紋審計索引：[`CORPSE_ATLAS.md`](../../../workspaces/CORPSE_ATLAS.md) §Fingerprint 審計。
+
+### 3.1c Joint Fingerprint Contract（v1.7 · FT-012+ 0c-1）
+
+> **動機**：FT-019 — W900 通過但契約 gross 1.19 → 假希望。  
+> **SSOT 分類**：[`OUTCOME_REGISTRY.md`](OUTCOME_REGISTRY.md) · `fingerprint_contract_mismatch`
+
+| ID | 條件 | 未過 |
+|----|------|------|
+| **J1** | 封印窗 stop-less `close_delta_median > 0`（同 §3.1b） | `*_fingerprint_fail_*` |
+| **J2** | 同批樣本 · pre-register **契約 exit** · `gross_mean ≥ 3`（診斷下限；G1>5 仍在 grid） | **`fingerprint_contract_mismatch`** — **禁止 grid** |
+
+**JSON**：`reporting.gate_summary.build_gate_summary()` 產 `warnings`（含 `FINGERPRINT_TRAP_SUSPECT`）。
+
+### 3.1d gate_report 第一頁（v1.7 · 人類 15 分鐘 MUST）
+
+**MUST** 在 G1/G2 之前：
+
+```markdown
+## Train 帳面（契約出場 · 非 stop-less）
+| 冠軍/最佳 | n | gross_total | net_total | gross/趟 | net/趟 | 契約 exit |
+```
+
+§Decision **MUST** 含：`outcome_class`（[`OUTCOME_REGISTRY.md`](OUTCOME_REGISTRY.md)）+ 既有 `outcome` 細碼。
+
+**工具**：
+
+```bash
+cd apps/trading-app/src
+python -m scripts.summarize_alpha_train --workspace <slug>-baseline --split --write-gate-snippet
+```
+
+`horizon_*` / stop-less 正 total → 標 `NON_CONTRACT — 不得當 gate`（見 `gate_summary.warnings`）。
 
 ---
 
@@ -332,6 +365,12 @@ SSOT 合成：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.m
 
 **gate_report 附錄（非 gate）**：`exit_gap` · `pct_mfe_ge_1atr` — 診斷 trail/BE 觸發率 vs barrier 契約落差。
 
+**分叉上限（v1.7 · FT-016→018 教訓）**
+
+- 同一 **entry P0** 族：exit-led 新 FT **最多 1 次**（例：GDC barrier → GUDT trail）。
+- 若 train G1/G2 過但 **valid net≤0** → **禁止第三 exit FT**；登錄 [`NEAR_MISS_REGISTRY.md`](../../../workspaces/NEAR_MISS_REGISTRY.md) · 考慮 Class Appeal（Holdout §2.3）或新進場 thesis。
+- reuse **entry P0** 允許；**禁止** reuse exit grid best 參數。
+
 ---
 
 ## 6. 開新 ft 的檔案 SOP
@@ -358,7 +397,7 @@ MUST：SPEC 宣告 thesis_class（mean_robust | skew）；skew 須 §E.3 pre-reg
 MUST：0-design PASS 後才寫 *_counterfactual.py；Phase 0b code review PASS 後才跑 0c train。
 MUST：讀 GATE_COVERAGE_PREFLIGHT.md；upstream gate=0 → spec_anchor_mismatch（非 fingerprint）。
 MUST NOT：SPEC/PLAN 未審即實作 CF、未 0b 即 train、每次 CF 前全庫 cache_audit（見 CACHE_AUDIT.md）。
-MUST：grid 僅 2025 train；產 gate_report + funnel + Long/Short + **post_entry_diagnosis 附錄**。
+MUST：grid 僅 2025 train；產 gate_report + funnel + Long/Short + **post_entry_diagnosis 附錄** + JSON **`gate_summary`**（`reporting.gate_summary`）。
 MUST NOT：plugin、valid tune、重跑負面圖書館家族。
 ```
 
@@ -368,7 +407,7 @@ MUST NOT：plugin、valid tune、重跑負面圖書館家族。
 
 1. 看 [`THESIS_QUEUE.md`](../../../workspaces/THESIS_QUEUE.md) — Pick / Reject / 改
 2. 若有新 **SPEC/PLAN** — 做 Phase **0-design** 審閱（或委派資深 TXF / Bugbot）再准 Agent 寫 CF
-3. 若有 CF 跑完 — 只看 `gate_report.md` 第一頁決策表
+3. 若有 CF 跑完 — `gate_report.md` **第一頁 Train 帳面（net_total）** + `outcome_class`；查 [`NEAR_MISS_REGISTRY.md`](../../../workspaces/NEAR_MISS_REGISTRY.md) 是否可申訴
 4. UAT 照跑；**不因 alpha 進度改 UAT 設定**
 
 ---
@@ -376,6 +415,8 @@ MUST NOT：plugin、valid tune、重跑負面圖書館家族。
 ## 參考
 
 - Holdout：[`HOLDOUT_CONTRACT_v2.md`](HOLDOUT_CONTRACT_v2.md)
+- Outcome：`OUTCOME_REGISTRY.md` · Near-miss：`workspaces/NEAR_MISS_REGISTRY.md`
+- Meta-review：[`META_REVIEW_BRIEF.md`](META_REVIEW_BRIEF.md)
 - 診斷：[`strategy_diagnosis.md`](../../../workspaces/strategy_diagnosis.md)
 - 提案佇列：[`THESIS_QUEUE.md`](../../../workspaces/THESIS_QUEUE.md)
 - 模板：[`THESIS_BRIEF.md`](../_template/THESIS_BRIEF.md)

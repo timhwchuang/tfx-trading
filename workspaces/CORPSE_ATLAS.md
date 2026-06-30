@@ -10,18 +10,18 @@
 
 ## §結果彙總（2026-06-28）
 
-| FT | 區間 | champion | n | barrier med | W5 | W30 | MFE/MAE med | verdict |
-|----|------|----------|---|-------------|-----|-----|-------------|---------|
-| **006** | 2025 train k=2.0 | 2.0 | 268 | −18.75 | **+5.0** | −1.5 | 18/19 | direction_failed |
-| **006** | 2026 Q1 valid | 2.0 | 298 | −18.75 | −2.0 | −9.5 | 22/19 | direction_failed |
-| **006** | legacy 2026-04 | 2.0 | 147 | −18.75 | −3.0 | +10.0 | 24/19 | exit_kills_edge |
-| **012** | 2025 train k2_p30 | k2_p30 | 133 | −7.31 | +2.0 | **+4.0** | 11/8 | direction_ok_margin_thin |
-| **009** | 01–04 rm30_bk0p15 | — | 73 | −6.0 | +2.0 | +5.0 | 36/19 | direction_ok_margin_thin |
-| **009** | valid | — | 19 | −25.88 | −22.0 | +5.0 | 33/28 | direction_ok_margin_thin |
-| **009** | holdout 05 | — | 19 | −33.34 | −17.0 | +56.0 | 25/38 | exit_kills_edge |
-| **011** | 2025 train rm30 | rm30 | 46 | −24.65 | −2.0 | −3.0 | 30/25.5 | direction_failed |
-| **016** | 2025 train fp | gk1_rt0p4 | 79 | −1.0 | 3.0 | **+13.0** | 25/21 | exit_kills_edge |
-| **018** | 2025 train fp | gk1_rt0p4 | 53 | 3.0 | 3.0 | **+8.0**（W900） | 26/21 | direction_ok_margin_thin |
+| FT | 區間 | champion | n | barrier med | W5 | W30 | MFE/MAE med | **net_total** | verdict |
+|----|------|----------|---|-------------|-----|-----|-------------|--------------:|---------|
+| **006** | 2025 train k=2.0 | 2.0 | 268 | −18.75 | **+5.0** | −1.5 | 18/19 | **−1514.8** | direction_failed |
+| **006** | 2026 Q1 valid | 2.0 | 298 | −18.75 | −2.0 | −9.5 | 22/19 | — | direction_failed |
+| **006** | legacy 2026-04 | 2.0 | 147 | −18.75 | −3.0 | +10.0 | 24/19 | — | exit_kills_edge |
+| **012** | 2025 train k2_p30 | k2_p30 | 133 | −7.31 | +2.0 | **+4.0** | 11/8 | — | direction_ok_margin_thin |
+| **009** | 01–04 rm30_bk0p15 | — | 73 | −6.0 | +2.0 | +5.0 | 36/19 | — | direction_ok_margin_thin |
+| **009** | valid | — | 19 | −25.88 | −22.0 | +5.0 | 33/28 | — | direction_ok_margin_thin |
+| **009** | holdout 05 | — | 19 | −33.34 | −17.0 | +56.0 | 25/38 | — | exit_kills_edge |
+| **011** | 2025 train rm30 | rm30 | 46 | −24.65 | −2.0 | −3.0 | 30/25.5 | **−138.5** | direction_failed |
+| **016** | 2025 train fp | gk1_rt0p4 | 79 | −1.0 | 3.0 | **+13.0** | 25/21 | — | exit_kills_edge |
+| **018** | 2025 train fp | gk1_rt0p4 | 53 | 3.0 | 3.0 | **+8.0**（W900） | 26/21 | **+173.9** | skew_profile_fail · near-miss |
 | **018** | 2026 Q1 valid fp | gk1_rt0p4 | 11 | 0.0 | — | **+8.0**（W900 path） | 49/27 | valid net−2 · holdout_blocked |
 | **016** | 2026 Q1 valid fp | gk1_rt0p4 | 15 | — | — | — | — | holdout_blocked |
 | **014** | 2025 train fp | hm10 | 7 | 50.0 | 36.0 | **+38.0** | 50/15 | direction_ok_margin_thin |

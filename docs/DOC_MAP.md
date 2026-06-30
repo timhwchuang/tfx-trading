@@ -44,12 +44,12 @@
 
 | 主題 | 文件 |
 | ---- | ---- |
-| **Holdout 契約 v2**（train/valid/holdout、median、方向、**skew 厚尾 v2.2**） | [`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
+| **Holdout 契約 v2**（train/valid/holdout、median、方向、**skew 厚尾 v2.2**、**v2.3 Class Appeal**） | [`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
 | 資料切分 SSOT | [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) |
 | 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
 | MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
 | Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
-| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · **[`ALPHA_RESEARCH_PLAYBOOK.md`](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)**（Alpha 儀式） · **[`GATE_COVERAGE_PREFLIGHT.md`](features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)**（0-design Preflight） · **[`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)**（策略 thesis gate） · [`workspaces/THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) · [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) · [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
+| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · **[`ALPHA_RESEARCH_PLAYBOOK.md`](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)**（Alpha 儀式 **v1.7**） · **[`OUTCOME_REGISTRY.md`](features/ai-backtest-tuning/OUTCOME_REGISTRY.md)** · **[`META_REVIEW_BRIEF.md`](features/ai-backtest-tuning/META_REVIEW_BRIEF.md)** · **[`GATE_COVERAGE_PREFLIGHT.md`](features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)** · **[`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)** · [`workspaces/NEAR_MISS_REGISTRY.md`](../workspaces/NEAR_MISS_REGISTRY.md) · [`workspaces/THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) · [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) · [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
 | 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
 | tick_cache 品質稽核 / 修復 | [`workspaces/CACHE_AUDIT.md`](../workspaces/CACHE_AUDIT.md)（何時重跑）；`storage.cache_audit` / `storage.cache_repair` |
 

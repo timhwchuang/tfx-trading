@@ -19,6 +19,7 @@ from reporting.gap_drive_continuation_counterfactual import (
     _open_0845,
     detect_gdc_signal,
 )
+from reporting.gate_summary import build_gate_summary
 from reporting.gap_drive_continuation_counterfactual import GdcParams as GdcEntryParams
 from reporting.post_entry_diagnosis import (
     enrich_rows_with_forward_windows,
@@ -574,7 +575,7 @@ def build_gudt_payload(
 
     variant = "gudt_fingerprint_v1" if mode == "fingerprint" else "gudt_grid_v1"
 
-    return {
+    payload: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "thesis": "gap_up_drive_trail",
         "thesis_class": THESIS_CLASS,
@@ -620,3 +621,5 @@ def build_gudt_payload(
         "entry_count_by_param": {k: len(v) for k, v in all_rows.items()},
         "rows_by_param": all_rows,
     }
+    payload["gate_summary"] = build_gate_summary(payload)
+    return payload

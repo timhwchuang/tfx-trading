@@ -1,7 +1,7 @@
 ---
 id: HOLDOUT-v2
 slug: holdout-contract
-version: 2.2.1
+version: 2.3.0
 status: Active
 opened: 2026-06-28
 revised: 2026-06-28
@@ -18,6 +18,8 @@ owner: human+agent
 **v2.1 動機**：FT-006/009 單月 holdout 樣本過少；FT-009 冠軍 **Short 厚尾 + median 負**。**2025 全年 tick_cache 落地**（247 日）後，train 拉長、holdout 拉成三月。
 
 **v2.2 動機（2026-06-28 · 人類 Tim GO）**：新增 **`thesis_class: skew`** 平行賽道 — 接受 **低頻、median 難看、靠厚尾拉 mean** 的 thesis；以 **payoff ratio / 尾部筆數 / 連虧 / 月 DD** 取代 §3.1 median 一票否決。**不**放寬 holdout 封印、**不**自動復活 MVPClosed FT（§11）。
+
+**v2.3 動機（2026-06-30 · Playbook v1.7 反錯殺）**：**§2.3 Class Appeal**（skew→mean_robust 只讀複審）；`gate_report` **MUST** 列 train **`net_total`**；outcome 分層見 [`OUTCOME_REGISTRY.md`](OUTCOME_REGISTRY.md)。門檻數字待 [`META_REVIEW_BRIEF.md`](META_REVIEW_BRIEF.md) §TXF Response 覆核後可修訂。
 
 **v2.2.1 動機（2026-06-28 · 資深交易員 review Revise）**：**G-SK5** 尾部集中度防 lottery skew；**skew valid 硬擋** 禁止 overfit 進 holdout；摩擦 **@7** disqualify；**G-SK3** 增列連虧點數上限。
 
@@ -80,6 +82,23 @@ python -m storage.cache_audit --code TMFR1 --from-date YYYY-MM-DD --to-date YYYY
 
 ---
 
+## 2.3 Class Appeal（v2.3 · 只讀 · 禁 grid）
+
+> **動機**：FT-018 — train G1/G2 過、`net_total > 0`，僅 `skew_profile_fail`（payoff 等）。避免 **錯殺** 可交易帳面。
+
+| 項目 | 規則 |
+|------|------|
+| **觸發** | `phase0_gate.pass=true` · `outcome_class=skew_profile_fail` · train **`net_total > 0`** · frozen param 已封印 |
+| **申請** | Tim + 資深 TXF 書面簽名 · 登錄 [`NEAR_MISS_REGISTRY.md`](../../../workspaces/NEAR_MISS_REGISTRY.md) |
+| **動作** | 以 **frozen param** 只讀重算 **`mean_robust` §3.1** disqualify（**禁止**重跑 sweep / 改 k） |
+| **通過** | outcome 增列 `closure_review_passed_mean_track` → 可深化 valid 診斷 · **不**自動開 plugin |
+| **未過** | 維持 MVPClosed · 寫入 near-miss |
+| **禁止** | 申訴後改 grid · 申訴後改 `thesis_class` 重跑 train |
+
+**數字門檻**（payoff **2.5**、G1=**5** 等）：TXF **2026-06-30 確認維持**（見 [`META_REVIEW_BRIEF.md`](META_REVIEW_BRIEF.md) §TXF Response · E2/E1）。
+
+---
+
 ## 2.0 Legacy（v2.0 — 已結案 FT 封存）
 
 適用：**FT-006 / 009 / 010** 等已寫入 gate_report 者；**結論不重跑、不換參**。
@@ -103,6 +122,8 @@ python -m storage.cache_audit --code TMFR1 --from-date YYYY-MM-DD --to-date YYYY
 ## 3. Phase 0 Gate（Train 窗 — v2.1+ = 2025 全年）
 
 ### 3.0 共用（`mean_robust` **與** `skew`）
+
+**gate_report 第一頁（v2.3 MUST）**：Train **契約出場** 之 `gross_total` · **`net_total`** · n · gross/趟 · net/趟（見 Playbook §3.1d）。工具：`python -m scripts.summarize_alpha_train`。
 
 | ID | 條件 | 未過 |
 |----|------|------|

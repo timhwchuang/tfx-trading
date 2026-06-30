@@ -11,6 +11,7 @@ from typing import Any, Literal
 
 from reporting.armed_forward_counterfactual import FRICTION_POINTS, _summarize_gross_net
 from reporting.forward_pnl import load_tick_series
+from reporting.gate_summary import build_gate_summary
 from reporting.post_entry_diagnosis import (
     enrich_rows_with_forward_windows,
     summarize_post_entry_diagnosis,
@@ -956,7 +957,7 @@ def build_sfbt_payload(
 
     variant = "sfbt_fingerprint_v1" if mode == "fingerprint" else "sfbt_grid_v1"
 
-    return {
+    payload: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "thesis": "sweep_fvg_breakout_trail",
         "thesis_class": THESIS_CLASS,
@@ -1005,3 +1006,5 @@ def build_sfbt_payload(
         "entry_count_by_param": entry_count_by_param,
         "rows_by_param": all_rows if mode == "fingerprint" else {},
     }
+    payload["gate_summary"] = build_gate_summary(payload)
+    return payload

@@ -14,6 +14,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **Alpha Playbook v1.7 + Holdout v2.3（2026-06-30）**：反錯殺流程 — [`OUTCOME_REGISTRY.md`](docs/features/ai-backtest-tuning/OUTCOME_REGISTRY.md) · [`META_REVIEW_BRIEF.md`](docs/features/ai-backtest-tuning/META_REVIEW_BRIEF.md) · [`NEAR_MISS_REGISTRY.md`](workspaces/NEAR_MISS_REGISTRY.md) · §3.1c Joint Fingerprint Contract · §2.3 Class Appeal · gate_report **net_total** 第一頁。
 - **Alpha Playbook v1.6（2026-06-28）**：Gate Coverage Preflight（§0-design-3）· §3.1a 0-design outcomes · Preflight→human-approved 順序 · FT-017 負面圖書館；新建 [`GATE_COVERAGE_PREFLIGHT.md`](docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)；[`THESIS_BRIEF`](docs/features/_template/THESIS_BRIEF.md) §E.1.1/E.4/G 分層；[`senior-trading-professional`](prompts/roles/senior-trading-professional.md) Alpha 0-design 六段；[`SHARED_ASSUMPTIONS`](workspaces/SHARED_ASSUMPTIONS.md) v1.7 §7 invalid thesis；FT-017 outcome 統一 **`spec_anchor_mismatch`**（mislabel `cfa_fingerprint_fail`）。
 - **Alpha Playbook v1.5（2026-06-28）**：§3.1b fingerprint 窗對齊 · outcome 拆分 · §5.2 exit-led 路徑；[`THESIS_BRIEF`](docs/features/_template/THESIS_BRIEF.md) §D.1/F.1/G；[`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §Fingerprint 審計。
 - **FT-017 MVPClosed 驗屍（2026-06-28）**：compress 錨點錯位 — 全年 0 compress bar · [`gate_report`](workspaces/cfa-baseline/gate_report.md) · [`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §FT-017。
@@ -395,6 +396,7 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Added
 
+- **Alpha gate 工具（Playbook v1.7）**：`reporting/gate_summary.py`（契約 exit · `net_total` · `outcome_class` · Class Appeal 只讀）· `scripts/summarize_alpha_train.py` · `scripts/build_near_miss_registry.py`；測試 `tests/reporting/test_gate_summary.py`；FT-018/019 CF JSON `gate_summary` 欄位。
 - **FT-018 Phase 0**：`reporting/simulate_atr_trail_skew_exit.py` · `gap_up_drive_trail_counterfactual.py` · `scripts/ft018_gudt_counterfactual.py`；測試 `test_simulate_atr_trail_skew_exit.py` · `test_gap_up_drive_trail_counterfactual.py`；`post_entry_diagnosis` 支援 `atr_trail_sim` MFE/MAE。
 - **FT-004**：`reporting/armed_forward_counterfactual.py`；`scripts/ft004_armed_forward_counterfactual.py`（Phase 0 counterfactual）；`scripts/ft004_run_baseline.py`（`momentum_continuation` 2026-04 baseline）；`integrations/engine_wiring.load_named_strategy("momentum_continuation")`；測試 `tests/reporting/test_armed_forward_counterfactual.py`。
 - **FT-003 Phase 3.6 §C 進場漏斗**：`reporting/entry_funnel.py`（`IndicatorState` tick 回放、armed forward W30/60/180/300、vol 分位、§C markdown merge）；`scripts/ft003_episode_diagnosis.py` → `workspaces/reports/entry_funnel.json` + `VOLATILITY_BASELINE.md` §C；測試 `tests/reporting/test_entry_funnel.py`、`tests/scripts/test_ft003_episode_diagnosis.py`。

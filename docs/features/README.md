@@ -63,7 +63,7 @@ stateDiagram-v2
 4. 更新 [`DOC_MAP.md`](../DOC_MAP.md) §Features
 5. 可選：在 [`TODO.md`](../TODO.md) 加一行連結至 PLAN
 6. Phase 0 結束時 commit；`CHANGELOG.md` 記 docs 條目
-7. 新 **策略 thesis**（**FT-012+**）**MUST** 連結 [`HOLDOUT_CONTRACT_v2.md`](ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) **v2.2.1** 與 [`ALPHA_RESEARCH_PLAYBOOK.md`](ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)
+7. 新 **策略 thesis**（**FT-012+**）**MUST** 連結 [`HOLDOUT_CONTRACT_v2.md`](ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) **v2.3** 與 [`ALPHA_RESEARCH_PLAYBOOK.md`](ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) **v1.7** · [`OUTCOME_REGISTRY.md`](ai-backtest-tuning/OUTCOME_REGISTRY.md)
 
 **Alpha 提案**：Agent 草稿 → [`workspaces/THESIS_QUEUE.md`](../../workspaces/THESIS_QUEUE.md) → 人類 `human-approved` → 複製 [`THESIS_BRIEF.md`](_template/THESIS_BRIEF.md) 進 SPEC。
 
