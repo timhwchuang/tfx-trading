@@ -1,6 +1,7 @@
-# Entry Lab — 研究協議（v1.1 · pre-registered）
+# Entry Lab — 研究協議（v1.2 · pre-registered）
 
-> 跑數據前封印。變更須 bump 本檔 version 並註明日期。
+> 跑數據前封印。變更須 bump 本檔 version 並註明日期。  
+> v1.2（2026-06-30）：R4 完整定義移至 [`ENTRY_LAB_VOLATILITY.md`](ENTRY_LAB_VOLATILITY.md)。
 
 ## 切分
 
@@ -38,7 +39,7 @@
 | R1 | `compute_trend` | `trend_dir==Long` |
 | R2 | `structure.bias` | `bias==Long` |
 | R3 | session 位置 | `in_discount` |
-| R4 | 波動 | `atr_percentile_session≤50` |
+| R4 | 波動 | `atr_percentile_session≤50`（定義 · H1/H2 · 欄位 → [`ENTRY_LAB_VOLATILITY.md`](ENTRY_LAB_VOLATILITY.md)） |
 
 **GDC 特例** `gap_up_structure_bear`：`gap_pts>MIN_GAP` ∧ `bias==Short` ∧ `direction==Long`
 

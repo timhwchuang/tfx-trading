@@ -37,3 +37,4 @@ GDC · GUDT · FRP · SFBT（liquidity/continuation 四案）
 - `corpus/` — per-trade JSON + manifest
 - `reports/` — baseline、regime、paired、FILTER_CANDIDATES
 - 方法封印：[`ENTRY_LAB_PROTOCOL.md`](ENTRY_LAB_PROTOCOL.md)
+- 進場時波動 SSOT：[`ENTRY_LAB_VOLATILITY.md`](ENTRY_LAB_VOLATILITY.md)

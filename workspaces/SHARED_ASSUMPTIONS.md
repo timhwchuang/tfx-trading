@@ -103,6 +103,7 @@ friction:
 | ATR 來源 | kbars 快取（`tick_cache/{code}_kbars_{date}.csv`）；sweep 前 `cache_audit` PASS |
 | 平淡市況 | 微台低 ATR 日可能整天無交易 — **樣本不足** 不得宣稱勝利 |
 | Regime filter | Phase 6 旗標預設 **關**；regime agent 不得建議 Pilot 直接開 filter |
+| 進場當下 session 分位 | Entry Lab corpus `atr_percentile_session`、R4 — SSOT：[`entry-lab/ENTRY_LAB_VOLATILITY.md`](entry-lab/ENTRY_LAB_VOLATILITY.md)（與 §4.1 月級 `stop_ratio` **不同問題**） |
 
 ### 4.1 停損停利尺度（MUST — Phase 3.6 診斷）
 
