@@ -27,6 +27,7 @@
 | FT-018 | [gap-up-drive-trail](gap-up-drive-trail/SPEC.md) | **MVPClosed** | 2026-06-28 | Alpha P0 | P-011 · `gudt_no_skew_champion` · [`gate_report`](../../workspaces/gudt-baseline/gate_report.md) |
 | FT-019 | [sweep-fvg-breakout-trail](sweep-fvg-breakout-trail/SPEC.md) | **MVPClosed** | 2026-06-29 | Alpha P0 | P-012 · `sfbt_fingerprint_pass_g1_fail` · [`gate_report`](../../workspaces/sfbt-baseline/gate_report.md) |
 | FT-020 | [bear-streak-flip-long](bear-streak-flip-long/SPEC.md) | **Draft** | 2026-06-29 | Alpha P0 | [SPEC](bear-streak-flip-long/SPEC.md) · [PLAN](bear-streak-flip-long/PLAN.md) · P-013 **`draft-proposal`** · 0-design Conditional PASS |
+| FT-021 | [gudt-route-a](gudt-route-a/SPEC.md) | **Draft** | 2026-06-30 | UAT | [SPEC](gudt-route-a/SPEC.md) · [PLAN](gudt-route-a/PLAN.md) · Route A UAT stack · [`gudt-route-a-baseline/`](../../workspaces/gudt-route-a-baseline/) |
 
 ## 狀態定義
 

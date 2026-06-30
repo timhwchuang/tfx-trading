@@ -1,0 +1,27 @@
+{
+  "from": "2025-05-01",
+  "to": "2026-06-30",
+  "cf_net_total": 683.4,
+  "cf_extend_days": 4,
+  "cf_flip_days": 1,
+  "cf_confirm_veto": 6,
+  "slices": {
+    "H1_2026": 236.5,
+    "UAT_2m": -106.29,
+    "full": 683.4
+  },
+  "br5_slices": {
+    "H1_2026": 236.5,
+    "UAT_2m": -411.61,
+    "full": 333.08
+  },
+  "targets": {
+    "full_net": 683.0,
+    "full_net_tol": 15.0,
+    "extend_days": 4,
+    "flip_days": 1
+  },
+  "decision_mismatches": [],
+  "pass": true,
+  "failures": []
+}

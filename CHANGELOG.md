@@ -33,6 +33,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-021 Draft（2026-06-30）**：GUDT Route A UAT stack plugin — B′+br5 + 5m EMA extension + distribution structural confirm flip；[`gudt-route-a/SPEC.md`](docs/features/gudt-route-a/SPEC.md) · [`PLAN`](docs/features/gudt-route-a/PLAN.md) · `strategy-gudt-route-a` · parity vs [`ROUTE_A_UAT_STACK`](workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md)。
 - **FT-019 MVPClosed（2026-06-29）**：P-012 Sweep FVG breakout trail — fingerprint W900 **+1.0**（n=229）· trail gross **1.19** · G1 fail · skew payoff **1.575** · valid net **−1.89** → `sfbt_fingerprint_pass_g1_fail` · **exit_kills_edge**；[`gate_report`](workspaces/sfbt-baseline/gate_report.md) · [`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §FT-019。
 - **FT-019 Phase 0（2026-06-29）**：`simulate_fvg_mid_trail_skew_exit.py` · `sweep_fvg_breakout_trail_counterfactual.py` · `ft019_sfbt_counterfactual.py` · 23 unit tests · `sfbt-baseline/` — fingerprint W900 med **+1.0**（n=229）· G1 fail gross **1.19** · exit_gap **~17** → `sfbt_fingerprint_pass_g1_fail`；[`gate_report`](workspaces/sfbt-baseline/gate_report.md)。
 - **FT-019 Draft（2026-06-29）**：P-012 Sweep FVG breakout trail — long-only · sweep→reclaim→5m FVG breakout · `fvg_mid_trail_skew_900s` · W900 fingerprint · [`sweep-fvg-breakout-trail/SPEC.md`](docs/features/sweep-fvg-breakout-trail/SPEC.md) · [`PLAN`](docs/features/sweep-fvg-breakout-trail/PLAN.md) · **0-design Conditional PASS**（2026-06-29 · 資深 TXF · P0 封印）。
@@ -93,6 +94,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **Layer 2 v2 — callback-first terminal reconcile (2026-06-30)**: Removed all runtime `update_status(trade)` calls (UAT confirmed `PyBorrowMutError` with Layer 2 v1). `order_status_query_enabled` name retained; semantics → **enhanced settle reconcile** via L1 `_terminal_hint_cache` + `order_deal_records` + L3. Removed `QueryStatusTask`, `order_status_query_timeout_ms`, place-time refresh. Order worker processes `OrderSignal` only. Tests: `test_terminal_reconcile.py`, `test_no_update_status_in_runtime.py`.
 - **FT-003 sweep overlay keys**: `SWEEP_FIELD_TO_CONST` 補齊（含 `min_atr_threshold`、`ioc_slippage_points`、`pending_timeout_sec`、`momentum_vol_1s` 等）；`RuntimeConfig.__getattr__` overlay-aware；`apply_overlay` 對未知 key `raise ValueError`（杜絕靜默失效）。
 
 #### Added

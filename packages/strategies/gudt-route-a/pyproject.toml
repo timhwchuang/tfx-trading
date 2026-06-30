@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "strategy-gudt-route-a"
+version = "0.1.0"
+description = "FT-021 GUDT Route A UAT stack plugin for trading-engine"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+  {name = "strategy-gudt-route-a maintainers"}
+]
+dependencies = [
+    "trading-engine>=0.2.3,<1.0",
+]
+
+[project.entry-points."trading_engine.strategies"]
+gudt_route_a = "strategy_gudt_route_a:GudtRouteAStrategy"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"strategy_gudt_route_a" = ["py.typed"]

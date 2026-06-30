@@ -15,23 +15,36 @@ def simulate_atr_trail_skew_exit(
     atr: float,
     ticks: list[tuple[int, float, int, int]],
     hard_stop_atr_k: float,
-    be_trigger_atr_k: float,
+    be_trigger_atr_k: float | None,
     trail_arm_atr_k: float,
     trail_dist_atr_k: float,
     hard_tp_atr_k: float | None = 4.0,
     max_hold_sec: int = 900,
     min_atr_pts: float = 25.0,
+    initial_stop_price: float | None = None,
 ) -> dict[str, Any]:
-    """Walk tick path; BE → trail → hard TP per SPEC §5.0b state machine."""
+    """Walk tick path; BE → trail → hard TP per SPEC §5.0b state machine.
+
+    ``be_trigger_atr_k=None`` disables breakeven arming (FT-018b wash probe).
+    ``initial_stop_price`` overrides ATR-based hard stop when set.
+    """
     atr_eff = max(atr, min_atr_pts) if atr > 0 else min_atr_pts
     sign = _direction_sign(direction)
     is_long = direction in ("Long", "Buy", "buy", "long")
 
     if is_long:
-        effective_stop = entry_price - hard_stop_atr_k * atr_eff
+        effective_stop = (
+            initial_stop_price
+            if initial_stop_price is not None
+            else entry_price - hard_stop_atr_k * atr_eff
+        )
         peak = entry_price
     else:
-        effective_stop = entry_price + hard_stop_atr_k * atr_eff
+        effective_stop = (
+            initial_stop_price
+            if initial_stop_price is not None
+            else entry_price + hard_stop_atr_k * atr_eff
+        )
         peak = entry_price
 
     be_armed = False
@@ -84,7 +97,7 @@ def simulate_atr_trail_skew_exit(
 
         fav = _favorable_ext()
 
-        if fav >= be_trigger_atr_k * atr_eff:
+        if be_trigger_atr_k is not None and fav >= be_trigger_atr_k * atr_eff:
             be_armed = True
             if is_long:
                 effective_stop = max(effective_stop, entry_price)

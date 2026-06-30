@@ -16,6 +16,7 @@ from strategy_vwap_momentum import StrategyParams, VWAPMomentumStrategy
 from strategy_momentum_continuation import ContinuationParams, MomentumContinuationStrategy
 from strategy_vwap_stretch_fade import StretchFadeParams, VwapStretchFadeStrategy
 from strategy_opening_range_breakout import OrbParams, OpeningRangeBreakoutStrategy
+from strategy_gudt_route_a import GudtRouteAParams, GudtRouteAStrategy
 from trading_engine.adapters.mock import MockOrderAdapter
 from trading_engine.adapters.shioaji import ShioajiOrderAdapter
 from trading_engine.logging_setup import setup_async_logging
@@ -52,6 +53,7 @@ def load_named_strategy(
     name: str,
     cfg: RuntimeConfig,
     obs: DailyObservability,
+    **kwargs: Any,
 ) -> Any:
     """Load strategy via entry point; falls back to explicit default for vwap_momentum."""
     if name == "vwap_momentum":
@@ -70,6 +72,12 @@ def load_named_strategy(
         return OpeningRangeBreakoutStrategy(
             params=OrbParams.from_runtime_config(cfg),
             obs=obs,
+        )
+    if name == "gudt_route_a":
+        return GudtRouteAStrategy(
+            params=GudtRouteAParams.from_runtime_config(cfg),
+            obs=obs,
+            day_plans=kwargs.get("day_plans"),
         )
     return load_strategy(
         name,
