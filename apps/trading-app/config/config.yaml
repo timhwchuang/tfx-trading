@@ -21,6 +21,9 @@ simulation: true
 product_code: TMFR1
 
 strategy:
+  # Entry point name (trading_engine.strategies); default vwap_momentum
+  name: vwap_momentum
+
   # VWAP 滾動視窗長度（分鐘）；5 分鐘滾動 VWMA（非日內錨定 VWAP）
   vwap_window_min: 5
 

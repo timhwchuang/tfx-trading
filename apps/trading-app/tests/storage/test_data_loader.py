@@ -9,7 +9,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 from storage.tick_loader import (
     DEFAULT_TICK_RANGE_END,
@@ -161,7 +161,11 @@ class TestFetchTicksForDate(unittest.TestCase):
     @patch("storage.tick_loader.time.sleep")
     def test_retries_on_timeout(self, sleep_mock: MagicMock):
         api = MagicMock()
-        raw = MagicMock(ts=[1], close=[18000], volume=[1])
+        wall_as_utc = datetime.datetime(
+            2026, 6, 18, 10, 0, 0, tzinfo=datetime.timezone.utc
+        )
+        ts_ns = int(wall_as_utc.timestamp() * 1_000_000_000)
+        raw = MagicMock(ts=[ts_ns], close=[18000], volume=[1])
         api.ticks.side_effect = [
             TimeoutError("Timeout Topic: api/v1/data/ticks"),
             raw,
@@ -711,6 +715,7 @@ class TestBacktestDatesFromCache(unittest.TestCase):
                 str(log_path),
                 console_level=None,
                 truncate=False,
+                level=ANY,
             )
 
     def test_cache_dir_output_tag_disambiguates_outside_tick_cache(self):

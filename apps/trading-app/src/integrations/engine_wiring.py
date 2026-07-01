@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any
+import datetime
+from pathlib import Path
+from typing import Any, Literal
 
 from config import LOG_FILE, LOG_LEVEL
 from core.runtime_config import RuntimeConfig, default_runtime_config
 from integrations.alerts_port import TradingAppAlertPort
 from integrations.archive_port import TradingAppArchivePort
+from integrations.strategy_bootstrap import resolve_strategy_bootstrap
 from integrations.telemetry_port import TradingAppTelemetryPort
 from integrations.structure_refresh import TradingAppStructureRefresh
 from integrations.trend_refresh import TradingAppTrendRefresh
@@ -23,6 +26,51 @@ from trading_engine.logging_setup import setup_async_logging
 from trading_engine.plugins import load_strategy
 
 _logging_configured = False
+
+KNOWN_STRATEGY_NAMES = frozenset(
+    {
+        "vwap_momentum",
+        "momentum_continuation",
+        "vwap_stretch_fade",
+        "opening_range_breakout",
+        "gudt_route_a",
+    }
+)
+
+SessionMode = Literal["backtest", "live"]
+
+
+def validate_strategy_name(name: str) -> None:
+    if name not in KNOWN_STRATEGY_NAMES:
+        available = ", ".join(sorted(KNOWN_STRATEGY_NAMES))
+        raise LookupError(f"Unknown strategy plugin {name!r}. Available: {available}")
+
+
+def build_strategy_session(
+    cfg: RuntimeConfig,
+    obs: DailyObservability,
+    *,
+    code: str,
+    dates: list[datetime.date],
+    cache_dir: Path,
+    mode: SessionMode = "backtest",
+    probe_csv_override: Path | None = None,
+    **extra_kwargs: Any,
+) -> Any:
+    name = getattr(cfg, "strategy_name", "vwap_momentum")
+    validate_strategy_name(name)
+    kwargs = resolve_strategy_bootstrap(
+        name,
+        cfg,
+        code=code,
+        dates=dates,
+        cache_dir=cache_dir,
+        mode=mode,
+        obs=obs,
+        probe_csv_override=probe_csv_override,
+    )
+    kwargs.update(extra_kwargs)
+    return load_named_strategy(name, cfg, obs, **kwargs)
 
 
 def _ensure_logging() -> None:
@@ -115,8 +163,11 @@ def trading_app_engine_ports(
 
 
 __all__ = [
+    "KNOWN_STRATEGY_NAMES",
+    "build_strategy_session",
     "default_strategy",
     "load_named_strategy",
     "order_adapter_for",
     "trading_app_engine_ports",
+    "validate_strategy_name",
 ]

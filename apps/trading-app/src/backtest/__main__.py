@@ -6,10 +6,14 @@ import argparse
 import datetime
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
-from config import LOG_FILE, LOG_LEVEL, PRODUCT_CODE
+from config import DEFAULT_CONFIG_PATH, LOG_FILE, LOG_LEVEL, load_config
+from core.runtime_config import TradingAppRuntimeConfig, _to_engine_settings
+from integrations.engine_wiring import build_strategy_session
+from observability import DailyObservability
 from storage.cache_paths import DEFAULT_REPORTS_DIR, DEFAULT_TICK_CACHE_DIR
 from storage.tick_loader import DEFAULT_CACHE_DIR, resolve_cli_tick_cache_dates
 from sweep.holdout_guard import assert_dates_unsealed
@@ -120,6 +124,7 @@ def configure_backtest_session_logging(
     *,
     console_level: str | None = None,
     truncate: bool = False,
+    level: str | None = None,
 ) -> None:
     """Async logging for one backtest run (same sink as live via setup_async_logging).
 
@@ -138,7 +143,7 @@ def configure_backtest_session_logging(
         p.unlink(missing_ok=True)
 
     setup_async_logging(
-        level=LOG_LEVEL,
+        level=level or LOG_LEVEL,
         log_file=path,
         console_level=console_level,
     )
@@ -182,14 +187,16 @@ def emit_report(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run VWAP momentum backtest (app-wired BacktestEngine).",
+        description="Run strategy backtest via workspace config (app-wired BacktestEngine).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
             "  python -m backtest --dates 2026-06-12\n"
             "  python -m backtest --dates 2026-06-22 --report\n"
             "  python -m backtest --dates-from-cache --report\n"
-            "    -> logs/backtest_tick_cache.log + reports/backtest_tick_cache.json\n"
+            "  CONFIG_PATH=workspaces/mc-baseline/config/config.yaml \\\n"
+            "    python -m backtest --config workspaces/mc-baseline/config/config.yaml \\\n"
+            "    --dates 2026-06-12 --report\n"
             "  python -m backtest --dates-from-cache --cache-dir tick_cache/2026_05 --report\n"
             "  python -m backtest --dates-from-cache --cache-dir tick_cache/2026_05 --report "
             "--from-date 2026-05-01 --to-date 2026-05-15\n"
@@ -197,9 +204,21 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help=(
+            "config.yaml path (same as CONFIG_PATH env; "
+            f"default: {DEFAULT_CONFIG_PATH})"
+        ),
+    )
+    parser.add_argument(
         "--code",
-        default=PRODUCT_CODE,
-        help=f"Futures product code (default: config product_code={PRODUCT_CODE})",
+        default=None,
+        help=(
+            "Futures product code (default: product_code from --config / CONFIG_PATH)"
+        ),
     )
     date_group = parser.add_mutually_exclusive_group(required=True)
     date_group.add_argument(
@@ -252,11 +271,59 @@ def build_parser() -> argparse.ArgumentParser:
             "(+_{date_range} when --from-date/--to-date filter)"
         ),
     )
+    parser.add_argument(
+        "--report-json",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help="With --report: override JSON output path",
+    )
+    parser.add_argument(
+        "--plans-out",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help="GUDT replay: write day_plans.json after bootstrap",
+    )
+    parser.add_argument(
+        "--probe-csv",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help="GUDT replay: override wash probe CSV for bootstrap",
+    )
+    parser.add_argument(
+        "--research-json",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help="GUDT: with --report, write CF research.json (default: reports/research.json)",
+    )
+    parser.add_argument(
+        "--parity-json",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help="GUDT: with --report, write parity.json (default: reports/parity.json)",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+
+    config_path = Path(
+        args.config or os.environ.get("CONFIG_PATH", DEFAULT_CONFIG_PATH)
+    ).expanduser()
+    os.environ["CONFIG_PATH"] = str(config_path.resolve())
+    app_settings = load_config(config_path)
+    import config as config_module
+
+    config_module.LOG_LEVEL = app_settings.log_level
+    config_module.LOG_FILE = app_settings.log_file
+
+    cfg = TradingAppRuntimeConfig(_to_engine_settings(app_settings))
+    code = args.code or app_settings.product_code
 
     want_report = args.report
     log_path = args.log_file
@@ -265,7 +332,7 @@ def main(argv: list[str] | None = None) -> int:
         dates = resolve_cli_tick_cache_dates(
             explicit=args.dates,
             from_cache=args.dates_from_cache,
-            code=args.code,
+            code=code,
             cache_dir=args.cache_dir,
             from_date=args.from_date,
             to_date=args.to_date,
@@ -295,7 +362,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     default_log, default_json = default_report_paths(
         dates_from_cache=args.dates_from_cache,
-        code=args.code,
+        code=code,
         dates=dates,
         cache_dir=args.cache_dir,
         date_range_filtered=date_range_filtered,
@@ -318,30 +385,83 @@ def main(argv: list[str] | None = None) -> int:
             session_log,
             console_level=console_level,
             truncate=truncate_log,
+            level=app_settings.log_level,
         )
 
     if args.dates_from_cache:
         logging.info(
-            "dates-from-cache | code=%s count=%d range=%s..%s",
-            args.code,
+            "dates-from-cache | code=%s strategy=%s count=%d range=%s..%s",
+            code,
+            cfg.strategy_name,
             len(dates),
             dates[0].isoformat(),
             dates[-1].isoformat(),
         )
 
-    engine = BacktestEngine(args.code, dates, cache_dir=args.cache_dir)
+    cache_dir_path = Path(args.cache_dir)
+    obs = DailyObservability()
+    strategy = build_strategy_session(
+        cfg,
+        obs,
+        code=code,
+        dates=dates,
+        cache_dir=cache_dir_path,
+        mode="backtest",
+        probe_csv_override=args.probe_csv,
+    )
+    if args.plans_out is not None and cfg.strategy_name == "gudt_route_a":
+        from integrations.strategy_bootstrap import write_day_plans_json
+
+        write_day_plans_json(args.plans_out, strategy._day_plans)
+
+    engine = BacktestEngine(
+        code,
+        dates,
+        cache_dir=args.cache_dir,
+        strategy=strategy,
+        runtime_config=cfg,
+        obs=obs,
+    )
     engine.run()
 
     if want_report:
         if log_path is None:
             logging.error("--report requires a backtest log path")
             return 1
-        json_path = (
-            report_json_path_for_log(log_path)
-            if args.log_file is not None
-            else default_json
-        )
+        json_path = args.report_json
+        if json_path is None:
+            json_path = (
+                report_json_path_for_log(log_path)
+                if args.log_file is not None
+                else default_json
+            )
         emit_report(log_path, print_report=True, json_path=json_path)
+
+        if cfg.strategy_name == "gudt_route_a":
+            from reporting.gudt_parity_report import emit_gudt_backtest_reports
+            from reporting.uat_report import compute_metrics, read_log_lines
+
+            research_path = args.research_json or (json_path.parent / "research.json")
+            parity_path = args.parity_json or (json_path.parent / "parity.json")
+            kernel_metrics = compute_metrics(read_log_lines([log_path]))
+            gudt_out = emit_gudt_backtest_reports(
+                cfg,
+                code=code,
+                dates=dates,
+                cache_dir=cache_dir_path,
+                day_plans=strategy._day_plans,
+                kernel_metrics=kernel_metrics,
+                research_path=research_path,
+                parity_path=parity_path,
+                probe_csv_override=args.probe_csv,
+            )
+            logging.info("Wrote GUDT research JSON → %s", research_path)
+            logging.info("Wrote GUDT parity JSON → %s", parity_path)
+            if gudt_out.get("parity", {}).get("failures"):
+                logging.warning(
+                    "GUDT parity check failures: %s",
+                    "; ".join(gudt_out["parity"]["failures"]),
+                )
 
     if log_path is not None:
         logging.info("Backtest log → %s", log_path)

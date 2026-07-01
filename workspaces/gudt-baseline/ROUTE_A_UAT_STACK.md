@@ -14,6 +14,7 @@
 | Field | Value |
 |-------|-------|
 | Router | B′ + **br5 p0-only** veto (`pre_break_br < 0.35` → skip p0, fallback ft) |
+| **Chase veto** | *optional overlay* `p0_ext_open_max=4.5` — skip p0 chase when `(dh − open) / ATR > 4.5`; fallback early ft or flat (see `gudt_route_a_uat_stack_chase45_*.md`) |
 | p0 default | sealed 15m + BE + TP3 |
 | Checkpoint | `ext_open > 5` AND 15m `gross > 0` (would horizon exit) |
 | Extension | 60m, **no BE**, **5m EMA9>EMA21 break** (+ hard stop / trail backup) |
@@ -51,14 +52,23 @@ PYTHONPATH="apps/trading-app/src:packages/trading-engine/src:packages/strategies
 
 Report: `workspaces/gudt-baseline/reports/gudt_route_a_uat_stack_2025-05-01_2026-06-30.md`
 
-## Validation ledger (merged CSV)
+## Validation ledger (merged CSV, 107 GUDT days — regenerated 2026-06-30)
 
 | Period | B′+br5 | Route A stack | Δ | flips | extend |
 |--------|-------:|--------------:|--:|------:|-------:|
-| 2025 H2 | +180 | +159 | −21 | 0 | 2 |
-| 2026 H1 | +236 | +236 | 0 | 0 | 0 |
-| **UAT 2m (2026-05..06)** | −412 | **−106** | **+305** | 1 | 1 |
-| Full | +333 | **+683** | +350 | 1 | 4 |
+| 2025 H2 | +197 | +176 | −21 | 0 | 2 |
+| 2026 H1 | +1360 | +1290 | −70 | 1 | 0 |
+| **UAT 2m (2026-05..06)** | −8 | **+298** | **+305** | 1 | 1 |
+| Full | +1501 | **+1781** | +280 | 2 | 4 |
+
+### Chase veto overlay (`--p0-ext-open-max 4.5`)
+
+| Period | Route A stack | vs baseline |
+|--------|--------------:|------------:|
+| UAT 2m | +314 | +16 (5/29 flat) |
+| Full | +1504 | **−277** (skips 4/24 +161, 6/01 +233, etc.) |
+
+**Conclusion:** merged CSV repair is a clear win; chase4.5 helps 5/29 but net hurts full period — keep optional, not default.
 
 ### UAT 2m notes
 

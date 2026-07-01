@@ -3,6 +3,7 @@ simulation: true
 product_code: TMFR1
 
 strategy:
+  name: vwap_stretch_fade
   vwap_window_min: 5
   # Phase 0 best: stretch_k=2.0 (mid bucket)
   stretch_k: 2.0

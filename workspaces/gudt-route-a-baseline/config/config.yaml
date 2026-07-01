@@ -5,6 +5,7 @@ product_code: TMFR1
 strategy:
   name: gudt_route_a
   gudt_pre_break_br_min: 0.35
+  # gudt_p0_ext_open_max: 4.5  # optional chase veto overlay
   gudt_flip_min_ext_open: 5.0
   gudt_extension_exit: ema5
   gudt_confirm_min_dump_atr: 0.65

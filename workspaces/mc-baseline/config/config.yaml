@@ -3,6 +3,7 @@ simulation: true
 product_code: TMFR1
 
 strategy:
+  name: momentum_continuation
   vwap_window_min: 5
   # Arm tune round 1b (No-Go §a): single-axis buy_ratio from r1
   momentum_vol_1s: 165

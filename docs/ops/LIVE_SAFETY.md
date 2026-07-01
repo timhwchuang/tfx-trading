@@ -350,3 +350,26 @@ Kernel 內建路徑（pending 超時、重登入耗盡等）已會呼叫 `AlertP
 - [trading-engine README § Go-Live Checklist](../../packages/trading-engine/README.md)
 - [trading-engine SPEC §4.2.2](../../packages/trading-engine/SPEC.md) — kernel invariants
 - [trading-engine SPEC §4.2](../../packages/trading-engine/SPEC.md) — strategy author rules
+- [FT-022 unified strategy loading §6 GUDT live staged bootstrap](../features/unified-strategy-loading/SPEC.md#6-gudt-live-staged-bootstrap)
+
+---
+
+## GUDT Route A live prerequisites (FT-022 Phase 4)
+
+`python -m live` with `strategy.name: gudt_route_a` uses **staged** replay bootstrap — plans are **not** computed at process start.
+
+| Prerequisite | Why |
+|--------------|-----|
+| `simulation: true` until FT-021 parity + human Go | Same gate as other strategies |
+| `TICK_ARCHIVE=1` and `KBARS_ARCHIVE=1` | Coordinator reads archived ticks/kbars for gap, ATR@09:14, and probe |
+| Prior **session** day kbar in cache | `prior_close` for gap filter (`no_prior_close` → no trade today) |
+| Same-day kbar through 08:45+ | `open_0845` (`no_open_0845` → no trade today) |
+| `GudtLiveBootstrapCoordinator` runs **outside** engine lock | Probe/plan build on tick callback **after** `TradingEngine.on_tick` returns |
+
+**State machine (summary):** Init → AwaitingOpen → AwaitingAtr → (NotGudtDay \| AwaitingSignal) → (PlanReady \| RouterSkip). Search logs for `gudt_skip` / `gudt_live state=`.
+
+**Mid-day injection:** `GudtRouteAStrategy.apply_intraday_plan(day, plan)` reloads `_pending_events` when the coordinator finishes probe + stack routing.
+
+**Operator action:** Before GUDT live pilot, confirm tick/kbar archives for the prior session and today are present under `tick_cache/`. Treat any terminal `gudt_skip` as intentional no-trade for the day — do not override by manual orders on the same contract unless you have flattened and reconciled kernel state.
+
+**Code:** `integrations/gudt_live_bootstrap.py`, `live/__main__.py`, `strategy_gudt_route_a/strategy.py:apply_intraday_plan`

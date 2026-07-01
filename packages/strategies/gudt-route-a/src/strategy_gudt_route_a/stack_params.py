@@ -17,6 +17,7 @@ def stack_params_from_gudt(params: GudtRouteAParams) -> RouteAStackParams:
         br5=BPrimeCompositeParams(
             pre_break_br_min=params.pre_break_br_min,
             pre_break_br_p0_only=True,
+            p0_ext_open_max=params.p0_ext_open_max,
             flip_min_ext_open=params.flip_min_ext_open,
             distribution=DistributionHedgeParams(
                 confirm_sec=120,

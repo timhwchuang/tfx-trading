@@ -3,6 +3,7 @@ simulation: true
 product_code: TMFR1
 
 strategy:
+  name: opening_range_breakout
   range_minutes: 30
   buffer_atr_k: 0.15
   orb_min_range_atr_k: 0.5

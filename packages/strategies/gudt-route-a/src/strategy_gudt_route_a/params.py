@@ -29,6 +29,11 @@ class GudtRouteAParams:
         return float(self._live("GUDT_FLIP_MIN_EXT_OPEN", "gudt_flip_min_ext_open", 5.0))
 
     @property
+    def p0_ext_open_max(self) -> float | None:
+        val = self._live("GUDT_P0_EXT_OPEN_MAX", "gudt_p0_ext_open_max", None)
+        return None if val is None else float(val)
+
+    @property
     def extension_exit(self) -> str:
         return str(self._live("GUDT_EXTENSION_EXIT", "gudt_extension_exit", "ema5"))
 

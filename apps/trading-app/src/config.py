@@ -11,7 +11,15 @@ from typing import Any, Mapping
 import yaml
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_REPO_ROOT = _PROJECT_ROOT.parent.parent
 DEFAULT_CONFIG_PATH = _PROJECT_ROOT / "config" / "config.yaml"
+DEFAULT_GUDT_PROBE_CSV = (
+    _REPO_ROOT
+    / "workspaces"
+    / "gudt-baseline"
+    / "reports"
+    / "gudt_wash_probe_merged_202505_202606.csv"
+)
 # Fallback when config.yaml omits product_code (UAT/Pilot default: 微台近月).
 DEFAULT_PRODUCT_CODE = "TMFR1"
 
@@ -26,10 +34,17 @@ def _section(data: Mapping[str, Any], name: str) -> dict[str, Any]:
     return dict(block) if isinstance(block, dict) else {}
 
 
+def _optional_float(block: Mapping[str, Any], key: str) -> float | None:
+    if key not in block or block[key] is None:
+        return None
+    return float(block[key])
+
+
 @dataclass(frozen=True)
 class Settings:
     simulation: bool
     product_code: str
+    strategy_name: str
 
     vwap_window_min: int
     entry_band_points: float
@@ -83,6 +98,17 @@ class Settings:
     buffer_atr_k: float
     orb_min_range_atr_k: float
     orb_max_hold_sec: int
+
+    gudt_pre_break_br_min: float
+    gudt_flip_min_ext_open: float
+    gudt_extension_exit: str
+    gudt_confirm_min_dump_atr: float
+    gudt_confirm_slope2_min: float
+    gudt_confirm_slope2_max: float
+    gudt_friction_points: float
+    gudt_p0_ext_open_max: float | None
+    gudt_probe_csv: str
+    gudt_probe_from_ticks: bool
 
     session_start: datetime.time
     session_end: datetime.time
@@ -168,9 +194,16 @@ def load_config(path: str | Path | None = None) -> Settings:
     log_level = os.environ.get("LOG_LEVEL", logging_cfg.get("level", "INFO"))
     log_file = os.environ.get("LOG_FILE", logging_cfg.get("file", ""))
 
+    probe_csv_raw = strategy.get("gudt_probe_csv")
+    if probe_csv_raw is None or str(probe_csv_raw).strip() == "":
+        gudt_probe_csv = str(DEFAULT_GUDT_PROBE_CSV)
+    else:
+        gudt_probe_csv = str(probe_csv_raw)
+
     return Settings(
         simulation=bool(raw.get("simulation", True)),
         product_code=str(raw.get("product_code", DEFAULT_PRODUCT_CODE)),
+        strategy_name=str(strategy.get("name", "vwap_momentum")),
         vwap_window_min=int(strategy.get("vwap_window_min", 5)),
         entry_band_points=float(strategy.get("entry_band_points", 2.0)),
         momentum_vol_1s=int(strategy.get("momentum_vol_1s", 150)),
@@ -232,6 +265,18 @@ def load_config(path: str | Path | None = None) -> Settings:
         buffer_atr_k=float(strategy.get("buffer_atr_k", 0.15)),
         orb_min_range_atr_k=float(strategy.get("orb_min_range_atr_k", 0.5)),
         orb_max_hold_sec=int(strategy.get("orb_max_hold_sec", 180)),
+        gudt_pre_break_br_min=float(strategy.get("gudt_pre_break_br_min", 0.35)),
+        gudt_flip_min_ext_open=float(strategy.get("gudt_flip_min_ext_open", 5.0)),
+        gudt_extension_exit=str(strategy.get("gudt_extension_exit", "ema5")),
+        gudt_confirm_min_dump_atr=float(
+            strategy.get("gudt_confirm_min_dump_atr", 0.65)
+        ),
+        gudt_confirm_slope2_min=float(strategy.get("gudt_confirm_slope2_min", -0.35)),
+        gudt_confirm_slope2_max=float(strategy.get("gudt_confirm_slope2_max", 0.0)),
+        gudt_friction_points=float(strategy.get("gudt_friction_points", 5.0)),
+        gudt_p0_ext_open_max=_optional_float(strategy, "gudt_p0_ext_open_max"),
+        gudt_probe_csv=gudt_probe_csv,
+        gudt_probe_from_ticks=bool(strategy.get("gudt_probe_from_ticks", False)),
         session_start=_parse_time(session.get("start", "08:45")),
         session_end=_parse_time(session.get("end", "13:45")),
         session_flatten_time=_parse_time(session.get("flatten_time", "13:40")),

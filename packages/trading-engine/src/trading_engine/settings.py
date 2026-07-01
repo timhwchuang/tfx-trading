@@ -132,6 +132,19 @@ class Settings:
     orb_min_range_atr_k: float = 0.5
     orb_max_hold_sec: int = 180
 
+    # FT-021 / FT-022 gudt-route-a replay + unified strategy loading
+    strategy_name: str = "vwap_momentum"
+    gudt_pre_break_br_min: float = 0.35
+    gudt_flip_min_ext_open: float = 5.0
+    gudt_extension_exit: str = "ema5"
+    gudt_confirm_min_dump_atr: float = 0.65
+    gudt_confirm_slope2_min: float = -0.35
+    gudt_confirm_slope2_max: float = 0.0
+    gudt_friction_points: float = 5.0
+    gudt_p0_ext_open_max: float | None = None
+    gudt_probe_csv: str = ""
+    gudt_probe_from_ticks: bool = False
+
     config_path: Path = Path("")
 
 

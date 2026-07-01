@@ -47,7 +47,10 @@ class TestCliProductCodeDefaults(unittest.TestCase):
         for name, parser, argv in cases:
             with self.subTest(cli=name):
                 args = parser.parse_args(argv)
-                self.assertEqual(args.code, PRODUCT_CODE)
+                if name == "backtest":
+                    self.assertIsNone(args.code)
+                else:
+                    self.assertEqual(args.code, PRODUCT_CODE)
 
 
 if __name__ == "__main__":

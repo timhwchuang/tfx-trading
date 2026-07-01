@@ -29,6 +29,7 @@ class RouteAStackParams:
     br5: BPrimeCompositeParams = BPrimeCompositeParams(
         pre_break_br_min=0.35,
         pre_break_br_p0_only=True,
+        p0_ext_open_max=None,
         flip_min_ext_open=5.0,
         distribution=DistributionHedgeParams(
             confirm_sec=120,
@@ -86,6 +87,16 @@ def apply_route_a_stack_day(
         br5 = pre_break_br_at(ctx)
         if br5 is not None and br5 < br.pre_break_br_min:
             fb = _fallback_ft_from_p0_veto(day, day_rows, ft_exit=br.ft_exit, tag="br5_veto")
+            if fb is None:
+                return None
+            base = fb
+
+    if br.p0_ext_open_max is not None or br.p0_sess_vwap_dist_max is not None:
+        from strategy_gudt_route_a.wash_bridge import _fallback_ft_from_p0_veto, _p0_chase_veto
+
+        bars = ctx.session_bars
+        if _p0_chase_veto(base, ctx, day_rows, params=br, session_bars=bars):
+            fb = _fallback_ft_from_p0_veto(day, day_rows, ft_exit=br.ft_exit, tag="chase_veto")
             if fb is None:
                 return None
             base = fb

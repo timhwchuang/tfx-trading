@@ -95,13 +95,16 @@ bash scripts/run-all-tests.sh
 
 失敗實驗：刪除或移至 `experiments/`，無需另開 GitHub repo。
 
-**策略載入現況**
+**策略載入現況**（FT-022 Landed）
 
 | 路徑 | 現況 |
 |------|------|
-| Production live/backtest | `default_strategy()` → 硬編碼 `VWAPMomentumStrategy` |
-| Entry point（已實作） | `load_named_strategy(name)` / `trading_engine.plugins.load_strategy` |
-| Config 切換 | **未接線** — 可加 `strategy.name`（見本檔 §4 步驟 4） |
+| `python -m backtest` / `python -m live` | `build_strategy_session()` ← `config.yaml` `strategy.name` |
+| Entry point | `load_named_strategy(name)` / `trading_engine.plugins.load_strategy` |
+| GUDT replay bootstrap | `bootstrap_gudt_route_a()`（backtest 離線；live staged coordinator） |
+| Config 切換 | 改 `CONFIG_PATH` / `--config` + 重啟 process |
+
+詳見 [`docs/features/unified-strategy-loading/SPEC.md`](docs/features/unified-strategy-loading/SPEC.md)。
 
 ---
 

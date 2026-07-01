@@ -1,59 +1,24 @@
-"""FT-021: run gudt-route-a-baseline backtest with replay plans from CF stack."""
+"""FT-021: thin wrapper over ``python -m backtest`` for gudt-route-a-baseline."""
 
 from __future__ import annotations
 
 import argparse
-import datetime
-import json
 import os
 import sys
 from pathlib import Path
 
-from backtest.__main__ import configure_backtest_session_logging, emit_report
-from backtest.engine import BacktestEngine
+from backtest.__main__ import main as backtest_main
 from config import load_config
 from core.runtime_config import TradingAppRuntimeConfig, _to_engine_settings
-from integrations.engine_wiring import load_named_strategy
-from integrations.gudt_replay_planner import build_replay_plans_for_range
-from observability import DailyObservability
+from integrations.strategy_bootstrap import load_gudt_probe_rows
+from reporting.gudt_wash_probe import load_probe_contexts
 from strategy_gudt_route_a import GudtRouteAParams
 from strategy_gudt_route_a.stack import summarize_route_a_stack
 from strategy_gudt_route_a.stack_params import stack_params_from_gudt
-from reporting.gudt_wash_probe import WashProbeTuning, load_probe_contexts, read_probe_csv, run_probe_range
-from storage.tick_loader import resolve_cli_tick_cache_dates
 
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[4]
-
-
-def _parse_dates(values: list[str]) -> list[datetime.date]:
-    return [datetime.date.fromisoformat(d) for d in values]
-
-
-def _load_probe_rows(
-    *,
-    root: Path,
-    code: str,
-    cache_dir: Path,
-    from_date: str,
-    to_date: str,
-    from_csv: Path | None,
-) -> list[dict]:
-    reports = root / "workspaces" / "gudt-baseline" / "reports"
-    csv_path = from_csv or reports / "gudt_wash_probe_merged_202505_202606.csv"
-    if csv_path.is_file():
-        rows = read_probe_csv(csv_path)
-        return [r for r in rows if from_date <= r["day"] <= to_date]
-    pad_from = (datetime.date.fromisoformat(from_date) - datetime.timedelta(days=45)).isoformat()
-    rows = run_probe_range(
-        code=code,
-        from_date=pad_from,
-        to_date=to_date,
-        cache_dir=cache_dir,
-        tuning=WashProbeTuning(),
-    )
-    return [r for r in rows if from_date <= r["day"] <= to_date]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -74,66 +39,51 @@ def main(argv: list[str] | None = None) -> int:
     if not args.config.is_file():
         raise SystemExit(f"config not found: {args.config}")
 
-    dates = resolve_cli_tick_cache_dates(
-        explicit=None,
-        from_cache=True,
-        code=args.code,
-        cache_dir=args.cache_dir,
-        from_date=args.from_date,
-        to_date=args.to_date,
-    )
-    if not dates:
-        raise SystemExit("no dates to backtest")
-
     os.environ["CONFIG_PATH"] = str(args.config.resolve())
     args.log_out.parent.mkdir(parents=True, exist_ok=True)
     args.report_out.parent.mkdir(parents=True, exist_ok=True)
 
-    rows = _load_probe_rows(
-        root=root,
+    app_settings = load_config(args.config)
+    cfg = TradingAppRuntimeConfig(_to_engine_settings(app_settings))
+    rows = load_gudt_probe_rows(
+        cfg,
         code=args.code,
         cache_dir=args.cache_dir,
         from_date=args.from_date,
         to_date=args.to_date,
-        from_csv=args.from_csv,
+        probe_csv_override=args.from_csv,
     )
     day_strs = sorted({r["day"] for r in rows})
     ctx_by_day = load_probe_contexts(args.code, day_strs, cache_dir=args.cache_dir)
-    app_settings = load_config(args.config)
-    cfg = TradingAppRuntimeConfig(_to_engine_settings(app_settings))
-    obs = DailyObservability()
-    gudt_params = GudtRouteAParams.from_runtime_config(cfg)
-    params = stack_params_from_gudt(gudt_params)
+    params = stack_params_from_gudt(GudtRouteAParams.from_runtime_config(cfg))
     summary = summarize_route_a_stack(rows, ctx_by_day=ctx_by_day, params=params)
-    day_plans = build_replay_plans_for_range(rows, ctx_by_day, params=params)
 
-    plans_payload = {
-        day: {
-            "path": p.path,
-            "skipped": p.skipped,
-            "events": [
-                {"ts": e.ts, "action": e.action, "price": e.price, "leg": e.leg, "reason": e.reason}
-                for e in p.events
-            ],
-            "meta": p.meta,
-        }
-        for day, p in day_plans.items()
-    }
-    args.plans_out.write_text(json.dumps(plans_payload, indent=2), encoding="utf-8")
-
-    configure_backtest_session_logging(str(args.log_out), truncate=True)
-    strategy = load_named_strategy("gudt_route_a", cfg, obs, day_plans=day_plans)
-
-    engine = BacktestEngine(
+    bt_argv = [
+        "--config",
+        str(args.config),
+        "--dates-from-cache",
+        "--from-date",
+        args.from_date,
+        "--to-date",
+        args.to_date,
+        "--code",
         args.code,
-        dates,
-        cache_dir=args.cache_dir,
-        strategy=strategy,
-        runtime_config=cfg,
-        obs=obs,
-    )
-    engine.run()
-    emit_report(args.log_out, print_report=True, json_path=args.report_out)
+        "--cache-dir",
+        str(args.cache_dir),
+        "--report",
+        "--log-file",
+        str(args.log_out),
+        "--report-json",
+        str(args.report_out),
+        "--plans-out",
+        str(args.plans_out),
+    ]
+    if args.from_csv is not None:
+        bt_argv.extend(["--probe-csv", str(args.from_csv)])
+
+    rc = backtest_main(bt_argv)
+    if rc != 0:
+        return rc
 
     cf_net = float(summary["net_total"])
     print(

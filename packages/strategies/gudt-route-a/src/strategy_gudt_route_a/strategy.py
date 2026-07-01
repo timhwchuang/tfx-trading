@@ -42,6 +42,33 @@ class GudtRouteAStrategy(BaseStrategy):
     def set_day_plans(self, plans: dict[str, DayReplayPlan]) -> None:
         self._day_plans = plans
 
+    def apply_intraday_plan(
+        self,
+        day: str,
+        plan: DayReplayPlan,
+        *,
+        as_of_ts: int | None = None,
+    ) -> None:
+        """Mid-day live injection: reload pending replay events for ``day``."""
+        self._day_plans[day] = plan
+        if day != self._current_day:
+            return
+        self._plan = plan
+        pending = list(plan.events) if not plan.skipped else []
+        if as_of_ts is not None:
+            while pending and pending[0].ts < as_of_ts:
+                pending.pop(0)
+        self._event_idx = 0
+        self._pending_events = pending
+        logger.info(
+            "GUDT Route A intraday plan applied day=%s path=%s events=%d skipped=%s as_of_ts=%s",
+            day,
+            plan.path,
+            len(self._pending_events),
+            plan.skipped,
+            as_of_ts,
+        )
+
     def _day_key(self, market: MarketSnapshot) -> str:
         local = market.dt
         if local.tzinfo is not None:

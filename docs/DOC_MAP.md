@@ -88,6 +88,7 @@
 | FT-019 | sweep-fvg-breakout-trail | **MVPClosed** | [SPEC](features/sweep-fvg-breakout-trail/SPEC.md) · [PLAN](features/sweep-fvg-breakout-trail/PLAN.md) · [`gate_report`](../../workspaces/sfbt-baseline/gate_report.md) |
 | FT-020 | bear-streak-flip-long | **Draft** | [SPEC](features/bear-streak-flip-long/SPEC.md) · [PLAN](features/bear-streak-flip-long/PLAN.md) · P-013 |
 | FT-021 | gudt-route-a | **Draft** | [SPEC](features/gudt-route-a/SPEC.md) · [PLAN](features/gudt-route-a/PLAN.md) · [`gudt-route-a-baseline/`](../workspaces/gudt-route-a-baseline/) |
+| FT-022 | unified-strategy-loading | **Draft** | [SPEC](features/unified-strategy-loading/SPEC.md) · [PLAN](features/unified-strategy-loading/PLAN.md) · `build_strategy_session` · GUDT bootstrap |
 
 索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
 

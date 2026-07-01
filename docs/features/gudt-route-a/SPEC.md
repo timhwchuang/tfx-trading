@@ -56,16 +56,21 @@ audit_schema_version: 1
 
 對帳期間：**2025-05-01 .. 2026-06-30**，br5 router，stack = Route A + EMA5 + structural confirm。
 
+> **SSOT**：[`ROUTE_A_UAT_STACK.md`](../../../workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md) · 實作 oracle：[`ft021_parity_check.py`](../../../apps/trading-app/src/scripts/ft021_parity_check.py)。  
+> 舊表 **+683** / flip=1 為 pre-stack 草稿，已由 **+1781** / flip=**2** 取代（2026-07-01）。
+
 | 指標 | Counterfactual 基準 | 允許偏差 |
 |------|---------------------|----------|
-| Full net | **+683** | ±15 pts |
-| H1 (2025-05..10) | **+236** | 不得劣於 br5 baseline H1 |
-| UAT 2m (2026-05..06) | **−106**（vs br5 −412） | 方向一致（優於 br5） |
+| Full net | **+1781** | ±15 pts |
+| H1 (2026-01..05) | **+1290** | 見 `ft021_parity_check` |
+| UAT 2m (2026-05..06) | 方向優於 br5 | 見 parity harness |
 | `extend_days` | **4** | 完全一致 |
-| `flip_days` | **1**（6/29） | 決策日一致；PnL 單日 ±5 pts |
+| `flip_days` | **2** | 決策日一致；PnL 單日 ±5 pts |
 | confirm veto | 6/25 bounce 等 | 決策一致（不開空） |
 
 逐日產出 `parity_report.json`：比對 `route`、`extend`、`flip`、`confirm_veto`、`net_pts`。
+
+統一載入路徑（`python -m backtest --config`）見 **FT-022** [`unified-strategy-loading/SPEC.md`](../unified-strategy-loading/SPEC.md)。
 
 ## 5. Definition of Done
 

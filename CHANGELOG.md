@@ -14,6 +14,12 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **FT-022 Phase 5（2026-07-01）**：`ft021_parity_check` 統一 bootstrap 路徑 · `research.json` / `parity.json` · `param_sweep` 讀 `strategy.name` · 根 SPEC §4 已接線。
+- **FT-022 Phase 4（2026-07-01）**：`python -m live --config` 統一策略載入 · `GudtLiveBootstrapCoordinator` staged 狀態機 · `apply_intraday_plan` · [`LIVE_SAFETY`](docs/ops/LIVE_SAFETY.md) GUDT 前置條件。
+- **FT-022 Phase 3（2026-07-01）**：`python -m backtest --config` 統一策略載入 · `ft021_run_baseline` 薄 wrapper · `--report-json` / `--plans-out` / `--probe-csv`。
+- **FT-022 Phase 2（2026-07-01）**：`bootstrap_gudt_route_a` backtest 離線 plan · `skip_reason` 結構化 log · `ft021_run_baseline` 改用 bootstrap；[`PLAN`](docs/features/unified-strategy-loading/PLAN.md) Phase 2。
+- **FT-022 Phase 1（2026-07-01）**：`strategy.name` config 解析 · `build_strategy_session()` / `validate_strategy_name()` · GUDT flat 鍵 · workspace baseline `strategy.name`；[`unified-strategy-loading/PLAN.md`](docs/features/unified-strategy-loading/PLAN.md)。
+- **FT-021 parity SSOT（2026-07-01）**：[`gudt-route-a/SPEC.md`](docs/features/gudt-route-a/SPEC.md) §4 對齊 [`ROUTE_A_UAT_STACK`](workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md) / `ft021_parity_check` — full net **+1781** · flip **2**（取代草稿 +683 / flip 1）。
 - **Alpha Playbook v1.7 + Holdout v2.3（2026-06-30）**：反錯殺流程 — [`OUTCOME_REGISTRY.md`](docs/features/ai-backtest-tuning/OUTCOME_REGISTRY.md) · [`META_REVIEW_BRIEF.md`](docs/features/ai-backtest-tuning/META_REVIEW_BRIEF.md) · [`NEAR_MISS_REGISTRY.md`](workspaces/NEAR_MISS_REGISTRY.md) · §3.1c Joint Fingerprint Contract · §2.3 Class Appeal · gate_report **net_total** 第一頁。
 - **Alpha Playbook v1.6（2026-06-28）**：Gate Coverage Preflight（§0-design-3）· §3.1a 0-design outcomes · Preflight→human-approved 順序 · FT-017 負面圖書館；新建 [`GATE_COVERAGE_PREFLIGHT.md`](docs/features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)；[`THESIS_BRIEF`](docs/features/_template/THESIS_BRIEF.md) §E.1.1/E.4/G 分層；[`senior-trading-professional`](prompts/roles/senior-trading-professional.md) Alpha 0-design 六段；[`SHARED_ASSUMPTIONS`](workspaces/SHARED_ASSUMPTIONS.md) v1.7 §7 invalid thesis；FT-017 outcome 統一 **`spec_anchor_mismatch`**（mislabel `cfa_fingerprint_fail`）。
 - **Alpha Playbook v1.5（2026-06-28）**：§3.1b fingerprint 窗對齊 · outcome 拆分 · §5.2 exit-led 路徑；[`THESIS_BRIEF`](docs/features/_template/THESIS_BRIEF.md) §D.1/F.1/G；[`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §Fingerprint 審計。
@@ -33,6 +39,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-022 Draft（2026-07-01）**：統一策略載入 — `strategy.name` + `build_strategy_session()` · GUDT backtest/live bootstrap · `python -m backtest --config`；[`unified-strategy-loading/SPEC.md`](docs/features/unified-strategy-loading/SPEC.md) · [`PLAN`](docs/features/unified-strategy-loading/PLAN.md) · 依賴 FT-021。
 - **FT-021 Draft（2026-06-30）**：GUDT Route A UAT stack plugin — B′+br5 + 5m EMA extension + distribution structural confirm flip；[`gudt-route-a/SPEC.md`](docs/features/gudt-route-a/SPEC.md) · [`PLAN`](docs/features/gudt-route-a/PLAN.md) · `strategy-gudt-route-a` · parity vs [`ROUTE_A_UAT_STACK`](workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md)。
 - **FT-019 MVPClosed（2026-06-29）**：P-012 Sweep FVG breakout trail — fingerprint W900 **+1.0**（n=229）· trail gross **1.19** · G1 fail · skew payoff **1.575** · valid net **−1.89** → `sfbt_fingerprint_pass_g1_fail` · **exit_kills_edge**；[`gate_report`](workspaces/sfbt-baseline/gate_report.md) · [`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §FT-019。
 - **FT-019 Phase 0（2026-06-29）**：`simulate_fvg_mid_trail_skew_exit.py` · `sweep_fvg_breakout_trail_counterfactual.py` · `ft019_sfbt_counterfactual.py` · 23 unit tests · `sfbt-baseline/` — fingerprint W900 med **+1.0**（n=229）· G1 fail gross **1.19** · exit_gap **~17** → `sfbt_fingerprint_pass_g1_fail`；[`gate_report`](workspaces/sfbt-baseline/gate_report.md)。
@@ -100,6 +107,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-022 Phase 1 settings**: `strategy_name` + `gudt_*` replay keys on `Settings` (defaults for GUDT Route A bootstrap).
 - **FT-004 ATR exit settings**: `hard_stop_atr_k`, `tp_atr_k`, `max_adverse_atr_k` on `Settings` + `SWEEP_FIELD_TO_CONST` + `testing/defaults.py`.
 - **Shioaji Time Contract** ([`SPEC.md`](packages/trading-engine/SPEC.md)): documents historical `ts` decode (equivalent to official polars cast), live `TickFOPv1.datetime`, and anti-patterns. Code SSOT: `trading_engine.calendar.shioaji_ts.shioaji_historical_ts_from_ns`. Legacy cache policy: read paths do no time correction; pre-2026-06-26 +8h files are deleted and re-fetched.
 - **Layer 2 IOC terminal query (`order_status_query_enabled`, default OFF)**: `update_status(trade)` on the order worker; `QueryStatusTask`; place-time refresh; flag-only gating; graceful fallback. Signal taxonomy fix: during HALT, L3 inference (unchanged broker read) does not clear exit pending; L1 callback / L2 authoritative terminal (`cancelled`/`failed`/`inactive`) clears and allows convergence retry. `_check_pending_timeout` when flag ON: L3 snapshot → `order_deal_records` → L2 enqueue. Tests: `test_order_status_query.py` (26 cases).
@@ -399,6 +407,9 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 #### Added
 
+- **FT-022 Phase 3**: unified `python -m backtest --config` · `build_strategy_session` injection · `test_backtest_config_switch.py`.
+- **FT-022 Phase 2**: `bootstrap_gudt_route_a` · skip log · `GudtRouteAStrategy` skip-day log · `test_strategy_bootstrap.py`.
+- **FT-022 Phase 1**: `integrations/strategy_bootstrap.py` stub · `build_strategy_session()` / `validate_strategy_name()` in `engine_wiring` · `config.py` `strategy.name` + GUDT flat keys · workspace baseline `strategy.name` · tests `test_build_strategy_session_smoke`.
 - **Alpha gate 工具（Playbook v1.7）**：`reporting/gate_summary.py`（契約 exit · `net_total` · `outcome_class` · Class Appeal 只讀）· `scripts/summarize_alpha_train.py` · `scripts/build_near_miss_registry.py`；測試 `tests/reporting/test_gate_summary.py`；FT-018/019 CF JSON `gate_summary` 欄位。
 - **FT-018 Phase 0**：`reporting/simulate_atr_trail_skew_exit.py` · `gap_up_drive_trail_counterfactual.py` · `scripts/ft018_gudt_counterfactual.py`；測試 `test_simulate_atr_trail_skew_exit.py` · `test_gap_up_drive_trail_counterfactual.py`；`post_entry_diagnosis` 支援 `atr_trail_sim` MFE/MAE。
 - **FT-004**：`reporting/armed_forward_counterfactual.py`；`scripts/ft004_armed_forward_counterfactual.py`（Phase 0 counterfactual）；`scripts/ft004_run_baseline.py`（`momentum_continuation` 2026-04 baseline）；`integrations/engine_wiring.load_named_strategy("momentum_continuation")`；測試 `tests/reporting/test_armed_forward_counterfactual.py`。

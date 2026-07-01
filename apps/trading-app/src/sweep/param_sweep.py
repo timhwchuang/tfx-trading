@@ -117,9 +117,33 @@ def _run_backtest_summaries(
         progress.phase_start(phase, day_total=len(dates))
 
     def _run() -> None:
-        engine = BacktestEngine(
-            code, dates, cache_dir=cache_dir, runtime_config=runtime_config
-        )
+        from integrations.engine_wiring import build_strategy_session
+        from observability import DailyObservability
+
+        cfg = runtime_config or default_runtime_config()
+        obs = DailyObservability()
+        strategy_name = getattr(cfg, "strategy_name", "vwap_momentum")
+        if strategy_name == "vwap_momentum":
+            engine = BacktestEngine(
+                code, dates, cache_dir=cache_dir, runtime_config=runtime_config
+            )
+        else:
+            strategy = build_strategy_session(
+                cfg,
+                obs,
+                code=code,
+                dates=list(dates),
+                cache_dir=Path(cache_dir),
+                mode="backtest",
+            )
+            engine = BacktestEngine(
+                code,
+                dates,
+                cache_dir=cache_dir,
+                strategy=strategy,
+                runtime_config=cfg,
+                obs=obs,
+            )
         engine.run()
 
     records = _run_with_audit_capture(_run, capture_prefixes=capture_prefixes)
