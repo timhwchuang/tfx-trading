@@ -24,19 +24,6 @@ class OrderSignal:
     market: bool = False
 
 
-@dataclass(frozen=True)
-class QueryStatusTask:
-    """Order-worker task: query IOC terminal state via update_status(trade).
-
-    ``generation`` snapshots the pending generation at enqueue time so a task that
-    outlives its pending (cleared + a new order armed) is rejected as stale even
-    when ``order_id`` was still empty at enqueue time.
-    """
-
-    order_id: str
-    generation: int = -1
-
-
 @dataclass
 class MarketSnapshot:
     """Indicator + market state at a single tick."""

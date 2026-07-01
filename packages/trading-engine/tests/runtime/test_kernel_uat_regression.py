@@ -65,7 +65,7 @@ class TestKernelUatRegression(unittest.TestCase):
         with patch("trading_engine.engine.threading.Thread", _ImmediateThread):
             host.handle_session_event(0, 13, "ok", "")
 
-        host._reconcile_pending_trade.assert_called_with(trade)
+        host._reconcile_pending_trade.assert_called_once()
         host.sync_positions.assert_called()
         host._resubscribe_ticks.assert_called()
         host.refresh_atr.assert_called()

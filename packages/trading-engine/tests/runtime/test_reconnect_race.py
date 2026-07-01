@@ -29,7 +29,7 @@ class TestReconnectRace(unittest.TestCase):
         host.pending_trade.order.id = "r1"
 
         # Force the reconcile path
-        host._reconcile_pending_trade(host.pending_trade)
+        host._reconcile_pending_trade()
 
         # After reconcile the position should be flattened (deal applied)
         self.assertEqual(host.position_qty, 0)

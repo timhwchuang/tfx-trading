@@ -83,5 +83,4 @@ operations:
   emergency_market_orders: true
   entry_miss_confirm_sec: 5
   max_consecutive_missed_entries: 3
-  order_status_query_enabled: false
-  order_status_query_timeout_ms: 1000
+  max_consecutive_missed_entries: 3

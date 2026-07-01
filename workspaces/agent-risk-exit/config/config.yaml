@@ -224,10 +224,4 @@ operations:
   entry_miss_confirm_sec: 5
   # 連續 N 筆 entry miss → HALT+CRITICAL（結構性問題）。0 = 關閉熔斷。
   max_consecutive_missed_entries: 3
-  # Layer 2：IOC 終態查詢（order worker 上 update_status(trade)）。由此 flag 單獨控制（不看 simulation）。
-  # 滾動順序（勿跳過 UAT）：先在 UAT（simulation: true，真實永豐模擬 API）開啟 → 跑真實 session → 確認零
-  # PyBorrowMutError → 才在正式（simulation: false）開啟。borrow panic 只在真實 Shioaji 物件上出現，UAT 即可驗。
-  # 失敗時自動降級：update_status 拋例外會被攔截並 fallback 至既有 inference（list_positions 真相），不影響部位安全。
-  order_status_query_enabled: true
-  # update_status 逾時（毫秒）；Shioaji 預設 30s 會卡住 order worker。
-  order_status_query_timeout_ms: 1000
+  max_consecutive_missed_entries: 3

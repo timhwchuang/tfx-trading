@@ -181,11 +181,10 @@
 - [x] **硬上限永不超過 1 口（10:39 事故 RCA）**：entry 永不以 flat 快照判定未成交（D1）；全 kernel 委託單一在途（D2，`_halt_position_unconfirmed(clear_pending=...)`）；收斂以新鮮 debounce 真相定量（D3）。`MockBroker` 加 report-latency 重現 stale-flat。取捨：真正 miss 的 IOC → HALT 停當日新進場（無自動重試）
 - [x] **緊急市價 + 縮短未知視窗 + HALT 殘留漏洞封口（30 口 UAT log）**：停損 IOC miss → kernel 唯一市價平倉；收斂平倉改市價；`pending_timeout_sec` 15→1、`reconcile_fast_sec` 2→1；HALT 期間不得以一致讀數清在途平倉
 - [x] **雙層狀態機 SETTLING vs HALT（常駐穩定）**：entry miss（穩定 flat 5s）→ 恢復正常、不 sticky 封鎖整天；HALT 僅異常（上限/孤兒/不可讀/連續 miss 熔斷）；`CALLBACK_LATENCY` 量測；`entry_miss_confirm_sec` / `max_consecutive_missed_entries`
-- [x] **Layer 2 IOC 終態查詢**：`order_status_query_enabled`（預設 False）+ `order_status_query_timeout_ms`；order worker `update_status(trade)`；8 種 OrderStatus 正規化；`QueryStatusTask`；place-time oid/early-terminal；`test_order_status_query.py`
-- [ ] **Layer 2 UAT gate**（開預設前）：order worker 無 `PyBorrowMutError`；query 不阻塞 place_order；callback 競態安全；flag OFF 零 `update_status(trade)` 呼叫（見 [`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md)）
+- [x] **Layer 2 IOC 終態查詢（v1/v2，已移除）**：`update_status` 與 terminal hint cache 皆刪除；純 callback-first + `order_deal_records` + L3
+- [ ] **Callback-first UAT gate**：整日 sim session → 零 `update_status`、IOC cancel 不 deadlock、部位安全（見 [`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md)）
 - [ ] **UAT gate**：`CALLBACK_LATENCY` 量測 live vs sim 延遲；確認 live ms 級、entry miss 5s 窗口安全
 - [ ] GCE 實機：刻意製造延遲回報（含遲到的成交），確認不再重下、最終 qty ≤ 1、HALT 後只補一張平倉（市價）
-- [ ] （已實作 Layer 2，預設 OFF）`order_status_query_enabled`：UAT 驗證後可開，正向區分 Filled/Cancelled 取代純 inference
 - owner: `trading-engine`（狀態機）+ `trading-app`（config、UAT 條目）
 
 ### UAT 執行 — 人類（API 已就緒）

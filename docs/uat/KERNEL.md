@@ -26,7 +26,8 @@ Prerequisites: [trading-engine README § Go-Live](../../packages/trading-engine/
 | B1 | Full trading day tick flow | ☐ | Entry/exit signals, fills, `position_qty` correct | |
 | B2 | `session_force_flatten_time` with open position | ☐ | Kernel arms exit; position flat after fill | |
 | B3 | Disconnect → reconnect (`event_code` 12/13) | ☐ | `_on_reconnected`: reconcile → sync → resubscribe; **`_api_connected` only if subscribe + session-healthy ATR**; else session watchdog relogin | |
-| B4 | Pending timeout (short `pending_timeout_sec` in test cfg) | ☐ | CRITICAL alert; `block_new_entry`; sync runs | |
+| B4 | Pending timeout (short `pending_timeout_sec` in test cfg) | ☐ | CRITICAL alert; enters SETTLING (not clear+re-arm); no duplicate orders; qty ≤ `max_position_qty` | |
+| B10 | Callback-first reconcile (no update_status) | ☐ | Full sim session: grep `update_status` = 0; IOC cancel callbacks complete (no deadlock) | See [`LIVE_SAFETY.md`](../ops/LIVE_SAFETY.md) |
 | B5 | Invalid strategy signal (test `qty=0`) | ☐ | Warning log; **no** arm | |
 | B6 | `get_state_snapshot()` matches broker after sync | ☐ | `snap.position_qty` / `dir` consistent | |
 | B7 | Order callback routing (Shioaji `OrderState`) | ☐ | `python -m live.order_smoke` → `委託回報` + `FILL_AUDIT`; no spurious pending timeout | See [`LIVE_SAFETY.md`](../ops/LIVE_SAFETY.md) |
@@ -86,6 +87,7 @@ DAILY_SUMMARY
 ALERT [CRITICAL]
 拒絕 OrderSignal
 Pending 超時
+PyBorrowMutError
 Session 看門狗
 No-tick 看門狗
 持倉對帳

@@ -42,34 +42,24 @@ This document describes what the kernel does when things go wrong during live op
 
 ---
 
-### IOC terminal query — Layer 2 (`order_status_query_enabled`, default OFF)
+### Callback-first order reconcile (no update_status)
 
 | | |
 |---|---|
-| **What** | On the **order worker** (the only Shioaji-borrow-safe thread), `update_status(trade, timeout=order_status_query_timeout_ms)` reads the IOC's definitive terminal state instead of waiting for callback silence + inference. |
-| **Why order worker** | `update_status(trade=...)` mutates the live Rust `Trade` object. Calling it from `_timeout_loop` or callback threads risks `PyBorrowMutError`. The order worker already owns `place_order` and serializes API calls under `_api_lock`. |
-| **Normalizer** | `_read_trade_terminal_state` maps all 8 verified `OrderStatus` values: `Filled`→filled, `PartFilled`→partial, `Cancelled`/`Failed`/`Inactive`→terminal-no-fill, `PendingSubmit`/`PreSubmitted`/`Submitted`→working. Snapshots to Python primitives immediately. No Shioaji `Timeout` status exists. |
-| **Resolution** | **filled** → adopt qty via Layer 3 (`list_positions`). **partial** → keep settling. **cancelled/failed/inactive** → cross-check `list_positions`; flat/consistent → clean resume (entry miss) or stop→market escalation; mismatch → HALT. **working/unknown** → fallback to existing inference (unchanged). **HALT + exit**: L3 unchanged read → keep pending (inference); L1/L2 authoritative terminal → clear pending and allow convergence retry (same as callback `Cancelled`). |
-| **Wire-in** | `_check_pending_timeout`: when flag ON, L3 snapshot → `order_deal_records` → debounced L2 enqueue. `_settle_via_reconcile` also enqueues L2. `place_order` does place-time refresh for oid backfill + early terminal. |
-| **Bounded timeout** | `order_status_query_timeout_ms` (default 1000). Shioaji default `timeout=30000` would stall the shared order worker. |
-| **Fallback** | Flag OFF = zero `update_status(trade=...)` calls; byte-for-byte current behavior. MockBroker `update_status` is a no-op → backtest always takes `unknown` fallback. **If `update_status` raises in production (e.g. a borrow panic), `_query_pending_status` / `_refresh_trade_after_place` catch it, log a warning, release `_status_query_inflight`, and the truth-driven settle loop continues with the existing inference path** — a Layer 2 failure degrades to current behavior, it never breaks position safety. |
-| **Gating** | Controlled by the **flag alone**, NOT by `simulation`. UAT runs the real Shioaji *simulation account* (real Rust `Trade` objects), so it MUST exercise `update_status` to validate borrow safety. Backtest's `MockBroker` is a no-op → harmless. |
+| **Model** | Shioaji official path: `set_order_callback` (L1 inline terminal handling) + `order_deal_records` / `list_positions` on timeout/settle. **No** `update_status(trade)` anywhere in runtime. **No** `order_status_query_enabled` flag. |
+| **Why** | `update_status(trade)` races with callbacks → `PyBorrowMutError`. A removed terminal-hint cache also caused nested-lock deadlock on Cancelled callbacks. |
+| **Callback silence** | Entry/exit miss inference at `entry_miss_confirm_sec` / `exit_miss_confirm_sec` (5s); stop-loss market escalation when configured. |
+| **HALT exit clear** | L3 unchanged read never clears exit pending; L1 `Cancelled` callback clears and allows convergence retry. |
 
-**Rollout order (do NOT skip UAT):** Enable in **UAT first** (`simulation: true` on a real Shioaji sim account) → run real sessions → confirm zero `PyBorrowMutError` → only then enable in production (`simulation: false`). Enabling in production without UAT validation would mean discovering a borrow panic with real money — this is the failure mode the OFF default exists to prevent. There is no "production-only" best practice; the borrow panic only surfaces against real Shioaji objects, which UAT already has.
-
-**UAT validation matrix (gate before default ON):**
+**UAT validation:**
 
 | Check | Pass criteria |
 |---|---|
-| Worker load | Repeated `update_status(trade=...)` on order worker → no `PyBorrowMutError` / Rust borrow panic |
-| Worker latency | Query never blocks `place_order` beyond `order_status_query_timeout_ms` |
-| Race safety | Callback + Layer-2 query on same `Trade` → no crash, consistent terminal |
-| Enum coverage | Each observed `OrderStatus` in UAT logs maps to expected normalized state |
-| Flag OFF regression | Prod-like run with flag OFF → zero `update_status(trade=...)` calls |
+| Zero update_status | Full sim session → grep `update_status` = 0 |
+| No callback deadlock | IOC cancel callbacks complete; no stuck callback thread |
+| Position safety | Pending timeout does not duplicate orders; qty ≤ `max_position_qty` |
 
-**Signal taxonomy (HALT exit clear):** During `_position_unconfirmed`, do **not** clear exit pending on Layer 3 inference alone (unchanged broker read — the 30-lot residual-hole fix). **Do** clear on Layer 1 callback `Cancelled` or Layer 2 authoritative terminal (`cancelled`/`failed`/`inactive`), then convergence or market escalation may re-arm — equivalent to the non-HALT callback path.
-
-**Code:** `order_executor.py:_query_pending_status`, `_read_trade_terminal_state`, `_enqueue_query_status`, `_refresh_trade_after_place`; `core/types.py:QueryStatusTask`
+**Code:** `order_executor.py:handle_order_event`, `_handle_futures_order`, `_settle_via_reconcile`, `_reconcile_pending_trade`
 
 ---
 
@@ -134,7 +124,7 @@ This document describes what the kernel does when things go wrong during live op
 | **Root cause** | Exit branch in `_apply_pending_broker_truth` treated an unchanged `list_positions` read as proof of non-fill and cleared pending during normal operation. Entry already had `entry_miss_confirm_sec`; exit did not. |
 | **Kernel behavior (fixed)** | L3 unchanged **never** clears exit pending. After debounced unchanged + `exit_miss_confirm_sec` (default 5): L2 query first, then `_resolve_exit_missed` — stop_loss → market flatten request; take_profit/trailing → clear with WARNING. `settle_timeout_sec` still → HALT with pending kept (single-flight). Severe drift (Flat/Long, direction flip) → immediate HALT + market converge. Post-exit fast reconcile (`post_exit_reconcile_sec`, default 15). Cleared-order registry catches late deals on cleared exits. |
 | **Expected outcome** | At most one live exit in flight; over-flatten detected within seconds, not ~60s. |
-| **Operator action** | Keep `order_status_query_enabled: true` in live config. Run `test_exit_single_flight.py` before deploy. Treat `持倉漂移` with kernel Flat + broker qty>0 as HALT-worthy — do not manually clear until broker reconciled. |
+| **Operator action** | Run `test_exit_single_flight.py` and `test_no_update_status_in_runtime.py` before deploy. UAT: grep zero `update_status` and confirm IOC cancel callbacks do not stall. Treat `持倉漂移` with kernel Flat + broker qty>0 as HALT-worthy — do not manually clear until broker reconciled. |
 
 **Code:** `order_executor.py:_apply_pending_broker_truth`, `_resolve_exit_missed`, `_settle_via_reconcile`; `engine.py:_is_severe_drift`, `_check_position_reconcile`
 

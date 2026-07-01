@@ -31,7 +31,6 @@ from trading_engine.core.types import (
     EngineStateSnapshot,
     OrderSignal,
     PositionSnapshot,
-    QueryStatusTask,
     RiskGate,
     TickSnapshot,
 )
@@ -176,10 +175,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         # True only while the kernel arms its own convergence flatten (lets that
         # one order bypass the settling/unconfirmed freeze in _validate_order_signal).
         self._kernel_converging = False
-        # Layer 2: debounce concurrent update_status(trade) queries on order worker.
-        self._status_query_inflight = False
-        # Monotonic pending generation: bumped on every arm so a stale Layer-2
-        # query (enqueued for a prior pending, esp. with empty order_id) is rejected.
+        # Monotonic pending generation: bumped on every arm (audit / future guards).
         self._pending_generation = 0
         # Post-exit fast reconcile window (over-flatten detection).
         self._post_exit_reconcile_until = 0.0
@@ -209,7 +205,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._reconnect_generation = 0
         self._connected_reconnect_generation = 0
         self._pending_intent_cancel_exchange_dt: datetime.datetime | None = None
-        self._order_queue: queue.Queue[OrderSignal | QueryStatusTask | None] = queue.Queue()
+        self._order_queue: queue.Queue[OrderSignal | None] = queue.Queue()
         self._order_sync_mode = False
         self._order_worker_started = False
 
@@ -1207,7 +1203,6 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._settle_since = 0.0
         self._reconcile_last_read = None
         self._reconcile_read_streak = 0
-        self._status_query_inflight = False
 
     def handle_session_event(self, resp_code: int, event_code: int, info: str, event: str):
         if event_code == 12:
@@ -1231,11 +1226,11 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         with self.lock:
             self._reconnect_generation += 1
             generation = self._reconnect_generation
-            trade = self.pending_trade if self.is_pending else None
+            has_pending = self.is_pending
 
-        if trade is not None:
+        if has_pending:
             try:
-                self._reconcile_pending_trade(trade)
+                self._reconcile_pending_trade()
             except Exception as e:
                 logger.warning("重連後 pending 補查失敗: %s", e)
 

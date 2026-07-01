@@ -9,6 +9,43 @@
 
 ---
 
+### 2026-06-30（移除 Layer 2 開關 — 純 callback-first）
+
+**決策**
+- 完全刪除 `order_status_query_enabled` 與 terminal hint cache；對齊 Shioaji 官方 `set_order_callback` + `order_deal_records` / `list_positions`。
+- v2 hint cache 在 callback 內 nested `self.lock` → **Cancelled 必 deadlock**（與 flag 無關）。
+
+**實作**
+- 刪除 `TerminalHint`、`_record_terminal_hint`、`_reconcile_terminal_hint`、`_apply_authoritative_terminal`。
+- timeout/settle 統一走 `_reconcile_pending_trade()`。
+- 測試：`test_no_update_status_in_runtime.py`（含 cancel-under-lock 回歸）。
+
+**UAT gate（人類）**
+- [ ] 整日 sim session → `update_status` = 0、IOC cancel 不卡住
+- [ ] pending timeout 不重複下單、qty ≤ 1
+
+---
+
+### 2026-06-30（Layer 2 v2 — 移除 update_status，callback-first 終態對帳）
+
+**背景（RCA）**
+- UAT log：`place 後 update_status 失敗: Trade not found in cache`、`PyBorrowMutError: Already borrowed` on order worker。Layer 2 v1 把 `update_status(trade)` 放回 order worker，但 callback 執行緒與 mutate 仍 Rust borrow 競態。
+- Shioaji 無 by-order-id read-only API；官方路徑為 `set_order_callback` + 偶發 `update_status`。
+
+**實作**
+- **零** runtime `update_status(trade)`（flag ON/OFF 皆然）。
+- `order_status_query_enabled` 語意改為 **enhanced settle reconcile**：L1 callback 寫 `_terminal_hint_cache`；flag ON 時 timeout/settle 查 cache + records + L3。
+- 刪除 `QueryStatusTask`、`order_status_query_timeout_ms`、place-time refresh；order worker 僅處理 `OrderSignal`。
+- 測試：`test_terminal_reconcile.py`、`test_no_update_status_in_runtime.py`。
+
+**UAT gate（人類）**
+- [ ] flag OFF/ON 各跑完整 sim session → grep：`update_status` = 0、`PyBorrowMutError` = 0
+- [ ] pending timeout 不重複下單、qty ≤ 1
+
+見 SPEC §4.2.2、[`ops/LIVE_SAFETY.md`](ops/LIVE_SAFETY.md) Layer 2 v2 節。
+
+---
+
 ### 2026-06-28（Holdout v2.2.1 + P-007 → FT-013）
 
 **決策**

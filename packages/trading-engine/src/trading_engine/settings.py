@@ -116,12 +116,6 @@ class Settings:
     # Consecutive entry misses before HALT+CRITICAL (structural failure, e.g.
     # orders not reaching the exchange). 0 = disable circuit breaker.
     max_consecutive_missed_entries: int = 3
-    # Layer 2: IOC terminal-state query via update_status(trade) on the order
-    # worker (borrow-safe). Default OFF; inference path remains fallback.
-    order_status_query_enabled: bool = False
-    # Bounded timeout (ms) passed to update_status; Shioaji default is 30s which
-    # would stall the shared order-worker thread.
-    order_status_query_timeout_ms: int = 1000
 
     # FT-004 momentum-continuation: ATR-scaled exit defaults
     hard_stop_atr_k: float = 0.75

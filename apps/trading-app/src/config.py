@@ -136,8 +136,6 @@ class Settings:
     post_exit_reconcile_sec: int
     cleared_order_registry_sec: int
     max_consecutive_missed_entries: int
-    order_status_query_enabled: bool
-    order_status_query_timeout_ms: int
 
     config_path: Path
 
@@ -301,12 +299,6 @@ def load_config(path: str | Path | None = None) -> Settings:
         ),
         max_consecutive_missed_entries=int(
             operations.get("max_consecutive_missed_entries", 3)
-        ),
-        order_status_query_enabled=bool(
-            operations.get("order_status_query_enabled", False)
-        ),
-        order_status_query_timeout_ms=int(
-            operations.get("order_status_query_timeout_ms", 1000)
         ),
         config_path=config_path.resolve(),
     )

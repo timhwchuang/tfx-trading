@@ -145,7 +145,7 @@ engine.on_tick(TickSnapshot(ts=..., price=..., volume=..., tick_type=1, exchange
 10. **部位真相驅動（P0-5）＋實盤淨部位硬上限永不超過 `max_position_qty`（=1）**：券商 `list_positions` 為唯一真相。
     - **Timeout = UNKNOWN，非 FAILED**：`pending_timeout_sec`（預設 1）後**不**清 pending 讓策略重下，而是進入 `_settling`（保留 `pending_order_id` 使遲到成交仍可歸屬），快節奏（`reconcile_fast_sec`，預設 1）poll 券商（`_settle_via_reconcile`），讀數經 `reconcile_confirm_reads`（預設 3）次 debounce 後採信。**未知視窗下限＝券商自身回報延遲**（`list_positions`/deal 皆會延遲），縮短本值無法壓到券商延遲以下；exit/停損時效改由緊急市價脫鉤（見下）。
     - **entry 永不以「瞬間 flat 快照」判定未成交**：`_apply_pending_broker_truth` entry 分支**只有正向成交**才解析 pending；瞬間 flat 讀數不是未成交證據。時間門控的 **MISSED** 決策在 `_settle_via_reconcile`（`entry_miss_confirm_sec` 預設 5 + debounce）：穩定 readable-flat 逾窗 → 清 pending、記 WARNING、**恢復正常進場**（不 sticky HALT）。
-    - **exit 永不以 L3 unchanged 推論未成交（2026-06-29 RCA）**：`_apply_pending_broker_truth` exit 分支**任何時候**（含非 HALT）皆不得以「部位未變且與 kernel 一致」清 pending — 在途 IOC 可能已成交但 `list_positions` 尚未反映。時間門控 **exit MISSED** 在 `_settle_via_reconcile`（`exit_miss_confirm_sec` 預設 5 + debounce）：先 L2 `order_deal_records` / `update_status`，仍無終態則 `_resolve_exit_missed` — `stop_loss`/`stop_loss_vwap` → 市價 flatten 請求 + clear（禁止策略 limit 重試）；`take_profit`/`trailing_stop`/其他 → clear + WARNING（允許策略下一 tick 重試 limit）。
+    - **exit 永不以 L3 unchanged 推論未成交（2026-06-29 RCA）**：`_apply_pending_broker_truth` exit 分支**任何時候**（含非 HALT）皆不得以「部位未變且與 kernel 一致」清 pending — 在途 IOC 可能已成交但 `list_positions` 尚未反映。時間門控 **exit MISSED** 在 `_settle_via_reconcile`（`exit_miss_confirm_sec` 預設 5 + debounce）：先 `order_deal_records`，仍無終態則 `_resolve_exit_missed` — `stop_loss`/`stop_loss_vwap` → 市價 flatten 請求 + clear（禁止策略 limit 重試）；`take_profit`/`trailing_stop`/其他 → clear + WARNING（允許策略下一 tick 重試 limit）。
     - **已清 pending 的遲到成交歸屬**：僅在 **未經正常 fill 路徑** 清 pending 時（`_clear_pending(watch_late_fill=True)`：miss resolve、L1/L2 Cancelled 無 fill、HALT clear）將 `order_id` 寫入 `_recent_cleared_orders`（TTL `cleared_order_registry_sec` 預設 120）。正常 `_apply_deal_fill` 後清 pending **不**登記。遲到 deal callback 或 `order_deal_records` 命中 registry → HALT + CRITICAL。
     - **雙層狀態機**：**SETTLING**（暫態、自動恢復）vs **HALT**（異常、sticky）。偶發 callback 靜默 / 單次 entry miss → SETTLING → NORMAL。HALT 僅用於：上限 breach、孤兒/非當前成交、券商不可讀、debounce 無法穩定、連續 miss 熔斷（`max_consecutive_missed_entries` 預設 3）。
     - **單一在途（single-flight）涵蓋所有 kernel 委託**：`_halt_position_unconfirmed(clear_pending=...)` 只有在呼叫端確知在途委託已終結才 `clear_pending=True`；exit/平倉在途一律保留 `order_id`。
@@ -156,14 +156,13 @@ engine.on_tick(TickSnapshot(ts=..., price=..., volume=..., tick_type=1, exchange
     - 孤兒/非當前委託成交 → `_position_unconfirmed`（全面凍結，非僅 `block_new_entry`）。
     - **IOC live vs sim**：live IOC 為交易所內建單別（ms 級終結）；模擬環境回報延遲可達分鐘級（批次撮合、測試主機限制），**不得**用模擬延遲校準 live 行為。`entry_miss_confirm_sec=5` 對 live 保守；sim 可能觸發 orphan→收斂背板（預期、安全）。
     - **回報延遲量測**：`CALLBACK_LATENCY` log（`exchange_ts` vs 本地接收時間）供 UAT 校準。
-    - **三層真相模型（Layer 1/2/3）**：
-      - **Layer 1（快路徑）**：callback（`handle_order_event`）— 不變。
-      - **Layer 2（精確終態）**：`update_status(trade)` 於 **order worker** 執行（`order_status_query_enabled`，預設 **False**）。涵蓋 Shioaji 8 種 `OrderStatus`（`Filled`/`PartFilled`/`Cancelled`/`Failed`/`Inactive`/`PendingSubmit`/`PreSubmitted`/`Submitted`）；無 `Timeout` 狀態 — kernel 的 `pending_timeout` 是觀測概念。`order_status_query_timeout_ms`（預設 1000）避免 Shioaji 預設 30s 卡住 order worker。終態與 `list_positions` 交叉驗證；不符 → HALT。
-      - **Layer 3（權威會計）**：`list_positions` debounce — 不變，為部位唯一真相。
-      - **HALT 期間 exit pending 何時可清（訊號分類）**：**推論（L3 unchanged read）永不 clear exit pending**（含正常運行與 HALT）— 分鐘級延遲下「未變動一致」讀數可能只是尚未反映的在途平倉；**權威終態（L1 callback Cancelled / L2 query cancelled|failed|inactive）clear 並允許 convergence / 市價重試** — 交易所已確認單終結，與 callback 路徑一致；**時間門控 exit MISSED**（`exit_miss_confirm_sec`）為 L3 無法判斷時的第三路徑（見上）。
-      - flag OFF 時行為與 inference 路徑完全相同；flag ON 時 `working`/`unknown` 仍 fallback 至 Layer 3。**由 flag 單獨控制（不看 `simulation`）**。flag ON 時 `_check_pending_timeout` 順序：L3 snapshot → `order_deal_records`（bg-safe）→ L2 enqueue。UAT 用真實 Shioaji 模擬帳戶（真實 Rust `Trade`），須在 UAT 開啟以驗 borrow 安全；backtest `MockBroker` 為 no-op 故無害。**滾動順序：UAT 先開 → 零 `PyBorrowMutError` → 正式才開**。`update_status` 拋例外 → 攔截、log、降級至 inference，永不破壞部位安全。UAT 驗證矩陣見 [`LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md)。
+    - **雙層真相模型（callback-first，Shioaji 官方路徑）**：
+      - **Layer 1（快路徑）**：`set_order_callback` → `handle_order_event` / `_handle_futures_order` / `_handle_futures_deal` — Cancelled/Failed 內聯清 pending、停損市價 escalation 等。
+      - **Layer 2（背景對帳）**：timeout/settle 走 `order_deal_records` + `list_positions` debounce（`_reconcile_pending_trade` / `_settle_via_reconcile`）。**零** runtime `update_status(trade)`。
+      - **HALT 期間 exit pending 何時可清（訊號分類）**：**推論（L3 unchanged read）永不 clear exit pending**；**L1 callback Cancelled** clear 並允許 convergence / 市價重試；**時間門控 exit MISSED**（`exit_miss_confirm_sec`）為第三路徑。
+      - Callback 沉默時終態辨識延遲至 `entry_miss_confirm_sec` / `exit_miss_confirm_sec`（預設 5s）。UAT gate：零 `update_status`、callback 不 deadlock。見 [`LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md)。
 
-實作參考：`order_executor.py`（`_query_pending_status`、`_read_trade_terminal_state`、`_enqueue_query_status`）、`session.py`、`engine.py`。歷史設計稿見 [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md)。
+實作參考：`order_executor.py`（`handle_order_event`、`_settle_via_reconcile`、`_reconcile_pending_trade`）、`session.py`、`engine.py`。
 
 ### 4.3 BrokerPort
 

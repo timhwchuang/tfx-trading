@@ -182,7 +182,7 @@ class TestOrderSmoke(unittest.TestCase):
         ]
         trade = MagicMock()
 
-        resolved = host._reconcile_pending_trade(trade)
+        resolved = host._reconcile_pending_trade()
 
         self.assertFalse(resolved)
         self.assertTrue(host.is_pending)
@@ -203,7 +203,7 @@ class TestOrderSmoke(unittest.TestCase):
             SimpleNamespace(code="TXFR1", quantity=2, direction="Buy", price=18000.0)
         ]
         trade = MagicMock()
-        resolved = host._reconcile_pending_trade(trade)
+        resolved = host._reconcile_pending_trade()
         self.assertFalse(resolved)
         self.assertTrue(host.is_pending)
 

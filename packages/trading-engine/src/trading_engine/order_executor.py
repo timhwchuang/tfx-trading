@@ -9,7 +9,7 @@ from trading_engine.core.audit.exec_audit import ExecAudit, format_exec_audit
 from trading_engine.core.audit.signal_audit import format_signal_audit
 from trading_engine.core.order_events import is_futures_deal, is_futures_order
 from trading_engine.core.trading_state import PendingIntent
-from trading_engine.core.types import OrderSignal, QueryStatusTask
+from trading_engine.core.types import OrderSignal
 from trading_engine.logging_setup import get_logger
 from trading_engine.order_errors import OrderErrorCategory, classify_order_error, should_retry_order
 
@@ -369,13 +369,6 @@ class OrderExecutorMixin:
                     except Exception:
                         pass  # never break hot path
 
-            # Layer 2 (order worker only): bounded update_status for oid backfill and
-            # early terminal capture. Falls back to callback/inference on failure.
-            if self._cfg.order_status_query_enabled:
-                self._refresh_trade_after_place(trade, signal)
-                with self.lock:
-                    oid = self.pending_order_id or oid
-
             logger.info(
                 "下單 %s %d 口 @ %s (%s%s) | trade=%s",
                 action,
@@ -529,10 +522,7 @@ class OrderExecutorMixin:
             try:
                 if item is None:
                     break
-                if isinstance(item, QueryStatusTask):
-                    self._query_pending_status(item)
-                else:
-                    self.place_order(item)
+                self.place_order(item)
             except BaseException as e:
                 # Catch PanicException etc. too; order worker death is critical (no more orders).
                 logger.error("Order worker 嚴重異常: %s", e)
@@ -542,235 +532,6 @@ class OrderExecutorMixin:
                 # else log and continue (worker stays alive)
             finally:
                 self._order_queue.task_done()
-
-    def _enqueue_query_status(self) -> None:
-        """Enqueue a Layer-2 update_status(trade) on the order worker (debounced)."""
-        if not self._cfg.order_status_query_enabled:
-            return
-        task: QueryStatusTask | None = None
-        with self.lock:
-            if not self.is_pending:
-                return
-            if self._status_query_inflight:
-                return
-            self._status_query_inflight = True
-            task = QueryStatusTask(
-                order_id=str(self.pending_order_id or ""),
-                generation=self._pending_generation,
-            )
-        if task is None:
-            return
-        if self._order_sync_mode:
-            self._query_pending_status(task)
-            return
-        self._start_order_worker()
-        self._order_queue.put_nowait(task)
-
-    @staticmethod
-    def _read_trade_terminal_state(trade) -> tuple[str, int, int]:
-        """Normalize trade.status to (state, deal_qty, cancel_qty). MockBroker-safe."""
-        if trade is None:
-            return "unknown", 0, 0
-        try:
-            status_info = getattr(trade, "status", None)
-            if status_info is None:
-                return "unknown", 0, 0
-            raw_status = getattr(status_info, "status", None)
-            if raw_status is None:
-                return "unknown", 0, 0
-            status_name = str(raw_status)
-            if "." in status_name:
-                status_name = status_name.rsplit(".", 1)[-1]
-            deal_qty = int(getattr(status_info, "deal_quantity", 0) or 0)
-            cancel_qty = int(getattr(status_info, "cancel_quantity", 0) or 0)
-            mapping = {
-                "Filled": "filled",
-                "PartFilled": "partial",
-                "Cancelled": "cancelled",
-                "Failed": "failed",
-                "Inactive": "inactive",
-                "PendingSubmit": "working",
-                "PreSubmitted": "working",
-                "Submitted": "working",
-            }
-            return mapping.get(status_name, "unknown"), deal_qty, cancel_qty
-        except Exception:
-            return "unknown", 0, 0
-
-    def _apply_query_terminal_state(
-        self, state: str, deal_qty: int, cancel_qty: int
-    ) -> bool:
-        """Resolve pending from a Layer-2 terminal snapshot. Returns True when settled."""
-        _ = cancel_qty  # reserved for audit; position truth comes from list_positions
-        if state == "filled":
-            return self._reconcile_pending_via_broker_snapshot()
-        if state == "partial":
-            if self._reconcile_pending_via_broker_snapshot():
-                return True
-            return False
-
-        if state not in ("cancelled", "failed", "inactive"):
-            return False
-
-        # IOC can report Cancelled/Failed with non-zero deal_quantity (partial fill +
-        # remainder cancelled). Adopt via Layer 3 before treating as a clean no-fill.
-        if deal_qty > 0 and self._reconcile_pending_via_broker_snapshot():
-            return True
-
-        broker = self.read_broker_position()
-        if broker is None:
-            return False
-        broker_qty, broker_dir = broker
-        with self.lock:
-            if not self.is_pending:
-                return True
-            intent = self.pending_intent
-            kernel_qty = self.position_qty
-            kernel_dir = self.position_dir
-            exit_reason = self.pending_exit_reason or ""
-
-        if intent == PendingIntent.ENTRY:
-            # A matching broker fill may already be visible even when status says
-            # cancelled (report lag). Try Layer 3 before miss / anomaly paths.
-            if self._reconcile_pending_via_broker_snapshot():
-                return True
-
-            entry_anomaly = broker_qty > 0 and (
-                kernel_qty == 0 or broker_qty > kernel_qty
-            )
-            if entry_anomaly:
-                # Layer 2 confirmed the entry order is terminal at the exchange —
-                # unlike a live exit flatten, there is nothing left in-flight to
-                # protect. clear_pending=True unblocks convergence flatten.
-                self._halt_position_unconfirmed(
-                    f"Layer2 終態={state} 但券商持倉不符 | broker={broker_dir} {broker_qty}口",
-                    clear_pending=True,
-                )
-                return True
-            self._resolve_entry_missed()
-            return True
-
-        # exit: adopt if broker already reflects a reduction
-        if broker_qty < kernel_qty:
-            return self._apply_pending_broker_truth(broker_qty, broker_dir)
-
-        if broker_qty == kernel_qty and broker_dir == kernel_dir:
-            # Layer 2 authoritative terminal (cancelled/failed/inactive): equivalent
-            # to an explicit Cancelled callback — clear pending even during HALT so
-            # convergence / market escalation can re-arm. The HALT no-clear rule
-            # applies only to Layer 3 inference (unchanged broker read), not here.
-            if exit_reason in _STOP_LOSS_REASONS and self._cfg.emergency_market_orders:
-                with self.lock:
-                    self._stop_market_flatten_request = True
-                    logger.warning(
-                        "停損 IOC 未成交（Layer2 %s）→ 安排市價平倉 | reason=%s",
-                        state,
-                        exit_reason,
-                    )
-            with self.lock:
-                if self.is_pending:
-                    self._clear_pending(watch_late_fill=True)
-            return True
-
-        if broker_qty > kernel_qty or broker_dir != kernel_dir:
-            self._halt_position_unconfirmed(
-                f"Layer2 終態={state} 券商持倉異常 | kernel={kernel_dir} {kernel_qty} "
-                f"broker={broker_dir} {broker_qty}",
-                clear_pending=True,
-            )
-            return True
-        return False
-
-    def _query_pending_status(self, task: QueryStatusTask) -> None:
-        """Layer 2: update_status(trade) on the order worker only."""
-        try:
-            with self.lock:
-                if not self._pending_task_current(task):
-                    return
-                trade = self.pending_trade
-            if trade is None:
-                return
-
-            timeout = int(self._cfg.order_status_query_timeout_ms)
-            self._call_api(self.api.update_status, trade=trade, timeout=timeout)
-            state, deal_qty, cancel_qty = self._read_trade_terminal_state(trade)
-            logger.info(
-                "Layer2 update_status | order=%s state=%s deal=%d cancel=%d",
-                task.order_id,
-                state,
-                deal_qty,
-                cancel_qty,
-            )
-
-            # The bounded API call may take up to order_status_query_timeout_ms; a
-            # callback could have resolved/re-armed pending meanwhile. Re-check the
-            # generation before acting so we never apply this terminal to a NEW order.
-            with self.lock:
-                if not self._pending_task_current(task):
-                    return
-
-            if state in ("working", "unknown"):
-                self._reconcile_pending_via_broker_snapshot()
-                return
-
-            self._apply_query_terminal_state(state, deal_qty, cancel_qty)
-        except Exception as e:
-            logger.warning("Layer2 update_status 失敗: %s", e)
-        finally:
-            with self.lock:
-                self._status_query_inflight = False
-
-    def _pending_task_current(self, task: QueryStatusTask) -> bool:
-        """True if ``task`` still refers to the live pending. Caller holds the lock.
-
-        Generation is the primary guard (handles an empty order_id at enqueue time);
-        order_id is a secondary check once known.
-        """
-        if not self.is_pending:
-            return False
-        if task.generation >= 0 and task.generation != self._pending_generation:
-            return False
-        if task.order_id and self.pending_order_id and self.pending_order_id != task.order_id:
-            return False
-        return True
-
-    def _refresh_trade_after_place(self, trade, signal: OrderSignal) -> None:
-        """Place-time bounded refresh: oid backfill + early terminal capture."""
-        with self.lock:
-            gen = self._pending_generation
-        try:
-            timeout = int(self._cfg.order_status_query_timeout_ms)
-            self._call_api(self.api.update_status, trade=trade, timeout=timeout)
-        except Exception as e:
-            logger.warning("place 後 update_status 失敗: %s", e)
-            return
-
-        oid = str(getattr(getattr(trade, "order", None), "id", "") or "")
-        with self.lock:
-            if not self.is_pending or self._pending_generation != gen:
-                return  # pending resolved / re-armed during the API call
-            if oid and not self.pending_order_id:
-                self.pending_order_id = oid
-                try:
-                    exec_audit = ExecAudit(
-                        event_type="pending_armed",
-                        ts=signal.exchange_ts or 0,
-                        signal_id=signal.signal_id or self.pending_signal_id,
-                        order_id=self.pending_order_id,
-                        limit_price=self.pending_limit_price,
-                        direction=signal.action,
-                    )
-                    logger.info("EXEC_AUDIT %s (layer2 backfill)", format_exec_audit(exec_audit))
-                except Exception:
-                    pass
-
-        state, deal_qty, cancel_qty = self._read_trade_terminal_state(trade)
-        if state in ("working", "unknown"):
-            return
-        with self.lock:
-            if not self.is_pending or self._pending_generation != gen:
-                return
-        self._apply_query_terminal_state(state, deal_qty, cancel_qty)
 
     def _enqueue_order(self, signal: OrderSignal) -> None:
         """Decouple API place_order from on_tick lock (live: async worker)."""
@@ -898,8 +659,8 @@ class OrderExecutorMixin:
             self._clear_pending()
             return
 
-        if status in ("Cancelled", "Failed") or op_type in ("Cancel", "Delete"):
-            deal_qty = msg.get("status", {}).get("deal_quantity", 0)
+        if status in ("Cancelled", "Failed", "Inactive") or op_type in ("Cancel", "Delete"):
+            deal_qty = int(msg.get("status", {}).get("deal_quantity", 0) or 0)
             if deal_qty == 0:
                 if self.pending_intent == PendingIntent.ENTRY:
                     tag = "intent_cancelled"
@@ -1497,12 +1258,6 @@ class OrderExecutorMixin:
             kernel_dir = self.position_dir
         clear_on_halt = intent == PendingIntent.ENTRY
 
-        # Flag-gated only (see _check_pending_timeout): catch a Cancelled in ~1s
-        # rather than waiting entry_miss_confirm_sec. Inference remains the fallback
-        # when the query says working/unknown.
-        if self._cfg.order_status_query_enabled:
-            self._enqueue_query_status()
-
         broker = self.read_broker_position()
         if broker is None:
             if self._clock() - settle_since >= self._cfg.settle_timeout_sec:
@@ -1649,7 +1404,7 @@ class OrderExecutorMixin:
         dt = self._last_tick_exchange_dt
         return int(dt.timestamp()) if dt is not None else 0
 
-    def _reconcile_pending_trade(self, trade) -> bool:
+    def _reconcile_pending_trade(self) -> bool:
         """補查委託狀態。回傳 True 表示 pending 已處理完畢（含 callback 已搶先處理）。
 
         根本改進（按此 review 建議）：
@@ -1709,23 +1464,9 @@ class OrderExecutorMixin:
                 return
             if self._clock() - self.pending_since < self._cfg.pending_timeout_sec:
                 return
-            trade = self.pending_trade
 
         # First attempt: fast reconcile (deal records / broker snapshot).
-        # Layer 2 is gated on the flag ALONE (not on simulation): UAT runs the real
-        # Shioaji simulation API, so it must exercise update_status to validate borrow
-        # safety before production. Backtest's MockBroker is a no-op → "unknown" →
-        # inference fallback, so enabling the flag there changes nothing.
-        if self._cfg.order_status_query_enabled:
-            resolved = self._reconcile_pending_via_broker_snapshot()
-            if not resolved and trade is not None:
-                resolved = self._reconcile_pending_trade(trade)
-            if not resolved:
-                self._enqueue_query_status()
-        elif trade is not None:
-            resolved = self._reconcile_pending_trade(trade)
-        else:
-            resolved = self._reconcile_pending_via_broker_snapshot()
+        resolved = self._reconcile_pending_trade()
 
         intent = None
         entered_settling = False

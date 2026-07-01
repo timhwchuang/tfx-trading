@@ -87,8 +87,6 @@ def default_test_settings() -> Settings:
         post_exit_reconcile_sec=15,
         cleared_order_registry_sec=120,
         max_consecutive_missed_entries=3,
-        order_status_query_enabled=False,
-        order_status_query_timeout_ms=1000,
         hard_stop_atr_k=0.75,
         tp_atr_k=2.0,
         max_adverse_atr_k=0.0,

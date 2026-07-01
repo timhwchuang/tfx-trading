@@ -94,7 +94,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
-- **Layer 2 v2 — callback-first terminal reconcile (2026-06-30)**: Removed all runtime `update_status(trade)` calls (UAT confirmed `PyBorrowMutError` with Layer 2 v1). `order_status_query_enabled` name retained; semantics → **enhanced settle reconcile** via L1 `_terminal_hint_cache` + `order_deal_records` + L3. Removed `QueryStatusTask`, `order_status_query_timeout_ms`, place-time refresh. Order worker processes `OrderSignal` only. Tests: `test_terminal_reconcile.py`, `test_no_update_status_in_runtime.py`.
+- **Strip Layer 2 flag — pure callback-first (2026-06-30)**: Removed `order_status_query_enabled`, `TerminalHint`, `_terminal_hint_cache`, and all hint reconcile paths (fixed nested-lock deadlock on Cancelled callbacks). Settle/timeout uses `order_deal_records` + `list_positions` only. Tests: `test_no_update_status_in_runtime.py` (includes cancel-under-lock deadlock regression).
+- **Layer 2 v2 — callback-first terminal reconcile (2026-06-30)**: [superseded by strip above in same release]
 - **FT-003 sweep overlay keys**: `SWEEP_FIELD_TO_CONST` 補齊（含 `min_atr_threshold`、`ioc_slippage_points`、`pending_timeout_sec`、`momentum_vol_1s` 等）；`RuntimeConfig.__getattr__` overlay-aware；`apply_overlay` 對未知 key `raise ValueError`（杜絕靜默失效）。
 
 #### Added
