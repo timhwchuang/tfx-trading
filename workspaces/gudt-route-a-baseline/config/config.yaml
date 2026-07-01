@@ -17,7 +17,7 @@ strategy:
   min_atr_threshold: 25
   atr_period: 20
   pending_timeout_sec: 1
-  ioc_slippage_points: 3
+  ioc_slippage_points: 6  # GUDT replay: +3 miss on fast tape w/ 15ms mock latency (2/25, 3/18)
   exit_grace_ticks: 10
   exit_grace_sec: 10
 

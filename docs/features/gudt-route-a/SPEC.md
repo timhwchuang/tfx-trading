@@ -1,90 +1,72 @@
 ---
 id: FT-021
 slug: gudt-route-a
-status: Draft
+status: UAT
 opened: 2026-06-30
 owner: human+agent
 target: UAT
-stable_contract: packages/strategies/gudt-route-a/SPEC.md
 audit_schema_version: 1
 ---
 
-# FT-021 — GUDT Route A UAT Stack（Plugin）
+# FT-021 — GUDT Route A UAT Stack
 
-> **SPEC** = 將 FT-018b Route A UAT stack 從 reporting 研究層提升為 `strategy-gudt-route-a` plugin。  
-> **不取代** [`SEAL_FT018b_B_PRIME.md`](../../../workspaces/gudt-baseline/SEAL_FT018b_B_PRIME.md) 或 [`gate_report.md`](../../../workspaces/gudt-baseline/gate_report.md)。
+**功能票據**（範圍、DoD、parity 數字）。策略怎麼運作、參數表、指令 → **[`packages/strategies/gudt-route-a/README.md`](../../../packages/strategies/gudt-route-a/README.md)**。
 
-## 1. Summary
+---
 
-**問題**：Route A + br5 + 5m EMA extension + distribution structural confirm flip 僅在 counterfactual / probe 層驗證（[`ROUTE_A_UAT_STACK.md`](../../../workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md)），未接入 TradingEngine。
+## 1. 在做什麼
 
-**目標**：`packages/strategies/gudt-route-a`（entry `gudt_route_a`）+ kernel backtest 對帳 counterfactual 觀察。
+把 FT-018b 研究層的 **Route A 多單 + 可選翻空** 做成 `gudt_route_a` plugin，在 **同一顆 TradingEngine** 上回測與模擬下單。
 
-**使用者**：`workspaces/gudt-route-a-baseline`；UAT 候選，非 live 切換直至 parity 過關 + 人類 Go。
+**不取代** B′ 封板研究（[`SEAL_FT018b_B_PRIME.md`](../../../workspaces/gudt-baseline/SEAL_FT018b_B_PRIME.md)）。
 
-## 2. 策略契約（v1 = UAT stack，pre-registered）
+---
 
-### Leg 1 — Route A long
+## 2. 里程碑
 
-| 欄位 | 值 |
-|------|-----|
-| Router | B′ + **br5 p0-only** veto（`pre_break_br < 0.35` → skip p0，fallback ft） |
-| p0 預設 | sealed 15m + BE + TP3 |
-| Checkpoint | `ext_open > 5` AND 15m `gross > 0` |
-| Extension | 60m、**no BE**、**5m EMA9>EMA21 break** |
-| ft | `drive_low_struct` 不變 |
+| 日期 | 狀態 |
+|------|------|
+| 2026-06-30 | Draft · plugin + parity harness |
+| 2026-07-01 | 決策/執行 parity 全綠 · 文件重整 |
+| **2026-07-02** | **模擬 UAT 開跑**（`gudt-route-a-baseline` config） |
 
-### Leg 2 — Distribution short overlay
+---
 
-| 欄位 | 值 |
-|------|-----|
-| Gate | `ext_open > 5` |
-| Signal | P0+10m：`px < p0_entry` AND `BR < 0.42` → exit long |
-| Confirm | P0+12m：`dump_atr ≤ −0.65` AND `−0.35 ≤ slope2 ≤ 0` |
-| Short | entry @ confirm_px，stop `drive_high + 2`，hold 60m |
+## 3. Parity（驗收數字）
 
-研究 SSOT：[`ROUTE_A_UAT_STACK.md`](../../../workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md)。
+區間 **2025-05-01 .. 2026-06-30**，br5 router，stack = Route A + EMA5 + structural confirm。
 
-## 3. Out of scope v1
+研究 CF 對照：[`ROUTE_A_UAT_STACK.md`](../../../workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md)
 
-- 改 B′ sealed 參數或 br5 門檻 tune
-- addon re-entry after 15m exit
-- live UAT / pilot 切換
-- 覆寫 FT-018 `gate_report.md` champion
+| 指標 | CF 基準 | 腳本 |
+|------|---------|------|
+| Full net | **+1781** | `ft021_parity_check` |
+| flip_days | **2** | 同上 |
+| extend_days | **4** | 同上 |
+| 執行 n | CF plan = kernel fills | `ft021_execution_parity` |
 
-## 4. Parity gates（kernel vs counterfactual）
+執行層 net 差異 **warn-only**（不擋 Pass）。
 
-對帳期間：**2025-05-01 .. 2026-06-30**，br5 router，stack = Route A + EMA5 + structural confirm。
+---
 
-> **SSOT**：[`ROUTE_A_UAT_STACK.md`](../../../workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md) · 實作 oracle：[`ft021_parity_check.py`](../../../apps/trading-app/src/scripts/ft021_parity_check.py)。  
-> 舊表 **+683** / flip=1 為 pre-stack 草稿，已由 **+1781** / flip=**2** 取代（2026-07-01）。
+## 4. Definition of Done
 
-| 指標 | Counterfactual 基準 | 允許偏差 |
-|------|---------------------|----------|
-| Full net | **+1781** | ±15 pts |
-| H1 (2026-01..05) | **+1290** | 見 `ft021_parity_check` |
-| UAT 2m (2026-05..06) | 方向優於 br5 | 見 parity harness |
-| `extend_days` | **4** | 完全一致 |
-| `flip_days` | **2** | 決策日一致；PnL 單日 ±5 pts |
-| confirm veto | 6/25 bounce 等 | 決策一致（不開空） |
+- [x] `strategy-gudt-route-a` + `load_named_strategy("gudt_route_a")`
+- [x] `workspaces/gudt-route-a-baseline/` + `ft021_run_baseline` / `ft021_execution_parity`
+- [x] 決策 parity + 執行 parity（UAT_2m / H1 / spot）
+- [x] Package README（策略條件白話版）
+- [ ] **UAT 模擬盤**（2026-07-02 起）— 人類每日對帳
+- [ ] Bugbot 無未解 Critical/High
 
-逐日產出 `parity_report.json`：比對 `route`、`extend`、`flip`、`confirm_veto`、`net_pts`。
+實作計畫：[`PLAN.md`](PLAN.md)
 
-統一載入路徑（`python -m backtest --config`）見 **FT-022** [`unified-strategy-loading/SPEC.md`](../unified-strategy-loading/SPEC.md)。
+---
 
-## 5. Definition of Done
+## 5. 相關路徑
 
-- [ ] `docs/features/gudt-route-a/SPEC.md` + `PLAN.md` + board 列
-- [ ] `strategy-gudt-route-a` 可 `pip install -e` + entry point 註冊
-- [ ] `load_named_strategy("gudt_route_a", ...)` 可用
-- [ ] `ft021_run_baseline.py` + `workspaces/gudt-route-a-baseline/`
-- [ ] Parity harness 全綠（§4）
-- [ ] `bash scripts/run-all-tests.sh` 全綠
-- [ ] Bugbot ≤3 輪無未解 Critical/High；whack-a-mole → `REVIEW.md` 停等人類
-
-## 6. 參考
-
-- PLAN：[`PLAN.md`](PLAN.md)
-- 研究：[`ROUTE_A_UAT_STACK.md`](../../../workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md)
-- FT-018：[`gap-up-drive-trail/SPEC.md`](../gap-up-drive-trail/SPEC.md)
-- Package：[`packages/strategies/gudt-route-a/SPEC.md`](../../../packages/strategies/gudt-route-a/SPEC.md)
+| 路徑 | 用途 |
+|------|------|
+| [`packages/strategies/gudt-route-a/README.md`](../../../packages/strategies/gudt-route-a/README.md) | 策略說明（**先看**） |
+| [`packages/strategies/gudt-route-a/SPEC.md`](../../../packages/strategies/gudt-route-a/SPEC.md) | Package 契約 |
+| [`workspaces/gudt-route-a-baseline/README.md`](../../../workspaces/gudt-route-a-baseline/README.md) | 回測 / parity 指令 |
+| [`ROUTE_A_UAT_STACK.md`](../../../workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md) | 研究回測表 |

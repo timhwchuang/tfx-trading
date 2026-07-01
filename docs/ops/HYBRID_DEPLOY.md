@@ -21,7 +21,7 @@
 | **tick_cache 寫入** | 從 GCE sync 讀 | **是**（盤中 archive：ticks + kbars） |
 | **回測 / CAL** | **是** | 僅 smoke test |
 | **UAT 證據 git** | commit 分析結果 | commit 當日 `reports/`、`snapshots/` |
-| **config SSOT** | git `apps/trading-app/config/config.yaml` | 部署時 pull 同 commit |
+| **config SSOT** | git `workspaces/gudt-route-a-baseline/config/config.yaml`（UAT 2026-07-02 起）；舊 `apps/trading-app/config` = vwap_momentum 工程預設 |
 
 ## 2. 為何 GCE Live + 地端回測
 

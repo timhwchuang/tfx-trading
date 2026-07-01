@@ -9,6 +9,29 @@
 
 ---
 
+### 2026-07-01（GUDT Route A — 模擬 UAT 啟動 7/2）
+
+**決策**
+- **2026-07-02（週三）** 起以 `strategy.name: gudt_route_a` 跑 **模擬盤 UAT**（非 pilot、非實單）。
+- 設定 SSOT：[`workspaces/gudt-route-a-baseline/config/config.yaml`](../workspaces/gudt-route-a-baseline/config/config.yaml)
+- 策略說明（什麼日子交易、進出場條件）：[`packages/strategies/gudt-route-a/README.md`](../packages/strategies/gudt-route-a/README.md)
+
+**上線前已過的 gate**
+- 決策 parity：`ft021_parity_check`（路徑 / skip / flip 與 CF 一致）
+- 執行 parity：`ft021_execution_parity` — UAT_2m **13/13** · 2026 H1 **40/40** · 2025-11 spot **5/5**（硬條件 = **成交趟數 n 一致**）
+- 回測加速：UAT_2m slice ~78s（event jump + reconcile fast-path）
+
+**UAT 期間人類必做**
+- [ ] 每交易日收盤後：`sync_positions` / audit 對帳無 CRITICAL
+- [ ] 有成交日：記一筆 `NET_COMPARE`（CF plan gross vs kernel gross，見 [`SPOT_CHECK_LOG.md`](../workspaces/gudt-route-a-baseline/reports/SPOT_CHECK_LOG.md)）
+- [ ] 遇 IOC miss / flatten 異常：截 log + 當日 probe 行寫進 spot log
+
+**備註**
+- Kernel net **≠** CF oracle 屬預期（出場 IOC、13:40 flatten、`ioc_slippage_points`）；**n 不一致** 才擋。
+- 研究數字對照：[`ROUTE_A_UAT_STACK.md`](../workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md)
+
+---
+
 ### 2026-06-30（移除 Layer 2 開關 — 純 callback-first）
 
 **決策**

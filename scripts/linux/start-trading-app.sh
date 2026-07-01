@@ -2,9 +2,9 @@
 # Start live/simulation session (Linux / GCE). See docs/ops/LinuxOps.md
 set -euo pipefail
 
-MONOREPO_ROOT="${MONOREPO_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
-VENV_PYTHON="${VENV_PYTHON:-$MONOREPO_ROOT/.venv/bin/python}"
-SRC_DIR="$MONOREPO_ROOT/apps/trading-app/src"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/common-env.sh"
 
 if [[ ! -x "$VENV_PYTHON" ]]; then
   echo "找不到 venv Python: $VENV_PYTHON （請在 monorepo 根執行 bash scripts/setup-dev.sh）" >&2

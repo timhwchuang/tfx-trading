@@ -1,0 +1,39 @@
+{
+  "from": "2025-11-03",
+  "to": "2025-11-28",
+  "plans_source": "bootstrap",
+  "cf_net_total": 18.23,
+  "cf_extend_days": 0,
+  "cf_flip_days": 0,
+  "cf_confirm_veto": 0,
+  "slices": {
+    "H1_2026": 0,
+    "UAT_2m": 0,
+    "full": 18.23
+  },
+  "br5_slices": {
+    "H1_2026": 0,
+    "UAT_2m": 0,
+    "full": 18.23
+  },
+  "kernel_daily_pnl_points": 0.0,
+  "targets": {
+    "full_net": 1781.0,
+    "full_net_tol": 15.0,
+    "extend_days": 4,
+    "flip_days": 2
+  },
+  "decision_mismatches": [],
+  "skip_stats": {
+    "router_skip": 2,
+    "not_gudt_day": 13
+  },
+  "pass": false,
+  "failures": [
+    "full_net 18.23 not within \u00b115.0 of 1781.0",
+    "extend_days 0 != 4",
+    "flip_days 0 != 2",
+    "H1 2026 0.0 not within \u00b115.0 of 1290.0",
+    "UAT 2m not better than br5: 0.0 vs 0.0"
+  ]
+}

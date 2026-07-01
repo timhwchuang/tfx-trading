@@ -27,9 +27,11 @@ if [[ ! -f /etc/tfx-trading/env ]]; then
 SJ_API_KEY=
 SJ_SEC_KEY=
 LOG_FILE=/var/log/tfx-trading/trading-app-uat.log
-CONFIG_PATH=/opt/tfx-trading/apps/trading-app/config/config.yaml
+# UAT 策略：改 CONFIG_PATH 後 systemctl restart tfx-trading（見 docs/ops/LinuxOps.md §策略切換）
+CONFIG_PATH=/opt/tfx-trading/workspaces/gudt-route-a-baseline/config/config.yaml
 TICK_ARCHIVE=1
 KBARS_ARCHIVE=1
+FT003_HOLDOUT_UNSEAL=1
 EOF
   echo "已建立 /etc/tfx-trading/env — 請填入 API 金鑰後 systemctl start tfx-trading"
 fi

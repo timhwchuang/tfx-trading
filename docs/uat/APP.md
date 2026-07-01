@@ -18,11 +18,11 @@
 | **6. 切換正式 CA 準備** | ☐ | | | |
 | **7. Pilot 執行（1 口規則）** | ☐ | | | |
 
-**目前下一步建議**：**2026-06-24** GCE 自動排程首個完整 **Phase 1** 交易日 → 13:54 post-session → 地端 `sync-from-gce.sh` → 簽名 Phase 1
+**目前下一步建議**：**2026-07-02** 起 GCE 以 **`gudt_route_a`** 跑模擬 UAT（`CONFIG_PATH=workspaces/gudt-route-a-baseline/config/config.yaml`）→ 13:54 post-session → 地端 `sync-from-gce.sh` → 簽名 Phase 1
 
-**GCE Live**：見 [`ops/LinuxOps.md`](../ops/LinuxOps.md) §GCE（`e2-medium`，08:30–14:00 排程）。
+**GCE Live**：見 [`ops/LinuxOps.md`](../ops/LinuxOps.md) §GCE（`e2-medium`，08:30–14:00 排程）。**換策略**：改 `/etc/tfx-trading/env` 的 `CONFIG_PATH` → `systemctl restart tfx-trading`。
 
-**本週重點**：GCE 累積 `tick_cache/TMFR1_*.csv`（>1MB）並更新 `snapshots/determinism_YYYYMMDD.txt`
+**本週重點**：GUDT UAT 首日 — 確認 `gudt_live state=PlanReady` 或 `gudt_skip`；累積 `tick_cache/TMFR1_*.csv`；更新 `snapshots/determinism_YYYYMMDD.txt`；有成交則記 `SPOT_CHECK_LOG`
 
 ---
 
@@ -44,7 +44,7 @@
    - `git status && git add reports/ snapshots/ uat_evidence/`
    - `git commit -m "UAT Phase X complete - YYYYMMDD"`
    - 執行 `python -m sweep.determinism_check --date YYYYMMDD` 並把 hash 寫入 snapshots/
-   - `cp apps/trading-app/config/config.yaml snapshots/config_YYYYMMDD.yaml`
+   - `cp workspaces/gudt-route-a-baseline/config/config.yaml snapshots/config_YYYYMMDD.yaml`
    - 在本文件表格簽名 + 填證據路徑
 
 3. **與 Kernel Checklist 整合**：
@@ -84,7 +84,7 @@
 | 0.6 | 確認 simulation + 建立 log 目錄 | ☑ | `config/config.yaml` 是 true；`mkdir C:\logs` 或 repo `logs/` | `simulation: true`；`logs/trading-app-uat.log` |
 | 0.7 | 第一次啟動驗證 | ☑ | `cd apps/trading-app/src && python -m live`（跑 10 分鐘 Ctrl+C） | `live_smoke_20260622.txt`：登入 TXFR1、ATR、`DECISION_AUDIT` |
 | 0.7b | 冒煙日報（選做） | ☑ | **monorepo 根**：`PYTHONPATH=apps/trading-app/src python -m reporting "$LOG_FILE" --json > reports/dayYYYYMMDD.json` | `reports/day20260622.json` |
-| 0.8 | **強制證據收集** | ☑ | `cp apps/trading-app/config/config.yaml snapshots/config_YYYYMMDD.yaml`；git commit snapshots/（**不含** log、金鑰） | `snapshots/config_20260622.yaml`（Phase 0 時 TXFR1）；commit `91d34ed` |
+| 0.8 | **強制證據收集** | ☑ | `cp workspaces/gudt-route-a-baseline/config/config.yaml snapshots/config_YYYYMMDD.yaml`；git commit snapshots/（**不含** log、金鑰） | `snapshots/config_20260622.yaml`（Phase 0 時 TXFR1）；commit `91d34ed` |
 
 **完成條件**：0.1–0.8 ☑ + `snapshots/config_20260622.yaml`。Phase 0 **不要求** tick csv >1MB、`storage` 壓縮或 determinism hash（`snapshots/determinism_20260622.txt` = **deferred**，見 Phase 1）。
 
@@ -103,7 +103,8 @@
 > **GCE Live**（目前路徑）：08:30 排程開機 → systemd 自動 `tfx-trading`；收盤 **13:50** root `systemctl stop` → **13:54** `post-session.sh`（見 [`ops/LinuxOps.md`](../ops/LinuxOps.md)）。地端收盤後 `GCE_HOST=<deploy-user>@<IP> bash scripts/linux/sync-from-gce.sh`，再 commit `reports/`、`snapshots/`。Phase 0 證據來自地端冒煙；Phase 1 以 **GCE 當日** `reports/day*.json` 為準。
 
 1. **早盤前（08:30 前）**
-   - GCE：確認排程開機 + `systemctl status tfx-trading`（或地端手動：`cd apps/trading-app/src && python -m live`）
+   - GCE：確認排程開機 + `systemctl status tfx-trading`（`CONFIG_PATH` 應指向 `gudt-route-a-baseline`）
+   - 確認昨日 tick/kbar 已在 `tick_cache/`（GUDT live bootstrap 需要）
 
 2. **盤中**
    - 確認 `tick_cache\{product_code}_YYYY-MM-DD.csv`（預設 `TMFR1`）大小持續增加

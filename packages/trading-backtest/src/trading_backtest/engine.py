@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import logging
 from typing import Any
 
 from trading_engine.adapters.mock import MockOrderAdapter
@@ -18,8 +19,11 @@ from trading_engine.core.side_effect_ports import (
 from trading_engine.core.strategy import Strategy
 from trading_engine.engine import TradingEngine
 
+from trading_backtest.gudt_replay_jump import host_needs_reconcile, maybe_gudt_jump
 from trading_backtest.loader import DEFAULT_CACHE_DIR
 from trading_backtest.mock_broker import MockBroker
+
+logger = logging.getLogger(__name__)
 
 
 class VirtualClock:
@@ -89,36 +93,58 @@ class BacktestEngine:
         self.dates = dates
         self.cache_dir = cache_dir
         self._cfg = cfg
+        self._gudt_jump = maybe_gudt_jump(strategy, cfg)
 
     def run(self) -> None:
         from trading_backtest.loader import iter_replay_ticks
 
+        jump = self._gudt_jump
         for tick in iter_replay_ticks(self.code, self.dates, cache_dir=self.cache_dir):
-            self.clock.set(tick.datetime.timestamp())
+            tick_ts = tick.datetime.timestamp()
+            day_str = tick.datetime.date().isoformat()
+            reconcile = host_needs_reconcile(self.host)
+            if jump is not None:
+                jump.set_active(reconcile)
+                if jump.should_skip(tick_ts, day_str):
+                    continue
+
+            self.clock.set(tick_ts)
             self.broker.current_dt = tick.datetime
             self.broker.process_matching_queue(tick, self.host)
-            self.host._check_pending_timeout()
-            # P0-5 (truth-driven execution): deterministically drive the settle /
-            # convergence / reconcile steps the live timeout loop runs every 1s.
-            self.host._settle_via_reconcile()
-            self.host._maybe_converge_flatten()
-            self.host._maybe_emergency_market_flatten()
-            self.host._check_position_reconcile()
+            if self.host.is_pending:
+                self.host._check_pending_timeout()
+            if host_needs_reconcile(self.host):
+                self.host._settle_via_reconcile()
+                self.host._maybe_converge_flatten()
+                self.host._maybe_emergency_market_flatten()
+                self.host._check_position_reconcile()
             if is_trading_session(
                 tick.datetime,
                 self._cfg.session_start,
                 self._cfg.session_end,
             ):
-                # Exchange date must be set before ATR refresh; _today() falls back to
-                # wall clock when _last_tick_exchange_dt is None (breaks determinism).
                 self.host._last_tick_exchange_dt = tick.datetime
-                self.host._last_tick_exchange_ts = int(tick.datetime.timestamp())
+                self.host._last_tick_exchange_ts = int(tick_ts)
                 _pre_tick_refresh_atr(
                     self.host,
-                    int(tick.datetime.timestamp()),
+                    int(tick_ts),
                     self._cfg.atr_refresh_sec,
                 )
                 self.host.on_tick(tick)
+            if jump is not None:
+                jump.on_tick_processed(
+                    tick_ts,
+                    day_str,
+                    idle=not host_needs_reconcile(self.host),
+                )
+
+        if jump is not None and jump.skipped_ticks:
+            logger.info(
+                "GUDT replay jump | processed=%d skipped=%d (%.1f%%)",
+                jump.processed_ticks,
+                jump.skipped_ticks,
+                100.0 * jump.skipped_ticks / (jump.processed_ticks + jump.skipped_ticks),
+            )
         if self.host._last_tick_exchange_dt is not None:
             self.host._emit_daily_summary(self.host._last_tick_exchange_dt.date())
 

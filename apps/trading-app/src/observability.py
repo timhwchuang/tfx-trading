@@ -394,14 +394,16 @@ class DailyObservability:
         performance = compute_performance_from_fills(
             self.fills, friction, sharpe_period=app_settings.sharpe_period
         )
-        return {
+        strategy_name = getattr(runtime_config, "strategy_name", None) or ""
+        is_gudt = strategy_name == "gudt_route_a"
+        summary: dict[str, Any] = {
             "date": trade_date,
             "params": build_config_snapshot(runtime_config),
             "signals": {
                 "momentum_triggers": self.momentum_triggers,
                 "entry_signals": self.entry_signals,
                 "exit_signals": self.exit_signals,
-                "momentum_to_entry_conversion": conversion,
+                "momentum_to_entry_conversion": conversion if not is_gudt else None,
             },
             "fills": {
                 "entry_count": len(entry_fills),
@@ -421,16 +423,24 @@ class DailyObservability:
                 "count": len(quick_sl),
                 "rate": len(quick_sl) / completed_exits if completed_exits else None,
             },
-            "near_miss": self.near_miss.to_dict(),
-            "episode_funnel": {
+        }
+        if is_gudt:
+            summary["gudt_replay"] = {
+                "entry_signals": self.entry_signals,
+                "exit_signals": self.exit_signals,
+                "completed_rounds": completed_exits,
+            }
+        else:
+            summary["near_miss"] = self.near_miss.to_dict()
+            summary["episode_funnel"] = {
                 "armed": self.momentum_triggers,
                 "entered": self.entry_signals,
                 "timeout": self.momentum_timeouts,
                 "veto": self.trend_vetoes + self.structure_vetoes,
                 "trend_veto": self.trend_vetoes,
                 "structure_veto": self.structure_vetoes,
-            },
-            "pressure": {
+            }
+            summary["pressure"] = {
                 "max_consecutive_veto": self.max_consecutive_veto,
                 "max_consecutive_timeout": self.max_consecutive_timeout,
                 "max_episodes_without_entry": self.max_episodes_without_entry,
@@ -440,31 +450,31 @@ class DailyObservability:
                     else None
                 ),
                 "risk_blocked_count": self.risk_blocked_count,
-            },
-            "operational": {
-                "intent_cancelled": self.intent_cancelled,
-                "intent_cancelled_open_session": self.intent_cancelled_open_session,
-                "intent_cancel_rate": (
-                    self.intent_cancelled / self.entry_signals
-                    if self.entry_signals
-                    else None
-                ),
-                "open_session_cancel_rate": (
-                    self.intent_cancelled_open_session / self.entry_signals
-                    if self.entry_signals
-                    else None
-                ),
-                "tick_type0_pct": round(type0_pct, 2) if type0_pct is not None else None,
-                "tick_type_inferred": dict(self.tick_type_inferred_counts),
-                "tick_type_inferred_total": inferred_total,
-                "lock_wait_max_ms": self.lock_wait_max_ms,
-                "lock_wait_over_50ms": self.lock_wait_over_50ms,
-                "no_tick_resubscribe": self.no_tick_resubscribe,
-                "no_tick_escalations": self.no_tick_escalations,
-                "atr_min": self.atr_min,
-                "atr_max": self.atr_max,
-            },
+            }
+        summary["operational"] = {
+            "intent_cancelled": self.intent_cancelled,
+            "intent_cancelled_open_session": self.intent_cancelled_open_session,
+            "intent_cancel_rate": (
+                self.intent_cancelled / self.entry_signals
+                if self.entry_signals
+                else None
+            ),
+            "open_session_cancel_rate": (
+                self.intent_cancelled_open_session / self.entry_signals
+                if self.entry_signals
+                else None
+            ),
+            "tick_type0_pct": round(type0_pct, 2) if type0_pct is not None else None,
+            "tick_type_inferred": dict(self.tick_type_inferred_counts),
+            "tick_type_inferred_total": inferred_total,
+            "lock_wait_max_ms": self.lock_wait_max_ms,
+            "lock_wait_over_50ms": self.lock_wait_over_50ms,
+            "no_tick_resubscribe": self.no_tick_resubscribe,
+            "no_tick_escalations": self.no_tick_escalations,
+            "atr_min": self.atr_min,
+            "atr_max": self.atr_max,
         }
+        return summary
 
     def reset(self) -> None:
         self.near_miss = NearMissTracker()

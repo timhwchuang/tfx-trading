@@ -1,5 +1,5 @@
 [Unit]
-Description=tfx-trading VWAP momentum live session (Shioaji)
+Description=tfx-trading live/sim session (Shioaji; strategy from CONFIG_PATH)
 After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=300

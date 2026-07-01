@@ -14,6 +14,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **GUDT Route A UAT 啟動（2026-07-02）**：`strategy.name: gudt_route_a` 模擬盤 UAT 自 **2026-07-02** 起；設定 [`workspaces/gudt-route-a-baseline/config/config.yaml`](workspaces/gudt-route-a-baseline/config/config.yaml)；策略白話說明 SSOT → [`packages/strategies/gudt-route-a/README.md`](packages/strategies/gudt-route-a/README.md)。
+- **FT-021 文件重整（2026-07-01）**：package `README.md` / `SPEC.md` 自包含（條件、參數、parity 門檻）；`docs/features/gudt-route-a/SPEC.md` 收斂為 FT-021 票據；執行層 parity（`ft021_execution_parity` · UAT_2m **13/13** · H1 **40/40** · 2025-11 spot **5/5**）· `ioc_slippage_points: 6` · `SPOT_CHECK_LOG` net 對照。
 - **FT-022 Phase 5（2026-07-01）**：`ft021_parity_check` 統一 bootstrap 路徑 · `research.json` / `parity.json` · `param_sweep` 讀 `strategy.name` · 根 SPEC §4 已接線。
 - **FT-022 Phase 4（2026-07-01）**：`python -m live --config` 統一策略載入 · `GudtLiveBootstrapCoordinator` staged 狀態機 · `apply_intraday_plan` · [`LIVE_SAFETY`](docs/ops/LIVE_SAFETY.md) GUDT 前置條件。
 - **FT-022 Phase 3（2026-07-01）**：`python -m backtest --config` 統一策略載入 · `ft021_run_baseline` 薄 wrapper · `--report-json` / `--plans-out` / `--probe-csv`。
@@ -267,9 +269,29 @@ UAT-ready release addressing CodeReview#2 (see `docs/ARCHIVE/reviews/` for re-re
 
 ---
 
+## strategy-gudt-route-a
+
+### [Unreleased]
+
+#### Added
+
+- **執行層觀測**：`record_entry_signal` / `record_exit_signal`（`gudt_replay` observability block）；`reset()` no-op 避免行程表 rewind。
+- **文件**：[`README.md`](packages/strategies/gudt-route-a/README.md)（策略條件、路徑、翻空、怎麼跑）；[`SPEC.md`](packages/strategies/gudt-route-a/SPEC.md)（package 契約，不重複引用鏈）。
+
+#### Changed
+
+- UAT workspace `ioc_slippage_points` **6**（baseline config）。
+
+---
+
 ## trading-backtest
 
 ### [Unreleased]
+
+#### Added
+
+- **GUDT event jump**：`gudt_replay_jump.py` — 無 pending/持倉時跳至下一個 `DayReplayPlan` 事件 tick（支援 dict 與 `DayReplayPlan` 物件）。
+- **Reconcile fast-path**：模擬且無 pending / settling / 持倉時略過每 tick 對帳。
 
 #### Changed
 

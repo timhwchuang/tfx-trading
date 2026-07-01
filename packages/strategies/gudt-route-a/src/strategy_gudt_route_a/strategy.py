@@ -85,10 +85,10 @@ class GudtRouteAStrategy(BaseStrategy):
         self._pending_events = list(self._plan.events) if self._plan and not self._plan.skipped else []
 
     def reset(self) -> None:
-        self._current_day = None
-        self._plan = None
-        self._event_idx = 0
-        self._pending_events = []
+        # Engine calls reset() after entry fills to clear momentum episode state.
+        # Replay cursor (_event_idx / _pending_events) must survive fills; rewinding
+        # would re-fire long_entry after session flatten on the same day.
+        return
 
     def evaluate(
         self,
@@ -101,6 +101,7 @@ class GudtRouteAStrategy(BaseStrategy):
         max_daily_loss_points: float,
         on_daily_loss_block: Any = None,
     ) -> tuple[OrderSignal | None, StrategySideEffects]:
+        vol_min = vol_threshold[0]
         del risk, vol_threshold, session_force_flatten_time, max_daily_loss_points, on_daily_loss_block
         self._ensure_day(market)
         if not self._pending_events or self._plan is None or self._plan.skipped:
@@ -120,8 +121,7 @@ class GudtRouteAStrategy(BaseStrategy):
             if ev.leg == "long_entry" and pos_dir == "Flat":
                 self._event_idx += 1
                 if self.obs is not None:
-                    self.obs.record_momentum_trigger()
-                    self.obs.record_momentum_entry()
+                    self.obs.record_entry_signal()
                 logger.info("GUDT Route A long entry @ %.1f path=%s", ev.price, self._plan.path)
                 return (
                     OrderSignal(
@@ -130,13 +130,15 @@ class GudtRouteAStrategy(BaseStrategy):
                         ev.price,
                         "entry",
                         exchange_ts=market.ts,
-                        audit=self.build_entry_audit(market, "Buy", 1.0, vol_threshold[0]),
+                        audit=self.build_entry_audit(market, "Buy", 1.0, vol_min),
                     ),
                     StrategySideEffects(),
                 )
 
             if ev.leg == "long_exit" and pos_dir == "Long":
                 self._event_idx += 1
+                if self.obs is not None:
+                    self.obs.record_exit_signal()
                 return (
                     OrderSignal(
                         "Sell",
@@ -157,6 +159,8 @@ class GudtRouteAStrategy(BaseStrategy):
 
             if ev.leg == "short_entry" and pos_dir == "Flat":
                 self._event_idx += 1
+                if self.obs is not None:
+                    self.obs.record_entry_signal()
                 logger.info("GUDT Route A short entry @ %.1f reason=%s", ev.price, ev.reason)
                 return (
                     OrderSignal(
@@ -165,13 +169,15 @@ class GudtRouteAStrategy(BaseStrategy):
                         ev.price,
                         "entry",
                         exchange_ts=market.ts,
-                        audit=self.build_entry_audit(market, "Sell", 1.0, vol_threshold[0]),
+                        audit=self.build_entry_audit(market, "Sell", 1.0, vol_min),
                     ),
                     StrategySideEffects(),
                 )
 
             if ev.leg == "short_exit" and pos_dir == "Short":
                 self._event_idx += 1
+                if self.obs is not None:
+                    self.obs.record_exit_signal()
                 return (
                     OrderSignal(
                         "Buy",

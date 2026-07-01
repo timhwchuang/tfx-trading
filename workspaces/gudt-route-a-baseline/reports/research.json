@@ -1,0 +1,83 @@
+{
+  "strategy": "gudt_route_a",
+  "from": "2025-11-03",
+  "to": "2025-11-28",
+  "cf_net_total": 18.23,
+  "cf_n": 5,
+  "cf_extend_days": 0,
+  "cf_flip_days": 0,
+  "cf_confirm_veto": 0,
+  "slices": {
+    "H1_2026": 0,
+    "UAT_2m": 0,
+    "full": 18.23
+  },
+  "picks": [
+    {
+      "day": "2025-11-04",
+      "path": "flow_turn+drive_low_struct",
+      "net": -19.0,
+      "exit_reason": "stop_loss",
+      "long_net": -19.0,
+      "short_net": 0.0,
+      "hedge": "none",
+      "long_exit": "stop_loss",
+      "route_a_extended": false,
+      "stack": "route_a_uat"
+    },
+    {
+      "day": "2025-11-12",
+      "path": "flow_turn+drive_low_struct",
+      "net": 34.23,
+      "exit_reason": "trail_stop",
+      "long_net": 34.23,
+      "short_net": 0.0,
+      "hedge": "none",
+      "long_exit": "trail_stop",
+      "route_a_extended": false,
+      "stack": "route_a_uat"
+    },
+    {
+      "day": "2025-11-17",
+      "path": "flow_turn+drive_low_struct",
+      "net": -13.0,
+      "exit_reason": "stop_loss",
+      "long_net": -13.0,
+      "short_net": 0.0,
+      "hedge": "none",
+      "long_exit": "stop_loss",
+      "route_a_extended": false,
+      "stack": "route_a_uat"
+    },
+    {
+      "day": "2025-11-25",
+      "path": "flow_turn+drive_low_struct",
+      "net": -18.0,
+      "exit_reason": "stop_loss",
+      "long_net": -18.0,
+      "short_net": 0.0,
+      "hedge": "none",
+      "long_exit": "stop_loss",
+      "route_a_extended": false,
+      "stack": "route_a_uat"
+    },
+    {
+      "day": "2025-11-27",
+      "path": "flow_turn+drive_low_struct",
+      "net": 34.0,
+      "exit_reason": "trail_stop",
+      "long_net": 34.0,
+      "short_net": 0.0,
+      "hedge": "none",
+      "long_exit": "trail_stop",
+      "route_a_extended": false,
+      "stack": "route_a_uat"
+    }
+  ],
+  "skip_stats": {
+    "router_skip": 2,
+    "not_gudt_day": 13
+  },
+  "plan_days": 20,
+  "traded_plan_days": 5
+}

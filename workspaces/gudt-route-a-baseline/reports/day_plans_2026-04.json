@@ -1,0 +1,352 @@
+{
+  "2026-04-01": {
+    "path": "flow_turn+drive_low_struct",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1775007900,
+        "action": "Buy",
+        "price": 33140.0,
+        "leg": "long_entry",
+        "reason": "flow_turn+drive_low_struct"
+      },
+      {
+        "ts": 1775008800,
+        "action": "Sell",
+        "price": 33207.0,
+        "leg": "long_exit",
+        "reason": "horizon"
+      }
+    ],
+    "meta": {
+      "net": 62.0,
+      "hedge": "none",
+      "dist_confirm": null,
+      "route_a_extended": false,
+      "long_exit": "horizon"
+    }
+  },
+  "2026-04-07": {
+    "path": "flow_turn+drive_low_struct",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1775526859,
+        "action": "Buy",
+        "price": 33060.0,
+        "leg": "long_entry",
+        "reason": "flow_turn+drive_low_struct"
+      },
+      {
+        "ts": 1775526859,
+        "action": "Sell",
+        "price": 33154.0,
+        "leg": "long_exit",
+        "reason": "stop_loss"
+      }
+    ],
+    "meta": {
+      "net": 89.0,
+      "hedge": "none",
+      "dist_confirm": null,
+      "route_a_extended": false,
+      "long_exit": "stop_loss"
+    }
+  },
+  "2026-04-08": {
+    "path": "flow_turn+drive_low_struct",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1775612700,
+        "action": "Buy",
+        "price": 34738.0,
+        "leg": "long_entry",
+        "reason": "flow_turn+drive_low_struct"
+      },
+      {
+        "ts": 1775613189,
+        "action": "Sell",
+        "price": 34832.91,
+        "leg": "long_exit",
+        "reason": "trail_stop"
+      }
+    ],
+    "meta": {
+      "net": 89.91,
+      "hedge": "none",
+      "dist_confirm": null,
+      "route_a_extended": false,
+      "long_exit": "trail_stop"
+    }
+  },
+  "2026-04-10": {
+    "path": "flow_turn+drive_low_struct",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1775785500,
+        "action": "Buy",
+        "price": 35470.0,
+        "leg": "long_entry",
+        "reason": "flow_turn+drive_low_struct"
+      },
+      {
+        "ts": 1775786400,
+        "action": "Sell",
+        "price": 35462.0,
+        "leg": "long_exit",
+        "reason": "horizon"
+      }
+    ],
+    "meta": {
+      "net": -13.0,
+      "hedge": "none",
+      "dist_confirm": "veto",
+      "route_a_extended": false,
+      "long_exit": "horizon"
+    }
+  },
+  "2026-04-14": {
+    "path": "flow_turn+drive_low_struct",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1776132150,
+        "action": "Buy",
+        "price": 36003.0,
+        "leg": "long_entry",
+        "reason": "flow_turn+drive_low_struct"
+      },
+      {
+        "ts": 1776132150,
+        "action": "Sell",
+        "price": 36038.0,
+        "leg": "long_exit",
+        "reason": "stop_loss"
+      }
+    ],
+    "meta": {
+      "net": 30.0,
+      "hedge": "none",
+      "dist_confirm": null,
+      "route_a_extended": false,
+      "long_exit": "stop_loss"
+    }
+  },
+  "2026-04-15": {
+    "path": "p0+sealed",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1776217500,
+        "action": "Buy",
+        "price": 36982.0,
+        "leg": "long_entry",
+        "reason": "p0+sealed"
+      },
+      {
+        "ts": 1776217848,
+        "action": "Sell",
+        "price": 37028.6,
+        "leg": "long_exit",
+        "reason": "trail_stop"
+      }
+    ],
+    "meta": {
+      "net": 41.6,
+      "hedge": "none",
+      "dist_confirm": null,
+      "route_a_extended": false,
+      "long_exit": "trail_stop"
+    }
+  },
+  "2026-04-16": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "router_skip"
+    }
+  },
+  "2026-04-20": {
+    "path": "flow_turn+drive_low_struct",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1776649500,
+        "action": "Buy",
+        "price": 37621.0,
+        "leg": "long_entry",
+        "reason": "flow_turn+drive_low_struct"
+      },
+      {
+        "ts": 1776650400,
+        "action": "Sell",
+        "price": 37635.0,
+        "leg": "long_exit",
+        "reason": "horizon"
+      }
+    ],
+    "meta": {
+      "net": 9.0,
+      "hedge": "none",
+      "dist_confirm": null,
+      "route_a_extended": false,
+      "long_exit": "horizon"
+    }
+  },
+  "2026-04-21": {
+    "path": "flow_turn+drive_low_struct",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1776737022,
+        "action": "Buy",
+        "price": 37908.0,
+        "leg": "long_entry",
+        "reason": "flow_turn+drive_low_struct"
+      },
+      {
+        "ts": 1776737922,
+        "action": "Sell",
+        "price": 38020.0,
+        "leg": "long_exit",
+        "reason": "horizon"
+      }
+    ],
+    "meta": {
+      "net": 107.0,
+      "hedge": "none",
+      "dist_confirm": null,
+      "route_a_extended": false,
+      "long_exit": "horizon"
+    }
+  },
+  "2026-04-23": {
+    "path": "flow_turn+drive_low_struct",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1776909767,
+        "action": "Buy",
+        "price": 38496.0,
+        "leg": "long_entry",
+        "reason": "flow_turn+drive_low_struct"
+      },
+      {
+        "ts": 1776909767,
+        "action": "Sell",
+        "price": 38739.0,
+        "leg": "long_exit",
+        "reason": "stop_loss"
+      }
+    ],
+    "meta": {
+      "net": 238.0,
+      "hedge": "none",
+      "dist_confirm": null,
+      "route_a_extended": false,
+      "long_exit": "stop_loss"
+    }
+  },
+  "2026-04-24": {
+    "path": "p0+sealed",
+    "skipped": false,
+    "events": [
+      {
+        "ts": 1776995266,
+        "action": "Buy",
+        "price": 38818.0,
+        "leg": "long_entry",
+        "reason": "p0+sealed"
+      },
+      {
+        "ts": 1776995385,
+        "action": "Sell",
+        "price": 38984.29,
+        "leg": "long_exit",
+        "reason": "take_profit"
+      }
+    ],
+    "meta": {
+      "net": 161.29,
+      "hedge": "none",
+      "dist_confirm": null,
+      "route_a_extended": false,
+      "long_exit": "take_profit"
+    }
+  },
+  "2026-04-27": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "router_skip"
+    }
+  },
+  "2026-04-02": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "not_gudt_day"
+    }
+  },
+  "2026-04-09": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "not_gudt_day"
+    }
+  },
+  "2026-04-13": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "not_gudt_day"
+    }
+  },
+  "2026-04-17": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "not_gudt_day"
+    }
+  },
+  "2026-04-22": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "not_gudt_day"
+    }
+  },
+  "2026-04-28": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "not_gudt_day"
+    }
+  },
+  "2026-04-29": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "not_gudt_day"
+    }
+  },
+  "2026-04-30": {
+    "path": "skip",
+    "skipped": true,
+    "events": [],
+    "meta": {
+      "skip_reason": "not_gudt_day"
+    }
+  }
+}

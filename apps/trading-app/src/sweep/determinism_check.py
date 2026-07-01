@@ -11,6 +11,9 @@ from typing import Iterable, List
 
 from backtest.engine import BacktestEngine
 from config import PRODUCT_CODE
+from core.runtime_config import default_runtime_config
+from integrations.engine_wiring import build_strategy_session
+from observability import DailyObservability
 from storage.tick_loader import DEFAULT_CACHE_DIR
 
 _AUDIT_PREFIXES = ("SIGNAL_AUDIT ", "FILL_AUDIT ", "DAILY_SUMMARY ", "DECISION_AUDIT ", "EXEC_AUDIT ")
@@ -26,7 +29,11 @@ _NON_DETERMINISTIC_OPERATIONAL_KEYS = frozenset(
         "tick_type",
     }
 )
-_AUDIT_LOGGERS = ("trading_engine", "strategy_vwap_momentum")
+_AUDIT_LOGGERS = (
+    "trading_engine",
+    "strategy_vwap_momentum",
+    "strategy_gudt_route_a",
+)
 
 
 def normalize_audit_for_hash(label: str, json_part: str) -> str:
@@ -114,7 +121,24 @@ def run_hash(
     """Run one backtest and hash SIGNAL_AUDIT + FILL_AUDIT + DAILY_SUMMARY JSON."""
 
     def _run() -> None:
-        engine = BacktestEngine(code, dates, cache_dir=Path(cache_dir))
+        cfg = default_runtime_config()
+        obs = DailyObservability()
+        strategy = build_strategy_session(
+            cfg,
+            obs,
+            code=code,
+            dates=dates,
+            cache_dir=Path(cache_dir),
+            mode="backtest",
+        )
+        engine = BacktestEngine(
+            code,
+            dates,
+            cache_dir=Path(cache_dir),
+            strategy=strategy,
+            runtime_config=cfg,
+            obs=obs,
+        )
         engine.run()
 
     records = _run_with_audit_capture(_run)
@@ -129,7 +153,24 @@ def capture_backtest_log_lines(
     """Return uat_report-compatible log lines from a backtest run."""
 
     def _run() -> None:
-        engine = BacktestEngine(code, dates, cache_dir=Path(cache_dir))
+        cfg = default_runtime_config()
+        obs = DailyObservability()
+        strategy = build_strategy_session(
+            cfg,
+            obs,
+            code=code,
+            dates=dates,
+            cache_dir=Path(cache_dir),
+            mode="backtest",
+        )
+        engine = BacktestEngine(
+            code,
+            dates,
+            cache_dir=Path(cache_dir),
+            strategy=strategy,
+            runtime_config=cfg,
+            obs=obs,
+        )
         engine.run()
 
     records = _run_with_audit_capture(_run)

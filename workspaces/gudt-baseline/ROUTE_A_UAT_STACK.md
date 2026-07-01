@@ -82,7 +82,9 @@ Report: `workspaces/gudt-baseline/reports/gudt_route_a_uat_stack_2025-05-01_2026
 1. UAT 2m net > B′+br5 baseline  
 2. 2026 H1 not worse than B′+br5 (no H1 regression)  
 3. No flip unless confirm passes (structural, no fixed pts)  
-4. Worst day not worse than sealed B′ worst without flip
+4. Worst day not worse than sealed B′ worst without flip  
+5. **Execution parity (kernel)**: `ft021_execution_parity.py --slice UAT_2m` → `EXECUTION_PARITY_PASS` with **CF round count == kernel round count** (`reports/execution_parity_UAT_2m.json`)  
+6. **Spot audit (recommended)**: at least 2 additional months via `--spot-check 2` or `--months YYYY-MM`; log in `workspaces/gudt-route-a-baseline/reports/SPOT_CHECK_LOG.md`
 
 ## Live wiring (TODO)
 

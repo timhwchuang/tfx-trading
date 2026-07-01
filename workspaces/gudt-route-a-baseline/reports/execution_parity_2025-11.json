@@ -1,0 +1,117 @@
+{
+  "slice_label": "2025-11",
+  "from": "2025-11-01",
+  "to": "2025-11-30",
+  "months": [
+    "2025-11"
+  ],
+  "summary": {
+    "cf_round_count": 5,
+    "kernel_round_count": 5,
+    "cf_net": 43.23,
+    "kernel_net_gross": 47.0,
+    "net_delta": 3.77,
+    "n_entry_slip_gt_1pt": 3,
+    "n_exit_reason_mismatch": 0,
+    "n_flatten_substitute": 0
+  },
+  "exit_reason_histogram": {
+    "plan": {
+      "stop_loss": 3,
+      "trail_stop": 2
+    },
+    "kernel": {
+      "stop_loss": 3,
+      "trail_stop": 2
+    }
+  },
+  "leg_count_mismatches": [],
+  "day_mismatches": [],
+  "rounds": [
+    {
+      "day": "2025-11-04",
+      "seq": 0,
+      "path": "flow_turn+drive_low_struct",
+      "direction": "Long",
+      "entry_px_delta": 1.5,
+      "entry_ts_delta_sec": 0,
+      "exit_reason_plan": "stop_loss",
+      "exit_reason_kernel": "stop_loss",
+      "exit_reason_match": true,
+      "exit_px_delta": -1.5,
+      "planned_gross": -14.0,
+      "kernel_gross": -17.0,
+      "leg_pnl_delta": -3.0,
+      "exit_mechanism": "match"
+    },
+    {
+      "day": "2025-11-12",
+      "seq": 0,
+      "path": "flow_turn+drive_low_struct",
+      "direction": "Long",
+      "entry_px_delta": 1.5,
+      "entry_ts_delta_sec": 0,
+      "exit_reason_plan": "trail_stop",
+      "exit_reason_kernel": "trail_stop",
+      "exit_reason_match": true,
+      "exit_px_delta": 0.27,
+      "planned_gross": 39.23,
+      "kernel_gross": 38.0,
+      "leg_pnl_delta": -1.23,
+      "exit_mechanism": "match"
+    },
+    {
+      "day": "2025-11-17",
+      "seq": 0,
+      "path": "flow_turn+drive_low_struct",
+      "direction": "Long",
+      "entry_px_delta": -2.5,
+      "entry_ts_delta_sec": 0,
+      "exit_reason_plan": "stop_loss",
+      "exit_reason_kernel": "stop_loss",
+      "exit_reason_match": true,
+      "exit_px_delta": 5.5,
+      "planned_gross": -8.0,
+      "kernel_gross": 0.0,
+      "leg_pnl_delta": 8.0,
+      "exit_mechanism": "match"
+    },
+    {
+      "day": "2025-11-25",
+      "seq": 0,
+      "path": "flow_turn+drive_low_struct",
+      "direction": "Long",
+      "entry_px_delta": 0.5,
+      "entry_ts_delta_sec": 0,
+      "exit_reason_plan": "stop_loss",
+      "exit_reason_kernel": "stop_loss",
+      "exit_reason_match": true,
+      "exit_px_delta": 1.5,
+      "planned_gross": -13.0,
+      "kernel_gross": -12.0,
+      "leg_pnl_delta": 1.0,
+      "exit_mechanism": "match"
+    },
+    {
+      "day": "2025-11-27",
+      "seq": 0,
+      "path": "flow_turn+drive_low_struct",
+      "direction": "Long",
+      "entry_px_delta": 0.5,
+      "entry_ts_delta_sec": 0,
+      "exit_reason_plan": "trail_stop",
+      "exit_reason_kernel": "trail_stop",
+      "exit_reason_match": true,
+      "exit_px_delta": -0.5,
+      "planned_gross": 39.0,
+      "kernel_gross": 38.0,
+      "leg_pnl_delta": -1.0,
+      "exit_mechanism": "match"
+    }
+  ],
+  "failures": [],
+  "warnings": [
+    "net_delta=3.77 (warn-only)"
+  ],
+  "pass": true
+}
