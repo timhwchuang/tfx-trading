@@ -1304,8 +1304,10 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 self.contract.code,
             )
 
+        strategy = getattr(self._cfg, "strategy_name", "vwap_momentum")
         logger.info(
-            "VWAP Momentum 策略已啟動 | config=%s | ATR=%.2f | 模擬=%s",
+            "策略已啟動 | strategy=%s | config=%s | ATR=%.2f | 模擬=%s",
+            strategy,
             self._cfg.config_path,
             self.current_atr,
             self._cfg.simulation,
