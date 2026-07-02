@@ -148,6 +148,21 @@ CONFIG_PATH=../../../workspaces/gudt-route-a-baseline/config/config.yaml \
 
 ---
 
+## Wash Beta（`gudt_wash_beta`，FT-023）
+
+獨立 sleeve：**wash 日 08:45 做多 → session force flatten**（預設 13:44 市價出場）。不經 B′ 路由、結構 stop 或 flip。
+
+| 項目 | 說明 |
+|------|------|
+| CF | `wash_beta.py` → `simulate_wash_beta_day` |
+| Kernel | `GudtWashBetaStrategy`（與 Route A 相同 replay 狀態機） |
+| Workspace | [`gudt-wash-beta-baseline`](../../../workspaces/gudt-wash-beta-baseline/) |
+| UAT | `ft023_execution_parity.py --from 2026-01-01 --to 2026-06-30` |
+
+Oracle wash gate 與 FT-021 相同（probe CSV）；進場 = 08:45 首 tick 或 `open_0845`。
+
+---
+
 ## 文件
 
 - **本 package 契約**：[`SPEC.md`](SPEC.md)（簡短、自包含）

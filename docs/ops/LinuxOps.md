@@ -39,6 +39,9 @@
 
 workspaces/gudt-route-a-baseline/ # GUDT UAT config（2026-07-02 起預設 live 策略）
 └── config/config.yaml            # strategy.name: gudt_route_a
+
+workspaces/gudt-wash-beta-baseline/ # FT-023 wash-beta sleeve（與 Route A 並存）
+└── config/config.yaml            # strategy.name: gudt_wash_beta
 ```
 
 **盤中 live 直接產出**：`tick_cache/`（tick + kbars）、`LOG_FILE`。  
@@ -51,6 +54,7 @@ workspaces/gudt-route-a-baseline/ # GUDT UAT config（2026-07-02 起預設 live 
 | 用途 | `CONFIG_PATH` |
 |------|----------------|
 | **GUDT Route A UAT（2026-07-02 起預設）** | `/opt/tfx-trading/workspaces/gudt-route-a-baseline/config/config.yaml` |
+| **GUDT Wash Beta（FT-023，與 Route A 並存）** | `/opt/tfx-trading/workspaces/gudt-wash-beta-baseline/config/config.yaml` |
 | VWAP momentum（舊預設 / 工程冒煙） | `/opt/tfx-trading/apps/trading-app/config/config.yaml` |
 
 ```bash

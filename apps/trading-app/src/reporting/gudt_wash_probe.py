@@ -503,7 +503,12 @@ def simulate_flow_bailout_exit(
     mfe = 0.0
     mae = 0.0
     peak = entry_price
-    effective_stop = initial_stop_price
+    struct_floor = initial_stop_price if initial_stop_price > entry_price else None
+    effective_stop = (
+        entry_price - SEALED_K_SL * atr_eff
+        if struct_floor is not None
+        else initial_stop_price
+    )
     br3: float | None = None
     br5: float | None = None
     br10: float | None = None
@@ -607,15 +612,19 @@ def simulate_flow_bailout_exit(
                     exit_price=tp_price,
                 )
 
+        if struct_floor is not None and peak >= struct_floor:
+            effective_stop = max(effective_stop, struct_floor)
+
         if price <= effective_stop:
             reason = "trail_stop" if trail_armed else "stop_loss"
             if be_armed and abs(effective_stop - entry_price) < 0.01:
                 reason = "breakeven"
+            exit_price = price
             return _payload(
-                effective_stop - entry_price,
+                exit_price - entry_price,
                 exit_reason=reason,
                 hold_sec=ts - entry_ts,
-                exit_price=effective_stop,
+                exit_price=exit_price,
             )
 
     return _payload(
@@ -649,6 +658,7 @@ def simulate_conditional_break_dl_exit(
     atr_eff = max(atr, min_atr_pts) if atr > 0 else min_atr_pts
     struct_stop = drive_low - WASH_STOP_BUFFER
     effective_stop = entry_price - hard_stop_atr_k * atr_eff
+    struct_floor_active = entry_price >= struct_stop
     peak = entry_price
     be_armed = False
     trail_armed = False
@@ -684,7 +694,10 @@ def simulate_conditional_break_dl_exit(
         peak = max(peak, price)
 
         if first_break_ts is not None and ts >= first_break_ts:
-            effective_stop = max(effective_stop, struct_stop)
+            if peak >= struct_stop:
+                struct_floor_active = True
+            if struct_floor_active:
+                effective_stop = max(effective_stop, struct_stop)
 
         fav = peak - entry_price
         if fav >= trail_arm_atr_k * atr_eff:
@@ -693,12 +706,13 @@ def simulate_conditional_break_dl_exit(
             effective_stop = max(effective_stop, peak - trail_dist_atr_k * atr_eff)
 
         if price <= effective_stop:
-            gross = effective_stop - entry_price
+            exit_price = price
+            gross = exit_price - entry_price
             if trail_armed:
                 reason = "trail_stop"
             else:
                 reason = "stop_loss"
-            return _payload(gross, exit_reason=reason, hold_sec=ts - entry_ts, exit_price=effective_stop)
+            return _payload(gross, exit_reason=reason, hold_sec=ts - entry_ts, exit_price=exit_price)
 
         if hard_tp_atr_k is not None and fav >= hard_tp_atr_k * atr_eff:
             tp_price = entry_price + hard_tp_atr_k * atr_eff

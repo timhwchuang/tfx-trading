@@ -28,6 +28,7 @@
 | FT-019 | [sweep-fvg-breakout-trail](sweep-fvg-breakout-trail/SPEC.md) | **MVPClosed** | 2026-06-29 | Alpha P0 | P-012 · `sfbt_fingerprint_pass_g1_fail` · [`gate_report`](../../workspaces/sfbt-baseline/gate_report.md) |
 | FT-020 | [bear-streak-flip-long](bear-streak-flip-long/SPEC.md) | **Draft** | 2026-06-29 | Alpha P0 | [SPEC](bear-streak-flip-long/SPEC.md) · [PLAN](bear-streak-flip-long/PLAN.md) · P-013 **`draft-proposal`** · 0-design Conditional PASS |
 | FT-021 | [gudt-route-a](gudt-route-a/SPEC.md) | **Draft** | 2026-06-30 | UAT | [SPEC](gudt-route-a/SPEC.md) · [PLAN](gudt-route-a/PLAN.md) · Route A UAT stack · [`gudt-route-a-baseline/`](../../workspaces/gudt-route-a-baseline/) |
+| FT-023 | [gudt-wash-beta](gudt-wash-beta/SPEC.md) | **Draft** | 2026-07-01 | UAT | [SPEC](gudt-wash-beta/SPEC.md) · [PLAN](gudt-wash-beta/PLAN.md) · wash open→flatten · [`gudt-wash-beta-baseline/`](../../workspaces/gudt-wash-beta-baseline/) |
 | FT-022 | [unified-strategy-loading](unified-strategy-loading/SPEC.md) | **Landed** | 2026-07-01 | UAT | [SPEC](unified-strategy-loading/SPEC.md) · [PLAN](unified-strategy-loading/PLAN.md) · `CONFIG_PATH` + `strategy.name` → backtest/live |
 
 ## 狀態定義

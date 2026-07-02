@@ -14,6 +14,8 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **FT-023 GUDT Wash Beta UAT（2026-07-02）**：`strategy.name: gudt_wash_beta` — wash 日 open→session flatten sleeve（與 Route A 並存）；workspace [`gudt-wash-beta-baseline`](workspaces/gudt-wash-beta-baseline/) · 執行 parity **44/44**（2026 H1）· live `_session_bars` 對齊 probe（夜盤 kbar 不再誤判 `no_open_0845`）；[`gudt-wash-beta/SPEC.md`](docs/features/gudt-wash-beta/SPEC.md)。
+- **GUDT CF phantom 修復**：`drive_low_struct` / flow_bailout 結構 stop 高於 entry 時改市價出場 · replay `MIN_REPLAY_HOLD_SEC`。
 - **GUDT Route A UAT 啟動（2026-07-02）**：`strategy.name: gudt_route_a` 模擬盤 UAT 自 **2026-07-02** 起；設定 [`workspaces/gudt-route-a-baseline/config/config.yaml`](workspaces/gudt-route-a-baseline/config/config.yaml)；策略白話說明 SSOT → [`packages/strategies/gudt-route-a/README.md`](packages/strategies/gudt-route-a/README.md)。
 - **FT-021 文件重整（2026-07-01）**：package `README.md` / `SPEC.md` 自包含（條件、參數、parity 門檻）；`docs/features/gudt-route-a/SPEC.md` 收斂為 FT-021 票據；執行層 parity（`ft021_execution_parity` · UAT_2m **13/13** · H1 **40/40** · 2025-11 spot **5/5**）· `ioc_slippage_points: 6` · `SPOT_CHECK_LOG` net 對照。
 - **FT-022 Phase 5（2026-07-01）**：`ft021_parity_check` 統一 bootstrap 路徑 · `research.json` / `parity.json` · `param_sweep` 讀 `strategy.name` · 根 SPEC §4 已接線。
@@ -41,6 +43,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Added
 
+- **FT-023 Draft（2026-07-02）**：`gudt_wash_beta` plugin · `ft023_*` parity harness · [`WASH_BETA_LEDGER`](workspaces/gudt-baseline/WASH_BETA_LEDGER.md) · Bugbot 3 rounds；[`gudt-wash-beta/PLAN.md`](docs/features/gudt-wash-beta/PLAN.md)。
 - **FT-022 Draft（2026-07-01）**：統一策略載入 — `strategy.name` + `build_strategy_session()` · GUDT backtest/live bootstrap · `python -m backtest --config`；[`unified-strategy-loading/SPEC.md`](docs/features/unified-strategy-loading/SPEC.md) · [`PLAN`](docs/features/unified-strategy-loading/PLAN.md) · 依賴 FT-021。
 - **FT-021 Draft（2026-06-30）**：GUDT Route A UAT stack plugin — B′+br5 + 5m EMA extension + distribution structural confirm flip；[`gudt-route-a/SPEC.md`](docs/features/gudt-route-a/SPEC.md) · [`PLAN`](docs/features/gudt-route-a/PLAN.md) · `strategy-gudt-route-a` · parity vs [`ROUTE_A_UAT_STACK`](workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md)。
 - **FT-019 MVPClosed（2026-06-29）**：P-012 Sweep FVG breakout trail — fingerprint W900 **+1.0**（n=229）· trail gross **1.19** · G1 fail · skew payoff **1.575** · valid net **−1.89** → `sfbt_fingerprint_pass_g1_fail` · **exit_kills_edge**；[`gate_report`](workspaces/sfbt-baseline/gate_report.md) · [`CORPSE_ATLAS`](workspaces/CORPSE_ATLAS.md) §FT-019。

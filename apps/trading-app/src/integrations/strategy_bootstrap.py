@@ -10,6 +10,7 @@ from typing import Any, Literal
 
 from core.runtime_config import RuntimeConfig
 from integrations.gudt_replay_planner import build_replay_plans_for_range
+from integrations.gudt_wash_beta_planner import build_wash_beta_plans_for_range
 from observability import DailyObservability
 from reporting.gudt_wash_probe import (
     DayWashContext,
@@ -23,6 +24,8 @@ from strategy_gudt_route_a.stack_params import stack_params_from_gudt
 from strategy_gudt_route_a.types import DayReplayPlan
 
 BootstrapMode = Literal["backtest", "live"]
+
+GUDT_REPLAY_STRATEGIES = frozenset({"gudt_route_a", "gudt_wash_beta"})
 
 logger = logging.getLogger(__name__)
 
@@ -96,10 +99,22 @@ def _attach_skip_reason(
         plan.meta.setdefault("skip_reason", "not_gudt_day")
 
 
+def wash_beta_params_from_config(cfg: RuntimeConfig) -> WashBetaParams:
+    from strategy_gudt_route_a.wash_beta import WashBetaParams
+
+    return WashBetaParams(
+        friction_points=float(getattr(cfg, "gudt_friction_points", 5.0)),
+        session_start=cfg.session_start,
+        force_flatten_time=cfg.session_force_flatten_time,
+    )
+
+
 def _log_gudt_skip(
     day: str,
     plan: DayReplayPlan,
     ctx: DayWashContext | None,
+    *,
+    strategy: str = "gudt_route_a",
 ) -> None:
     reason = str((plan.meta or {}).get("skip_reason", "not_gudt_day"))
     suffix = ""
@@ -111,8 +126,9 @@ def _log_gudt_skip(
             f" prior_close={ctx.prior_close:.1f}"
         )
     logger.info(
-        "gudt_skip day=%s strategy=gudt_route_a skip_reason=%s action=skip%s",
+        "gudt_skip day=%s strategy=%s skip_reason=%s action=skip%s",
         day,
+        strategy,
         reason,
         suffix,
     )
@@ -222,6 +238,84 @@ def bootstrap_gudt_route_a(
     return {"day_plans": day_plans}
 
 
+def bootstrap_gudt_wash_beta(
+    cfg: RuntimeConfig,
+    *,
+    code: str,
+    dates: list[datetime.date],
+    cache_dir: Path,
+    mode: BootstrapMode = "backtest",
+    obs: DailyObservability | None = None,
+    plans_out: Path | None = None,
+    quiet_gudt_skip: bool = False,
+    probe_csv_override: Path | None = None,
+) -> dict[str, Any]:
+    """Build wash-beta replay day_plans (open long → session flatten)."""
+    del obs
+    if mode == "live":
+        logger.info(
+            "gudt_wash_beta live bootstrap: empty day_plans at startup; "
+            "GudtLiveBootstrapCoordinator stages intraday plan"
+        )
+        return {"day_plans": {}}
+
+    if not dates:
+        return {"day_plans": {}}
+
+    from_date = min(dates).isoformat()
+    to_date = max(dates).isoformat()
+    day_filter = {d.isoformat() for d in dates}
+
+    rows = _load_probe_rows(
+        cfg,
+        code=code,
+        cache_dir=cache_dir,
+        from_date=from_date,
+        to_date=to_date,
+        probe_csv_override=probe_csv_override,
+    )
+    day_strs = sorted({r["day"] for r in rows if r["day"] in day_filter})
+    ctx_by_day = load_probe_contexts(code, day_strs, cache_dir=cache_dir)
+    wb_params = wash_beta_params_from_config(cfg)
+    all_plans = build_wash_beta_plans_for_range(rows, ctx_by_day, params=wb_params)
+    day_plans = {day: plan for day, plan in all_plans.items() if day in day_filter}
+    probe_days = {r["day"] for r in rows}
+
+    for day in sorted(day_filter):
+        if day not in day_plans:
+            day_plans[day] = DayReplayPlan(
+                day=day,
+                path="skip",
+                skipped=True,
+                meta={"skip_reason": "not_gudt_day"},
+            )
+
+    skip_count = 0
+    for day, plan in sorted(day_plans.items()):
+        _attach_skip_reason(
+            plan, day=day, ctx_by_day=ctx_by_day, probe_days=probe_days
+        )
+        if plan.skipped:
+            skip_count += 1
+            if not quiet_gudt_skip:
+                _log_gudt_skip(
+                    day, plan, ctx_by_day.get(day), strategy="gudt_wash_beta"
+                )
+
+    if not quiet_gudt_skip and skip_count:
+        logger.info(
+            "gudt_bootstrap backtest skip_summary strategy=gudt_wash_beta "
+            "skipped_days=%d total_days=%d",
+            skip_count,
+            len(day_plans),
+        )
+
+    if plans_out is not None:
+        write_day_plans_json(plans_out, day_plans)
+
+    return {"day_plans": day_plans}
+
+
 def resolve_strategy_bootstrap(
     name: str,
     cfg: RuntimeConfig,
@@ -234,25 +328,38 @@ def resolve_strategy_bootstrap(
     probe_csv_override: Path | None = None,
 ) -> dict[str, Any]:
     """Return extra kwargs for ``load_named_strategy``."""
-    if name != "gudt_route_a":
-        return {}
-    return bootstrap_gudt_route_a(
-        cfg,
-        code=code,
-        dates=dates,
-        cache_dir=cache_dir,
-        mode=mode,
-        obs=obs,
-        probe_csv_override=probe_csv_override,
-    )
+    if name == "gudt_route_a":
+        return bootstrap_gudt_route_a(
+            cfg,
+            code=code,
+            dates=dates,
+            cache_dir=cache_dir,
+            mode=mode,
+            obs=obs,
+            probe_csv_override=probe_csv_override,
+        )
+    if name == "gudt_wash_beta":
+        return bootstrap_gudt_wash_beta(
+            cfg,
+            code=code,
+            dates=dates,
+            cache_dir=cache_dir,
+            mode=mode,
+            obs=obs,
+            probe_csv_override=probe_csv_override,
+        )
+    return {}
 
 
 __all__ = [
     "BootstrapMode",
     "bootstrap_gudt_route_a",
+    "bootstrap_gudt_wash_beta",
     "day_plans_to_json",
+    "GUDT_REPLAY_STRATEGIES",
     "load_gudt_probe_rows",
     "resolve_strategy_bootstrap",
+    "wash_beta_params_from_config",
     "write_day_plans_json",
 ]
 

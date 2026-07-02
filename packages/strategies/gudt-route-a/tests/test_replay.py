@@ -55,6 +55,13 @@ class TestBuildReplayPlan(unittest.TestCase):
         plan = build_replay_plan(pick, long_row=long_row, long_sim=long_sim)
         self.assertEqual(len(plan.events), 2)
 
+    def test_zero_hold_bumps_to_min_replay_hold(self) -> None:
+        pick = {"day": "2026-05-06", "path": "p0+sealed", "net": -10.0, "hedge": "none"}
+        long_row = {"entry_ts": 1000, "entry_px": 22000.0}
+        long_sim = {"hold_sec": 0, "exit_price": 21990.0, "exit_reason": "stop_loss"}
+        plan = build_replay_plan(pick, long_row=long_row, long_sim=long_sim)
+        self.assertEqual(plan.events[1].ts, 1001)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -6,9 +6,14 @@ from typing import Any
 
 from strategy_gudt_route_a.types import DayReplayPlan, TradeEvent
 
+# CF replay must not schedule entry/exit on the same second (kernel cannot fill both).
+MIN_REPLAY_HOLD_SEC = 1
+
 
 def _exit_ts_from_sim(sim: dict[str, Any], entry_ts: int) -> int:
     hold = int(sim.get("hold_sec") or 0)
+    if hold <= 0:
+        hold = MIN_REPLAY_HOLD_SEC
     return entry_ts + hold
 
 

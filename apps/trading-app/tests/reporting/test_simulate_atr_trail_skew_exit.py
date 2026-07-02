@@ -33,7 +33,7 @@ class TestTrailExit(unittest.TestCase):
     def test_t1_initial_stop_before_be(self) -> None:
         """T1: hit k_sl×ATR stop before BE arms."""
         sim = self._sim([(1_001, 99), (1_002, 95), (1_003, 69)])
-        self.assertEqual(sim["gross_pnl"], -30.0)
+        self.assertEqual(sim["gross_pnl"], -31.0)
         self.assertEqual(sim["exit_reason"], "stop_loss")
 
     def test_t2_be_then_pullback(self) -> None:
@@ -60,7 +60,7 @@ class TestTrailExit(unittest.TestCase):
         """T5: peak at TP threshold but pullback hits trail stop before TP exit."""
         sim = self._sim([(1_001, 219), (1_002, 175)])
         self.assertEqual(sim["exit_reason"], "trail_stop")
-        self.assertEqual(sim["gross_pnl"], 104.0)
+        self.assertEqual(sim["gross_pnl"], 75.0)
 
     def test_t6_time_exit(self) -> None:
         """T6: max_hold_sec=900 time exit without BE/trail."""
@@ -82,7 +82,20 @@ class TestTrailExit(unittest.TestCase):
     def test_t8_min_atr_floor(self) -> None:
         """T8: min_atr_pts=25 floor on stop distance."""
         sim = self._sim([(1_001, 74)], atr=5.0, min_atr_pts=25.0)
-        self.assertEqual(sim["gross_pnl"], -25.0)
+        self.assertEqual(sim["gross_pnl"], -26.0)
+
+    def test_struct_floor_above_entry_no_phantom(self) -> None:
+        """Drive-low floor above entry fills at market, not at floor."""
+        sim = self._sim(
+            [(1_001, 88.0)],
+            entry_price=83.0,
+            initial_stop_price=90.0,
+            be_trigger_atr_k=None,
+            hard_tp_atr_k=None,
+        )
+        self.assertEqual(sim["exit_price"], 88.0)
+        self.assertEqual(sim["gross_pnl"], 5.0)
+        self.assertFalse(sim["gross_pnl"] > 40.0)
 
 
 if __name__ == "__main__":

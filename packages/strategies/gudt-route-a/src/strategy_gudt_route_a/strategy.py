@@ -228,3 +228,39 @@ class GudtRouteAStrategy(BaseStrategy):
             ),
             StrategySideEffects(),
         )
+
+
+class GudtWashBetaStrategy(GudtRouteAStrategy):
+    """Wash-day open-to-flatten replay (FT-023).
+
+    Open ``long_entry`` uses a market order so fast-tape open prints fill on the
+    post-signal tick (avoids IOC miss on 08:45 chase days).
+    """
+
+    def evaluate(
+        self,
+        market: MarketSnapshot,
+        position: PositionSnapshot,
+        risk: RiskGate,
+        vol_threshold: tuple[float, float, float],
+        *,
+        session_force_flatten_time: datetime.time,
+        max_daily_loss_points: float,
+        on_daily_loss_block: Any = None,
+    ) -> tuple[OrderSignal | None, StrategySideEffects]:
+        signal, effects = super().evaluate(
+            market,
+            position,
+            risk,
+            vol_threshold,
+            session_force_flatten_time=session_force_flatten_time,
+            max_daily_loss_points=max_daily_loss_points,
+            on_daily_loss_block=on_daily_loss_block,
+        )
+        if (
+            signal is not None
+            and signal.intent == "entry"
+            and signal.action == "Buy"
+        ):
+            signal.market = True
+        return signal, effects

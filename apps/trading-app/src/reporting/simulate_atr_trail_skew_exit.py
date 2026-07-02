@@ -26,25 +26,37 @@ def simulate_atr_trail_skew_exit(
     """Walk tick path; BE → trail → hard TP per SPEC §5.0b state machine.
 
     ``be_trigger_atr_k=None`` disables breakeven arming (FT-018b wash probe).
-    ``initial_stop_price`` overrides ATR-based hard stop when set.
+    ``initial_stop_price`` overrides ATR-based hard stop when set (when at or below
+    entry for long). Values above entry are treated as drive-low structural floors
+    that only bind after price trades at/above the floor; stop fills use market price.
     """
     atr_eff = max(atr, min_atr_pts) if atr > 0 else min_atr_pts
     sign = _direction_sign(direction)
     is_long = direction in ("Long", "Buy", "buy", "long")
 
+    struct_floor: float | None = None
     if is_long:
-        effective_stop = (
-            initial_stop_price
-            if initial_stop_price is not None
-            else entry_price - hard_stop_atr_k * atr_eff
-        )
+        atr_stop = entry_price - hard_stop_atr_k * atr_eff
+        if initial_stop_price is not None:
+            if initial_stop_price > entry_price:
+                # Drive-low floor: only bind after price trades at/above the floor.
+                struct_floor = initial_stop_price
+                effective_stop = atr_stop
+            else:
+                effective_stop = initial_stop_price
+        else:
+            effective_stop = atr_stop
         peak = entry_price
     else:
-        effective_stop = (
-            initial_stop_price
-            if initial_stop_price is not None
-            else entry_price + hard_stop_atr_k * atr_eff
-        )
+        atr_stop = entry_price + hard_stop_atr_k * atr_eff
+        if initial_stop_price is not None:
+            if initial_stop_price < entry_price:
+                struct_floor = initial_stop_price
+                effective_stop = atr_stop
+            else:
+                effective_stop = initial_stop_price
+        else:
+            effective_stop = atr_stop
         peak = entry_price
 
     be_armed = False
@@ -115,13 +127,18 @@ def simulate_atr_trail_skew_exit(
                 trail_stop = peak + trail_dist_atr_k * atr_eff
                 effective_stop = min(effective_stop, trail_stop)
 
+        if is_long and struct_floor is not None and peak >= struct_floor:
+            effective_stop = max(effective_stop, struct_floor)
+        elif not is_long and struct_floor is not None and peak <= struct_floor:
+            effective_stop = min(effective_stop, struct_floor)
+
         stopped = False
         exit_price = price
         if is_long and price <= effective_stop:
-            exit_price = effective_stop
+            exit_price = price
             stopped = True
         elif not is_long and price >= effective_stop:
-            exit_price = effective_stop
+            exit_price = price
             stopped = True
 
         if stopped:

@@ -19,7 +19,7 @@ from strategy_vwap_momentum import StrategyParams, VWAPMomentumStrategy
 from strategy_momentum_continuation import ContinuationParams, MomentumContinuationStrategy
 from strategy_vwap_stretch_fade import StretchFadeParams, VwapStretchFadeStrategy
 from strategy_opening_range_breakout import OrbParams, OpeningRangeBreakoutStrategy
-from strategy_gudt_route_a import GudtRouteAParams, GudtRouteAStrategy
+from strategy_gudt_route_a import GudtRouteAParams, GudtRouteAStrategy, GudtWashBetaStrategy
 from trading_engine.adapters.mock import MockOrderAdapter
 from trading_engine.adapters.shioaji import ShioajiOrderAdapter
 from trading_engine.logging_setup import setup_async_logging
@@ -34,6 +34,7 @@ KNOWN_STRATEGY_NAMES = frozenset(
         "vwap_stretch_fade",
         "opening_range_breakout",
         "gudt_route_a",
+        "gudt_wash_beta",
     }
 )
 
@@ -123,6 +124,12 @@ def load_named_strategy(
         )
     if name == "gudt_route_a":
         return GudtRouteAStrategy(
+            params=GudtRouteAParams.from_runtime_config(cfg),
+            obs=obs,
+            day_plans=kwargs.get("day_plans"),
+        )
+    if name == "gudt_wash_beta":
+        return GudtWashBetaStrategy(
             params=GudtRouteAParams.from_runtime_config(cfg),
             obs=obs,
             day_plans=kwargs.get("day_plans"),

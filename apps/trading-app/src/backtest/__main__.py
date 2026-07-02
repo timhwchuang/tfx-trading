@@ -409,7 +409,10 @@ def main(argv: list[str] | None = None) -> int:
         mode="backtest",
         probe_csv_override=args.probe_csv,
     )
-    if args.plans_out is not None and cfg.strategy_name == "gudt_route_a":
+    if args.plans_out is not None and cfg.strategy_name in (
+        "gudt_route_a",
+        "gudt_wash_beta",
+    ):
         from integrations.strategy_bootstrap import write_day_plans_json
 
         write_day_plans_json(args.plans_out, strategy._day_plans)
@@ -462,6 +465,26 @@ def main(argv: list[str] | None = None) -> int:
                     "GUDT parity check failures: %s",
                     "; ".join(gudt_out["parity"]["failures"]),
                 )
+        elif cfg.strategy_name == "gudt_wash_beta":
+            from reporting.uat_report import compute_metrics, read_log_lines
+            from reporting.wash_beta_parity_report import emit_wash_beta_backtest_reports
+
+            research_path = args.research_json or (json_path.parent / "research.json")
+            parity_path = args.parity_json or (json_path.parent / "parity.json")
+            kernel_metrics = compute_metrics(read_log_lines([log_path]))
+            emit_wash_beta_backtest_reports(
+                cfg,
+                code=code,
+                dates=dates,
+                cache_dir=cache_dir_path,
+                day_plans=strategy._day_plans,
+                kernel_metrics=kernel_metrics,
+                research_path=research_path,
+                parity_path=parity_path,
+                probe_csv_override=args.probe_csv,
+            )
+            logging.info("Wrote wash-beta research JSON → %s", research_path)
+            logging.info("Wrote wash-beta parity JSON → %s", parity_path)
 
     if log_path is not None:
         logging.info("Backtest log → %s", log_path)

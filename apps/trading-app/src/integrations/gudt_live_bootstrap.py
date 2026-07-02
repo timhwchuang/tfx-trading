@@ -15,6 +15,7 @@ from reporting.gap_drive_continuation_counterfactual import (
     _prior_close,
     _prior_session_date,
 )
+from reporting.short_breakout_counterfactual import _session_bars
 from reporting.gudt_wash_probe import (
     DayWashContext,
     WashProbeTuning,
@@ -23,7 +24,7 @@ from reporting.gudt_wash_probe import (
 )
 from storage.kbar_loader import load_kbars_csv, resolve_kbar_path
 from storage.tick_loader import resolve_cli_tick_cache_dates
-from strategy_gudt_route_a import GudtRouteAStrategy
+from strategy_gudt_route_a import GudtRouteAStrategy, GudtWashBetaStrategy
 from strategy_gudt_route_a.params import GudtRouteAParams
 from strategy_gudt_route_a.stack_params import stack_params_from_gudt
 from strategy_gudt_route_a.types import DayReplayPlan
@@ -154,7 +155,7 @@ class GudtLiveBootstrapCoordinator:
         path = resolve_kbar_path(self.cache_dir, self.code, self.trade_day)
         if path is None:
             return []
-        return load_kbars_csv(path)
+        return _session_bars(load_kbars_csv(path))
 
     def _sorted_dates(self) -> list[dt.date]:
         dates = self._resolve_sorted_dates()
@@ -280,6 +281,104 @@ class GudtLiveBootstrapCoordinator:
         )
 
 
+class GudtWashBetaLiveBootstrapCoordinator(GudtLiveBootstrapCoordinator):
+    """Wash-beta live bootstrap: oracle ctx → open-long / session-flatten plan (no B′ router)."""
+
+    def _finish_skip(
+        self,
+        skip_reason: str,
+        *,
+        ctx: DayWashContext | None = None,
+        path: str | None = None,
+    ) -> None:
+        terminal_state: LiveBootstrapState
+        if skip_reason == "router_skip":
+            terminal_state = "RouterSkip"
+        else:
+            terminal_state = "NotGudtDay"
+        self._state = terminal_state
+        self._terminal = True
+        suffix = _ctx_log_suffix(ctx)
+        path_part = f" path={path}" if path else ""
+        logger.info(
+            "gudt_skip day=%s strategy=gudt_wash_beta skip_reason=%s action=skip%s%s",
+            self.day_str,
+            skip_reason,
+            path_part,
+            suffix,
+        )
+
+    def _maybe_log_awaiting_atr(self) -> None:
+        now = time.monotonic()
+        if now - self._last_awaiting_atr_log_mono < AWAITING_ATR_LOG_INTERVAL_SEC:
+            return
+        self._last_awaiting_atr_log_mono = now
+        logger.info(
+            "gudt_skip day=%s strategy=gudt_wash_beta skip_reason=awaiting_atr action=wait",
+            self.day_str,
+        )
+
+    def _try_build_wash_beta_plan(self, ctx: DayWashContext) -> None:
+        from integrations.strategy_bootstrap import wash_beta_params_from_config
+        from strategy_gudt_route_a.wash_beta import build_wash_beta_live_intraday_plan
+
+        wb = wash_beta_params_from_config(self.cfg)
+        plan = build_wash_beta_live_intraday_plan(self.day_str, ctx, params=wb)
+        if plan is None:
+            self._finish_skip("probe_error", ctx=ctx)
+            return
+        self.strategy.apply_intraday_plan(
+            self.day_str,
+            plan,
+            as_of_ts=None,
+        )
+        self._state = "PlanReady"
+        self._terminal = True
+        logger.info(
+            "gudt_live state=PlanReady day=%s path=wash_beta events=%d",
+            self.day_str,
+            len(plan.events),
+        )
+
+    def _step(self, exchange_dt: dt.datetime) -> None:
+        local = self._local_dt(exchange_dt)
+        if local.date() != self.trade_day:
+            return
+        clock = local.time()
+
+        if self._state == "AwaitingOpen":
+            bars = self._load_today_bars()
+            open_0845 = _open_0845(bars) if bars else None
+            if open_0845 is not None:
+                self._state = "AwaitingAtr"
+                logger.info(
+                    "gudt_live state=AwaitingAtr day=%s open_0845=%.1f strategy=wash_beta",
+                    self.day_str,
+                    open_0845,
+                )
+                return
+            if clock >= ATR_QUALIFY_TIME:
+                self._finish_skip("no_open_0845")
+            return
+
+        if self._state == "AwaitingAtr":
+            if clock < ATR_QUALIFY_TIME:
+                self._maybe_log_awaiting_atr()
+                return
+            ctx_map = load_probe_contexts(
+                self.code,
+                [self.day_str],
+                cache_dir=self.cache_dir,
+                tuning=self._tuning,
+            )
+            ctx = ctx_map.get(self.day_str)
+            if ctx is None:
+                self._finish_skip("not_gudt_day")
+                return
+            self._ctx = ctx
+            self._try_build_wash_beta_plan(ctx)
+
+
 def attach_gudt_live_coordinator(
     strategy: Any,
     cfg: RuntimeConfig,
@@ -287,21 +386,35 @@ def attach_gudt_live_coordinator(
     code: str,
     cache_dir: Path,
     trade_day: dt.date | None = None,
-) -> GudtLiveBootstrapCoordinator | None:
-    if not isinstance(strategy, GudtRouteAStrategy):
-        return None
-    coord = GudtLiveBootstrapCoordinator(
-        strategy=strategy,
-        cfg=cfg,
-        code=code,
-        cache_dir=cache_dir,
-        trade_day=trade_day,
-    )
-    coord.start()
-    return coord
+) -> GudtLiveBootstrapCoordinator | GudtWashBetaLiveBootstrapCoordinator | None:
+    if isinstance(strategy, GudtWashBetaStrategy):
+        coord = GudtWashBetaLiveBootstrapCoordinator(
+            strategy=strategy,
+            cfg=cfg,
+            code=code,
+            cache_dir=cache_dir,
+            trade_day=trade_day,
+        )
+        coord.start()
+        return coord
+    if isinstance(strategy, GudtRouteAStrategy):
+        coord = GudtLiveBootstrapCoordinator(
+            strategy=strategy,
+            cfg=cfg,
+            code=code,
+            cache_dir=cache_dir,
+            trade_day=trade_day,
+        )
+        coord.start()
+        return coord
+    return None
 
 
-def start_live_session(engine: Any, *, coordinator: GudtLiveBootstrapCoordinator | None = None) -> None:
+def start_live_session(
+    engine: Any,
+    *,
+    coordinator: GudtLiveBootstrapCoordinator | GudtWashBetaLiveBootstrapCoordinator | None = None,
+) -> None:
     """Wire optional GUDT coordinator then run Shioaji live bootstrap."""
     from trading_engine.adapters.shioaji_live import ShioajiLiveBootstrap
 
@@ -319,6 +432,7 @@ def start_live_session(engine: Any, *, coordinator: GudtLiveBootstrapCoordinator
 
 __all__ = [
     "GudtLiveBootstrapCoordinator",
+    "GudtWashBetaLiveBootstrapCoordinator",
     "attach_gudt_live_coordinator",
     "start_live_session",
 ]

@@ -395,7 +395,7 @@ class DailyObservability:
             self.fills, friction, sharpe_period=app_settings.sharpe_period
         )
         strategy_name = getattr(runtime_config, "strategy_name", None) or ""
-        is_gudt = strategy_name == "gudt_route_a"
+        is_gudt = strategy_name in ("gudt_route_a", "gudt_wash_beta")
         summary: dict[str, Any] = {
             "date": trade_date,
             "params": build_config_snapshot(runtime_config),

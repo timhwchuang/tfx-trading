@@ -1,0 +1,41 @@
+# FT-023 gudt-wash-beta-baseline — wash-day open→session flatten sleeve
+simulation: true
+product_code: TMFR1
+
+strategy:
+  name: gudt_wash_beta
+  gudt_friction_points: 5.0
+  max_daily_loss_points: 120
+  max_consecutive_loss: 4
+  min_atr_threshold: 25
+  atr_period: 20
+  pending_timeout_sec: 1
+  ioc_slippage_points: 12  # open IOC: wider than Route A (2 miss days at ioc=6)
+  exit_grace_ticks: 10
+  exit_grace_sec: 10
+
+session:
+  start: "08:45"
+  end: "13:45"
+  flatten_time: "13:40"
+  force_flatten_time: "13:44"
+  flatten_slippage_points: 8
+
+opening_volume:
+  base_vol: 165
+  atr_vol_mult: 1.0
+  mult_futures: 2.5
+  mult_spot: 1.5
+  mult_normal: 1.0
+
+logging:
+  level: INFO
+  file: ""
+
+friction:
+  enabled: true
+  mode: ntd
+  round_trip_friction_points: 5.0
+  commission_per_side_ntd: 15.0
+  tax_rate: 20.0
+  point_value_ntd: 10.0

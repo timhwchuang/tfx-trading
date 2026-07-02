@@ -67,8 +67,47 @@ class TestSimExtensions(unittest.TestCase):
             initial_stop_price=95.0,
             min_atr_pts=25.0,
         )
-        self.assertEqual(sim["gross_pnl"], -5.0)
+        self.assertEqual(sim["gross_pnl"], -6.0)
         self.assertEqual(sim["exit_reason"], "stop_loss")
+
+    def test_struct_floor_above_entry_no_phantom(self) -> None:
+        """Drive-low floor above entry must not credit stop level as exit fill."""
+        sim = simulate_atr_trail_skew_exit(
+            direction="Long",
+            entry_price=41283.0,
+            entry_ts=1_778_032_961,
+            atr=50.0,
+            ticks=_ticks([(1_778_032_961, 41288.0)]),
+            hard_stop_atr_k=1.25,
+            be_trigger_atr_k=None,
+            trail_arm_atr_k=2.0,
+            trail_dist_atr_k=0.6,
+            hard_tp_atr_k=None,
+            initial_stop_price=41729.0,
+            min_atr_pts=25.0,
+        )
+        self.assertNotAlmostEqual(sim["gross_pnl"], 446.0)
+        self.assertEqual(sim["exit_price"], 41288.0)
+        self.assertLess(abs(sim["gross_pnl"]), 50.0)
+
+    def test_struct_floor_binds_after_peak_reaches_floor(self) -> None:
+        sim = simulate_atr_trail_skew_exit(
+            direction="Long",
+            entry_price=100.0,
+            entry_ts=1_000,
+            atr=30.0,
+            ticks=_ticks([(1_001, 120.0), (1_002, 105.0), (1_003, 104.0)]),
+            hard_stop_atr_k=1.25,
+            be_trigger_atr_k=None,
+            trail_arm_atr_k=2.0,
+            trail_dist_atr_k=0.6,
+            hard_tp_atr_k=None,
+            initial_stop_price=110.0,
+            min_atr_pts=25.0,
+        )
+        self.assertEqual(sim["exit_reason"], "stop_loss")
+        self.assertEqual(sim["exit_price"], 105.0)
+        self.assertEqual(sim["gross_pnl"], 5.0)
 
     def test_max_hold_sec_1800(self) -> None:
         sim = simulate_atr_trail_skew_exit(
@@ -214,7 +253,7 @@ class TestExitModes(unittest.TestCase):
             initial_stop_price=95.0,
         )
         self.assertEqual(sim["exit_reason"], "stop_loss")
-        self.assertEqual(sim["gross_pnl"], -5.0)
+        self.assertEqual(sim["gross_pnl"], -7.0)
 
 
 class TestRulePick(unittest.TestCase):

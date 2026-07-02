@@ -12,11 +12,13 @@ from config import load_config
 from core.runtime_config import TradingAppRuntimeConfig, _to_engine_settings
 from integrations.gudt_live_bootstrap import (
     GudtLiveBootstrapCoordinator,
+    GudtWashBetaLiveBootstrapCoordinator,
     attach_gudt_live_coordinator,
     start_live_session,
 )
 from reporting.gudt_wash_probe import DayWashContext
-from strategy_gudt_route_a import GudtRouteAParams, GudtRouteAStrategy
+from storage.kbar_loader import KBarRecord, kbar_path, save_kbars_csv
+from strategy_gudt_route_a import GudtRouteAParams, GudtRouteAStrategy, GudtWashBetaStrategy
 from strategy_gudt_route_a.types import DayReplayPlan, TradeEvent
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -175,6 +177,79 @@ class TestGudtLiveBootstrapCoordinator(unittest.TestCase):
             self.assertFalse(coord.terminal)
             self.assertEqual(coord.state, "AwaitingOpen")
 
+    def test_load_today_bars_filters_night_session_before_open_0845(self) -> None:
+        strategy, cfg = self._strategy_and_cfg()
+        day = datetime.date(2026, 7, 2)
+        with tempfile.TemporaryDirectory() as d:
+            cache_dir = Path(d)
+            bars = [
+                KBarRecord(
+                    ts=datetime.datetime(2026, 7, 2, 3, 0, 0),
+                    Open=47000.0,
+                    High=47010.0,
+                    Low=46990.0,
+                    Close=47005.0,
+                    Volume=100,
+                ),
+                KBarRecord(
+                    ts=datetime.datetime(2026, 7, 2, 8, 45, 0),
+                    Open=47250.0,
+                    High=47260.0,
+                    Low=47240.0,
+                    Close=47255.0,
+                    Volume=100,
+                ),
+            ]
+            save_kbars_csv(bars, kbar_path(cache_dir, "TMFR1", day))
+            coord = GudtLiveBootstrapCoordinator(
+                strategy=strategy,
+                cfg=cfg,
+                code="TMFR1",
+                cache_dir=cache_dir,
+                trade_day=day,
+            )
+            coord._prior_close = 47229.0
+            coord._state = "AwaitingOpen"
+            coord._step(datetime.datetime(2026, 7, 2, 8, 46))
+        self.assertEqual(coord.state, "AwaitingAtr")
+
+    def test_wash_beta_coordinator_filters_night_session_bars(self) -> None:
+        """Wash-beta inherits _load_today_bars; night kbar must not block open_0845."""
+        strategy, cfg = self._strategy_and_cfg()
+        day = datetime.date(2026, 7, 2)
+        with tempfile.TemporaryDirectory() as d:
+            cache_dir = Path(d)
+            bars = [
+                KBarRecord(
+                    ts=datetime.datetime(2026, 7, 2, 3, 0, 0),
+                    Open=47000.0,
+                    High=47010.0,
+                    Low=46990.0,
+                    Close=47005.0,
+                    Volume=100,
+                ),
+                KBarRecord(
+                    ts=datetime.datetime(2026, 7, 2, 8, 45, 0),
+                    Open=47250.0,
+                    High=47260.0,
+                    Low=47240.0,
+                    Close=47255.0,
+                    Volume=100,
+                ),
+            ]
+            save_kbars_csv(bars, kbar_path(cache_dir, "TMFR1", day))
+            coord = GudtWashBetaLiveBootstrapCoordinator(
+                strategy=strategy,
+                cfg=cfg,
+                code="TMFR1",
+                cache_dir=cache_dir,
+                trade_day=day,
+            )
+            coord._prior_close = 47229.0
+            coord._state = "AwaitingOpen"
+            coord._step(datetime.datetime(2026, 7, 2, 8, 46))
+        self.assertEqual(coord.state, "AwaitingAtr")
+
     def test_awaiting_open_to_atr(self) -> None:
         strategy, cfg = self._strategy_and_cfg()
         with tempfile.TemporaryDirectory() as d:
@@ -318,6 +393,61 @@ class TestGudtLiveBootstrapCoordinator(unittest.TestCase):
                             coord._try_build_plan()
             self.assertEqual(coord.state, "RouterSkip")
             self.assertTrue(coord.terminal)
+
+
+class TestWashBetaLiveBootstrap(unittest.TestCase):
+    def _strategy_and_cfg(self) -> tuple[GudtWashBetaStrategy, TradingAppRuntimeConfig]:
+        path = REPO_ROOT / "workspaces/gudt-wash-beta-baseline/config/config.yaml"
+        cfg = TradingAppRuntimeConfig(_to_engine_settings(load_config(path)))
+        return GudtWashBetaStrategy(params=GudtRouteAParams.from_runtime_config(cfg)), cfg
+
+    def test_attach_wash_beta_returns_wash_coordinator(self) -> None:
+        strategy, cfg = self._strategy_and_cfg()
+        with tempfile.TemporaryDirectory() as d:
+            with mock.patch(
+                "integrations.gudt_live_bootstrap.resolve_cli_tick_cache_dates",
+                side_effect=ValueError("no cache"),
+            ):
+                out = attach_gudt_live_coordinator(
+                    strategy,
+                    cfg,
+                    code="TMFR1",
+                    cache_dir=Path(d),
+                    trade_day=datetime.date(2026, 6, 3),
+                )
+        self.assertIsInstance(out, GudtWashBetaLiveBootstrapCoordinator)
+
+    def test_wash_beta_plan_ready_uses_wash_beta_path(self) -> None:
+        strategy, cfg = self._strategy_and_cfg()
+        with tempfile.TemporaryDirectory() as d:
+            coord = GudtWashBetaLiveBootstrapCoordinator(
+                strategy=strategy,
+                cfg=cfg,
+                code="TMFR1",
+                cache_dir=Path(d),
+                trade_day=datetime.date(2026, 6, 3),
+            )
+            ctx = DayWashContext(
+                day=datetime.date(2026, 6, 3),
+                atr=30.0,
+                drive_high=110.0,
+                drive_low=90.0,
+                gap_pts=8.0,
+                open_0845=108.0,
+                prior_close=100.0,
+                ticks=[(1_000, 108.0, 1, 1), (2_000, 109.0, 1, 1), (10_000, 115.0, 1, 1)],
+            )
+            with mock.patch(
+                "strategy_gudt_route_a.wash_beta._combine_ts",
+                side_effect=[1_000, 10_000],
+            ):
+                strategy._current_day = "2026-06-03"
+                coord._try_build_wash_beta_plan(ctx)
+            self.assertEqual(coord.state, "PlanReady")
+            plan = strategy._day_plans["2026-06-03"]
+            self.assertEqual(plan.path, "wash_beta")
+            self.assertEqual(len(plan.events), 2)
+            self.assertEqual(plan.events[1].ts, 10_000)
 
 
 class TestLiveWiring(unittest.TestCase):
