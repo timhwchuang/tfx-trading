@@ -71,14 +71,26 @@ def _simulation_kbar_raw(date: datetime.date) -> MagicMock:
     )
 
 
+def _wall_ns(y: int, m: int, d: int, h: int, mi: int, s: int = 0) -> int:
+    dt = datetime.datetime(y, m, d, h, mi, s, tzinfo=datetime.timezone.utc)
+    return int(dt.timestamp() * 1_000_000_000)
+
+
 def _simulation_tick_raw(date: datetime.date) -> MagicMock:
+    prev = date - datetime.timedelta(days=1)
+    ts = [
+        _wall_ns(prev.year, prev.month, prev.day, 15, 0),
+        _wall_ns(prev.year, prev.month, prev.day, 23, 59),
+        _wall_ns(date.year, date.month, date.day, 0, 0),
+        _wall_ns(date.year, date.month, date.day, 5, 0),
+    ]
     base = datetime.datetime(
         date.year, date.month, date.day, 8, 45, tzinfo=datetime.timezone.utc
     )
-    ts = [
+    ts.extend(
         int((base + datetime.timedelta(minutes=i)).timestamp() * 1_000_000_000)
         for i in range(_day_session_minute_count())
-    ]
+    )
     n = len(ts)
     return MagicMock(
         ts=ts,
@@ -209,8 +221,8 @@ class TestBackfillDates(unittest.TestCase):
             self.assertGreaterEqual(len(result.kbars), 1)
             self.assertTrue(result.ok)
             _, kwargs = api.ticks.call_args
-            self.assertEqual(kwargs["time_start"], "08:45:00")
-            self.assertEqual(kwargs["time_end"], "13:45:00")
+            self.assertNotIn("time_start", kwargs)
+            self.assertNotIn("time_end", kwargs)
 
     def test_skips_existing_without_overwrite(self):
         api = MagicMock()
@@ -224,14 +236,20 @@ class TestBackfillDates(unittest.TestCase):
             date = datetime.date(2026, 6, 12)
             save_ticks_csv(
                 [
-                    ReplayTick(
-                        datetime.datetime(2026, 6, 12, 8, 45)
-                        + datetime.timedelta(minutes=30 * i),
-                        str(i),
-                        1,
-                        0,
-                    )
-                    for i in range(11)
+                    ReplayTick(datetime.datetime(2026, 6, 11, 15, 0), "1", 1, 0),
+                    ReplayTick(datetime.datetime(2026, 6, 11, 23, 59), "2", 1, 0),
+                    ReplayTick(datetime.datetime(2026, 6, 12, 0, 0), "1", 1, 0),
+                    ReplayTick(datetime.datetime(2026, 6, 12, 5, 0), "2", 1, 0),
+                    *[
+                        ReplayTick(
+                            datetime.datetime(2026, 6, 12, 8, 45)
+                            + datetime.timedelta(minutes=30 * i),
+                            str(i),
+                            1,
+                            0,
+                        )
+                        for i in range(11)
+                    ],
                 ],
                 cache_path(tick_dir, "TXFR1", date),
             )
@@ -370,25 +388,35 @@ class TestBackfillCli(unittest.TestCase):
             main(["date", "2026-06-12", "--simulation", "--production"])
         self.assertEqual(ctx.exception.code, 2)
 
-    @patch("backfilldata.__main__.backfill_dates")
+    @patch("backfilldata.__main__.backfill_dates_batched")
     def test_main_success_return_code(self, mock_backfill):
         from backfilldata.__main__ import main
 
-        mock_backfill.return_value = BackfillResult(
-            ticks=[Path("tick.csv")],
-            kbars=[Path("kbar.csv")],
-        )
+        ok = BackfillResult(ticks=[Path("tick.csv")], kbars=[Path("kbar.csv")])
+        mock_backfill.return_value = (ok, [ok])
         self.assertEqual(main(["date", "2026-06-12"]), 0)
         mock_backfill.assert_called_once()
+        _, kwargs = mock_backfill.call_args
+        self.assertIsNone(kwargs["tick_time_start"])
+        self.assertIsNone(kwargs["tick_time_end"])
+
+    @patch("backfilldata.__main__.backfill_dates_batched")
+    def test_main_session_ticks_uses_range(self, mock_backfill):
+        from backfilldata.__main__ import main
+
+        ok = BackfillResult(ticks=[Path("tick.csv")])
+        mock_backfill.return_value = (ok, [ok])
+        self.assertEqual(main(["date", "2026-06-12", "--session-ticks"]), 0)
         _, kwargs = mock_backfill.call_args
         self.assertEqual(kwargs["tick_time_start"], datetime.time(8, 45))
         self.assertEqual(kwargs["tick_time_end"], datetime.time(13, 45))
 
-    @patch("backfilldata.__main__.backfill_dates")
+    @patch("backfilldata.__main__.backfill_dates_batched")
     def test_main_all_day_ticks_disables_range(self, mock_backfill):
         from backfilldata.__main__ import main
 
-        mock_backfill.return_value = BackfillResult(ticks=[Path("tick.csv")])
+        ok = BackfillResult(ticks=[Path("tick.csv")])
+        mock_backfill.return_value = (ok, [ok])
         self.assertEqual(main(["date", "2026-06-12", "--all-day-ticks"]), 0)
         _, kwargs = mock_backfill.call_args
         self.assertIsNone(kwargs["tick_time_start"])
@@ -398,17 +426,92 @@ class TestBackfillCli(unittest.TestCase):
         from backfilldata.__main__ import main
 
         self.assertEqual(
-            main(["date", "2026-06-12", "--time-start", "13:45:00", "--time-end", "08:45:00"]),
+            main(
+                [
+                    "date",
+                    "2026-06-12",
+                    "--session-ticks",
+                    "--time-start",
+                    "13:45:00",
+                    "--time-end",
+                    "08:45:00",
+                ]
+            ),
             2,
         )
 
-    @patch("backfilldata.__main__.backfill_dates")
+    def test_rejects_session_ticks_and_all_day_ticks(self):
+        from backfilldata.__main__ import main
+
+        self.assertEqual(
+            main(["date", "2026-06-12", "--session-ticks", "--all-day-ticks"]),
+            2,
+        )
+
+    @patch("backfilldata.__main__.filter_backfill_eligible_dates")
+    @patch("backfilldata.__main__.resolve_trading_days_in_range_with_fallback")
+    @patch("backfilldata.__main__.backfill_dates_batched")
+    def test_main_date_range_skips_weekends(
+        self, mock_backfill, mock_resolve, mock_filter
+    ):
+        from backfilldata.__main__ import main
+
+        trading_days = [
+            datetime.date(2026, 7, 1),
+            datetime.date(2026, 7, 2),
+            datetime.date(2026, 7, 3),
+            datetime.date(2026, 7, 6),
+        ]
+        mock_resolve.return_value = (
+            trading_days,
+            {
+                "weekend": [
+                    datetime.date(2026, 7, 4),
+                    datetime.date(2026, 7, 5),
+                ],
+                "holiday": [],
+                "missing_calendar": [],
+            },
+        )
+        mock_filter.return_value = (trading_days, [])
+        ok = BackfillResult(ticks=[Path("tick.csv")], kbars=[Path("kbar.csv")])
+        mock_backfill.return_value = (ok, [ok])
+        self.assertEqual(main(["date", "2026-07-01", "2026-07-06"]), 0)
+        mock_resolve.assert_called_once_with(
+            datetime.date(2026, 7, 1),
+            datetime.date(2026, 7, 6),
+            use_holiday_calendar=True,
+        )
+        mock_backfill.assert_called_once()
+        self.assertEqual(mock_backfill.call_args.args[0], trading_days)
+
+    @patch("backfilldata.__main__.filter_backfill_eligible_dates")
+    @patch("backfilldata.__main__.resolve_trading_days_in_range_with_fallback")
+    @patch("backfilldata.__main__.backfill_dates_batched")
+    def test_main_date_range_batches_over_ten_days(
+        self, mock_backfill, mock_resolve, mock_filter
+    ):
+        from backfilldata.__main__ import main
+
+        trading_days = [datetime.date(2026, 4, day) for day in range(1, 23)]
+        mock_resolve.return_value = (
+            trading_days,
+            {"weekend": [], "holiday": [], "missing_calendar": []},
+        )
+        mock_filter.return_value = (trading_days, [])
+        ok = BackfillResult(ticks=[Path("tick.csv")])
+        mock_backfill.return_value = (ok, [ok, ok, ok])
+        self.assertEqual(main(["date", "2026-04-01", "2026-04-30"]), 0)
+        mock_backfill.assert_called_once_with(trading_days, **mock_backfill.call_args.kwargs)
+
+    @patch("backfilldata.__main__.backfill_dates_batched")
     def test_main_missing_files_return_code(self, mock_backfill):
         from backfilldata.__main__ import main
 
-        mock_backfill.return_value = BackfillResult(
+        missing = BackfillResult(
             missing_tick_dates=[datetime.date(2026, 6, 12)],
         )
+        mock_backfill.return_value = (missing, [missing])
         self.assertEqual(main(["date", "2026-06-12"]), 1)
 
 
@@ -543,7 +646,7 @@ class TestTaiwanCalendar(unittest.TestCase):
         from backfilldata.taiwan_calendar import resolve_month_trading_days_with_fallback
 
         with patch(
-            "backfilldata.taiwan_calendar.resolve_month_trading_days",
+            "backfilldata.taiwan_calendar.resolve_trading_days_in_range",
             side_effect=[
                 BackfillError("Taiwan 行事曆 API 無法連線"),
                 ([datetime.date(2026, 4, 1)], {"weekend": [], "holiday": [], "missing_calendar": []}),
@@ -553,6 +656,56 @@ class TestTaiwanCalendar(unittest.TestCase):
         self.assertEqual(trading, [datetime.date(2026, 4, 1)])
         self.assertEqual(mock_resolve.call_count, 2)
         self.assertFalse(mock_resolve.call_args_list[1].kwargs["use_holiday_calendar"])
+
+    def test_july_2026_date_range_skips_weekends(self):
+        from backfilldata.taiwan_calendar import resolve_trading_days_in_range
+
+        trading, skipped = resolve_trading_days_in_range(
+            datetime.date(2026, 7, 1),
+            datetime.date(2026, 7, 6),
+            calendar_year=[
+                _pin_yi_day("20260701", is_holiday=False),
+                _pin_yi_day("20260702", is_holiday=False),
+                _pin_yi_day("20260703", is_holiday=False),
+                _pin_yi_day("20260704", is_holiday=True),
+                _pin_yi_day("20260705", is_holiday=True),
+                _pin_yi_day("20260706", is_holiday=False),
+            ],
+        )
+        self.assertEqual(
+            trading,
+            [
+                datetime.date(2026, 7, 1),
+                datetime.date(2026, 7, 2),
+                datetime.date(2026, 7, 3),
+                datetime.date(2026, 7, 6),
+            ],
+        )
+        self.assertEqual(
+            skipped["weekend"],
+            [datetime.date(2026, 7, 4), datetime.date(2026, 7, 5)],
+        )
+
+
+class TestBackfillDatesBatched(unittest.TestCase):
+    @patch("backfilldata.core.backfill_dates")
+    @patch("backfilldata.core.create_and_login_api")
+    def test_backfill_dates_batched_chunks(self, mock_login, mock_backfill):
+        from backfilldata.core import BackfillResult, backfill_dates_batched
+
+        mock_login.return_value = MagicMock()
+        mock_backfill.return_value = BackfillResult(ticks=[Path("tick.csv")])
+
+        dates = [datetime.date(2026, 4, day) for day in range(1, 23)]
+        result, batches = backfill_dates_batched(
+            dates,
+            code="TMFR1",
+            simulation=True,
+            today=datetime.date(2026, 6, 30),
+        )
+        self.assertEqual(mock_backfill.call_count, 3)
+        self.assertEqual(len(batches), 3)
+        self.assertTrue(result.ok)
 
 
 class TestBackfillMonth(unittest.TestCase):

@@ -29,12 +29,12 @@ This document is the **single source of truth** for the historical market-data b
 
 ## 2. In scope
 
-- CLI `python -m backfilldata date <YYYY-MM-DD> [end]`
-- CLI `python -m backfilldata month <YYYY-MM>` — trading weekdays (skip weekends + [pin-yi Taiwan calendar](https://api.pin-yi.me/taiwan-calendar/{year}); `isHoliday`); reads `trade_days/{year}.json` first, fetches API on cache miss; batched for tick API day limits
+- CLI `python -m backfilldata date <YYYY-MM-DD> [end]` — skips weekends + [pin-yi Taiwan calendar](https://api.pin-yi.me/taiwan-calendar/{year}) holidays (same filter as `month`)
+- CLI `python -m backfilldata month <YYYY-MM>` — trading weekdays in calendar month; reads `trade_days/{year}.json` first, fetches API on cache miss; batched for tick API day limits
 - Login via `SJ_API_KEY` / `SJ_SEC_KEY` only (no CA; market data only)
 - Contract resolve for continuous futures (`TMFR1`, `TXFR1`, …) — same rule as `TradingEngine._resolve_contract`
 - Tick CSV → `tick_cache/{code}_{date}.csv` via `storage.tick_loader.download_and_cache`
-- Tick API defaults to `TicksQueryType.RangeTime` for day session (`08:45:00`–`13:45:00`); `--all-day-ticks` opt-out for full-day fetch
+- Tick API defaults to `TicksQueryType.AllDay` (full day); `--session-ticks` or `--time-start`/`--time-end` for day-session `RangeTime` (`08:45:00`–`13:45:00`)
 - Partial cache (e.g. live `*.csv.gz` missing morning) is **merged** into plain CSV; when both plain and gzip exist, rows are unioned before gap detection
 - Stale gzip is removed only after a successful plain CSV write (atomic temp → rename)
 - Kbar CSV → `tick_cache/{code}_kbars_{date}.csv` (same root as ticks; sweep / B-class calibration / UAT archiver)
@@ -74,9 +74,9 @@ python -m backfilldata month 2026-04
 python -m backfilldata month 2026-04 --dry-run
 python -m backfilldata date 2026-06-18 2026-06-20 --code TMFR1
 python -m backfilldata date 2026-06-20 --ticks-only
-python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-end 13:45
+python -m backfilldata date 2026-07-01 2026-07-06
+python -m backfilldata date 2026-06-20 --ticks-only --session-ticks
 python -m backfilldata date 2026-06-20 --kbars-only
-python -m backfilldata date 2026-06-20 --all-day-ticks
 python -m backfilldata date 2026-06-20 --overwrite
 python -m backfilldata date 2026-01-21 --code TMFR1 --no-merge-rollover
 ```
@@ -88,8 +88,10 @@ Post-backfill quality gate: `python -m storage.cache_audit --code TMFR1` or batc
 | `--code` | `config.product_code` | Continuous futures code |
 | `--tick-cache-dir` | `<monorepo>/tick_cache` | Tick and kbar output |
 | `--ticks-only` / `--kbars-only` | both | Fetch subset |
-| `--time-start` / `--time-end` | `08:45:00` / `13:45:00` | Tick `RangeTime` window **and** kbar post-fetch filter |
-| `--all-day-ticks` | off | Use `TicksQueryType.AllDay` instead of `RangeTime` |
+| `--session-ticks` | off | Use `RangeTime` `08:45:00`–`13:45:00` instead of default `AllDay` |
+| `--time-start` / `--time-end` | `None` | When set (or with `--session-ticks`), `RangeTime` window **and** kbar post-fetch filter; unset sides default to `08:45:00` / `13:45:00` |
+| `--all-day-ticks` | on (default) | Explicit `AllDay` (kept for backward compatibility) |
+| `--no-holiday-calendar` | off | Skip pin-yi calendar; weekdays only |
 | `--overwrite` | off | Re-download existing files |
 | `--no-merge-rollover` | merge **on** | Skip TMFR2 afternoon merge into TMFR1 on settlement days |
 | `--simulation` / `--production` | `config.simulation` | API environment |
@@ -119,8 +121,8 @@ Canonical roots: `storage.cache_paths`.
 
 | Data | API | Parameters |
 |------|-----|------------|
-| Ticks | `api.ticks` | default `query_type=TicksQueryType.RangeTime`, `date=YYYY-MM-DD`, `time_start=08:45:00`, `time_end=13:45:00`, `timeout=30000` (ms); up to 3 retries on timeout (2s backoff) via `storage.tick_loader` |
-| Kbars | `api.kbars` | `start=date`, `end=date` (1-minute bars), `timeout=30000` (ms); backfill 落地前依 `--time-start`/`--time-end` 裁切（API 本身無 intraday 參數） |
+| Ticks | `api.ticks` | default `query_type=TicksQueryType.AllDay`, `date=YYYY-MM-DD`, `timeout=30000` (ms); `--session-ticks` or `--time-start`/`--time-end` → `RangeTime`; up to 3 retries on timeout (2s backoff) via `storage.tick_loader` |
+| Kbars | `api.kbars` | `start=date`, `end=date` (1-minute bars), `timeout=30000` (ms); default no post-filter; `--session-ticks` or `--time-start`/`--time-end` 裁切至日盤（API 本身無 intraday 參數） |
 
 Use **continuous** contracts (`TMFR1`, not expired month codes). Futures history from **2020-03-22**.
 
@@ -152,6 +154,7 @@ Inherited from `storage.tick_loader` / `storage.kbar_loader`:
 - **Cache migration**: read paths do **no** time correction — the CSV cache is read verbatim. Any file written before 2026-06-26 with the old +8 decode (tick **or** kbar) must be deleted and re-fetched (``--overwrite``, or ``rm tick_cache/*.csv*`` then re-run backfill); merge alone may leave duplicate rows
 - Strategy hot path uses `tick.close` only; bid/ask in CSV are optional reference
 - **Coverage heuristic**: skip/refetch uses session edge tolerance (±1 min) and max gap (ticks 30 min, kbars 10 min). Sparse but valid caches may trigger an extra API fetch; prefer `--overwrite` if you know the cache is complete
+- **AllDay night-session split (Shioaji)**: `api.ticks(date=D, AllDay)` returns prior-calendar-day `15:00–23:59` plus same-day `00:00–05:00` and day session `08:45–13:45`. Same-day `15:00+` evening appears in the `D+1` query response (wall clock still on D); backfill does **not** look ahead to `D+1` when filling `D` — run `date D+1` to land that leg on the next cache file
 
 ---
 

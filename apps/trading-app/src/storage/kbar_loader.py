@@ -110,15 +110,10 @@ def _kbar_window_needs_fetch(
 
 
 def _all_day_kbar_needs_fetch(bars: Sequence[KBarRecord]) -> bool:
-    """True when cache is empty, day session incomplete, or only session-filtered rows."""
+    """True when cache is empty or day session (08:45–13:45) is incomplete."""
     if not bars:
         return True
-    if _kbar_window_needs_fetch(bars, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END):
-        return True
-    return all(
-        _bar_in_window(b, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END)
-        for b in bars
-    )
+    return _kbar_window_needs_fetch(bars, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END)
 
 
 def kbars_satisfy_request(

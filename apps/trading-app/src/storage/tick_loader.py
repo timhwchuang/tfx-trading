@@ -31,6 +31,11 @@ from trading_engine.calendar.shioaji_ts import shioaji_historical_ts_from_ns
 
 DEFAULT_TICK_RANGE_START = datetime.time(8, 45, 0)
 DEFAULT_TICK_RANGE_END = datetime.time(13, 45, 0)
+# Shioaji AllDay for query date D also returns prior-calendar-day 15:00–23:59 night leg.
+EVENING_SESSION_START = datetime.time(15, 0)
+EVENING_SESSION_END = datetime.time(23, 59, 59)
+DAWN_SESSION_START = datetime.time(0, 0)
+DAWN_SESSION_END = datetime.time(5, 0)
 _WINDOW_EDGE_TOLERANCE_MIN = 1
 _TICK_MAX_GAP_MIN = 30
 
@@ -62,6 +67,15 @@ class ReplayTick:
     ask_price: float = 0.0
 
 
+def _keep_tick_for_all_day_fetch(tick: ReplayTick, date: datetime.date) -> bool:
+    """Keep same-calendar-day ticks plus prior-day 15:00+ from Shioaji AllDay."""
+    tick_date = tick.datetime.date()
+    if tick_date == date:
+        return True
+    prev = date - datetime.timedelta(days=1)
+    return tick_date == prev and tick.datetime.time() >= EVENING_SESSION_START
+
+
 def _is_transient_tick_fetch_error(exc: BaseException) -> bool:
     if isinstance(exc, TimeoutError):
         return True
@@ -78,7 +92,13 @@ def fetch_ticks_for_date(
     time_end: datetime.time | None = DEFAULT_TICK_RANGE_END,
     simulation: bool = False,
 ) -> List[ReplayTick]:
-    """呼叫 api.ticks 取單日 tick，回傳依時間排序的 ReplayTick。"""
+    """呼叫 api.ticks 取單日 tick，回傳依時間排序的 ReplayTick。
+
+    AllDay（``time_start``/``time_end`` 皆 None）時，永豐 API 會在 ``date`` 查詢回應中
+    夾帶**前一曆日** 15:00 起的夜盤尾段；一併保留並寫入 ``{code}_{date}.csv``。
+    當日 15:00 起的夜盤開盤則在 ``date+1`` 查詢回應中（牆鐘仍為當日），需 backfill 次日
+    才會進入該日快取，不向前一日查詢。
+    """
     import shioaji as sj
 
     query_type = (
@@ -138,6 +158,8 @@ def fetch_ticks_for_date(
             )
         )
     ticks.sort(key=lambda t: t.datetime)
+    if time_start is None and time_end is None:
+        return [t for t in ticks if _keep_tick_for_all_day_fetch(t, date)]
     return [t for t in ticks if t.datetime.date() == date]
 
 
@@ -189,16 +211,69 @@ def _window_needs_fetch(
     return False
 
 
-def _all_day_needs_fetch(ticks: Sequence[ReplayTick]) -> bool:
-    """True when cache is empty, day session incomplete, or only session-filtered rows."""
+def _evening_edges_need_fetch(
+    ticks: Sequence[ReplayTick],
+    *,
+    calendar_date: datetime.date,
+    time_start: datetime.time,
+    time_end: datetime.time,
+) -> bool:
+    """Edge-only coverage for long night windows (skip intraday gap heuristics)."""
+    in_window = [
+        t
+        for t in ticks
+        if t.datetime.date() == calendar_date and time_start <= t.datetime.time() <= time_end
+    ]
+    if not in_window:
+        return True
+    earliest = min(t.datetime.time() for t in in_window)
+    latest = max(t.datetime.time() for t in in_window)
+    tol = datetime.timedelta(minutes=_WINDOW_EDGE_TOLERANCE_MIN)
+    if (
+        datetime.datetime.combine(datetime.date.min, earliest)
+        > datetime.datetime.combine(datetime.date.min, time_start) + tol
+    ):
+        return True
+    return (
+        datetime.datetime.combine(datetime.date.min, latest)
+        < datetime.datetime.combine(datetime.date.min, time_end) - tol
+    )
+
+
+def _prev_evening_needs_fetch(
+    ticks: Sequence[ReplayTick],
+    date: datetime.date,
+) -> bool:
+    """True when prior-calendar-day 15:00–23:59 night leg is missing."""
+    prev = date - datetime.timedelta(days=1)
+    return _evening_edges_need_fetch(
+        ticks,
+        calendar_date=prev,
+        time_start=EVENING_SESSION_START,
+        time_end=EVENING_SESSION_END,
+    )
+
+
+def _dawn_needs_fetch(ticks: Sequence[ReplayTick], date: datetime.date) -> bool:
+    """True when same-calendar-day 00:00–05:00 night leg is missing."""
+    return _evening_edges_need_fetch(
+        ticks,
+        calendar_date=date,
+        time_start=DAWN_SESSION_START,
+        time_end=DAWN_SESSION_END,
+    )
+
+
+def _all_day_needs_fetch(ticks: Sequence[ReplayTick], date: datetime.date) -> bool:
+    """True when cache lacks prior-evening, dawn, or same-day session (08:45–13:45)."""
     if not ticks:
         return True
-    if _window_needs_fetch(ticks, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END):
+    same_day = [t for t in ticks if t.datetime.date() == date]
+    if _window_needs_fetch(same_day, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END):
         return True
-    return all(
-        _tick_in_window(t, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END)
-        for t in ticks
-    )
+    if _dawn_needs_fetch(ticks, date):
+        return True
+    return _prev_evening_needs_fetch(ticks, date)
 
 
 def tick_cache_satisfies_request(
@@ -215,7 +290,7 @@ def tick_cache_satisfies_request(
         return False
     ticks = load_merged_tick_cache(cache_dir, code, date)
     if time_start is None and time_end is None:
-        return not _all_day_needs_fetch(ticks)
+        return not _all_day_needs_fetch(ticks, date)
     return not _window_needs_fetch(ticks, time_start, time_end)
 
 
@@ -430,7 +505,7 @@ def download_and_cache(
             not cache_exists
             or overwrite
             or (
-                _all_day_needs_fetch(existing_ticks)
+                _all_day_needs_fetch(existing_ticks, date)
                 if all_day
                 else _window_needs_fetch(existing_ticks, time_start, time_end)
             )

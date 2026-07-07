@@ -4,7 +4,7 @@
 
 **Shioaji historical tick / 1m kbar backfill CLI** for the trading-app integrator.
 
-Fetches historical ticks/kbars for past trade days and **today after 13:45 Taipei** (day session close), writes CSV caches under monorepo `tick_cache/` (ticks and kbars in one directory). Tick backfill defaults to the day session `RangeTime` window `08:45:00`–`13:45:00`.
+Fetches historical ticks/kbars for past trade days and **today after 13:45 Taipei** (day session close), writes CSV caches under monorepo `tick_cache/` (ticks and kbars in one directory). Tick backfill defaults to `AllDay` (full day); `date`/`month` skip weekends and Taiwan calendar holidays. Use `--session-ticks` for day-session `RangeTime` `08:45:00`–`13:45:00`.
 
 **本模組為作者個人研究與學習用途而公開，部分程式與文件在開發過程中借助 AI 協作撰寫與整理。**
 
@@ -33,9 +33,8 @@ cd apps/trading-app/src
 python -m backfilldata date 2026-06-20
 python -m backfilldata month 2026-04
 python -m backfilldata month 2026-04 --dry-run
-python -m backfilldata date 2026-06-18 2026-06-20 --code TMFR1
-python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-end 13:45
-python -m backfilldata date 2026-06-20 --all-day-ticks
+python -m backfilldata date 2026-07-01 2026-07-06 --code TMFR1
+python -m backfilldata date 2026-06-20 --ticks-only --session-ticks
 python -m backfilldata --help
 ```
 

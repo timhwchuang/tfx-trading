@@ -109,6 +109,37 @@ class TestFetchTicksForDate(unittest.TestCase):
         self.assertNotIn("time_start", kwargs)
         self.assertNotIn("time_end", kwargs)
 
+    def test_all_day_keeps_prior_calendar_evening_from_same_query(self):
+        api = MagicMock()
+        contract = MagicMock(code="TMFR1")
+        query_date = datetime.date(2026, 7, 1)
+
+        def _ns(y, m, d, h, mi, s=0):
+            dt = datetime.datetime(y, m, d, h, mi, s, tzinfo=datetime.timezone.utc)
+            return int(dt.timestamp() * 1_000_000_000)
+
+        ts = [
+            _ns(2026, 6, 30, 15, 0),
+            _ns(2026, 6, 30, 23, 59),
+            _ns(2026, 7, 1, 0, 0),
+            _ns(2026, 7, 1, 13, 44),
+        ]
+        api.ticks.return_value = MagicMock(
+            ts=ts,
+            close=[18000.0] * len(ts),
+            volume=[1] * len(ts),
+            bid_price=[],
+            ask_price=[],
+            tick_type=[],
+        )
+        ticks = fetch_ticks_for_date(
+            api, contract, query_date, time_start=None, time_end=None
+        )
+        self.assertEqual(len(ticks), 4)
+        self.assertEqual(ticks[0].datetime, datetime.datetime(2026, 6, 30, 15, 0))
+        self.assertEqual(ticks[1].datetime, datetime.datetime(2026, 6, 30, 23, 59))
+        self.assertEqual(ticks[-1].datetime, datetime.datetime(2026, 7, 1, 13, 44))
+
     def test_simulation_ts_uses_wall_clock_not_plus_eight(self):
         wall_as_utc = datetime.datetime(
             2026, 6, 18, 10, 26, 0, tzinfo=datetime.timezone.utc
@@ -292,17 +323,20 @@ class TestDownloadAndCache(unittest.TestCase):
         contract.code = "TXFR1"
         date = datetime.date(2026, 6, 12)
         day_ticks = [
-            ReplayTick(
-                datetime.datetime(2026, 6, 12, 8, 45) + datetime.timedelta(minutes=i),
-                str(i),
-                1,
-                0,
-            )
-            for i in range((13 * 60 + 45) - (8 * 60 + 45) + 1)
+            ReplayTick(datetime.datetime(2026, 6, 11, 15, 0), "prev0", 1, 0),
+            ReplayTick(datetime.datetime(2026, 6, 11, 23, 59), "prev1", 1, 0),
+            ReplayTick(datetime.datetime(2026, 6, 12, 0, 0), "dawn0", 1, 0),
+            ReplayTick(datetime.datetime(2026, 6, 12, 5, 0), "dawn1", 1, 0),
+            *[
+                ReplayTick(
+                    datetime.datetime(2026, 6, 12, 8, 45) + datetime.timedelta(minutes=i),
+                    str(i),
+                    1,
+                    0,
+                )
+                for i in range((13 * 60 + 45) - (8 * 60 + 45) + 1)
+            ],
         ]
-        day_ticks.append(
-            ReplayTick(datetime.datetime(2026, 6, 12, 15, 0), "night", 1, 0)
-        )
         with tempfile.TemporaryDirectory() as d:
             cache_dir = Path(d)
             save_ticks_csv(day_ticks, cache_path(cache_dir, "TXFR1", date))
@@ -316,6 +350,43 @@ class TestDownloadAndCache(unittest.TestCase):
             )
             self.assertEqual(len(written), 1)
             api.ticks.assert_not_called()
+
+    def test_all_day_refetches_missing_dawn_leg(self):
+        api = MagicMock()
+        api.usage.return_value = MagicMock(
+            bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
+        )
+        contract = MagicMock()
+        contract.code = "TXFR1"
+        date = datetime.date(2026, 6, 12)
+        api.ticks.return_value = MagicMock(
+            ts=[],
+            close=[],
+            volume=[],
+            bid_price=[],
+            ask_price=[],
+            tick_type=[],
+        )
+        with tempfile.TemporaryDirectory() as d:
+            cache_dir = Path(d)
+            save_ticks_csv(
+                [
+                    ReplayTick(datetime.datetime(2026, 6, 11, 15, 0), "prev0", 1, 0),
+                    ReplayTick(datetime.datetime(2026, 6, 11, 23, 59), "prev1", 1, 0),
+                    ReplayTick(datetime.datetime(2026, 6, 12, 8, 45), "open", 1, 0),
+                    ReplayTick(datetime.datetime(2026, 6, 12, 13, 45), "close", 1, 0),
+                ],
+                cache_path(cache_dir, "TXFR1", date),
+            )
+            download_and_cache(
+                api,
+                contract,
+                [date],
+                cache_dir=cache_dir,
+                time_start=None,
+                time_end=None,
+            )
+            api.ticks.assert_called_once()
 
     def test_all_day_refetches_session_only_cache(self):
         api = MagicMock()

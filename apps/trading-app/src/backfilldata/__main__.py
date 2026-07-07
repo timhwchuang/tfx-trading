@@ -14,7 +14,7 @@ from storage.tick_loader import DEFAULT_TICK_RANGE_END, DEFAULT_TICK_RANGE_START
 
 from backfilldata.core import (
     BackfillError,
-    backfill_dates,
+    backfill_dates_batched,
     backfill_month,
     filter_backfill_eligible_dates,
     parse_date_args,
@@ -22,18 +22,19 @@ from backfilldata.core import (
 from backfilldata.taiwan_calendar import (
     parse_month_arg,
     resolve_month_trading_days_with_fallback,
+    resolve_trading_days_in_range_with_fallback,
 )
 
 _EPILOG = """\
 Examples (from apps/trading-app/src):
   python -m backfilldata date 2026-06-20
-  python -m backfilldata date 2026-06-18 2026-06-20
+  python -m backfilldata date 2026-07-01 2026-07-06
   python -m backfilldata month 2026-04
   python -m backfilldata month 2026-04 --dry-run
   python -m backfilldata date 2026-06-20 --code TMFR1 --ticks-only
+  python -m backfilldata date 2026-06-20 --ticks-only --session-ticks
   python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-end 13:45
   python -m backfilldata date 2026-06-20 --kbars-only
-  python -m backfilldata date 2026-06-20 --all-day-ticks
 
 Environment:
   SJ_API_KEY, SJ_SEC_KEY     Shioaji credentials (market data only; no CA)
@@ -45,8 +46,8 @@ Cache layout (defaults):
 
 Notes:
   Prefer running after day session close (13:45 Taipei); same-day backfill is allowed from 13:45 onward.
-  Tick backfill defaults to RangeTime 08:45:00-13:45:00; use --all-day-ticks to fetch the full day.
-  month: skips weekends + pin-yi Taiwan calendar (fallback weekdays-only if API unreachable).
+  Tick backfill defaults to AllDay (full day); use --session-ticks for RangeTime 08:45:00-13:45:00.
+  date/month: skip weekends + pin-yi Taiwan calendar holidays (fallback weekdays-only if API unreachable).
   Do not run while live session holds one of the 5 connection slots for the same person_id.
   See backfilldata/SPEC.md for API limits and fidelity caveats.
 """
@@ -97,21 +98,26 @@ def _add_backfill_options(parser: argparse.ArgumentParser) -> None:
         help="Re-download even when cache file exists",
     )
     parser.add_argument(
+        "--session-ticks",
+        action="store_true",
+        help="Use RangeTime 08:45:00-13:45:00 instead of default AllDay ticks",
+    )
+    parser.add_argument(
         "--time-start",
         type=_parse_hhmmss,
-        default=DEFAULT_TICK_RANGE_START,
-        help="Session window start for ticks (RangeTime) and kbars post-filter (default: 08:45:00)",
+        default=None,
+        help="RangeTime window start (implies --session-ticks; default with --session-ticks: 08:45:00)",
     )
     parser.add_argument(
         "--time-end",
         type=_parse_hhmmss,
-        default=DEFAULT_TICK_RANGE_END,
-        help="Session window end for ticks (RangeTime) and kbars post-filter (default: 13:45:00)",
+        default=None,
+        help="RangeTime window end (implies --session-ticks; default with --session-ticks: 13:45:00)",
     )
     parser.add_argument(
         "--all-day-ticks",
         action="store_true",
-        help="Use TicksQueryType.AllDay instead of RangeTime for ticks",
+        help="Explicit AllDay ticks (default; kept for backward compatibility)",
     )
     parser.add_argument(
         "--no-merge-rollover",
@@ -131,21 +137,49 @@ def _add_backfill_options(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Force Shioaji production API (overrides config simulation)",
     )
+    parser.add_argument(
+        "--no-holiday-calendar",
+        action="store_true",
+        help="Skip pin-yi Taiwan calendar API; use weekdays only",
+    )
+
+
+def _uses_range_time(args: argparse.Namespace) -> bool:
+    if args.all_day_ticks:
+        return False
+    if args.session_ticks:
+        return True
+    return args.time_start is not None or args.time_end is not None
+
+
+def _resolve_tick_window(
+    args: argparse.Namespace,
+) -> tuple[datetime.time | None, datetime.time | None]:
+    if not _uses_range_time(args):
+        return None, None
+    return (
+        args.time_start if args.time_start is not None else DEFAULT_TICK_RANGE_START,
+        args.time_end if args.time_end is not None else DEFAULT_TICK_RANGE_END,
+    )
 
 
 def _validate_session_window(args: argparse.Namespace) -> int | None:
     if args.ticks_only and args.kbars_only:
         print("不可同時指定 --ticks-only 與 --kbars-only", file=sys.stderr)
         return 2
-    if not args.all_day_ticks and args.time_end <= args.time_start:
-        print("--time-end 必須晚於 --time-start", file=sys.stderr)
+    if args.session_ticks and args.all_day_ticks:
+        print("不可同時指定 --session-ticks 與 --all-day-ticks", file=sys.stderr)
         return 2
+    if _uses_range_time(args):
+        start, end = _resolve_tick_window(args)
+        if end <= start:
+            print("--time-end 必須晚於 --time-start", file=sys.stderr)
+            return 2
     return None
 
 
 def _backfill_kwargs(args: argparse.Namespace, *, simulation: bool) -> dict:
-    tick_time_start = None if args.all_day_ticks else args.time_start
-    tick_time_end = None if args.all_day_ticks else args.time_end
+    tick_time_start, tick_time_end = _resolve_tick_window(args)
     return {
         "code": args.code,
         "simulation": simulation,
@@ -219,7 +253,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "dates",
         nargs="+",
         metavar="YYYY-MM-DD",
-        help="One date, or start and end (inclusive)",
+        help="One date, or start and end (inclusive); non-trading days are skipped",
     )
     _add_backfill_options(date_p)
 
@@ -238,11 +272,6 @@ def _build_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Print trading days only; do not call Shioaji",
-    )
-    month_p.add_argument(
-        "--no-holiday-calendar",
-        action="store_true",
-        help="Skip pin-yi Taiwan calendar API; use weekdays only",
     )
     _add_backfill_options(month_p)
 
@@ -267,13 +296,42 @@ def main(argv: list[str] | None = None) -> int:
     kwargs = _backfill_kwargs(args, simulation=simulation)
 
     try:
+        use_holiday_calendar = not args.no_holiday_calendar
+
         if args.command == "date":
-            dates = parse_date_args(args.dates)
-            result = backfill_dates(dates, **kwargs)
-            return _report_backfill_result(result, dates=dates, simulation=simulation)
+            raw_dates = parse_date_args(args.dates)
+            trading_days, skipped_buckets = resolve_trading_days_in_range_with_fallback(
+                raw_dates[0],
+                raw_dates[-1],
+                use_holiday_calendar=use_holiday_calendar,
+            )
+            eligible, skipped_future = filter_backfill_eligible_dates(trading_days)
+            logging.info(
+                "date | requested=%d trading_days=%d eligible=%d "
+                "skipped_weekend=%d skipped_holiday=%d skipped_future=%d",
+                len(raw_dates),
+                len(trading_days),
+                len(eligible),
+                len(skipped_buckets["weekend"]),
+                len(skipped_buckets["holiday"]),
+                len(skipped_future),
+            )
+            if not eligible:
+                logging.info("無可 backfill 的交易日")
+                return 0
+            result, batches = backfill_dates_batched(eligible, **kwargs)
+            logging.info(
+                "date | eligible=%d batches=%d",
+                len(eligible),
+                len(batches),
+            )
+            return _report_backfill_result(
+                result,
+                dates=eligible,
+                simulation=simulation,
+            )
 
         year, month = parse_month_arg(args.month)
-        use_holiday_calendar = not args.no_holiday_calendar
 
         if args.dry_run:
             trading_days, skipped_buckets = _resolve_month_days_with_calendar_fallback(

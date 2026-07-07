@@ -165,48 +165,59 @@ def _is_holiday_entry(entry: dict[str, Any]) -> bool:
     return bool(entry.get("isHoliday"))
 
 
-def resolve_month_trading_days(
-    year: int,
-    month: int,
+def resolve_trading_days_in_range(
+    start: datetime.date,
+    end: datetime.date,
     *,
     use_holiday_calendar: bool = True,
     calendar_year: Sequence[dict[str, Any]] | None = None,
     calendar_dir: Path = DEFAULT_TRADE_DAYS_DIR,
 ) -> tuple[list[datetime.date], dict[str, list[datetime.date]]]:
-    """Return sorted trading days in month and skip buckets for logging."""
-    start, end = month_bounds(year, month)
-    month_days = date_range(start, end)
+    """Return sorted trading days in ``[start, end]`` and skip buckets for logging."""
+    if end < start:
+        raise BackfillError(f"結束日 {end} 早於開始日 {start}")
+
+    range_days = date_range(start, end)
 
     if not use_holiday_calendar:
-        weekdays = [d for d in month_days if d.weekday() < 5]
+        weekdays = [d for d in range_days if d.weekday() < 5]
         return weekdays, {
-            "weekend": [d for d in month_days if d.weekday() >= 5],
+            "weekend": [d for d in range_days if d.weekday() >= 5],
             "holiday": [],
+            "missing_calendar": [],
         }
 
-    entries = (
-        list(calendar_year)
-        if calendar_year is not None
-        else get_taiwan_calendar_year(year, calendar_dir=calendar_dir)
-    )
-    _parse_calendar_payload(entries, source=f"{year}")
-
     by_date: dict[datetime.date, dict[str, Any]] = {}
-    for entry in entries:
-        try:
-            day = yyyymmdd_to_date(str(entry.get("date", "")))
-        except ValueError:
-            logger.warning("略過無效行事曆日期: %s", entry.get("date"))
-            continue
-        if start <= day <= end:
-            by_date[day] = entry
+    if calendar_year is not None:
+        entries = list(calendar_year)
+        _parse_calendar_payload(entries, source="injected")
+        for entry in entries:
+            try:
+                day = yyyymmdd_to_date(str(entry.get("date", "")))
+            except ValueError:
+                logger.warning("略過無效行事曆日期: %s", entry.get("date"))
+                continue
+            if start <= day <= end:
+                by_date[day] = entry
+    else:
+        for year in range(start.year, end.year + 1):
+            entries = get_taiwan_calendar_year(year, calendar_dir=calendar_dir)
+            _parse_calendar_payload(entries, source=f"{year}")
+            for entry in entries:
+                try:
+                    day = yyyymmdd_to_date(str(entry.get("date", "")))
+                except ValueError:
+                    logger.warning("略過無效行事曆日期: %s", entry.get("date"))
+                    continue
+                if start <= day <= end:
+                    by_date[day] = entry
 
     trading_days: list[datetime.date] = []
     skipped_weekend: list[datetime.date] = []
     skipped_holiday: list[datetime.date] = []
     skipped_missing: list[datetime.date] = []
 
-    for day in month_days:
+    for day in range_days:
         entry = by_date.get(day)
         if entry is None:
             if day.weekday() >= 5:
@@ -225,7 +236,7 @@ def resolve_month_trading_days(
     if calendar_year is None and skipped_missing:
         sample = ", ".join(d.isoformat() for d in skipped_missing[:3])
         raise BackfillError(
-            f"Taiwan 行事曆 {year} 不完整，缺少 {len(skipped_missing)} 個平日（例: {sample}）"
+            f"Taiwan 行事曆不完整，缺少 {len(skipped_missing)} 個平日（例: {sample}）"
         )
 
     return trading_days, {
@@ -233,6 +244,55 @@ def resolve_month_trading_days(
         "holiday": skipped_holiday,
         "missing_calendar": skipped_missing,
     }
+
+
+def resolve_month_trading_days(
+    year: int,
+    month: int,
+    *,
+    use_holiday_calendar: bool = True,
+    calendar_year: Sequence[dict[str, Any]] | None = None,
+    calendar_dir: Path = DEFAULT_TRADE_DAYS_DIR,
+) -> tuple[list[datetime.date], dict[str, list[datetime.date]]]:
+    """Return sorted trading days in month and skip buckets for logging."""
+    start, end = month_bounds(year, month)
+    return resolve_trading_days_in_range(
+        start,
+        end,
+        use_holiday_calendar=use_holiday_calendar,
+        calendar_year=calendar_year,
+        calendar_dir=calendar_dir,
+    )
+
+
+def resolve_trading_days_in_range_with_fallback(
+    start: datetime.date,
+    end: datetime.date,
+    *,
+    use_holiday_calendar: bool = True,
+    calendar_year: Sequence[dict[str, Any]] | None = None,
+    calendar_dir: Path = DEFAULT_TRADE_DAYS_DIR,
+) -> tuple[list[datetime.date], dict[str, list[datetime.date]]]:
+    """Resolve trading days in range; on calendar failure fall back to weekdays-only."""
+    try:
+        return resolve_trading_days_in_range(
+            start,
+            end,
+            use_holiday_calendar=use_holiday_calendar,
+            calendar_year=calendar_year,
+            calendar_dir=calendar_dir,
+        )
+    except BackfillError as exc:
+        if use_holiday_calendar and "行事曆" in str(exc):
+            logger.warning("%s；改為僅跳過週末", exc)
+            return resolve_trading_days_in_range(
+                start,
+                end,
+                use_holiday_calendar=False,
+                calendar_year=calendar_year,
+                calendar_dir=calendar_dir,
+            )
+        raise
 
 
 def resolve_month_trading_days_with_fallback(
@@ -244,22 +304,11 @@ def resolve_month_trading_days_with_fallback(
     calendar_dir: Path = DEFAULT_TRADE_DAYS_DIR,
 ) -> tuple[list[datetime.date], dict[str, list[datetime.date]]]:
     """Resolve trading days; on calendar failure fall back to weekdays-only."""
-    try:
-        return resolve_month_trading_days(
-            year,
-            month,
-            use_holiday_calendar=use_holiday_calendar,
-            calendar_year=calendar_year,
-            calendar_dir=calendar_dir,
-        )
-    except BackfillError as exc:
-        if use_holiday_calendar and "行事曆" in str(exc):
-            logger.warning("%s；改為僅跳過週末", exc)
-            return resolve_month_trading_days(
-                year,
-                month,
-                use_holiday_calendar=False,
-                calendar_year=calendar_year,
-                calendar_dir=calendar_dir,
-            )
-        raise
+    start, end = month_bounds(year, month)
+    return resolve_trading_days_in_range_with_fallback(
+        start,
+        end,
+        use_holiday_calendar=use_holiday_calendar,
+        calendar_year=calendar_year,
+        calendar_dir=calendar_dir,
+    )

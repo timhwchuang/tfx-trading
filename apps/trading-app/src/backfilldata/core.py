@@ -204,6 +204,46 @@ def _merge_backfill_results(target: BackfillResult, batch: BackfillResult) -> No
     target.missing_kbar_dates.extend(batch.missing_kbar_dates)
 
 
+def backfill_dates_batched(
+    dates: Sequence[datetime.date],
+    *,
+    today: datetime.date | None = None,
+    **kwargs: Any,
+) -> tuple[BackfillResult, list[BackfillResult]]:
+    """Backfill ``dates`` in API-sized chunks (single login when ``api`` omitted)."""
+    eligible = list(dates)
+    if not eligible:
+        return BackfillResult(), []
+
+    fetch_ticks = kwargs.get("fetch_ticks", True)
+    fetch_kbars = kwargs.get("fetch_kbars", True)
+    chunk_size = _backfill_chunk_size(
+        fetch_ticks=fetch_ticks,
+        fetch_kbars=fetch_kbars,
+    )
+
+    merged = BackfillResult()
+    batches: list[BackfillResult] = []
+    api = kwargs.pop("api", None)
+    owns_api = api is None
+    if owns_api:
+        api = create_and_login_api(simulation=kwargs["simulation"])
+    try:
+        for offset in range(0, len(eligible), chunk_size):
+            chunk = eligible[offset : offset + chunk_size]
+            batch = backfill_dates(chunk, api=api, today=today, **kwargs)
+            batches.append(batch)
+            _merge_backfill_results(merged, batch)
+    finally:
+        if owns_api and api is not None:
+            try:
+                api.logout()
+            except Exception as e:
+                logger.warning("api.logout 失敗: %s", e)
+
+    return merged, batches
+
+
 def filter_backfill_eligible_dates(
     dates: Sequence[datetime.date],
     *,
@@ -248,31 +288,7 @@ def backfill_month(
         now=now,
     )
 
-    fetch_ticks = kwargs.get("fetch_ticks", True)
-    fetch_kbars = kwargs.get("fetch_kbars", True)
-    chunk_size = _backfill_chunk_size(
-        fetch_ticks=fetch_ticks,
-        fetch_kbars=fetch_kbars,
-    )
-
-    merged = BackfillResult()
-    batches: list[BackfillResult] = []
-    api = kwargs.pop("api", None)
-    owns_api = api is None
-    if owns_api and eligible:
-        api = create_and_login_api(simulation=kwargs["simulation"])
-    try:
-        for offset in range(0, len(eligible), chunk_size):
-            chunk = eligible[offset : offset + chunk_size]
-            batch = backfill_dates(chunk, api=api, today=today, **kwargs)
-            batches.append(batch)
-            _merge_backfill_results(merged, batch)
-    finally:
-        if owns_api and api is not None:
-            try:
-                api.logout()
-            except Exception as e:
-                logger.warning("api.logout 失敗: %s", e)
+    merged, batches = backfill_dates_batched(eligible, today=today, **kwargs)
 
     meta = {
         "trading_days": trading_days,
@@ -295,8 +311,8 @@ def backfill_dates(
     fetch_kbars: bool = True,
     cache_dir: Path = DEFAULT_TICK_CACHE_DIR,
     overwrite: bool = False,
-    tick_time_start: datetime.time | None = DEFAULT_TICK_RANGE_START,
-    tick_time_end: datetime.time | None = DEFAULT_TICK_RANGE_END,
+    tick_time_start: datetime.time | None = None,
+    tick_time_end: datetime.time | None = None,
     merge_rollover: bool = True,
     api: Any | None = None,
     today: datetime.date | None = None,
