@@ -102,6 +102,10 @@ Injectable `api=` for tests. Returns paths plus `missing_*_dates`; `ok` is false
 
 Kbar fetch delegates to `storage.kbar_loader.download_and_cache_kbars` with `pace_sec`.
 
+When kbars are requested (`--kbars-only` or default both), eligible kbar days =
+**trading days in range ∪ calendar Saturdays in the same span** (supplies Friday
+night → Saturday 00:00–05:00 dawn leg). Ticks remain trading-days only.
+
 ---
 
 ## 5. Cache path contract

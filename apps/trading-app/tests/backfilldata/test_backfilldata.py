@@ -14,8 +14,10 @@ from backfilldata.core import (
     BackfillError,
     BackfillResult,
     backfill_dates,
+    expand_kbar_dates_with_saturdays,
     parse_date_args,
     resolve_contract,
+    saturdays_in_range,
     validate_kbar_day_count,
     validate_past_dates,
     validate_tick_day_count,
@@ -687,6 +689,57 @@ class TestTaiwanCalendar(unittest.TestCase):
         )
 
 
+class TestKbarSaturdaySupplement(unittest.TestCase):
+    def test_saturdays_in_range(self):
+        sats = saturdays_in_range(
+            datetime.date(2026, 4, 1),
+            datetime.date(2026, 4, 10),
+        )
+        self.assertEqual(sats, [datetime.date(2026, 4, 4)])
+
+    def test_expand_kbar_dates_with_saturdays(self):
+        trading = [datetime.date(2026, 4, 1), datetime.date(2026, 4, 7)]
+        expanded = expand_kbar_dates_with_saturdays(
+            trading,
+            range_start=datetime.date(2026, 4, 1),
+            range_end=datetime.date(2026, 4, 10),
+        )
+        self.assertIn(datetime.date(2026, 4, 4), expanded)
+        self.assertEqual(len(expanded), 3)
+
+    @patch("backfilldata.core.backfill_dates")
+    @patch("backfilldata.core.create_and_login_api")
+    def test_batched_kbars_include_saturdays(self, mock_login, mock_backfill):
+        from backfilldata.core import backfill_dates_batched
+
+        mock_login.return_value = MagicMock()
+        mock_backfill.return_value = BackfillResult(kbars=[Path("kbar.csv")])
+
+        trading = [
+            datetime.date(2026, 4, 1),
+            datetime.date(2026, 4, 2),
+            datetime.date(2026, 4, 7),
+        ]
+        backfill_dates_batched(
+            trading,
+            range_start=datetime.date(2026, 4, 1),
+            range_end=datetime.date(2026, 4, 10),
+            fetch_ticks=False,
+            fetch_kbars=True,
+            code="TMFR1",
+            simulation=True,
+            today=datetime.date(2026, 6, 30),
+        )
+        kbar_calls = [
+            c
+            for c in mock_backfill.call_args_list
+            if c.kwargs.get("fetch_ticks") is False
+        ]
+        self.assertEqual(len(kbar_calls), 1)
+        fetched = list(kbar_calls[0].kwargs["kbar_dates"])
+        self.assertIn(datetime.date(2026, 4, 4), fetched)
+
+
 class TestBackfillDatesBatched(unittest.TestCase):
     @patch("backfilldata.core.backfill_dates")
     @patch("backfilldata.core.create_and_login_api")
@@ -703,8 +756,15 @@ class TestBackfillDatesBatched(unittest.TestCase):
             simulation=True,
             today=datetime.date(2026, 6, 30),
         )
-        self.assertEqual(mock_backfill.call_count, 3)
-        self.assertEqual(len(batches), 3)
+        tick_calls = [
+            c for c in mock_backfill.call_args_list if c.kwargs.get("fetch_kbars") is False
+        ]
+        kbar_calls = [
+            c for c in mock_backfill.call_args_list if c.kwargs.get("fetch_ticks") is False
+        ]
+        self.assertEqual(len(tick_calls), 3)
+        self.assertEqual(len(kbar_calls), 1)
+        self.assertEqual(len(batches), 4)
         self.assertTrue(result.ok)
 
 
@@ -731,8 +791,16 @@ class TestBackfillMonth(unittest.TestCase):
                 today=datetime.date(2026, 6, 30),
             )
 
-        self.assertEqual(mock_backfill.call_count, 3)
+        tick_calls = [
+            c for c in mock_backfill.call_args_list if c.kwargs.get("fetch_kbars") is False
+        ]
+        kbar_calls = [
+            c for c in mock_backfill.call_args_list if c.kwargs.get("fetch_ticks") is False
+        ]
+        self.assertEqual(len(tick_calls), 3)
+        self.assertEqual(len(kbar_calls), 1)
         self.assertEqual(len(meta["eligible_days"]), 22)
+        self.assertGreater(len(meta["kbar_days"]), 22)
         self.assertTrue(result.ok)
 
     @patch("backfilldata.core.backfill_dates")
@@ -761,7 +829,7 @@ class TestBackfillMonth(unittest.TestCase):
             )
 
         mock_login.assert_called_once()
-        self.assertEqual(mock_backfill.call_count, 3)
+        self.assertEqual(mock_backfill.call_count, 4)
         for call in mock_backfill.call_args_list:
             self.assertIs(call.kwargs["api"], mock_api)
         mock_api.logout.assert_called_once()

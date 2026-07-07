@@ -18,6 +18,7 @@ from backfilldata.core import (
     backfill_month,
     filter_backfill_eligible_dates,
     parse_date_args,
+    resolve_kbar_backfill_dates,
 )
 from backfilldata.taiwan_calendar import (
     parse_month_arg,
@@ -319,10 +320,24 @@ def main(argv: list[str] | None = None) -> int:
             if not eligible:
                 logging.info("無可 backfill 的交易日")
                 return 0
-            result, batches = backfill_dates_batched(eligible, **kwargs)
+            range_start, range_end = raw_dates[0], raw_dates[-1]
+            result, batches = backfill_dates_batched(
+                eligible,
+                range_start=range_start,
+                range_end=range_end,
+                **kwargs,
+            )
+            kbar_days = eligible
+            if kwargs.get("fetch_kbars", True):
+                kbar_days, _ = resolve_kbar_backfill_dates(
+                    eligible,
+                    range_start=range_start,
+                    range_end=range_end,
+                )
             logging.info(
-                "date | eligible=%d batches=%d",
+                "date | eligible=%d kbar_days=%d batches=%d",
                 len(eligible),
+                len(kbar_days),
                 len(batches),
             )
             return _report_backfill_result(
@@ -363,12 +378,13 @@ def main(argv: list[str] | None = None) -> int:
         )
 
         logging.info(
-            "month=%04d-%02d | trading_days=%d eligible=%d batches=%d "
+            "month=%04d-%02d | trading_days=%d eligible=%d kbar_days=%d batches=%d "
             "skipped_weekend=%d skipped_holiday=%d skipped_future=%d",
             year,
             month,
             len(meta["trading_days"]),
             len(meta["eligible_days"]),
+            len(meta.get("kbar_days", meta["eligible_days"])),
             len(meta["batches"]),
             len(meta["skipped_weekend"]),
             len(meta["skipped_holiday"]),
