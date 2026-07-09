@@ -1,21 +1,17 @@
-"""Tests for P0-11 tick archiver and compress_tick_cache."""
+"""Tests for P0-11 tick archiver (plain CSV only)."""
 
 from __future__ import annotations
 
 import datetime
-import gzip
 import tempfile
 import time
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from storage.compress import compress_tick_cache
 from storage.tick_loader import (
     ReplayTick,
-    cache_gz_path,
     cache_path,
-    iter_replay_ticks,
     load_ticks_csv,
     resolve_tick_cache_path,
     save_ticks_csv,
@@ -23,7 +19,6 @@ from storage.tick_loader import (
 from storage.tick_archiver import (
     TickArchiveRecord,
     TickArchiver,
-    gzip_csv_file,
     tick_to_archive_record,
 )
 from trading_engine.core.types import TickSnapshot
@@ -46,29 +41,8 @@ def _record(
     )
 
 
-class TestGzipCsv(unittest.TestCase):
-    def test_gzip_csv_roundtrip(self):
-        ticks = [
-            ReplayTick(
-                datetime=datetime.datetime(2026, 6, 12, 9, 0),
-                close="18000",
-                volume=2,
-                tick_type=1,
-            )
-        ]
-        with tempfile.TemporaryDirectory() as d:
-            csv_path = cache_path(Path(d), "TXFR1", datetime.date(2026, 6, 12))
-            save_ticks_csv(ticks, csv_path)
-            gz_path = gzip_csv_file(csv_path)
-            self.assertFalse(csv_path.is_file())
-            self.assertTrue(gz_path.is_file())
-            loaded = load_ticks_csv(gz_path)
-            self.assertEqual(len(loaded), 1)
-            self.assertEqual(loaded[0].close, "18000")
-
-
 class TestResolveTickCachePath(unittest.TestCase):
-    def test_prefers_plain_when_both_exist(self):
+    def test_resolves_plain_csv_when_present(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             date = datetime.date(2026, 6, 12)
@@ -77,40 +51,14 @@ class TestResolveTickCachePath(unittest.TestCase):
                 [ReplayTick(datetime.datetime(2026, 6, 12, 9), "18000", 1, 0)],
                 plain,
             )
-            gz_path = gzip_csv_file(plain)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 12, 10), "plain", 1, 0)],
-                plain,
-            )
             resolved = resolve_tick_cache_path(root, "TXFR1", date)
             self.assertEqual(resolved, plain)
-            self.assertTrue(gz_path.is_file())
 
-    def test_load_merged_unions_plain_and_gzip(self):
-        from storage.tick_loader import load_merged_tick_cache
-
+    def test_returns_none_when_missing(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            date = datetime.date(2026, 6, 22)
-            plain = cache_path(root, "TXFR1", date)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 8, 45), "morning", 1, 0)],
-                plain,
-            )
-            gz = cache_gz_path(root, "TXFR1", date)
-            afternoon = root / "afternoon.csv"
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 11, 14), "afternoon", 1, 0)],
-                afternoon,
-            )
-            with afternoon.open("rb") as src, gzip.open(gz, "wb") as dst:
-                dst.writelines(src)
-            afternoon.unlink()
-            merged = load_merged_tick_cache(root, "TXFR1", date)
-            times = [t.datetime for t in merged]
-            self.assertEqual(len(merged), 2)
-            self.assertIn(datetime.datetime(2026, 6, 22, 8, 45), times)
-            self.assertIn(datetime.datetime(2026, 6, 22, 11, 14), times)
+            date = datetime.date(2026, 6, 12)
+            self.assertIsNone(resolve_tick_cache_path(root, "TXFR1", date))
 
 
 class TestTickArchiver(unittest.TestCase):
@@ -141,7 +89,7 @@ class TestTickArchiver(unittest.TestCase):
             self.assertEqual(archiver.written, 2)
             self.assertEqual(archiver.dropped, 0)
 
-    def test_day_rotation_gzips_previous_csv(self):
+    def test_day_rotation_keeps_plain_csv(self):
         with tempfile.TemporaryDirectory() as d:
             archiver = TickArchiver(
                 "TXFR1",
@@ -162,11 +110,10 @@ class TestTickArchiver(unittest.TestCase):
             root = Path(d)
             old_plain = cache_path(root, "TXFR1", datetime.date(2026, 6, 11))
             new_plain = cache_path(root, "TXFR1", datetime.date(2026, 6, 12))
-            old_gz = Path(str(old_plain) + ".gz")
-            self.assertFalse(old_plain.is_file())
-            self.assertTrue(old_gz.is_file())
+            self.assertTrue(old_plain.is_file())
             self.assertTrue(new_plain.is_file())
-            self.assertEqual(len(load_ticks_csv(old_gz)), 1)
+            self.assertFalse(Path(str(old_plain) + ".gz").is_file())
+            self.assertEqual(len(load_ticks_csv(old_plain)), 1)
             self.assertEqual(len(load_ticks_csv(new_plain)), 1)
 
     def test_queue_full_drops_without_blocking(self):
@@ -264,74 +211,6 @@ class TestTickArchiver(unittest.TestCase):
             self.assertEqual(len(loaded), 1)
             self.assertEqual(loaded[0].close, "48100.0")
             self.assertEqual(loaded[0].tick_type, 2)
-
-
-class TestCompressTickCache(unittest.TestCase):
-    def test_compress_default_excludes_today(self):
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            today = datetime.date.today()
-            yesterday = today - datetime.timedelta(days=1)
-            save_ticks_csv(
-                [
-                    ReplayTick(
-                        datetime.datetime.combine(yesterday, datetime.time(9)),
-                        "18000",
-                        1,
-                        0,
-                    )
-                ],
-                cache_path(root, "TXFR1", yesterday),
-            )
-            save_ticks_csv(
-                [
-                    ReplayTick(
-                        datetime.datetime.combine(today, datetime.time(9)),
-                        "18010",
-                        1,
-                        0,
-                    )
-                ],
-                cache_path(root, "TXFR1", today),
-            )
-            n = compress_tick_cache(root, exclude_date=today)
-            self.assertEqual(n, 1)
-            self.assertTrue(cache_path(root, "TXFR1", today).is_file())
-            self.assertTrue(
-                Path(str(cache_path(root, "TXFR1", yesterday)) + ".gz").is_file()
-            )
-
-    def test_compress_excludes_today(self):
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            d1 = datetime.date(2026, 6, 11)
-            d2 = datetime.date(2026, 6, 12)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 11, 9), "18000", 1, 0)],
-                cache_path(root, "TXFR1", d1),
-            )
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 12, 9), "18010", 1, 0)],
-                cache_path(root, "TXFR1", d2),
-            )
-            n = compress_tick_cache(root, exclude_date=d2)
-            self.assertEqual(n, 1)
-            self.assertTrue(cache_path(root, "TXFR1", d2).is_file())
-            self.assertTrue(Path(str(cache_path(root, "TXFR1", d1)) + ".gz").is_file())
-
-    def test_iter_replay_ticks_reads_gz(self):
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            date = datetime.date(2026, 6, 12)
-            plain = cache_path(root, "TXFR1", date)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 12, 9), "18055", 1, 0)],
-                plain,
-            )
-            gzip_csv_file(plain)
-            ticks = list(iter_replay_ticks("TXFR1", [date], cache_dir=root))
-            self.assertEqual(len(ticks), 1)
-            self.assertEqual(ticks[0].close, "18055")
 
 
 if __name__ == "__main__":

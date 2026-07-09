@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 import sys
 import unittest
-from pathlib import Path
 from unittest.mock import patch
 
 from cli_help import (
@@ -22,10 +21,11 @@ from cli_help import (
 class TestCliHelp(unittest.TestCase):
     def test_catalog_lists_core_modules(self):
         modules = {e.module for e in CATALOG}
-        self.assertIn("reporting", modules)
-        self.assertIn("sweep.pilot_gate_check", modules)
-        self.assertIn("reporting.uat_evidence_export", modules)
+        self.assertIn("live", modules)
+        self.assertIn("storage", modules)
         self.assertIn("backfilldata", modules)
+        self.assertNotIn("reporting", modules)
+        self.assertNotIn("backtest", modules)
 
     def test_catalog_matches_spec_cli_table(self):
         catalog_modules = {e.module for e in CATALOG}
@@ -40,7 +40,7 @@ class TestCliHelp(unittest.TestCase):
             "| Command | Purpose |\n"
             "|---------|--------|\n"
             "| `python -m live` | Live |\n"
-            "| `python -m backtest` | Backtest |\n\n"
+            "| `python -m storage` | Storage |\n\n"
             "## Integration contracts\n\n"
             "Prose `python -m fake.prose_module` must not be counted.\n"
         )
@@ -48,24 +48,14 @@ class TestCliHelp(unittest.TestCase):
             f.write(spec)
             path = Path(f.name)
         try:
-            self.assertEqual(parse_spec_cli_modules(path), frozenset({"live", "backtest"}))
+            self.assertEqual(parse_spec_cli_modules(path), frozenset({"live", "storage"}))
         finally:
             path.unlink()
 
     def test_format_catalog_mentions_help(self):
         text = format_catalog()
-        self.assertIn("python -m reporting --help", text)
+        self.assertIn("python -m live --help", text)
         self.assertIn("cli_help", text)
-
-    def test_catalog_examples_omit_redundant_code_flag(self):
-        for entry in CATALOG:
-            if entry.module in (
-                "backtest",
-                "reporting.calibration_cli",
-                "reporting.structure_calibration_cli",
-            ):
-                with self.subTest(module=entry.module):
-                    self.assertNotIn("--code ", entry.example)
 
     def test_main_unknown_module(self):
         self.assertEqual(main(["no-such-module"]), 1)
@@ -73,27 +63,23 @@ class TestCliHelp(unittest.TestCase):
     def test_main_prints_catalog(self):
         self.assertEqual(main([]), 0)
 
-    def test_subprocess_env_includes_src_and_siblings(self):
+    def test_subprocess_env_includes_src(self):
         env = _subprocess_env()
         parts = env["PYTHONPATH"].split(os.pathsep)
         self.assertIn(str(_SRC_DIR), parts)
-        monorepo = _SRC_DIR.parent.parent.parent
-        engine_src = monorepo / "packages/trading-engine/src"
-        if engine_src.is_dir():
-            self.assertIn(str(engine_src), parts)
 
     @patch("cli_help.subprocess.run")
     def test_delegate_calls_subprocess_with_cwd_and_env(self, mock_run):
         mock_run.return_value.returncode = 0
-        self.assertEqual(run_module_help("reporting"), 0)
+        self.assertEqual(run_module_help("live"), 0)
         mock_run.assert_called_once()
         _args, kwargs = mock_run.call_args
         self.assertEqual(kwargs["cwd"], _SRC_DIR)
         env = kwargs["env"]
         self.assertIn(str(_SRC_DIR), env["PYTHONPATH"].split(os.pathsep))
 
-    def test_main_reporting_delegate(self):
-        self.assertEqual(main(["reporting"]), 0)
+    def test_main_live_delegate(self):
+        self.assertEqual(main(["live"]), 0)
 
     def test_live_help_without_shioaji_import(self):
         sys.modules.pop("live.__main__", None)

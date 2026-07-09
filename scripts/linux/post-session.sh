@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Post-session maintenance: compress tick_cache, daily JSON report, determinism hash.
+# Post-session maintenance: daily JSON report, determinism hash, log rotate.
 # Run after market close. GCP 14:00 shutdown: root stop @13:50, then this @13:54 (see docs/ops/LinuxOps.md).
 # 24/7 VMs: root stop @15:50, this @15:54.
+# tick_cache is plain CSV only — do not compress to .gz.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -20,21 +21,18 @@ CONFIG_PATH="${CONFIG_PATH:-$MONOREPO_ROOT/apps/trading-app/config/config.yaml}"
 _rotate_tfx_logs() {
   [[ -d "$LOG_DIR" ]] || return 0
 
-  shopt -s nullglob
-  local f archive="$LOG_DIR/post-session.log.$DATE_ISO"
-  for f in "$LOG_DIR"/*.log.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]; do
-    gzip -f "$f"
-  done
-
+  local archive="$LOG_DIR/post-session.log.$DATE_ISO"
+  # Plain-text rotate only (no gzip).
   if [[ -f "$LOG_DIR/post-session.log" && -s "$LOG_DIR/post-session.log" \
-    && ! -f "$archive" && ! -f "${archive}.gz" ]]; then
+    && ! -f "$archive" ]]; then
     cp "$LOG_DIR/post-session.log" "$archive"
-    gzip -f "$archive"
     : > "$LOG_DIR/post-session.log"
   fi
 
   find "$LOG_DIR" -maxdepth 1 -type f \
-    \( -name '*.log.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].gz' \
+    \( -name '*.log.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' \
+    -o -name 'post-session.log.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' \
+    -o -name '*.log.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].gz' \
     -o -name 'post-session.log.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].gz' \) \
     -mtime +"$LOG_KEEP_DAYS" -delete
 }
@@ -53,7 +51,6 @@ _gudt_session_summary() {
 mkdir -p "$REPORTS_DIR" "$SNAPSHOTS_DIR"
 
 cd "$MONOREPO_ROOT"
-"$VENV_PYTHON" -m storage
 
 if [[ -f "$LOG_FILE" ]]; then
   "$VENV_PYTHON" -m reporting "$LOG_FILE" --json > "$REPORTS_DIR/day${DAY}.json"

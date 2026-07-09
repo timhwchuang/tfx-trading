@@ -1,8 +1,8 @@
 # Live Trading Safety & Failure Modes
 
-This document describes what the kernel does when things go wrong during live operation. It complements [trading-engine SPEC §4.2.2](../../packages/trading-engine/SPEC.md) (invariants) and [trading-engine README](../../packages/trading-engine/README.md) (go-live checklist).
+This document describes what the Host (`trading_engine` inside `apps/trading-app`) does when things go wrong during live operation. Product boundary: [`apps/trading-app/SPEC.md`](../../apps/trading-app/SPEC.md). Safety rules: [`docs/AGENTS.md`](../AGENTS.md) §2.
 
-**Scope reminder:** single-direction, full-lot position model for ~1-lot TAIFEX day-session strategies — not general portfolio management.
+**Scope reminder:** single-direction, full-lot position model for ~1-lot TAIFEX day+night strategies — not general portfolio management.
 
 ## How to read this table
 
@@ -285,7 +285,7 @@ This document describes what the kernel does when things go wrong during live op
 |---|---|
 | **Kernel behavior** | `_validate_order_signal` rejects before `_arm_pending`; logs warning; signal discarded for that tick. |
 | **Expected outcome** | No order armed; state unchanged. |
-| **Operator action** | Fix strategy plugin. Add unit tests for signal shape. See [trading-engine SPEC §4.2](../../packages/trading-engine/SPEC.md). |
+| **Operator action** | Fix strategy implementation. Add unit tests for signal shape. See [`apps/trading-app/SPEC.md`](../../apps/trading-app/SPEC.md). |
 
 **Code:** `order_executor.py:_validate_order_signal`, `engine.py:on_tick`
 
@@ -299,7 +299,7 @@ This document describes what the kernel does when things go wrong during live op
 | **Expected outcome** | Undefined behavior; tests will not cover your mutation path. |
 | **Operator action** | **Never** assign to `engine.position_qty`, `engine.is_pending`, etc. Use `get_state_snapshot()` for read-only observation only. |
 
-**Code:** `engine.py:get_state_snapshot`, [trading-engine SPEC §4.2.2](../../packages/trading-engine/SPEC.md)
+**Code:** `engine.py:get_state_snapshot`, [`apps/trading-app/SPEC.md`](../../apps/trading-app/SPEC.md)
 
 ---
 
@@ -347,29 +347,7 @@ Kernel 內建路徑（pending 超時、重登入耗盡等）已會呼叫 `AlertP
 
 ## Related documents
 
-- [trading-engine README § Go-Live Checklist](../../packages/trading-engine/README.md)
-- [trading-engine SPEC §4.2.2](../../packages/trading-engine/SPEC.md) — kernel invariants
-- [trading-engine SPEC §4.2](../../packages/trading-engine/SPEC.md) — strategy author rules
-- [FT-022 unified strategy loading §6 GUDT live staged bootstrap](../features/unified-strategy-loading/SPEC.md#6-gudt-live-staged-bootstrap)
-
----
-
-## GUDT Route A live prerequisites (FT-022 Phase 4)
-
-`python -m live` with `strategy.name: gudt_route_a` uses **staged** replay bootstrap — plans are **not** computed at process start.
-
-| Prerequisite | Why |
-|--------------|-----|
-| `simulation: true` until FT-021 parity + human Go | Same gate as other strategies |
-| `TICK_ARCHIVE=1` and `KBARS_ARCHIVE=1` | Coordinator reads archived ticks/kbars for gap, ATR@09:14, and probe |
-| Prior **session** day kbar in cache | `prior_close` for gap filter (`no_prior_close` → no trade today) |
-| Same-day kbar through 08:45+ | `open_0845` (`no_open_0845` → no trade today) |
-| `GudtLiveBootstrapCoordinator` runs **outside** engine lock | Probe/plan build on tick callback **after** `TradingEngine.on_tick` returns |
-
-**State machine (summary):** Init → AwaitingOpen → AwaitingAtr → (NotGudtDay \| AwaitingSignal) → (PlanReady \| RouterSkip). Search logs for `gudt_skip` / `gudt_live state=`.
-
-**Mid-day injection:** `GudtRouteAStrategy.apply_intraday_plan(day, plan)` reloads `_pending_events` when the coordinator finishes probe + stack routing.
-
-**Operator action:** Before GUDT live pilot, confirm tick/kbar archives for the prior session and today are present under `tick_cache/`. Treat any terminal `gudt_skip` as intentional no-trade for the day — do not override by manual orders on the same contract unless you have flattened and reconciled kernel state.
-
-**Code:** `integrations/gudt_live_bootstrap.py`, `live/__main__.py`, `strategy_gudt_route_a/strategy.py:apply_intraday_plan`
+- [`apps/trading-app/SPEC.md`](../../apps/trading-app/SPEC.md) — product / Host+Strategy boundary
+- [`docs/AGENTS.md`](../AGENTS.md) — safety + architecture
+- [`apps/trading-app/README.md`](../../apps/trading-app/README.md) — install / live UAT
+- Historical GUDT live notes: [`legacy/docs/`](../../legacy/docs/)

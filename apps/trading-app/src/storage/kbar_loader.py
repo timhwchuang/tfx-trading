@@ -15,7 +15,6 @@ from storage.tick_loader import (
     DEFAULT_TICK_RANGE_END,
     DEFAULT_TICK_RANGE_START,
     _log_usage,
-    _open_tick_csv_reader,
     date_range,
     shioaji_historical_ts_from_ns,
 )
@@ -110,10 +109,8 @@ def _kbar_window_needs_fetch(
 
 
 def _all_day_kbar_needs_fetch(bars: Sequence[KBarRecord]) -> bool:
-    """True when cache is empty or day session (08:45–13:45) is incomplete."""
-    if not bars:
-        return True
-    return _kbar_window_needs_fetch(bars, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END)
+    """True when cache has no bars (empty/missing → fetch)."""
+    return not bars
 
 
 def kbars_satisfy_request(
@@ -160,20 +157,13 @@ def kbar_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
     return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv"
 
 
-def kbar_gz_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
-    return Path(cache_dir) / f"{code}_kbars_{date.isoformat()}.csv.gz"
-
-
 def resolve_kbar_path(
     cache_dir: Path, code: str, date: datetime.date
 ) -> Path | None:
-    """Return on-disk kbar file (plain ``.csv`` preferred over ``.csv.gz``)."""
+    """Return on-disk kbar CSV when present."""
     plain = kbar_path(cache_dir, code, date)
-    gz = kbar_gz_path(cache_dir, code, date)
     if plain.is_file():
         return plain
-    if gz.is_file():
-        return gz
     return None
 
 
@@ -272,7 +262,7 @@ def append_kbar_csv(
 
 def load_kbars_csv(path: Path) -> List[KBarRecord]:
     bars: List[KBarRecord] = []
-    with _open_tick_csv_reader(Path(path)) as f:
+    with Path(path).open("r", encoding="utf-8", newline="") as f:
         for row in csv.DictReader(f):
             bars.append(
                 KBarRecord(
@@ -383,6 +373,14 @@ def download_and_cache_kbars(
             bars = _filter_bars_by_time(bars, time_start, time_end)
         except Exception as e:
             logger.warning("抓取 K 線 %s %s 失敗: %s", code, date, e)
+            continue
+
+        if all_day and not bars:
+            logger.info(
+                "skip %s %s: no kbars (non-trading or empty)",
+                code,
+                date.isoformat(),
+            )
             continue
 
         if existing_bars and (not all_day or not overwrite):

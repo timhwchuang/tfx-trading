@@ -12,12 +12,6 @@ from pathlib import Path
 
 _SRC_DIR = Path(__file__).resolve().parent
 _APP_SPEC_PATH = _SRC_DIR.parent / "SPEC.md"
-_MONOREPO_ROOT = _SRC_DIR.parent.parent.parent
-_SIBLING_SRC_DIRS = (
-    _MONOREPO_ROOT / "packages/trading-engine/src",
-    _MONOREPO_ROOT / "packages/trading-backtest/src",
-    _MONOREPO_ROOT / "packages/strategies/vwap-momentum/src",
-)
 
 
 @dataclass(frozen=True)
@@ -29,57 +23,12 @@ class CliEntry:
 
 # Run from apps/trading-app/src with PYTHONPATH=. (or monorepo scripts).
 CATALOG: tuple[CliEntry, ...] = (
-    CliEntry("live", "模擬 / 正式連線交易", "python -m live"),
-    CliEntry(
-        "backtest",
-        "Tick 回放回測",
-        "python -m backtest --dates 2026-06-22 --report",
-    ),
-    CliEntry(
-        "reporting",
-        "UAT log / JSON 分析（--json, --trend, --episodes）",
-        "python -m reporting C:\\logs\\trading-app-uat.log --json",
-    ),
-    CliEntry(
-        "reporting.uat_evidence_export",
-        "券商對帳 + tick 分層 CSV",
-        "python -m reporting.uat_evidence_export both reports\\day*.json",
-    ),
-    CliEntry(
-        "sweep.pilot_gate_check",
-        "APP.md Phase 5 Pilot 門檻預檢",
-        "python -m sweep.pilot_gate_check reports\\day*.json --log-file %LOG_FILE%",
-    ),
-    CliEntry(
-        "sweep.determinism_check",
-        "可重現性 hash / audit 擷取",
-        "python -m sweep.determinism_check --date 2026-06-12 --mode hash",
-    ),
-    CliEntry("storage", "壓縮 tick_cache CSV → .gz", "python -m storage"),
-    CliEntry(
-        "storage.cache_audit",
-        "tick_cache 分 K / kbar OHLCV 交叉稽核（逐日一行）",
-        "python -m storage.cache_audit --code TMFR1",
-    ),
-    CliEntry(
-        "storage.cache_repair",
-        "修復 tick 跨月尾盤 + kbar 缺口，並稽核",
-        "python -m storage.cache_repair --code TMFR1 --fix",
-    ),
+    CliEntry("live", "模擬 / 正式連線交易（日盤+夜盤）", "python -m live"),
+    CliEntry("storage", "tick_cache helpers（plain CSV SSOT）", "python -m storage"),
     CliEntry(
         "backfilldata",
-        "永豐 API 補歷史 tick / kbar 快取",
+        "永豐 API 補歷史 tick / kbar 快取（calendar-day AllDay）",
         "python -m backfilldata month 2026-04",
-    ),
-    CliEntry(
-        "reporting.calibration_cli",
-        "Trend filter 校準（CAL-8 研究）",
-        "python -m reporting.calibration_cli logs/backtest.log --dates-from-cache",
-    ),
-    CliEntry(
-        "reporting.structure_calibration_cli",
-        "SMC structure filter 校準（P6-SMC-CAL）",
-        "python -m reporting.structure_calibration_cli C:\\logs\\trading-app-uat.log --dates 2026-06-12",
     ),
 )
 
@@ -109,9 +58,9 @@ def format_catalog() -> str:
     lines = [
         "trading-app CLI catalog",
         "",
-        "前置（Windows 範例，monorepo 根 C:\\tfx-trading）：",
+        "前置（Windows 範例，monorepo 根）：",
         "  cd apps\\trading-app\\src",
-        "  $env:PYTHONPATH = (Get-Location).Path   # 或已 setup-dev editable install",
+        "  $env:PYTHONPATH = (Get-Location).Path",
         "",
         "指令一覽（細部參數請用下方 MODULE --help）：",
         "",
@@ -124,21 +73,17 @@ def format_catalog() -> str:
         [
             "",
             "查看單一指令說明：",
-            "  python -m cli_help reporting",
-            "  python -m reporting --help",
+            "  python -m cli_help live",
+            "  python -m live --help",
             "",
-            "UAT 流程 SSOT：docs/uat/APP.md",
+            "歷史研究工具見 legacy/（不在 active CLI）",
         ]
     )
     return "\n".join(lines)
 
 
 def _pythonpath_entries() -> list[str]:
-    entries = [str(_SRC_DIR)]
-    for path in _SIBLING_SRC_DIRS:
-        if path.is_dir():
-            entries.append(str(path))
-    return entries
+    return [str(_SRC_DIR)]
 
 
 def _subprocess_env() -> dict[str, str]:
@@ -168,8 +113,8 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "Examples:\n"
             "  python -m cli_help\n"
-            "  python -m cli_help reporting\n"
-            "  python -m cli_help sweep.pilot_gate_check\n"
+            "  python -m cli_help live\n"
+            "  python -m cli_help storage\n"
         ),
     )
     parser.add_argument(

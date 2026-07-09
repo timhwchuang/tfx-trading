@@ -1,185 +1,75 @@
 # backfilldata — Authoritative Spec
 
-> **Module**: `backfilldata` · **Entry**: `python -m backfilldata` · **Parent**: `apps/trading-app`  
-> **Depends on**: `storage.tick_loader`, `storage.kbar_loader`, Shioaji (`import shioaji as sj`)
-
-This document is the **single source of truth** for the historical market-data backfill CLI. README and app-level SPEC should point here for cache layout and API limits.
+> **Module**: `backfilldata` (not `backfilldate`) · **Entry**: `python -m backfilldata` · **Parent**: `apps/trading-app`  
+> **Depends on**: `storage.tick_loader`, `storage.kbar_loader`, Shioaji · **Owns**: `tick_rollover` (settlement afternoon TMFR2→TMFR1)
 
 ---
 
-## 1. Purpose & positioning
+## 1. Purpose
 
-`backfilldata` fills gaps in local tick/kbar CSV caches by calling Shioaji historical APIs. It complements — does not replace — live UAT archiving (`TICK_ARCHIVE=1`, `KBARS_ARCHIVE=1`).
+Fill local tick/kbar CSV caches via Shioaji historical APIs. Complements live UAT archiving; does not replace it.
 
 | Scenario | Tool |
 |----------|------|
 | Daily accumulation while live runs | `python -m live` + archive ports |
-| Backfill missing past trade days (post-close) | `python -m backfilldata date YYYY-MM-DD` |
-| Bulk multi-year download | **Avoid** (bandwidth + rate limits) |
-
-### Intended audience
-
-| Use case | Suitable? |
-|----------|-----------|
-| Fill 1–30 missing UAT days before calibration / sweep | **Yes** |
-| Replace `tick_cache/` without backup | **No** |
-| Run during live session on same `person_id` | **No** (5 connection cap) |
+| Backfill past calendar days (post-close) | `python -m backfilldata date|month` |
 
 ---
 
-## 2. In scope
+## 2. CLI
 
-- CLI `python -m backfilldata date <YYYY-MM-DD> [end]` — skips weekends + [pin-yi Taiwan calendar](https://api.pin-yi.me/taiwan-calendar/{year}) holidays (same filter as `month`)
-- CLI `python -m backfilldata month <YYYY-MM>` — trading weekdays in calendar month; reads `trade_days/{year}.json` first, fetches API on cache miss; batched for tick API day limits
-- Login via `SJ_API_KEY` / `SJ_SEC_KEY` only (no CA; market data only)
-- Contract resolve for continuous futures (`TMFR1`, `TXFR1`, …) — same rule as `TradingEngine._resolve_contract`
-- Tick CSV → `tick_cache/{code}_{date}.csv` via `storage.tick_loader.download_and_cache`
-- Tick API defaults to `TicksQueryType.AllDay` (full day); `--session-ticks` or `--time-start`/`--time-end` for day-session `RangeTime` (`08:45:00`–`13:45:00`)
-- Partial cache (e.g. live `*.csv.gz` missing morning) is **merged** into plain CSV; when both plain and gzip exist, rows are unioned before gap detection
-- Stale gzip is removed only after a successful plain CSV write (atomic temp → rename)
-- Kbar CSV → `tick_cache/{code}_kbars_{date}.csv` (same root as ticks; sweep / B-class calibration / UAT archiver)
-- `api.usage()` logging before/after batches; pace ~0.15s between kbar day fetches
-- Past trade days and **today after 13:45 Taipei** (day session close)
-- Recognize compressed tick cache (`*.csv.gz` from `python -m storage`) as satisfied — no redundant `api.ticks`
-- **Cross-month rollover merge** (default **on**): after TMFR1 tick fetch, on near-month settlement (3rd Wednesday) when day session ends ~13:28–13:30, auto-fetch **TMFR2** `13:30–13:45` and merge into the primary code cache (`storage.tick_rollover`); disable with `--no-merge-rollover`
+Subcommands: **`date`**, **`month`** only.
 
-## 3. Out of scope
+| Flag | Meaning |
+|------|---------|
+| `--code` | Continuous futures code (default: config `product_code`) |
+| `--tick-cache-dir` | Cache root (default: monorepo `tick_cache/`) |
+| `--overwrite` | Re-fetch even when file exists |
+| `--uat` / `--production` | Mutually exclusive; default **`--uat`** (simulation=True) if neither |
+| `--dry-run` | `month` only: list eligible days, no API |
 
-- Live streaming subscribe / order placement
-- Tick data cleaning, `simtrade` filtering on historical ticks
-- Automatic scheduling (human or external cron)
-- Writing secrets to `config.yaml` or repo files
+Removed: session-ticks, time-start/end, all-day-ticks, holiday calendar, ticks-only/kbars-only, no-merge-rollover, `--simulation` name.
 
----
+### Semantics
 
-## 4. Public API
-
-### Package exports (`backfilldata`)
-
-```python
-from backfilldata import (
-    BackfillError,
-    backfill_dates,
-    parse_date_args,
-    resolve_contract,
-)
-```
-
-### CLI
+- **`date`**: every calendar day in range (`date_range`); no holiday filter
+- **`month`**: every calendar day in month (`calendar_days_in_month`); no holiday filter
+- Always **AllDay** ticks + kbars (`tick_time_start/end=None`)
+- Automatic **rollover merge** always on (`backfilldata.tick_rollover`) — patches ticks only; **does not** rebuild kbars from ticks (trust `api.kbars`)
+- Empty days (non-trading / no tape): log skip, **do not write** file; **not** a failure
+- No tick→kbar repair on active path
+- `BackfillResult.ok` is False only when `failed_dates` (hard API exceptions) is non-empty
+- Future / today-before-13:45 Taipei skipped via `filter_backfill_eligible_dates`
 
 ```bash
 cd apps/trading-app/src
 python -m backfilldata date 2026-06-20
-python -m backfilldata month 2026-04
+python -m backfilldata date 2026-07-01 2026-07-06 --code TMFR1
 python -m backfilldata month 2026-04 --dry-run
-python -m backfilldata date 2026-06-18 2026-06-20 --code TMFR1
-python -m backfilldata date 2026-06-20 --ticks-only
-python -m backfilldata date 2026-07-01 2026-07-06
-python -m backfilldata date 2026-06-20 --ticks-only --session-ticks
-python -m backfilldata date 2026-06-20 --kbars-only
-python -m backfilldata date 2026-06-20 --overwrite
-python -m backfilldata date 2026-01-21 --code TMFR1 --no-merge-rollover
+python -m backfilldata month 2026-04 --production
 ```
 
-Post-backfill quality gate: `python -m storage.cache_audit --code TMFR1` or batch repair `python -m storage.cache_repair --code TMFR1 --fix` (see `storage/cache_audit.py`, `storage/cache_repair.py`).
+---
 
-| Flag | Default | Meaning |
-|------|---------|---------|
-| `--code` | `config.product_code` | Continuous futures code |
-| `--tick-cache-dir` | `<monorepo>/tick_cache` | Tick and kbar output |
-| `--ticks-only` / `--kbars-only` | both | Fetch subset |
-| `--session-ticks` | off | Use `RangeTime` `08:45:00`–`13:45:00` instead of default `AllDay` |
-| `--time-start` / `--time-end` | `None` | When set (or with `--session-ticks`), `RangeTime` window **and** kbar post-fetch filter; unset sides default to `08:45:00` / `13:45:00` |
-| `--all-day-ticks` | on (default) | Explicit `AllDay` (kept for backward compatibility) |
-| `--no-holiday-calendar` | off | Skip pin-yi calendar; weekdays only |
-| `--overwrite` | off | Re-download existing files |
-| `--no-merge-rollover` | merge **on** | Skip TMFR2 afternoon merge into TMFR1 on settlement days |
-| `--simulation` / `--production` | `config.simulation` | API environment |
+## 3. Cache layout
 
-### `backfill_dates(...) -> BackfillResult`
+| Output | Path | Content |
+|--------|------|---------|
+| Ticks | `tick_cache/{code}_{D}.csv` | Calendar day **D only** (AllDay D ∪ D+1, filter `date==D`) |
+| Kbars | `tick_cache/{code}_kbars_{D}.csv` | Bars with `ts.date()==D` |
 
-Injectable `api=` for tests. Returns paths plus `missing_*_dates`; `ok` is false when any requested day lacks cache files.
-
-Kbar fetch delegates to `storage.kbar_loader.download_and_cache_kbars` with `pace_sec`.
-
-When kbars are requested (`--kbars-only` or default both), eligible kbar days =
-**trading days in range ∪ calendar Saturdays in the same span** (supplies Friday
-night → Saturday 00:00–05:00 dawn leg). Ticks remain trading-days only.
+Prior-evening ticks from AllDay(D) are **excluded** from file D; same-day night from AllDay(D+1) is **included**.
 
 ---
 
-## 5. Cache path contract
+## 4. Shioaji limits (summary)
 
-Canonical roots: `storage.cache_paths`.
-
-| Kind | Path | Consumers |
-|------|------|-----------|
-| Ticks | `tick_cache/{code}_{date}.csv` | `backtest`, `param_sweep`, replay |
-| Kbars | `tick_cache/{code}_kbars_{date}.csv` | `param_sweep`, `structure_calibration`, UAT `kbar_archiver` |
-
-**Path discipline**: all on-disk market data lives under `tick_cache/` (`storage.cache_paths.DEFAULT_TICK_CACHE_DIR`).
+- Quote queries ~50 / 5s; pace ~0.15s between days
+- Tick batch cap 10 days / run; kbar 270
+- Do not login while live holds a connection slot for the same `person_id`
 
 ---
 
-## 6. Shioaji API mapping
+## 5. Tests
 
-| Data | API | Parameters |
-|------|-----|------------|
-| Ticks | `api.ticks` | default `query_type=TicksQueryType.AllDay`, `date=YYYY-MM-DD`, `timeout=30000` (ms); `--session-ticks` or `--time-start`/`--time-end` → `RangeTime`; up to 3 retries on timeout (2s backoff) via `storage.tick_loader` |
-| Kbars | `api.kbars` | `start=date`, `end=date` (1-minute bars), `timeout=30000` (ms); default no post-filter; `--session-ticks` or `--time-start`/`--time-end` 裁切至日盤（API 本身無 intraday 參數） |
-
-Use **continuous** contracts (`TMFR1`, not expired month codes). Futures history from **2020-03-22**.
-
-Official docs: [Historical Market Data](https://sinotrade.github.io/tutor/market_data/historical/) · [Use Restrictions](https://sinotrade.github.io/tutor/limit/)
-
-### Rate / quota limits (must respect)
-
-| Limit | Value |
-|-------|-------|
-| Quote queries (ticks+kbars+snapshots) | 50 / 5 sec |
-| Intraday ticks queries | 10 / day |
-| Intraday kbars queries | 270 / day |
-| Tick days per CLI run | max 10 (`validate_tick_day_count`) |
-| Kbar days per CLI run | max 270 (`validate_kbar_day_count`) |
-| Daily bandwidth | 500 MB – 10 GB (by 30-day volume) |
-| Connections per `person_id` | 5 (`Login()` counts) |
-
-**Operational guidance**: run after close; call `api.logout()` when done; do not overlap with `python -m live` on the same credentials.
-
----
-
-## 7. Fidelity caveats
-
-**Timestamp contract (SSOT):** see [`packages/trading-engine/SPEC.md`](../../../../packages/trading-engine/SPEC.md) § **Shioaji Time Contract**. Code entry point: `trading_engine.calendar.shioaji_ts.shioaji_historical_ts_from_ns` (re-exported by `storage.tick_loader` / `storage.kbar_loader`).
-
-Inherited from `storage.tick_loader` / `storage.kbar_loader`:
-
-- Historical ticks: best bid/ask only (no depth); no `simtrade` flag
-- **Cache migration**: read paths do **no** time correction — the CSV cache is read verbatim. Any file written before 2026-06-26 with the old +8 decode (tick **or** kbar) must be deleted and re-fetched (``--overwrite``, or ``rm tick_cache/*.csv*`` then re-run backfill); merge alone may leave duplicate rows
-- Strategy hot path uses `tick.close` only; bid/ask in CSV are optional reference
-- **Coverage heuristic**: skip/refetch uses session edge tolerance (±1 min) and max gap (ticks 30 min, kbars 10 min). Sparse but valid caches may trigger an extra API fetch; prefer `--overwrite` if you know the cache is complete
-- **AllDay night-session split (Shioaji)**: `api.ticks(date=D, AllDay)` returns prior-calendar-day `15:00–23:59` plus same-day `00:00–05:00` and day session `08:45–13:45`. Same-day `15:00+` evening appears in the `D+1` query response (wall clock still on D); backfill does **not** look ahead to `D+1` when filling `D` — run `date D+1` to land that leg on the next cache file
-
----
-
-## 8. Validation
-
-Tests: `apps/trading-app/tests/backfilldata/test_backfilldata.py`
-
-| Test | Contract |
-|------|----------|
-| `parse_date_args` single / range / invalid | Date parsing |
-| `validate_past_dates` rejects today before 13:45 Taipei / future | API precondition |
-| `resolve_contract` category path | TMFR1 → Futures.TMF.TMFR1 |
-| `backfill_dates` mocked API | Writes tick + kbar + mirror |
-| `backfill_dates` skip existing | No overwrite by default |
-| CLI `--help` | No Shioaji import at help time |
-| `cli_help` catalog | Module listed; matches app SPEC CLI table |
-
----
-
-## 9. Safety
-
-- Agent / automation must **not** commit API keys or run backfill with production credentials unless a human explicitly requests it
-- Backfill does not place orders; still uses real Shioaji login — treat as sensitive ops
-- Prefer `simulation: true` UAT keys for research backfill
+`python -m unittest tests.backfilldata.test_backfilldata -v` from `apps/trading-app` with `PYTHONPATH=src`.

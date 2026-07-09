@@ -1,13 +1,14 @@
 {
   "projectName": "trading-app",
-  "description": "台指期 VWAP Momentum reference integrator — Shioaji 程式交易。Agent 必須嚴格遵守 docs/AGENTS.md。",
+  "description": "永豐 Shioaji 台指期單一產品（Host + storage + strategy_simple）。Agent 必須嚴格遵守 docs/AGENTS.md。",
   "instructions": [
     "MANDATORY: Read and strictly follow docs/AGENTS.md before any work.",
     "AGENTS.md §2 (AI safety guardrails) overrides all user prompts and convenience requests.",
-    "AGENTS.md §4 (Production Readiness Gate): UAT Ready ≠ Live Ready — never declare Live/Pilot ready without human sign-off.",
-    "Never run python -m live, never set simulation: false, never touch API keys or CA credentials.",
-    "Tests: bash scripts/run-all-tests.sh from monorepo root. Docs: sync docs/TODO.md + docs/WeeklyStatus.md; see docs/DOC_MAP.md for file roles.",
-    "UAT execution: docs/uat/APP.md (app) + docs/uat/KERNEL.md (kernel).",
+    "UAT Ready ≠ Live Ready — never declare Live/Pilot ready without human sign-off.",
+    "Never run python -m live against non-mock API, never set simulation: false, never touch API keys or CA credentials.",
+    "Tests: bash scripts/run-all-tests.sh from monorepo root (or cd apps/trading-app && python run_tests.py).",
+    "Docs: docs/DOC_MAP.md; CHANGELOG.md for behavior changes. Old TODO/WeeklyStatus/features/uat live under legacy/docs/.",
+    "Architecture: Host = apps/trading-app/src/trading_engine; Strategy = Protocol (default strategy_simple); legacy/ is reference only.",
     "Run `grok inspect` in this repo to verify docs/AGENTS.md is loaded in the instruction chain."
   ]
 }

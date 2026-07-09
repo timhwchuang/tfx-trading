@@ -116,7 +116,8 @@ class TestDailyObservability(unittest.TestCase):
         summary = obs.build_summary("2026-06-10")
 
         self.assertEqual(summary["date"], "2026-06-10")
-        self.assertIn("entry_band_points", summary["params"])
+        self.assertIn("cooldown_sec", summary["params"])
+        self.assertIn("max_consecutive_loss", summary["params"])
         self.assertEqual(summary["fills"]["entry_count"], 1)
         self.assertEqual(summary["pnl"]["by_reason"]["stop_loss"]["avg_pnl"], 8.0)
         self.assertEqual(summary["quick_stop_loss"]["count"], 0)
@@ -165,8 +166,10 @@ class TestDailyObservability(unittest.TestCase):
 
     def test_config_snapshot_has_strategy_keys(self):
         snap = build_config_snapshot()
-        self.assertIn("hard_stop_points", snap)
-        self.assertIn("vwap_stop_points", snap)
+        self.assertIn("cooldown_sec", snap)
+        self.assertIn("max_consecutive_loss", snap)
+        self.assertNotIn("hard_stop_points", snap)
+        self.assertNotIn("atr_period", snap)
 
 
 if __name__ == "__main__":

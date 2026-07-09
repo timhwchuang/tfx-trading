@@ -29,9 +29,6 @@ class TradingAppTelemetryPort:
     def record_lock_wait(self, ms: float) -> None:
         self._obs.record_lock_wait(ms)
 
-    def record_atr(self, atr: float) -> None:
-        self._obs.record_atr(atr)
-
     def record_entry_signal(self) -> None:
         self._obs.record_entry_signal()
 

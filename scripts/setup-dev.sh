@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Editable install all monorepo packages (dev / CI).
+# Editable install trading-app (includes in-tree trading_engine).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PY="${PYTHON:-python3}"
@@ -14,11 +14,5 @@ if [[ -z "${VIRTUAL_ENV:-}" ]]; then
 fi
 
 "$PY" -m pip install -q -U pip
-"$PY" -m pip install -q -e "$ROOT/packages/trading-engine"
-"$PY" -m pip install -q -e "$ROOT/packages/trading-backtest"
-"$PY" -m pip install -q -e "$ROOT/packages/strategies/vwap-momentum"
-"$PY" -m pip install -q -e "$ROOT/packages/strategies/momentum-continuation"
-"$PY" -m pip install -q -e "$ROOT/packages/strategies/vwap-stretch-fade"
-"$PY" -m pip install -q -e "$ROOT/packages/strategies/opening-range-breakout"
-"$PY" -m pip install -q -e "$ROOT/packages/strategies/gudt-route-a"
+"$PY" -m pip install -q -e "$ROOT/apps/trading-app"
 "$PY" -m pip install -q shioaji "PyYAML>=6.0"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import calendar
 import datetime
 import logging
 import os
@@ -12,19 +13,13 @@ from typing import Any, List, Sequence
 
 from backfilldata.errors import BackfillError
 from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
-from storage.kbar_loader import (
-    download_and_cache_kbars,
-    kbars_satisfy_request,
-)
+from storage.kbar_loader import download_and_cache_kbars
 from storage.tick_loader import (
     DEFAULT_TICK_RANGE_END,
-    DEFAULT_TICK_RANGE_START,
     date_range,
     download_and_cache,
-    tick_cache_satisfies_request,
 )
-from storage.kbar_repair import repair_kbars_batch
-from storage.tick_rollover import merge_rollover_afternoon_batch
+from backfilldata.tick_rollover import merge_rollover_afternoon_batch
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +36,14 @@ TAIWAN_TZ = datetime.timezone(datetime.timedelta(hours=8))
 class BackfillResult:
     ticks: List[Path] = field(default_factory=list)
     kbars: List[Path] = field(default_factory=list)
+    failed_dates: List[datetime.date] = field(default_factory=list)
+    # Kept for callers/tests; empty days are not treated as missing.
     missing_tick_dates: List[datetime.date] = field(default_factory=list)
     missing_kbar_dates: List[datetime.date] = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
-        return not self.missing_tick_dates and not self.missing_kbar_dates
+        return not self.failed_dates
 
 
 def taipei_today() -> datetime.date:
@@ -100,6 +97,32 @@ def parse_date_args(date_tokens: Sequence[str]) -> List[datetime.date]:
     raise BackfillError("date 子命令最多接受兩個日期 (start end)")
 
 
+def parse_month_arg(month_token: str) -> tuple[int, int]:
+    """Parse ``YYYY-MM`` (month 1–12)."""
+    raw = month_token.strip()
+    if len(raw) != 7 or raw[4] != "-":
+        raise BackfillError(f"無效月份: {month_token!r}（需 YYYY-MM）")
+    try:
+        year = int(raw[:4])
+        month = int(raw[5:7])
+    except ValueError as exc:
+        raise BackfillError(f"無效月份: {month_token!r}（需 YYYY-MM）") from exc
+    if not 1 <= month <= 12:
+        raise BackfillError(f"無效月份: {month_token!r}（月份需 01–12）")
+    return year, month
+
+
+def calendar_days_in_month(year: int, month: int) -> list[datetime.date]:
+    """Every calendar day in ``year``-``month`` (1 .. last day)."""
+    last = calendar.monthrange(year, month)[1]
+    return [datetime.date(year, month, day) for day in range(1, last + 1)]
+
+
+def month_bounds(year: int, month: int) -> tuple[datetime.date, datetime.date]:
+    days = calendar_days_in_month(year, month)
+    return days[0], days[-1]
+
+
 def validate_tick_day_count(dates: Sequence[datetime.date]) -> None:
     if len(dates) > _MAX_TICK_DAYS_PER_RUN:
         raise BackfillError(
@@ -142,100 +165,31 @@ def create_and_login_api(*, simulation: bool) -> Any:
     return api
 
 
-def _missing_tick_dates(
-    code: str,
-    dates: Sequence[datetime.date],
-    *,
-    cache_dir: Path,
-    time_start: datetime.time | None,
-    time_end: datetime.time | None,
-    simulation: bool,
-) -> List[datetime.date]:
-    return [
-        d
-        for d in dates
-        if not tick_cache_satisfies_request(
-            cache_dir,
-            code,
-            d,
-            time_start=time_start,
-            time_end=time_end,
-            simulation=simulation,
-        )
-    ]
-
-
-def _missing_kbar_dates(
-    code: str,
-    dates: Sequence[datetime.date],
-    *,
-    cache_dir: Path,
-    time_start: datetime.time | None,
-    time_end: datetime.time | None,
-) -> List[datetime.date]:
-    return [
-        d
-        for d in dates
-        if not kbars_satisfy_request(
-            cache_dir,
-            code,
-            d,
-            time_start=time_start,
-            time_end=time_end,
-        )
-    ]
-
-
-def _backfill_chunk_size(*, fetch_ticks: bool, fetch_kbars: bool) -> int:
-    if fetch_ticks:
-        return _MAX_TICK_DAYS_PER_RUN
-    if fetch_kbars:
-        return _MAX_KBAR_DAYS_PER_RUN
-    return _MAX_TICK_DAYS_PER_RUN
-
-
 def _merge_backfill_results(target: BackfillResult, batch: BackfillResult) -> None:
     target.ticks.extend(batch.ticks)
     target.kbars.extend(batch.kbars)
+    target.failed_dates.extend(batch.failed_dates)
     target.missing_tick_dates.extend(batch.missing_tick_dates)
     target.missing_kbar_dates.extend(batch.missing_kbar_dates)
 
 
-def saturdays_in_range(
-    start: datetime.date,
-    end: datetime.date,
-) -> list[datetime.date]:
-    """Calendar Saturdays in ``[start, end]`` (for kbar dawn-leg supplement)."""
-    return [d for d in date_range(start, end) if d.weekday() == 5]
-
-
-def expand_kbar_dates_with_saturdays(
-    trading_dates: Sequence[datetime.date],
+def filter_backfill_eligible_dates(
+    dates: Sequence[datetime.date],
     *,
-    range_start: datetime.date,
-    range_end: datetime.date,
-) -> list[datetime.date]:
-    """Union trading days with Saturdays in the requested calendar span."""
-    return sorted(
-        set(trading_dates) | set(saturdays_in_range(range_start, range_end))
-    )
-
-
-def resolve_kbar_backfill_dates(
-    trading_dates: Sequence[datetime.date],
-    *,
-    range_start: datetime.date,
-    range_end: datetime.date,
     today: datetime.date | None = None,
     now: datetime.datetime | None = None,
 ) -> tuple[list[datetime.date], list[datetime.date]]:
-    """Expand trading days with Saturdays and drop ineligible (future/today pre-close)."""
-    expanded = expand_kbar_dates_with_saturdays(
-        trading_dates,
-        range_start=range_start,
-        range_end=range_end,
-    )
-    return filter_backfill_eligible_dates(expanded, today=today, now=now)
+    """Drop future dates and today before day-session close (per-day validate)."""
+    eligible: list[datetime.date] = []
+    skipped: list[datetime.date] = []
+    for d in dates:
+        try:
+            validate_past_dates([d], today=today, now=now)
+        except BackfillError:
+            skipped.append(d)
+            continue
+        eligible.append(d)
+    return eligible, skipped
 
 
 def backfill_dates_batched(
@@ -248,23 +202,11 @@ def backfill_dates_batched(
     **kwargs: Any,
 ) -> tuple[BackfillResult, list[BackfillResult]]:
     """Backfill ``dates`` in API-sized chunks (single login when ``api`` omitted)."""
+    del range_start, range_end, now  # calendar span unused; AllDay uses same day list
     tick_dates = list(dates)
     fetch_ticks = kwargs.get("fetch_ticks", True)
     fetch_kbars = kwargs.get("fetch_kbars", True)
-
-    kbar_dates: list[datetime.date] = []
-    if fetch_kbars and tick_dates:
-        rs = range_start if range_start is not None else min(tick_dates)
-        re = range_end if range_end is not None else max(tick_dates)
-        kbar_dates, _ = resolve_kbar_backfill_dates(
-            tick_dates,
-            range_start=rs,
-            range_end=re,
-            today=today,
-            now=now,
-        )
-    elif fetch_kbars:
-        kbar_dates = []
+    kbar_dates = list(tick_dates) if fetch_kbars else []
 
     if not tick_dates and not kbar_dates:
         return BackfillResult(), []
@@ -314,53 +256,21 @@ def backfill_dates_batched(
     return merged, batches
 
 
-def filter_backfill_eligible_dates(
-    dates: Sequence[datetime.date],
-    *,
-    today: datetime.date | None = None,
-    now: datetime.datetime | None = None,
-) -> tuple[list[datetime.date], list[datetime.date]]:
-    """Drop future dates and today before day-session close (per-day validate)."""
-    eligible: list[datetime.date] = []
-    skipped: list[datetime.date] = []
-    for d in dates:
-        try:
-            validate_past_dates([d], today=today, now=now)
-        except BackfillError:
-            skipped.append(d)
-            continue
-        eligible.append(d)
-    return eligible, skipped
-
-
 def backfill_month(
     year: int,
     month: int,
     *,
-    use_holiday_calendar: bool = True,
-    calendar_year: Sequence[dict[str, Any]] | None = None,
     today: datetime.date | None = None,
     now: datetime.datetime | None = None,
     **kwargs: Any,
 ) -> tuple[BackfillResult, dict[str, Any]]:
-    """Backfill all trading weekdays in a calendar month (batched for API limits)."""
-    from backfilldata.taiwan_calendar import (
-        month_bounds,
-        resolve_month_trading_days_with_fallback,
-    )
-
-    trading_days, skipped_buckets = resolve_month_trading_days_with_fallback(
-        year,
-        month,
-        use_holiday_calendar=use_holiday_calendar,
-        calendar_year=calendar_year,
-    )
+    """Backfill every calendar day in a month (batched for API limits)."""
+    calendar_days = calendar_days_in_month(year, month)
     eligible, skipped_future = filter_backfill_eligible_dates(
-        trading_days,
+        calendar_days,
         today=today,
         now=now,
     )
-
     month_start, month_end = month_bounds(year, month)
     merged, batches = backfill_dates_batched(
         eligible,
@@ -370,25 +280,10 @@ def backfill_month(
         now=now,
         **kwargs,
     )
-    kbar_days, _ = (
-        resolve_kbar_backfill_dates(
-            eligible,
-            range_start=month_start,
-            range_end=month_end,
-            today=today,
-            now=now,
-        )
-        if kwargs.get("fetch_kbars", True)
-        else ([], [])
-    )
-
     meta = {
-        "trading_days": trading_days,
+        "calendar_days": calendar_days,
         "eligible_days": eligible,
-        "kbar_days": kbar_days,
-        "skipped_weekend": skipped_buckets["weekend"],
-        "skipped_holiday": skipped_buckets["holiday"],
-        "skipped_missing_calendar": skipped_buckets.get("missing_calendar", []),
+        "kbar_days": list(eligible) if kwargs.get("fetch_kbars", True) else [],
         "skipped_future": skipped_future,
         "batches": batches,
     }
@@ -411,7 +306,7 @@ def backfill_dates(
     api: Any | None = None,
     today: datetime.date | None = None,
 ) -> BackfillResult:
-    """Backfill ticks for ``dates`` and/or kbars for ``kbar_dates`` (defaults to ``dates``)."""
+    """Backfill AllDay ticks/kbars. Empty successful skips are OK (not failures)."""
     tick_dates = list(dates) if fetch_ticks else []
     kbar_days = list(kbar_dates if kbar_dates is not None else dates) if fetch_kbars else []
 
@@ -431,27 +326,28 @@ def backfill_dates(
 
     result = BackfillResult()
     resolved_code = code
-    rollover_days: list[datetime.date] = []
     try:
         contract = resolve_contract(api, code)
         resolved_code = getattr(contract, "code", code)
 
         if fetch_ticks and tick_dates:
-            result.ticks = download_and_cache(
-                api,
-                contract,
-                tick_dates,
-                cache_dir=cache_dir,
-                overwrite=overwrite,
-                time_start=tick_time_start,
-                time_end=tick_time_end,
-                simulation=simulation,
-            )
+            try:
+                result.ticks = download_and_cache(
+                    api,
+                    contract,
+                    tick_dates,
+                    cache_dir=cache_dir,
+                    overwrite=overwrite,
+                    time_start=tick_time_start,
+                    time_end=tick_time_end,
+                    simulation=simulation,
+                )
+            except Exception as e:
+                logger.warning("tick backfill batch failed: %s", e)
+                result.failed_dates.extend(tick_dates)
             time.sleep(_REQUEST_PACE_SEC)
 
-            if merge_rollover and (
-                tick_time_end is None or tick_time_end >= DEFAULT_TICK_RANGE_END
-            ):
+            if merge_rollover and not result.failed_dates:
                 rollover_days = merge_rollover_afternoon_batch(
                     api,
                     resolved_code,
@@ -466,29 +362,24 @@ def backfill_dates(
                         len(rollover_days),
                         ", ".join(d.isoformat() for d in rollover_days),
                     )
-            else:
-                rollover_days = []
 
         if fetch_kbars and kbar_days:
-            result.kbars = download_and_cache_kbars(
-                api,
-                contract,
-                kbar_days,
-                cache_dir=cache_dir,
-                overwrite=overwrite,
-                pace_sec=_REQUEST_PACE_SEC,
-                time_start=tick_time_start,
-                time_end=tick_time_end,
-            )
-
-        rebuild_dates = set(rollover_days)
-        if fetch_ticks and tick_dates:
-            repair_kbars_batch(
-                resolved_code,
-                tick_dates,
-                cache_dir=cache_dir,
-                rollover_dates=rebuild_dates if rebuild_dates else None,
-            )
+            try:
+                result.kbars = download_and_cache_kbars(
+                    api,
+                    contract,
+                    kbar_days,
+                    cache_dir=cache_dir,
+                    overwrite=overwrite,
+                    pace_sec=_REQUEST_PACE_SEC,
+                    time_start=tick_time_start,
+                    time_end=tick_time_end,
+                )
+            except Exception as e:
+                logger.warning("kbar backfill batch failed: %s", e)
+                for d in kbar_days:
+                    if d not in result.failed_dates:
+                        result.failed_dates.append(d)
     finally:
         if owns_api:
             try:
@@ -496,21 +387,4 @@ def backfill_dates(
             except Exception as e:
                 logger.warning("api.logout 失敗: %s", e)
 
-    if fetch_ticks and tick_dates:
-        result.missing_tick_dates = _missing_tick_dates(
-            resolved_code,
-            tick_dates,
-            cache_dir=cache_dir,
-            time_start=tick_time_start,
-            time_end=tick_time_end,
-            simulation=simulation,
-        )
-    if fetch_kbars and kbar_days:
-        result.missing_kbar_dates = _missing_kbar_dates(
-            resolved_code,
-            kbar_days,
-            cache_dir=cache_dir,
-            time_start=tick_time_start,
-            time_end=tick_time_end,
-        )
     return result

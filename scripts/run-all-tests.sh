@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run unit tests for all packages in the tfx-trading monorepo.
+# Run unit tests for the trading-app product (host + storage + strategy).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -11,18 +11,7 @@ if [[ -z "${VIRTUAL_ENV:-}" && -f "$ROOT/.venv/bin/activate" ]]; then
 fi
 PY=python
 
-run() {
-  echo "=== $1 ==="
-  (cd "$ROOT/$1" && "$PY" run_tests.py)
-}
+echo "=== apps/trading-app ==="
+(cd "$ROOT/apps/trading-app" && "$PY" run_tests.py)
 
-run packages/trading-engine
-run packages/trading-backtest
-run packages/strategies/vwap-momentum
-run packages/strategies/momentum-continuation
-run packages/strategies/vwap-stretch-fade
-run packages/strategies/opening-range-breakout
-run packages/strategies/gudt-route-a
-run apps/trading-app
-
-echo "All package test suites passed."
+echo "All tests passed."

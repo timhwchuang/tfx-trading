@@ -11,15 +11,7 @@ from typing import Any, Mapping
 import yaml
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
-_REPO_ROOT = _PROJECT_ROOT.parent.parent
 DEFAULT_CONFIG_PATH = _PROJECT_ROOT / "config" / "config.yaml"
-DEFAULT_GUDT_PROBE_CSV = (
-    _REPO_ROOT
-    / "workspaces"
-    / "gudt-baseline"
-    / "reports"
-    / "gudt_wash_probe_merged_202505_202606.csv"
-)
 # Fallback when config.yaml omits product_code (UAT/Pilot default: 微台近月).
 DEFAULT_PRODUCT_CODE = "TMFR1"
 
@@ -34,93 +26,33 @@ def _section(data: Mapping[str, Any], name: str) -> dict[str, Any]:
     return dict(block) if isinstance(block, dict) else {}
 
 
-def _optional_float(block: Mapping[str, Any], key: str) -> float | None:
-    if key not in block or block[key] is None:
-        return None
-    return float(block[key])
-
-
 @dataclass(frozen=True)
 class Settings:
     simulation: bool
     product_code: str
     strategy_name: str
 
-    vwap_window_min: int
-    entry_band_points: float
-    momentum_vol_1s: int
-    momentum_buy_ratio: float
-    momentum_sell_ratio: float
-    exhaustion_vol: int
     cooldown_sec: int
-    momentum_timeout_sec: int
     max_daily_loss_points: int
     max_consecutive_loss: int
-    fixed_tp_points: int
-    trail_points: int
-    atr_period: int
-    min_atr_threshold: float
-    atr_refresh_sec: int
-    atr_kline_lookback_days: int
     pending_timeout_sec: int
     ioc_slippage_points: int
-    exit_grace_ticks: int
-    exit_grace_sec: int
-    exit_grace_suppress_trailing: bool
-    hard_stop_points: int
-    vwap_stop_points: int
     no_tick_timeout_sec: int
     no_tick_resubscribe_escalate_after: int
     clock_skew_warn_sec: float
-
-    trend_filter_enabled: bool
-    trend_timeframe_min: int
-    trend_mode: str
-    trend_ema_period: int
-    trend_slope_min: float
-    trend_min_strength: float
-    structure_filter_enabled: bool
-    structure_timeframe_min: int
-    structure_swing_lookback: int
-    structure_min_strength: float
-    trail_atr_k: float
-    trail_points_floor: float
-    vwap_stop_atr_k: float
-    vwap_stop_points_floor: float
-    atr_trailing_enabled: bool
-    atr_vwap_stop_enabled: bool
-    hard_stop_atr_k: float
-    tp_atr_k: float
-    max_adverse_atr_k: float
-    stretch_k: float
-    reset_z: float
-    range_minutes: int
-    buffer_atr_k: float
-    orb_min_range_atr_k: float
-    orb_max_hold_sec: int
-
-    gudt_pre_break_br_min: float
-    gudt_flip_min_ext_open: float
-    gudt_extension_exit: str
-    gudt_confirm_min_dump_atr: float
-    gudt_confirm_slope2_min: float
-    gudt_confirm_slope2_max: float
-    gudt_friction_points: float
-    gudt_p0_ext_open_max: float | None
-    gudt_probe_csv: str
-    gudt_probe_from_ticks: bool
 
     session_start: datetime.time
     session_end: datetime.time
     session_flatten_time: datetime.time
     session_force_flatten_time: datetime.time
     flatten_slippage_points: int
-
-    base_vol: int
-    atr_vol_mult: float
-    open_mult_futures: float
-    open_mult_spot: float
-    open_mult_normal: float
+    night_enabled: bool
+    night_session_start: datetime.time
+    night_session_end: datetime.time
+    night_session_flatten_time: datetime.time
+    night_session_force_flatten_time: datetime.time
+    simple_entry_delay_sec: int
+    simple_flip_interval_sec: int
 
     log_level: str
     log_file: str
@@ -147,7 +79,6 @@ class Settings:
     session_watchdog_sec: float
     session_relogin_max_attempts: int
     session_relogin_backoff_base_sec: float
-    atr_stale_multiplier: float
     reconnect_warmup_sec: int
     max_disconnects_per_day: int
     alert_on_disconnect_with_position: bool
@@ -177,15 +108,7 @@ def load_config(path: str | Path | None = None) -> Settings:
         raw = yaml.safe_load(f) or {}
 
     strategy = _section(raw, "strategy")
-    if bool(strategy.get("structure_filter_enabled", False)) and bool(
-        strategy.get("trend_filter_enabled", False)
-    ):
-        raise ValueError(
-            "config strategy: structure_filter_enabled and trend_filter_enabled "
-            "are mutually exclusive"
-        )
     session = _section(raw, "session")
-    opening = _section(raw, "opening_volume")
     logging_cfg = _section(raw, "logging")
     friction = _section(raw, "friction")
     performance = _section(raw, "performance")
@@ -194,89 +117,20 @@ def load_config(path: str | Path | None = None) -> Settings:
     log_level = os.environ.get("LOG_LEVEL", logging_cfg.get("level", "INFO"))
     log_file = os.environ.get("LOG_FILE", logging_cfg.get("file", ""))
 
-    probe_csv_raw = strategy.get("gudt_probe_csv")
-    if probe_csv_raw is None or str(probe_csv_raw).strip() == "":
-        gudt_probe_csv = str(DEFAULT_GUDT_PROBE_CSV)
-    else:
-        gudt_probe_csv = str(probe_csv_raw)
-
     return Settings(
         simulation=bool(raw.get("simulation", True)),
         product_code=str(raw.get("product_code", DEFAULT_PRODUCT_CODE)),
-        strategy_name=str(strategy.get("name", "vwap_momentum")),
-        vwap_window_min=int(strategy.get("vwap_window_min", 5)),
-        entry_band_points=float(strategy.get("entry_band_points", 2.0)),
-        momentum_vol_1s=int(strategy.get("momentum_vol_1s", 150)),
-        momentum_buy_ratio=float(strategy.get("momentum_buy_ratio", 0.80)),
-        momentum_sell_ratio=float(strategy.get("momentum_sell_ratio", 0.78)),
-        exhaustion_vol=int(strategy.get("exhaustion_vol", 15)),
+        strategy_name=str(strategy.get("name", "simple")),
         cooldown_sec=int(strategy.get("cooldown_sec", 10)),
-        momentum_timeout_sec=int(strategy.get("momentum_timeout_sec", 180)),
         max_daily_loss_points=int(strategy.get("max_daily_loss_points", 120)),
         max_consecutive_loss=int(strategy.get("max_consecutive_loss", 4)),
-        fixed_tp_points=int(strategy.get("fixed_tp_points", 20)),
-        trail_points=int(strategy.get("trail_points", 8)),
-        atr_period=int(strategy.get("atr_period", 20)),
-        min_atr_threshold=float(strategy.get("min_atr_threshold", 25)),
-        atr_refresh_sec=int(strategy.get("atr_refresh_sec", 300)),
-        atr_kline_lookback_days=int(strategy.get("atr_kline_lookback_days", 10)),
         pending_timeout_sec=int(strategy.get("pending_timeout_sec", 1)),
         ioc_slippage_points=int(strategy.get("ioc_slippage_points", 3)),
-        exit_grace_ticks=int(strategy.get("exit_grace_ticks", 60)),
-        exit_grace_sec=int(strategy.get("exit_grace_sec", 30)),
-        exit_grace_suppress_trailing=bool(
-            strategy.get("exit_grace_suppress_trailing", False)
-        ),
-        hard_stop_points=int(strategy.get("hard_stop_points", 6)),
-        vwap_stop_points=int(strategy.get("vwap_stop_points", 3)),
         no_tick_timeout_sec=int(strategy.get("no_tick_timeout_sec", 45)),
         no_tick_resubscribe_escalate_after=int(
             operations.get("no_tick_resubscribe_escalate_after", 3)
         ),
         clock_skew_warn_sec=float(strategy.get("clock_skew_warn_sec", 1.0)),
-        trend_filter_enabled=bool(strategy.get("trend_filter_enabled", False)),
-        trend_timeframe_min=int(strategy.get("trend_timeframe_min", 5)),
-        trend_mode=str(strategy.get("trend_mode", "ema")),
-        trend_ema_period=int(strategy.get("trend_ema_period", 20)),
-        trend_slope_min=float(strategy.get("trend_slope_min", 0.0)),
-        trend_min_strength=float(strategy.get("trend_min_strength", 0.0)),
-        structure_filter_enabled=bool(strategy.get("structure_filter_enabled", False)),
-        structure_timeframe_min=int(strategy.get("structure_timeframe_min", 5)),
-        structure_swing_lookback=int(strategy.get("structure_swing_lookback", 2)),
-        structure_min_strength=float(strategy.get("structure_min_strength", 0.0)),
-        trail_atr_k=float(strategy.get("trail_atr_k", 0.25)),
-        trail_points_floor=float(
-            strategy.get("trail_points_floor", strategy.get("trail_points", 8))
-        ),
-        vwap_stop_atr_k=float(strategy.get("vwap_stop_atr_k", 0.25)),
-        vwap_stop_points_floor=float(
-            strategy.get(
-                "vwap_stop_points_floor", strategy.get("vwap_stop_points", 3)
-            )
-        ),
-        atr_trailing_enabled=bool(strategy.get("atr_trailing_enabled", False)),
-        atr_vwap_stop_enabled=bool(strategy.get("atr_vwap_stop_enabled", False)),
-        hard_stop_atr_k=float(strategy.get("hard_stop_atr_k", 0.75)),
-        tp_atr_k=float(strategy.get("tp_atr_k", 2.0)),
-        max_adverse_atr_k=float(strategy.get("max_adverse_atr_k", 0.0)),
-        stretch_k=float(strategy.get("stretch_k", 2.0)),
-        reset_z=float(strategy.get("reset_z", 0.5)),
-        range_minutes=int(strategy.get("range_minutes", 30)),
-        buffer_atr_k=float(strategy.get("buffer_atr_k", 0.15)),
-        orb_min_range_atr_k=float(strategy.get("orb_min_range_atr_k", 0.5)),
-        orb_max_hold_sec=int(strategy.get("orb_max_hold_sec", 180)),
-        gudt_pre_break_br_min=float(strategy.get("gudt_pre_break_br_min", 0.35)),
-        gudt_flip_min_ext_open=float(strategy.get("gudt_flip_min_ext_open", 5.0)),
-        gudt_extension_exit=str(strategy.get("gudt_extension_exit", "ema5")),
-        gudt_confirm_min_dump_atr=float(
-            strategy.get("gudt_confirm_min_dump_atr", 0.65)
-        ),
-        gudt_confirm_slope2_min=float(strategy.get("gudt_confirm_slope2_min", -0.35)),
-        gudt_confirm_slope2_max=float(strategy.get("gudt_confirm_slope2_max", 0.0)),
-        gudt_friction_points=float(strategy.get("gudt_friction_points", 5.0)),
-        gudt_p0_ext_open_max=_optional_float(strategy, "gudt_p0_ext_open_max"),
-        gudt_probe_csv=gudt_probe_csv,
-        gudt_probe_from_ticks=bool(strategy.get("gudt_probe_from_ticks", False)),
         session_start=_parse_time(session.get("start", "08:45")),
         session_end=_parse_time(session.get("end", "13:45")),
         session_flatten_time=_parse_time(session.get("flatten_time", "13:40")),
@@ -284,11 +138,17 @@ def load_config(path: str | Path | None = None) -> Settings:
             session.get("force_flatten_time", "13:44")
         ),
         flatten_slippage_points=int(session.get("flatten_slippage_points", 8)),
-        base_vol=int(opening.get("base_vol", 150)),
-        atr_vol_mult=float(opening.get("atr_vol_mult", 1.0)),
-        open_mult_futures=float(opening.get("mult_futures", 2.5)),
-        open_mult_spot=float(opening.get("mult_spot", 1.5)),
-        open_mult_normal=float(opening.get("mult_normal", 1.0)),
+        night_enabled=bool(session.get("night_enabled", False)),
+        night_session_start=_parse_time(session.get("night_start", "15:00")),
+        night_session_end=_parse_time(session.get("night_end", "05:00")),
+        night_session_flatten_time=_parse_time(
+            session.get("night_flatten_time", "04:50")
+        ),
+        night_session_force_flatten_time=_parse_time(
+            session.get("night_force_flatten_time", "04:55")
+        ),
+        simple_entry_delay_sec=int(strategy.get("entry_delay_sec", 60)),
+        simple_flip_interval_sec=int(strategy.get("flip_interval_sec", 300)),
         log_level=str(log_level).upper(),
         log_file=str(log_file or ""),
         friction_enabled=bool(friction.get("enabled", False)),
@@ -324,7 +184,6 @@ def load_config(path: str | Path | None = None) -> Settings:
         session_relogin_backoff_base_sec=float(
             operations.get("session_relogin_backoff_base_sec", 5.0)
         ),
-        atr_stale_multiplier=float(operations.get("atr_stale_multiplier", 2.0)),
         reconnect_warmup_sec=int(operations.get("reconnect_warmup_sec", 300)),
         max_disconnects_per_day=int(operations.get("max_disconnects_per_day", 3)),
         alert_on_disconnect_with_position=bool(
@@ -354,55 +213,18 @@ settings = load_config()
 
 SIMULATION = settings.simulation
 PRODUCT_CODE = settings.product_code
-VWAP_WINDOW_MIN = settings.vwap_window_min
-ENTRY_BAND_POINTS = settings.entry_band_points
-MOMENTUM_VOL_1S = settings.momentum_vol_1s
-MOMENTUM_BUY_RATIO = settings.momentum_buy_ratio
-MOMENTUM_SELL_RATIO = settings.momentum_sell_ratio
-EXHAUSTION_VOL = settings.exhaustion_vol
 COOLDOWN_SEC = settings.cooldown_sec
 MAX_DAILY_LOSS_POINTS = settings.max_daily_loss_points
 MAX_CONSECUTIVE_LOSS = settings.max_consecutive_loss
-FIXED_TP_POINTS = settings.fixed_tp_points
-TRAIL_POINTS = settings.trail_points
-ATR_PERIOD = settings.atr_period
-MIN_ATR_THRESHOLD = settings.min_atr_threshold
-ATR_REFRESH_SEC = settings.atr_refresh_sec
-ATR_KLINE_LOOKBACK_DAYS = settings.atr_kline_lookback_days
 PENDING_TIMEOUT_SEC = settings.pending_timeout_sec
 IOC_SLIPPAGE_POINTS = settings.ioc_slippage_points
-EXIT_GRACE_TICKS = settings.exit_grace_ticks
-EXIT_GRACE_SEC = settings.exit_grace_sec
-HARD_STOP_POINTS = settings.hard_stop_points
-VWAP_STOP_POINTS = settings.vwap_stop_points
 NO_TICK_TIMEOUT_SEC = settings.no_tick_timeout_sec
 CLOCK_SKEW_WARN_SEC = settings.clock_skew_warn_sec
-TREND_FILTER_ENABLED = settings.trend_filter_enabled
-TREND_TIMEFRAME_MIN = settings.trend_timeframe_min
-TREND_MODE = settings.trend_mode
-TREND_EMA_PERIOD = settings.trend_ema_period
-TREND_SLOPE_MIN = settings.trend_slope_min
-TREND_MIN_STRENGTH = settings.trend_min_strength
-STRUCTURE_FILTER_ENABLED = settings.structure_filter_enabled
-STRUCTURE_TIMEFRAME_MIN = settings.structure_timeframe_min
-STRUCTURE_SWING_LOOKBACK = settings.structure_swing_lookback
-STRUCTURE_MIN_STRENGTH = settings.structure_min_strength
-TRAIL_ATR_K = settings.trail_atr_k
-TRAIL_POINTS_FLOOR = settings.trail_points_floor
-VWAP_STOP_ATR_K = settings.vwap_stop_atr_k
-VWAP_STOP_POINTS_FLOOR = settings.vwap_stop_points_floor
-ATR_TRAILING_ENABLED = settings.atr_trailing_enabled
-ATR_VWAP_STOP_ENABLED = settings.atr_vwap_stop_enabled
 SESSION_START = settings.session_start
 SESSION_END = settings.session_end
 SESSION_FLATTEN_TIME = settings.session_flatten_time
 SESSION_FORCE_FLATTEN_TIME = settings.session_force_flatten_time
 FLATTEN_SLIPPAGE_POINTS = settings.flatten_slippage_points
-BASE_VOL = settings.base_vol
-ATR_VOL_MULT = settings.atr_vol_mult
-OPEN_MULT_FUTURES = settings.open_mult_futures
-OPEN_MULT_SPOT = settings.open_mult_spot
-OPEN_MULT_NORMAL = settings.open_mult_normal
 LOG_LEVEL = settings.log_level
 LOG_FILE = settings.log_file
 

@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Mapping
 
 from config import load_config
-from reporting.performance_metrics import (
+from metrics import (
     aggregate_daily_performance,
     compute_performance_from_fills,
     friction_settings_from_mapping,

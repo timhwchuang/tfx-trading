@@ -17,12 +17,11 @@ from __future__ import annotations
 
 import csv
 import datetime
-import gzip
 import logging
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, IO, Iterable, Iterator, List, Optional, Sequence
+from typing import Any, Iterable, Iterator, List, Optional, Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +30,9 @@ from trading_engine.calendar.shioaji_ts import shioaji_historical_ts_from_ns
 
 DEFAULT_TICK_RANGE_START = datetime.time(8, 45, 0)
 DEFAULT_TICK_RANGE_END = datetime.time(13, 45, 0)
-# Shioaji AllDay for query date D also returns prior-calendar-day 15:00–23:59 night leg.
-EVENING_SESSION_START = datetime.time(15, 0)
-EVENING_SESSION_END = datetime.time(23, 59, 59)
-DAWN_SESSION_START = datetime.time(0, 0)
-DAWN_SESSION_END = datetime.time(5, 0)
 _WINDOW_EDGE_TOLERANCE_MIN = 1
 _TICK_MAX_GAP_MIN = 30
+TAIWAN_TZ = datetime.timezone(datetime.timedelta(hours=8))
 
 # Full-day AllDay ticks routinely exceed Shioaji's default 5s API timeout.
 _TICKS_API_TIMEOUT_MS = 30_000
@@ -67,13 +62,8 @@ class ReplayTick:
     ask_price: float = 0.0
 
 
-def _keep_tick_for_all_day_fetch(tick: ReplayTick, date: datetime.date) -> bool:
-    """Keep same-calendar-day ticks plus prior-day 15:00+ from Shioaji AllDay."""
-    tick_date = tick.datetime.date()
-    if tick_date == date:
-        return True
-    prev = date - datetime.timedelta(days=1)
-    return tick_date == prev and tick.datetime.time() >= EVENING_SESSION_START
+def _taipei_today() -> datetime.date:
+    return datetime.datetime.now(TAIWAN_TZ).date()
 
 
 def _is_transient_tick_fetch_error(exc: BaseException) -> bool:
@@ -83,61 +73,7 @@ def _is_transient_tick_fetch_error(exc: BaseException) -> bool:
     return "Timeout" in msg or "timeout" in msg
 
 
-def fetch_ticks_for_date(
-    api: Any,
-    contract: Any,
-    date: datetime.date,
-    *,
-    time_start: datetime.time | None = DEFAULT_TICK_RANGE_START,
-    time_end: datetime.time | None = DEFAULT_TICK_RANGE_END,
-    simulation: bool = False,
-) -> List[ReplayTick]:
-    """呼叫 api.ticks 取單日 tick，回傳依時間排序的 ReplayTick。
-
-    AllDay（``time_start``/``time_end`` 皆 None）時，永豐 API 會在 ``date`` 查詢回應中
-    夾帶**前一曆日** 15:00 起的夜盤尾段；一併保留並寫入 ``{code}_{date}.csv``。
-    當日 15:00 起的夜盤開盤則在 ``date+1`` 查詢回應中（牆鐘仍為當日），需 backfill 次日
-    才會進入該日快取，不向前一日查詢。
-    """
-    import shioaji as sj
-
-    query_type = (
-        sj.TicksQueryType.RangeTime
-        if time_start is not None or time_end is not None
-        else sj.TicksQueryType.AllDay
-    )
-    last_exc: BaseException | None = None
-    for attempt in range(1, _TICK_FETCH_MAX_ATTEMPTS + 1):
-        try:
-            kwargs: dict[str, Any] = dict(
-                contract=contract,
-                date=date.isoformat(),
-                query_type=query_type,
-                timeout=_TICKS_API_TIMEOUT_MS,
-            )
-            if time_start is not None:
-                kwargs["time_start"] = time_start.isoformat()
-            if time_end is not None:
-                kwargs["time_end"] = time_end.isoformat()
-            raw = api.ticks(**kwargs)
-            break
-        except Exception as e:
-            last_exc = e
-            if attempt >= _TICK_FETCH_MAX_ATTEMPTS or not _is_transient_tick_fetch_error(e):
-                raise
-            logger.warning(
-                "抓取 %s %s 逾時 (attempt %d/%d)，%ss 後重試: %s",
-                getattr(contract, "code", contract),
-                date,
-                attempt,
-                _TICK_FETCH_MAX_ATTEMPTS,
-                _TICK_FETCH_RETRY_SLEEP_SEC,
-                e,
-            )
-            time.sleep(_TICK_FETCH_RETRY_SLEEP_SEC)
-    else:
-        assert last_exc is not None
-        raise last_exc
+def _raw_ticks_to_replay(raw: Any) -> List[ReplayTick]:
     ts = list(raw.ts)
     close = list(raw.close)
     volume = list(raw.volume)
@@ -158,8 +94,109 @@ def fetch_ticks_for_date(
             )
         )
     ticks.sort(key=lambda t: t.datetime)
+    return ticks
+
+
+def _call_ticks_api(
+    api: Any,
+    contract: Any,
+    date: datetime.date,
+    *,
+    query_type: Any,
+    time_start: datetime.time | None = None,
+    time_end: datetime.time | None = None,
+) -> Any:
+    last_exc: BaseException | None = None
+    for attempt in range(1, _TICK_FETCH_MAX_ATTEMPTS + 1):
+        try:
+            kwargs: dict[str, Any] = dict(
+                contract=contract,
+                date=date.isoformat(),
+                query_type=query_type,
+                timeout=_TICKS_API_TIMEOUT_MS,
+            )
+            if time_start is not None:
+                kwargs["time_start"] = time_start.isoformat()
+            if time_end is not None:
+                kwargs["time_end"] = time_end.isoformat()
+            return api.ticks(**kwargs)
+        except Exception as e:
+            last_exc = e
+            if attempt >= _TICK_FETCH_MAX_ATTEMPTS or not _is_transient_tick_fetch_error(e):
+                raise
+            logger.warning(
+                "抓取 %s %s 逾時 (attempt %d/%d)，%ss 後重試: %s",
+                getattr(contract, "code", contract),
+                date,
+                attempt,
+                _TICK_FETCH_MAX_ATTEMPTS,
+                _TICK_FETCH_RETRY_SLEEP_SEC,
+                e,
+            )
+            time.sleep(_TICK_FETCH_RETRY_SLEEP_SEC)
+    assert last_exc is not None
+    raise last_exc
+
+
+def fetch_calendar_day_ticks(
+    api: Any,
+    contract: Any,
+    date: datetime.date,
+    *,
+    simulation: bool = False,
+) -> List[ReplayTick]:
+    """Fetch AllDay for ``date`` and ``date+1``, keep only ``tick.date == date``.
+
+    Shioaji AllDay(D) includes prior-evening ticks (excluded here). Same-day night
+    ticks (15:00+) appear in AllDay(D+1); fetch D+1 only when that query date is
+    not in the future relative to Taipei today.
+    """
+    del simulation  # historical ticks decode identically; kept for call-site parity
+    import shioaji as sj
+
+    query_type = sj.TicksQueryType.AllDay
+    by_dt: dict[datetime.datetime, ReplayTick] = {}
+    for query_date in (date, date + datetime.timedelta(days=1)):
+        if query_date > _taipei_today():
+            continue
+        raw = _call_ticks_api(api, contract, query_date, query_type=query_type)
+        for tick in _raw_ticks_to_replay(raw):
+            if tick.datetime.date() == date:
+                by_dt[tick.datetime] = tick
+    return sorted(by_dt.values(), key=lambda t: t.datetime)
+
+
+def fetch_ticks_for_date(
+    api: Any,
+    contract: Any,
+    date: datetime.date,
+    *,
+    time_start: datetime.time | None = DEFAULT_TICK_RANGE_START,
+    time_end: datetime.time | None = DEFAULT_TICK_RANGE_END,
+    simulation: bool = False,
+) -> List[ReplayTick]:
+    """呼叫 api.ticks 取單日 tick，回傳依時間排序的 ReplayTick。
+
+    AllDay（``time_start``/``time_end`` 皆 None）時改走 ``fetch_calendar_day_ticks``：
+    檔案 ``{code}_{D}.csv`` 只含曆日 D 的 ticks（不含前一晚夜盤）。
+    """
     if time_start is None and time_end is None:
-        return [t for t in ticks if _keep_tick_for_all_day_fetch(t, date)]
+        return fetch_calendar_day_ticks(
+            api, contract, date, simulation=simulation
+        )
+
+    import shioaji as sj
+
+    query_type = sj.TicksQueryType.RangeTime
+    raw = _call_ticks_api(
+        api,
+        contract,
+        date,
+        query_type=query_type,
+        time_start=time_start,
+        time_end=time_end,
+    )
+    ticks = _raw_ticks_to_replay(raw)
     return [t for t in ticks if t.datetime.date() == date]
 
 
@@ -211,69 +248,10 @@ def _window_needs_fetch(
     return False
 
 
-def _evening_edges_need_fetch(
-    ticks: Sequence[ReplayTick],
-    *,
-    calendar_date: datetime.date,
-    time_start: datetime.time,
-    time_end: datetime.time,
-) -> bool:
-    """Edge-only coverage for long night windows (skip intraday gap heuristics)."""
-    in_window = [
-        t
-        for t in ticks
-        if t.datetime.date() == calendar_date and time_start <= t.datetime.time() <= time_end
-    ]
-    if not in_window:
-        return True
-    earliest = min(t.datetime.time() for t in in_window)
-    latest = max(t.datetime.time() for t in in_window)
-    tol = datetime.timedelta(minutes=_WINDOW_EDGE_TOLERANCE_MIN)
-    if (
-        datetime.datetime.combine(datetime.date.min, earliest)
-        > datetime.datetime.combine(datetime.date.min, time_start) + tol
-    ):
-        return True
-    return (
-        datetime.datetime.combine(datetime.date.min, latest)
-        < datetime.datetime.combine(datetime.date.min, time_end) - tol
-    )
-
-
-def _prev_evening_needs_fetch(
-    ticks: Sequence[ReplayTick],
-    date: datetime.date,
-) -> bool:
-    """True when prior-calendar-day 15:00–23:59 night leg is missing."""
-    prev = date - datetime.timedelta(days=1)
-    return _evening_edges_need_fetch(
-        ticks,
-        calendar_date=prev,
-        time_start=EVENING_SESSION_START,
-        time_end=EVENING_SESSION_END,
-    )
-
-
-def _dawn_needs_fetch(ticks: Sequence[ReplayTick], date: datetime.date) -> bool:
-    """True when same-calendar-day 00:00–05:00 night leg is missing."""
-    return _evening_edges_need_fetch(
-        ticks,
-        calendar_date=date,
-        time_start=DAWN_SESSION_START,
-        time_end=DAWN_SESSION_END,
-    )
-
-
 def _all_day_needs_fetch(ticks: Sequence[ReplayTick], date: datetime.date) -> bool:
-    """True when cache lacks prior-evening, dawn, or same-day session (08:45–13:45)."""
-    if not ticks:
-        return True
-    same_day = [t for t in ticks if t.datetime.date() == date]
-    if _window_needs_fetch(same_day, DEFAULT_TICK_RANGE_START, DEFAULT_TICK_RANGE_END):
-        return True
-    if _dawn_needs_fetch(ticks, date):
-        return True
-    return _prev_evening_needs_fetch(ticks, date)
+    """True when cache has no ticks for calendar day *date* (empty/missing → fetch)."""
+    del date
+    return not ticks
 
 
 def tick_cache_satisfies_request(
@@ -316,86 +294,32 @@ def merge_ticks(
     return sorted(by_dt.values(), key=lambda t: t.datetime)
 
 
-def _purge_stale_tick_gz(cache_dir: Path, code: str, date: datetime.date) -> None:
-    gz = cache_gz_path(cache_dir, code, date)
-    if gz.is_file():
-        gz.unlink()
-        logger.info("已移除過期 gzip 快取 %s（改寫 plain CSV）", gz.name)
-
-
-def _purge_stale_tick_gz_with_retry(
-    cache_dir: Path, code: str, date: datetime.date
-) -> None:
-    for attempt in range(1, 3):
-        try:
-            _purge_stale_tick_gz(cache_dir, code, date)
-            return
-        except OSError as e:
-            if attempt >= 2:
-                logger.warning(
-                    "移除過期 gzip 失敗（plain CSV 已落地）%s: %s",
-                    cache_gz_path(cache_dir, code, date).name,
-                    e,
-                )
-                return
-            logger.warning("移除 gzip 重試 (%d/2): %s", attempt, e)
-
-
 def cache_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
     return Path(cache_dir) / f"{code}_{date.isoformat()}.csv"
-
-
-def cache_gz_path(cache_dir: Path, code: str, date: datetime.date) -> Path:
-    return Path(cache_dir) / f"{code}_{date.isoformat()}.csv.gz"
 
 
 def resolve_tick_cache_path(
     cache_dir: Path, code: str, date: datetime.date
 ) -> Optional[Path]:
-    """Return canonical on-disk tick cache path when any variant exists.
-
-    When both plain CSV and gzip exist, plain is preferred (backfill write target).
-    Callers needing full content should use ``load_merged_tick_cache``.
-    """
+    """Return on-disk tick cache path when plain CSV exists."""
     plain = cache_path(cache_dir, code, date)
-    gz = cache_gz_path(cache_dir, code, date)
     if plain.is_file():
         return plain
-    if gz.is_file():
-        return gz
     return None
 
 
 def tick_cache_files_exist(cache_dir: Path, code: str, date: datetime.date) -> bool:
-    plain = cache_path(cache_dir, code, date)
-    gz = cache_gz_path(cache_dir, code, date)
-    return plain.is_file() or gz.is_file()
+    return cache_path(cache_dir, code, date).is_file()
 
 
 def load_merged_tick_cache(
     cache_dir: Path, code: str, date: datetime.date
 ) -> List[ReplayTick]:
-    """Load ticks from plain CSV and/or gzip, unioning both when present."""
+    """Load ticks from plain CSV when present."""
     plain = cache_path(cache_dir, code, date)
-    gz = cache_gz_path(cache_dir, code, date)
-    plain_ticks = load_ticks_csv(plain) if plain.is_file() else []
-    gz_ticks = load_ticks_csv(gz) if gz.is_file() else []
-    if plain_ticks and gz_ticks:
-        return merge_ticks(
-            gz_ticks,
-            plain_ticks,
-            time_start=None,
-            time_end=None,
-            replace_window=False,
-        )
-    return plain_ticks or gz_ticks
-
-
-def _open_tick_csv_reader(path: Path) -> IO[str]:
-    path = Path(path)
-    if path.suffix == ".gz" or path.name.endswith(".csv.gz"):
-        return gzip.open(path, "rt", encoding="utf-8", newline="")
-    return path.open("r", encoding="utf-8", newline="")
+    if plain.is_file():
+        return load_ticks_csv(plain)
+    return []
 
 
 def save_ticks_csv(ticks: Iterable[ReplayTick], path: Path) -> int:
@@ -433,16 +357,15 @@ def commit_ticks_cache(
     date: datetime.date,
     ticks: Iterable[ReplayTick],
 ) -> tuple[Path, int]:
-    """Atomically write plain CSV, then remove stale gzip for the same day."""
+    """Atomically write plain CSV for the trade day."""
     path = cache_path(cache_dir, code, date)
     n = save_ticks_csv(ticks, path)
-    _purge_stale_tick_gz_with_retry(cache_dir, code, date)
     return path, n
 
 
 def load_ticks_csv(path: Path) -> List[ReplayTick]:
     ticks: List[ReplayTick] = []
-    with _open_tick_csv_reader(Path(path)) as f:
+    with Path(path).open("r", encoding="utf-8", newline="") as f:
         for row in csv.DictReader(f):
             ticks.append(
                 ReplayTick(
@@ -489,7 +412,7 @@ def download_and_cache(
     time_end: datetime.time | None = DEFAULT_TICK_RANGE_END,
     simulation: bool = False,
 ) -> List[Path]:
-    """逐日抓取並落地快取；支援 RangeTime 缺口合併與 gzip 失效處理。"""
+    """逐日抓取並落地 plain CSV 快取；支援 RangeTime 缺口合併。"""
     code = getattr(contract, "code", str(contract))
     written: List[Path] = []
     all_day = time_start is None and time_end is None
@@ -521,16 +444,29 @@ def download_and_cache(
             continue
 
         try:
-            fetched = fetch_ticks_for_date(
-                api,
-                contract,
-                date,
-                time_start=time_start,
-                time_end=time_end,
-                simulation=simulation,
-            )
+            if all_day:
+                fetched = fetch_calendar_day_ticks(
+                    api, contract, date, simulation=simulation
+                )
+            else:
+                fetched = fetch_ticks_for_date(
+                    api,
+                    contract,
+                    date,
+                    time_start=time_start,
+                    time_end=time_end,
+                    simulation=simulation,
+                )
         except Exception as e:
             logger.warning("抓取 %s %s 失敗: %s", code, date, e)
+            continue
+
+        if all_day and not fetched:
+            logger.info(
+                "skip %s %s: no ticks (non-trading or empty)",
+                code,
+                date.isoformat(),
+            )
             continue
 
         if existing_ticks and (not all_day or not overwrite):
@@ -586,15 +522,12 @@ def date_range(start: datetime.date, end: datetime.date) -> List[datetime.date]:
 
 
 def _tick_cache_filename_date(name: str, code: str) -> datetime.date | None:
-    """Parse trade date from ``{code}_YYYY-MM-DD.csv[.gz]``; skip kbar mirror files."""
+    """Parse trade date from ``{code}_YYYY-MM-DD.csv``; skip kbar mirror files."""
     if "_kbars_" in name:
         return None
-    if name.endswith(".csv.gz"):
-        stem = name[: -len(".csv.gz")]
-    elif name.endswith(".csv"):
-        stem = name[: -len(".csv")]
-    else:
+    if not name.endswith(".csv") or name.endswith(".csv.gz"):
         return None
+    stem = name[: -len(".csv")]
     prefix = f"{code}_"
     if not stem.startswith(prefix):
         return None
@@ -611,7 +544,7 @@ def list_cached_tick_dates(
     start: datetime.date | None = None,
     end: datetime.date | None = None,
 ) -> List[datetime.date]:
-    """Return sorted trade dates with on-disk tick cache for *code* (plain or ``.gz``)."""
+    """Return sorted trade dates with on-disk plain CSV tick cache for *code*."""
     cache_dir = Path(cache_dir)
     if not cache_dir.is_dir():
         return []

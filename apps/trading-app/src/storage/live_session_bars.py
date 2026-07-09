@@ -85,7 +85,7 @@ class LiveSessionBars:
         *,
         calendar_dir: Path = DEFAULT_TRADE_DAYS_DIR,
     ) -> None:
-        """Reload from disk (e.g. after ``refresh_atr`` / kbars archive)."""
+        """Reload from disk (e.g. after kbars archive)."""
         target = as_of or self._bars.as_of
         self._bars.reload(
             as_of,

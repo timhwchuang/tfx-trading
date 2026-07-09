@@ -1,4 +1,4 @@
-"""P0-11 follow-up: archive kbars from refresh_atr for backtest ATR warmup."""
+"""P0-11 follow-up: archive kbars for backtest / research ATR warmup."""
 
 from __future__ import annotations
 

@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import argparse
-import datetime
 import logging
 import sys
 from pathlib import Path
 
-from config import PRODUCT_CODE, SIMULATION
+from config import PRODUCT_CODE
 from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
-from storage.tick_loader import DEFAULT_TICK_RANGE_END, DEFAULT_TICK_RANGE_START
 
 from backfilldata.core import (
     BackfillError,
@@ -18,13 +16,7 @@ from backfilldata.core import (
     backfill_month,
     filter_backfill_eligible_dates,
     parse_date_args,
-    resolve_kbar_backfill_dates,
-)
-from backfilldata.taiwan_calendar import (
-    CalendarError,
     parse_month_arg,
-    resolve_month_trading_days_with_fallback,
-    resolve_trading_days_in_range_with_fallback,
 )
 
 _EPILOG = """\
@@ -33,43 +25,29 @@ Examples (from apps/trading-app/src):
   python -m backfilldata date 2026-07-01 2026-07-06
   python -m backfilldata month 2026-04
   python -m backfilldata month 2026-04 --dry-run
-  python -m backfilldata date 2026-06-20 --code TMFR1 --ticks-only
-  python -m backfilldata date 2026-06-20 --ticks-only --session-ticks
-  python -m backfilldata date 2026-06-20 --ticks-only --time-start 08:45 --time-end 13:45
-  python -m backfilldata date 2026-06-20 --kbars-only
+  python -m backfilldata date 2026-06-20 --code TMFR1 --production
 
 Environment:
   SJ_API_KEY, SJ_SEC_KEY     Shioaji credentials (market data only; no CA)
-  CONFIG_PATH                optional config.yaml (product_code, simulation)
+  CONFIG_PATH                optional config.yaml (product_code)
 
 Cache layout (defaults):
-  ticks  → <monorepo>/tick_cache/{code}_{date}.csv
+  ticks  → <monorepo>/tick_cache/{code}_{date}.csv   (calendar day D only)
   kbars  → <monorepo>/tick_cache/{code}_kbars_{date}.csv
 
 Notes:
-  Prefer running after day session close (13:45 Taipei); same-day backfill is allowed from 13:45 onward.
-  Tick backfill defaults to AllDay (full day); use --session-ticks for RangeTime 08:45:00-13:45:00.
-  date/month: skip weekends + pin-yi Taiwan calendar holidays (fallback weekdays-only if API unreachable).
-  Do not run while live session holds one of the 5 connection slots for the same person_id.
-  See backfilldata/SPEC.md for API limits and fidelity caveats.
+  Module name is backfilldata (not backfilldate).
+  date/month iterate every calendar day (no holiday filter); empty days skip write.
+  Always AllDay ticks+kbars; automatic rollover merge stays on.
+  Prefer after day session close (13:45 Taipei). Default API mode is UAT (--uat).
+  See backfilldata/SPEC.md for API limits.
 """
 
 
 def _resolve_simulation(args: argparse.Namespace) -> bool:
     if args.production:
         return False
-    if args.simulation:
-        return True
-    return SIMULATION
-
-
-def _parse_hhmmss(value: str) -> datetime.time:
-    try:
-        return datetime.time.fromisoformat(value)
-    except ValueError as e:
-        raise argparse.ArgumentTypeError(
-            f"無效時間格式: {value}（請用 HH:MM 或 HH:MM:SS）"
-        ) from e
+    return True
 
 
 def _add_backfill_options(parser: argparse.ArgumentParser) -> None:
@@ -85,146 +63,48 @@ def _add_backfill_options(parser: argparse.ArgumentParser) -> None:
         help="Directory for tick and kbar CSV cache",
     )
     parser.add_argument(
-        "--ticks-only",
-        action="store_true",
-        help="Fetch ticks only",
-    )
-    parser.add_argument(
-        "--kbars-only",
-        action="store_true",
-        help="Fetch kbars only",
-    )
-    parser.add_argument(
         "--overwrite",
         action="store_true",
         help="Re-download even when cache file exists",
     )
-    parser.add_argument(
-        "--session-ticks",
-        action="store_true",
-        help="Use RangeTime 08:45:00-13:45:00 instead of default AllDay ticks",
-    )
-    parser.add_argument(
-        "--time-start",
-        type=_parse_hhmmss,
-        default=None,
-        help="RangeTime window start (implies --session-ticks; default with --session-ticks: 08:45:00)",
-    )
-    parser.add_argument(
-        "--time-end",
-        type=_parse_hhmmss,
-        default=None,
-        help="RangeTime window end (implies --session-ticks; default with --session-ticks: 13:45:00)",
-    )
-    parser.add_argument(
-        "--all-day-ticks",
-        action="store_true",
-        help="Explicit AllDay ticks (default; kept for backward compatibility)",
-    )
-    parser.add_argument(
-        "--no-merge-rollover",
-        dest="merge_rollover",
-        action="store_false",
-        default=True,
-        help="Do not auto-merge next-month contract afternoon ticks (e.g. TMFR2 13:30–13:45 into TMFR1)",
-    )
     api_mode = parser.add_mutually_exclusive_group()
     api_mode.add_argument(
-        "--simulation",
+        "--uat",
         action="store_true",
-        help="Force Shioaji simulation API (default: config.yaml simulation)",
+        help="Shioaji simulation API (default when neither --uat nor --production)",
     )
     api_mode.add_argument(
         "--production",
         action="store_true",
-        help="Force Shioaji production API (overrides config simulation)",
+        help="Shioaji production API",
     )
-    parser.add_argument(
-        "--no-holiday-calendar",
-        action="store_true",
-        help="Skip pin-yi Taiwan calendar API; use weekdays only",
-    )
-
-
-def _uses_range_time(args: argparse.Namespace) -> bool:
-    if args.all_day_ticks:
-        return False
-    if args.session_ticks:
-        return True
-    return args.time_start is not None or args.time_end is not None
-
-
-def _resolve_tick_window(
-    args: argparse.Namespace,
-) -> tuple[datetime.time | None, datetime.time | None]:
-    if not _uses_range_time(args):
-        return None, None
-    return (
-        args.time_start if args.time_start is not None else DEFAULT_TICK_RANGE_START,
-        args.time_end if args.time_end is not None else DEFAULT_TICK_RANGE_END,
-    )
-
-
-def _validate_session_window(args: argparse.Namespace) -> int | None:
-    if args.ticks_only and args.kbars_only:
-        print("不可同時指定 --ticks-only 與 --kbars-only", file=sys.stderr)
-        return 2
-    if args.session_ticks and args.all_day_ticks:
-        print("不可同時指定 --session-ticks 與 --all-day-ticks", file=sys.stderr)
-        return 2
-    if _uses_range_time(args):
-        start, end = _resolve_tick_window(args)
-        if end <= start:
-            print("--time-end 必須晚於 --time-start", file=sys.stderr)
-            return 2
-    return None
 
 
 def _backfill_kwargs(args: argparse.Namespace, *, simulation: bool) -> dict:
-    tick_time_start, tick_time_end = _resolve_tick_window(args)
     return {
         "code": args.code,
         "simulation": simulation,
-        "fetch_ticks": not args.kbars_only,
-        "fetch_kbars": not args.ticks_only,
+        "fetch_ticks": True,
+        "fetch_kbars": True,
         "cache_dir": Path(args.tick_cache_dir),
         "overwrite": args.overwrite,
-        "tick_time_start": tick_time_start,
-        "tick_time_end": tick_time_end,
-        "merge_rollover": args.merge_rollover,
+        "tick_time_start": None,
+        "tick_time_end": None,
+        "merge_rollover": True,
     }
-
-
-def _resolve_month_days_with_calendar_fallback(
-    year: int,
-    month: int,
-    *,
-    use_holiday_calendar: bool,
-) -> tuple[list[datetime.date], dict[str, list[datetime.date]]]:
-    return resolve_month_trading_days_with_fallback(
-        year,
-        month,
-        use_holiday_calendar=use_holiday_calendar,
-    )
 
 
 def _report_backfill_result(
     result,
     *,
-    dates: list[datetime.date],
+    dates: list,
     simulation: bool,
 ) -> int:
     if not result.ok:
-        if result.missing_tick_dates:
-            logging.error(
-                "tick 缺檔: %s",
-                ", ".join(d.isoformat() for d in result.missing_tick_dates),
-            )
-        if result.missing_kbar_dates:
-            logging.error(
-                "kbar 缺檔: %s",
-                ", ".join(d.isoformat() for d in result.missing_kbar_dates),
-            )
+        logging.error(
+            "API failures: %s",
+            ", ".join(d.isoformat() for d in result.failed_dates),
+        )
         return 1
 
     logging.info(
@@ -239,7 +119,7 @@ def _report_backfill_result(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Backfill Shioaji historical ticks and/or 1m kbars into local CSV cache.",
+        description="Backfill Shioaji historical ticks and 1m kbars into local CSV cache.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=_EPILOG,
     )
@@ -247,7 +127,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     date_p = sub.add_parser(
         "date",
-        help="Backfill one date or inclusive start end range",
+        help="Backfill every calendar day in one date or inclusive start end range",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=_EPILOG,
     )
@@ -255,13 +135,13 @@ def _build_parser() -> argparse.ArgumentParser:
         "dates",
         nargs="+",
         metavar="YYYY-MM-DD",
-        help="One date, or start and end (inclusive); non-trading days are skipped",
+        help="One date, or start and end (inclusive); every calendar day is attempted",
     )
     _add_backfill_options(date_p)
 
     month_p = sub.add_parser(
         "month",
-        help="Backfill trading weekdays in a calendar month (skip weekends/holidays)",
+        help="Backfill every calendar day in a month (empty days OK)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=_EPILOG,
     )
@@ -273,7 +153,7 @@ def _build_parser() -> argparse.ArgumentParser:
     month_p.add_argument(
         "--dry-run",
         action="store_true",
-        help="Print trading days only; do not call Shioaji",
+        help="Print eligible calendar days only; do not call Shioaji",
     )
     _add_backfill_options(month_p)
 
@@ -290,55 +170,31 @@ def main(argv: list[str] | None = None) -> int:
         datefmt="%H:%M:%S",
     )
 
-    rc = _validate_session_window(args)
-    if rc is not None:
-        return rc
-
     simulation = _resolve_simulation(args)
     kwargs = _backfill_kwargs(args, simulation=simulation)
 
     try:
-        use_holiday_calendar = not args.no_holiday_calendar
-
         if args.command == "date":
             raw_dates = parse_date_args(args.dates)
-            trading_days, skipped_buckets = resolve_trading_days_in_range_with_fallback(
-                raw_dates[0],
-                raw_dates[-1],
-                use_holiday_calendar=use_holiday_calendar,
-            )
-            eligible, skipped_future = filter_backfill_eligible_dates(trading_days)
+            eligible, skipped_future = filter_backfill_eligible_dates(raw_dates)
             logging.info(
-                "date | requested=%d trading_days=%d eligible=%d "
-                "skipped_weekend=%d skipped_holiday=%d skipped_future=%d",
+                "date | requested=%d eligible=%d skipped_future=%d",
                 len(raw_dates),
-                len(trading_days),
                 len(eligible),
-                len(skipped_buckets["weekend"]),
-                len(skipped_buckets["holiday"]),
                 len(skipped_future),
             )
             if not eligible:
-                logging.info("無可 backfill 的交易日")
+                logging.info("無可 backfill 的日期")
                 return 0
-            range_start, range_end = raw_dates[0], raw_dates[-1]
             result, batches = backfill_dates_batched(
                 eligible,
-                range_start=range_start,
-                range_end=range_end,
+                range_start=raw_dates[0],
+                range_end=raw_dates[-1],
                 **kwargs,
             )
-            kbar_days = eligible
-            if kwargs.get("fetch_kbars", True):
-                kbar_days, _ = resolve_kbar_backfill_dates(
-                    eligible,
-                    range_start=range_start,
-                    range_end=range_end,
-                )
             logging.info(
-                "date | eligible=%d kbar_days=%d batches=%d",
+                "date | eligible=%d batches=%d",
                 len(eligible),
-                len(kbar_days),
                 len(batches),
             )
             return _report_backfill_result(
@@ -350,45 +206,30 @@ def main(argv: list[str] | None = None) -> int:
         year, month = parse_month_arg(args.month)
 
         if args.dry_run:
-            trading_days, skipped_buckets = _resolve_month_days_with_calendar_fallback(
-                year,
-                month,
-                use_holiday_calendar=use_holiday_calendar,
-            )
-            eligible, skipped_future = filter_backfill_eligible_dates(trading_days)
+            from backfilldata.core import calendar_days_in_month
+
+            calendar_days = calendar_days_in_month(year, month)
+            eligible, skipped_future = filter_backfill_eligible_dates(calendar_days)
             logging.info(
-                "dry-run | month=%04d-%02d trading_days=%d eligible=%d "
-                "skipped_weekend=%d skipped_holiday=%d skipped_future=%d",
+                "dry-run | month=%04d-%02d calendar_days=%d eligible=%d skipped_future=%d",
                 year,
                 month,
-                len(trading_days),
+                len(calendar_days),
                 len(eligible),
-                len(skipped_buckets["weekend"]),
-                len(skipped_buckets["holiday"]),
                 len(skipped_future),
             )
             for d in eligible:
                 logging.info("  backfill %s", d.isoformat())
             return 0
 
-        result, meta = backfill_month(
-            year,
-            month,
-            use_holiday_calendar=use_holiday_calendar,
-            **kwargs,
-        )
-
+        result, meta = backfill_month(year, month, **kwargs)
         logging.info(
-            "month=%04d-%02d | trading_days=%d eligible=%d kbar_days=%d batches=%d "
-            "skipped_weekend=%d skipped_holiday=%d skipped_future=%d",
+            "month=%04d-%02d | calendar_days=%d eligible=%d batches=%d skipped_future=%d",
             year,
             month,
-            len(meta["trading_days"]),
+            len(meta["calendar_days"]),
             len(meta["eligible_days"]),
-            len(meta.get("kbar_days", meta["eligible_days"])),
             len(meta["batches"]),
-            len(meta["skipped_weekend"]),
-            len(meta["skipped_holiday"]),
             len(meta["skipped_future"]),
         )
         return _report_backfill_result(
@@ -396,7 +237,7 @@ def main(argv: list[str] | None = None) -> int:
             dates=meta["eligible_days"],
             simulation=simulation,
         )
-    except (BackfillError, CalendarError) as e:
+    except BackfillError as e:
         print(f"backfilldata: {e}", file=sys.stderr)
         return 1
     except Exception as e:

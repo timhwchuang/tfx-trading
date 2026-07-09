@@ -29,7 +29,7 @@
 |------|------|
 | 家裡/公司網路不穩、VPN、睡眠 | GCE **交易時段開機**（例 08:30–14:00）或 24/7；穩定 egress、無睡眠 |
 | 回測吃 RAM/CPU、不想與 live 搶資源 | 地端或大規格工作站跑 `backtest` / `calibration_cli` |
-| 資料要可重現 | 收盤後 `rsync` 拉回 `tick_cache/*.csv.gz`，地端 hash 比對 |
+| 資料要可重現 | 收盤後 `rsync` 拉回 `tick_cache/*.csv`，地端 hash 比對 |
 | 台灣券商 API 延遲 | **asia-east1**（彰化）區域 |
 
 ## 3. GCP GCE 建議規格

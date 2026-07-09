@@ -1,21 +1,17 @@
 # tfx-trading
 
-Monorepo for Taiwan index futures (TAIFEX) research: **trading-engine** kernel, **trading-backtest** replay, pluggable **strategies**, and **trading-app** live integrator (hybrid: **GCE Live** + on-prem backtest).
+永豐 Shioaji 台指期：**單一 app**（Host 狀態機 + storage + live + `strategy_simple`）。
 
-> Personal research / simulation — not investment advice. UAT-ready ≠ live-ready.
+> Personal research / simulation — not investment advice.
 
-| 文件 | 用途 |
-|------|------|
-| [docs/DOC_MAP.md](docs/DOC_MAP.md) | **全文件索引（入口）** |
-| [docs/TODO.md](docs/TODO.md) | 路線圖、未完成項 |
-| [CHANGELOG.md](CHANGELOG.md) | 版本變更（全 monorepo） |
-| [LICENSE](LICENSE) | MIT |
-| [SPEC.md](SPEC.md) | Monorepo 整合規格（高階；含 §7 架構與資料流） |
-| [docs/AGENTS.md](docs/AGENTS.md) | AI / 開發安全護欄 |
-| [prompts/roles/senior-trading-professional.md](prompts/roles/senior-trading-professional.md) | 資深交易人員 role（Grok **`/senior-trading-professional`**） |
-| [apps/trading-app/README.md](apps/trading-app/README.md) | 安裝、執行、UAT |
-| [docs/ops/HYBRID_DEPLOY.md](docs/ops/HYBRID_DEPLOY.md) | 地雲雙管（GCE Live + 地端回測） |
-| [docs/ops/LinuxOps.md](docs/ops/LinuxOps.md) | Linux / GCE 運維 |
+| Doc | Purpose |
+|-----|---------|
+| [docs/DOC_MAP.md](docs/DOC_MAP.md) | Document index |
+| [docs/AGENTS.md](docs/AGENTS.md) | AI safety + architecture |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [SPEC.md](SPEC.md) | Integration SPEC |
+| [apps/trading-app/README.md](apps/trading-app/README.md) | Install / live UAT |
+| [legacy/README.md](legacy/README.md) | Archived research |
 
 ## Quick start
 
@@ -31,41 +27,16 @@ bash scripts/run-all-tests.sh
 ## Layout
 
 ```text
-.grok/skills/                     # Grok project skills
-prompts/roles/                    # AI role definitions + gate references
-packages/trading-engine/          # kernel
-packages/trading-backtest/        # tick replay
-packages/strategies/vwap-momentum/  # VWAP strategy plugin
-apps/trading-app/                 # config, storage, reporting, live entry
+apps/trading-app/            # product (includes src/trading_engine)
+legacy/                      # prior strategies / reporting / backtest
+tick_cache/                  # SSOT landed ticks
 ```
 
-## Run (after setup)
+## Run
 
 ```bash
 cd apps/trading-app/src
-python -m live          # simulation default — see config/config.yaml
-python -m backtest --code TMFR1 --dates-from-cache   # 或 --dates 2026-06-12 ...
+python -m live
+python -m storage --help
+python -m backfilldata --help
 ```
-
-## CLI 指令（trading-app）
-
-> **原則**：每個模組用 `python -m <module> --help` 查完整參數；下列為索引。  
-> Windows UAT 從 monorepo 根執行時請設 `$env:PYTHONPATH="apps\trading-app\src"`。
-
-| 模組 | 用途 | 說明 |
-|------|------|------|
-| `cli_help` | **指令總覽** | `python -m cli_help` 或 `python -m cli_help reporting` |
-| `live` | 模擬 / 連線交易 | `python -m live --help` |
-| `backtest` | Tick 回放回測 | `python -m backtest --help` |
-| `reporting` | UAT log / JSON KPI | `python -m reporting --help` |
-| `reporting.uat_evidence_export` | 券商對帳 + tick CSV | `python -m reporting.uat_evidence_export --help` |
-| `sweep.pilot_gate_check` | Phase 5 Pilot 預檢 | `python -m sweep.pilot_gate_check --help` |
-| `sweep.determinism_check` | 可重現性 hash | `python -m sweep.determinism_check --help` |
-| `reporting.calibration_cli` | Trend filter 校準（CAL-8） | `python -m reporting.calibration_cli --help` |
-| `storage` | 壓縮 tick_cache | `python -m storage --help` |
-
-UAT 流程逐步 SOP：[`docs/uat/APP.md`](docs/uat/APP.md) · 部署：[`docs/ops/HYBRID_DEPLOY.md`](docs/ops/HYBRID_DEPLOY.md) · Windows：[`docs/ops/WindowsOps.md`](docs/ops/WindowsOps.md)
-
-## Migrated from
-
-Former sibling repos (`trading-engine`, `trading-backtest`, `strategy-vwap-momentum`, `trading-app`) are **archived** on GitHub. Development continues here only.

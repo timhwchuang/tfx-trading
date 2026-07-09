@@ -3,37 +3,33 @@
 from __future__ import annotations
 
 import datetime
-import gzip
-import logging
-import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from storage.tick_loader import (
     DEFAULT_TICK_RANGE_END,
     DEFAULT_TICK_RANGE_START,
     _window_needs_fetch,
     ReplayTick,
-    cache_gz_path,
     cache_path,
-    commit_ticks_cache,
     date_range,
     download_and_cache,
+    fetch_calendar_day_ticks,
     fetch_ticks_for_date,
     iter_replay_ticks,
     list_cached_tick_dates,
-    load_merged_tick_cache,
     load_ticks_csv,
+    load_merged_tick_cache,
     merge_ticks,
     parse_cli_cache_date_range,
     parse_optional_iso_date,
     resolve_cli_tick_cache_dates,
     resolve_tick_cache_dates,
     save_ticks_csv,
-    shioaji_historical_ts_from_ns,
 )
+from trading_engine.calendar.shioaji_ts import shioaji_historical_ts_from_ns
 from tests.test_helpers import make_host
 
 
@@ -99,17 +95,23 @@ class TestFetchTicksForDate(unittest.TestCase):
 
     def test_all_day_when_range_disabled(self):
         api = MagicMock()
-        raw = MagicMock(ts=[1], close=[18000], volume=[1])
+        raw = MagicMock(ts=[1], close=[18000], volume=[1], bid_price=[], ask_price=[], tick_type=[])
         api.ticks.return_value = raw
         contract = MagicMock(code="TXFR1")
         date = datetime.date(2026, 6, 18)
-        fetch_ticks_for_date(api, contract, date, time_start=None, time_end=None)
+        with patch(
+            "storage.tick_loader._taipei_today",
+            return_value=datetime.date(2026, 6, 18),
+        ):
+            fetch_ticks_for_date(api, contract, date, time_start=None, time_end=None)
         _, kwargs = api.ticks.call_args
         self.assertEqual(str(kwargs["query_type"]), "TicksQueryType.AllDay")
         self.assertNotIn("time_start", kwargs)
         self.assertNotIn("time_end", kwargs)
+        # D+1 is future relative to patched today → only one AllDay call
+        self.assertEqual(api.ticks.call_count, 1)
 
-    def test_all_day_keeps_prior_calendar_evening_from_same_query(self):
+    def test_calendar_day_excludes_prior_evening_from_allday_d(self):
         api = MagicMock()
         contract = MagicMock(code="TMFR1")
         query_date = datetime.date(2026, 7, 1)
@@ -118,27 +120,86 @@ class TestFetchTicksForDate(unittest.TestCase):
             dt = datetime.datetime(y, m, d, h, mi, s, tzinfo=datetime.timezone.utc)
             return int(dt.timestamp() * 1_000_000_000)
 
-        ts = [
-            _ns(2026, 6, 30, 15, 0),
-            _ns(2026, 6, 30, 23, 59),
-            _ns(2026, 7, 1, 0, 0),
-            _ns(2026, 7, 1, 13, 44),
-        ]
-        api.ticks.return_value = MagicMock(
-            ts=ts,
-            close=[18000.0] * len(ts),
-            volume=[1] * len(ts),
-            bid_price=[],
-            ask_price=[],
-            tick_type=[],
+        def _ticks_side_effect(**kwargs):
+            d = kwargs["date"]
+            if d == "2026-07-01":
+                ts = [
+                    _ns(2026, 6, 30, 15, 0),
+                    _ns(2026, 6, 30, 23, 59),
+                    _ns(2026, 7, 1, 0, 0),
+                    _ns(2026, 7, 1, 13, 44),
+                ]
+            else:
+                ts = []
+            return MagicMock(
+                ts=ts,
+                close=[18000.0] * len(ts),
+                volume=[1] * len(ts),
+                bid_price=[],
+                ask_price=[],
+                tick_type=[],
+            )
+
+        api.ticks.side_effect = _ticks_side_effect
+        with patch(
+            "storage.tick_loader._taipei_today",
+            return_value=datetime.date(2026, 7, 2),
+        ):
+            ticks = fetch_calendar_day_ticks(api, contract, query_date)
+        self.assertEqual(len(ticks), 2)
+        self.assertEqual(ticks[0].datetime, datetime.datetime(2026, 7, 1, 0, 0))
+        self.assertEqual(ticks[1].datetime, datetime.datetime(2026, 7, 1, 13, 44))
+        for t in ticks:
+            self.assertEqual(t.datetime.date(), query_date)
+
+    def test_calendar_day_includes_same_day_night_from_allday_d_plus_1(self):
+        api = MagicMock()
+        contract = MagicMock(code="TMFR1")
+        query_date = datetime.date(2026, 7, 1)
+
+        def _ns(y, m, d, h, mi, s=0):
+            dt = datetime.datetime(y, m, d, h, mi, s, tzinfo=datetime.timezone.utc)
+            return int(dt.timestamp() * 1_000_000_000)
+
+        def _ticks_side_effect(**kwargs):
+            d = kwargs["date"]
+            if d == "2026-07-01":
+                ts = [
+                    _ns(2026, 6, 30, 15, 0),
+                    _ns(2026, 7, 1, 9, 0),
+                ]
+            elif d == "2026-07-02":
+                ts = [
+                    _ns(2026, 7, 1, 15, 0),
+                    _ns(2026, 7, 1, 22, 0),
+                    _ns(2026, 7, 2, 0, 30),
+                ]
+            else:
+                ts = []
+            return MagicMock(
+                ts=ts,
+                close=[18000.0] * len(ts),
+                volume=[1] * len(ts),
+                bid_price=[],
+                ask_price=[],
+                tick_type=[],
+            )
+
+        api.ticks.side_effect = _ticks_side_effect
+        with patch(
+            "storage.tick_loader._taipei_today",
+            return_value=datetime.date(2026, 7, 2),
+        ):
+            ticks = fetch_calendar_day_ticks(api, contract, query_date)
+        self.assertEqual(
+            [t.datetime for t in ticks],
+            [
+                datetime.datetime(2026, 7, 1, 9, 0),
+                datetime.datetime(2026, 7, 1, 15, 0),
+                datetime.datetime(2026, 7, 1, 22, 0),
+            ],
         )
-        ticks = fetch_ticks_for_date(
-            api, contract, query_date, time_start=None, time_end=None
-        )
-        self.assertEqual(len(ticks), 4)
-        self.assertEqual(ticks[0].datetime, datetime.datetime(2026, 6, 30, 15, 0))
-        self.assertEqual(ticks[1].datetime, datetime.datetime(2026, 6, 30, 23, 59))
-        self.assertEqual(ticks[-1].datetime, datetime.datetime(2026, 7, 1, 13, 44))
+        self.assertEqual(api.ticks.call_count, 2)
 
     def test_simulation_ts_uses_wall_clock_not_plus_eight(self):
         wall_as_utc = datetime.datetime(
@@ -323,19 +384,8 @@ class TestDownloadAndCache(unittest.TestCase):
         contract.code = "TXFR1"
         date = datetime.date(2026, 6, 12)
         day_ticks = [
-            ReplayTick(datetime.datetime(2026, 6, 11, 15, 0), "prev0", 1, 0),
-            ReplayTick(datetime.datetime(2026, 6, 11, 23, 59), "prev1", 1, 0),
             ReplayTick(datetime.datetime(2026, 6, 12, 0, 0), "dawn0", 1, 0),
-            ReplayTick(datetime.datetime(2026, 6, 12, 5, 0), "dawn1", 1, 0),
-            *[
-                ReplayTick(
-                    datetime.datetime(2026, 6, 12, 8, 45) + datetime.timedelta(minutes=i),
-                    str(i),
-                    1,
-                    0,
-                )
-                for i in range((13 * 60 + 45) - (8 * 60 + 45) + 1)
-            ],
+            ReplayTick(datetime.datetime(2026, 6, 12, 9, 0), "open", 1, 0),
         ]
         with tempfile.TemporaryDirectory() as d:
             cache_dir = Path(d)
@@ -351,14 +401,14 @@ class TestDownloadAndCache(unittest.TestCase):
             self.assertEqual(len(written), 1)
             api.ticks.assert_not_called()
 
-    def test_all_day_refetches_missing_dawn_leg(self):
+    def test_all_day_empty_does_not_write_file(self):
         api = MagicMock()
         api.usage.return_value = MagicMock(
             bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
         )
         contract = MagicMock()
         contract.code = "TXFR1"
-        date = datetime.date(2026, 6, 12)
+        date = datetime.date(2026, 6, 14)  # Sunday
         api.ticks.return_value = MagicMock(
             ts=[],
             close=[],
@@ -369,181 +419,21 @@ class TestDownloadAndCache(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as d:
             cache_dir = Path(d)
-            save_ticks_csv(
-                [
-                    ReplayTick(datetime.datetime(2026, 6, 11, 15, 0), "prev0", 1, 0),
-                    ReplayTick(datetime.datetime(2026, 6, 11, 23, 59), "prev1", 1, 0),
-                    ReplayTick(datetime.datetime(2026, 6, 12, 8, 45), "open", 1, 0),
-                    ReplayTick(datetime.datetime(2026, 6, 12, 13, 45), "close", 1, 0),
-                ],
-                cache_path(cache_dir, "TXFR1", date),
-            )
-            download_and_cache(
-                api,
-                contract,
-                [date],
-                cache_dir=cache_dir,
-                time_start=None,
-                time_end=None,
-            )
-            api.ticks.assert_called_once()
-
-    def test_all_day_refetches_session_only_cache(self):
-        api = MagicMock()
-        api.usage.return_value = MagicMock(
-            bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
-        )
-        contract = MagicMock()
-        contract.code = "TXFR1"
-        date = datetime.date(2026, 6, 12)
-        api.ticks.return_value = MagicMock(
-            ts=[],
-            close=[],
-            volume=[],
-            bid_price=[],
-            ask_price=[],
-            tick_type=[],
-        )
-        with tempfile.TemporaryDirectory() as d:
-            cache_dir = Path(d)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 12, 9, 0), "1", 1, 0)],
-                cache_path(cache_dir, "TXFR1", date),
-            )
-            download_and_cache(
-                api,
-                contract,
-                [date],
-                cache_dir=cache_dir,
-                time_start=None,
-                time_end=None,
-            )
-            api.ticks.assert_called_once()
-
-    def test_partial_gzip_triggers_fetch_and_writes_plain_csv(self):
-        api = MagicMock()
-        api.usage.return_value = MagicMock(
-            bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
-        )
-        contract = MagicMock()
-        contract.code = "TXFR1"
-        date = datetime.date(2026, 6, 22)
-        morning_ns = int(
-            datetime.datetime(
-                2026, 6, 22, 8, 45, 0, tzinfo=datetime.timezone.utc
-            ).timestamp()
-            * 1_000_000_000
-        )
-        api.ticks.return_value = MagicMock(
-            ts=[morning_ns],
-            close=[18000],
-            volume=[1],
-            bid_price=[],
-            ask_price=[],
-            tick_type=[1],
-        )
-        with tempfile.TemporaryDirectory() as d:
-            cache_dir = Path(d)
-            plain = cache_path(cache_dir, "TXFR1", date)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 11, 14), "1", 1, 0)],
-                plain,
-            )
-            gz = cache_gz_path(cache_dir, "TXFR1", date)
-            with plain.open("rb") as src, gzip.open(gz, "wb") as dst:
-                dst.writelines(src)
-            plain.unlink()
-            written = download_and_cache(
-                api,
-                contract,
-                [date],
-                cache_dir=cache_dir,
-                simulation=True,
-            )
-            plain = cache_path(cache_dir, "TXFR1", date)
-            self.assertEqual(written, [plain])
-            self.assertTrue(plain.is_file())
-            self.assertFalse(gz.is_file())
-            ticks = load_ticks_csv(plain)
-            self.assertEqual(len(ticks), 2)
-            api.ticks.assert_called_once()
-
-    def test_merged_plain_and_gzip_used_for_gap_backfill(self):
-        api = MagicMock()
-        api.usage.return_value = MagicMock(
-            bytes=0, limit_bytes=2_000_000_000, remaining_bytes=1_900_000_000
-        )
-        contract = MagicMock()
-        contract.code = "TXFR1"
-        date = datetime.date(2026, 6, 22)
-        morning_ns = int(
-            datetime.datetime(
-                2026, 6, 22, 8, 45, 0, tzinfo=datetime.timezone.utc
-            ).timestamp()
-            * 1_000_000_000
-        )
-        api.ticks.return_value = MagicMock(
-            ts=[morning_ns],
-            close=[18000],
-            volume=[1],
-            bid_price=[],
-            ask_price=[],
-            tick_type=[1],
-        )
-        with tempfile.TemporaryDirectory() as d:
-            cache_dir = Path(d)
-            plain = cache_path(cache_dir, "TXFR1", date)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 8, 45), "plain", 1, 0)],
-                plain,
-            )
-            gz = cache_gz_path(cache_dir, "TXFR1", date)
-            afternoon = cache_dir / "afternoon.csv"
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 11, 14), "gz", 1, 0)],
-                afternoon,
-            )
-            with afternoon.open("rb") as src, gzip.open(gz, "wb") as dst:
-                dst.writelines(src)
-            afternoon.unlink()
-            download_and_cache(
-                api,
-                contract,
-                [date],
-                cache_dir=cache_dir,
-                simulation=True,
-            )
-            merged = load_merged_tick_cache(cache_dir, "TXFR1", date)
-            closes = {t.close for t in merged}
-            self.assertIn("gz", closes)
-            self.assertGreaterEqual(len(merged), 2)
-            self.assertFalse(gz.is_file())
-
-    def test_commit_ticks_cache_keeps_gzip_on_write_failure(self):
-        with tempfile.TemporaryDirectory() as d:
-            cache_dir = Path(d)
-            date = datetime.date(2026, 6, 22)
-            staging = cache_dir / "staging.csv"
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 11, 14), "1", 1, 0)],
-                staging,
-            )
-            gz = cache_gz_path(cache_dir, "TXFR1", date)
-            with staging.open("rb") as src, gzip.open(gz, "wb") as dst:
-                dst.writelines(src)
-            staging.unlink()
             with patch(
-                "storage.tick_loader.save_ticks_csv",
-                side_effect=OSError("disk full"),
+                "storage.tick_loader._taipei_today",
+                return_value=datetime.date(2026, 6, 15),
             ):
-                with self.assertRaises(OSError):
-                    commit_ticks_cache(
-                        cache_dir,
-                        "TXFR1",
-                        date,
-                        [ReplayTick(datetime.datetime(2026, 6, 22, 8, 45), "2", 1, 0)],
-                    )
-            self.assertTrue(gz.is_file())
+                written = download_and_cache(
+                    api,
+                    contract,
+                    [date],
+                    cache_dir=cache_dir,
+                    time_start=None,
+                    time_end=None,
+                )
+            self.assertEqual(written, [])
+            self.assertFalse(cache_path(cache_dir, "TXFR1", date).exists())
+            self.assertEqual(load_merged_tick_cache(cache_dir, "TXFR1", date), [])
 
 
 class TestDateRange(unittest.TestCase):
@@ -599,7 +489,7 @@ class TestInjectedClock(unittest.TestCase):
 
 
 class TestListCachedTickDates(unittest.TestCase):
-    def test_lists_tick_files_excludes_kbars_and_dedupes_gz(self):
+    def test_lists_tick_files_excludes_kbars_and_gz(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             d1 = datetime.date(2026, 6, 15)
@@ -608,7 +498,11 @@ class TestListCachedTickDates(unittest.TestCase):
                 [ReplayTick(datetime.datetime(2026, 6, 15, 9), "18000", 1, 0)],
                 cache_path(root, "TMFR1", d1),
             )
-            cache_gz_path(root, "TMFR1", d2).write_bytes(b"not real gzip")
+            save_ticks_csv(
+                [ReplayTick(datetime.datetime(2026, 6, 16, 9), "18010", 1, 0)],
+                cache_path(root, "TMFR1", d2),
+            )
+            (root / "TMFR1_2026-06-17.csv.gz").write_bytes(b"not real gzip")
             (root / "TMFR1_kbars_2026-06-15.csv").write_text("skip", encoding="utf-8")
             (root / "TXFR1_2026-06-15.csv").write_text("skip", encoding="utf-8")
 
@@ -678,319 +572,6 @@ class TestListCachedTickDates(unittest.TestCase):
         self.assertIn("--from-date", str(ctx.exception))
 
 
-class TestBacktestDatesFromCache(unittest.TestCase):
-    def test_main_dates_from_cache(self):
-        from backtest.__main__ import main
-
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            dt = datetime.date(2026, 6, 22)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 9), "18000", 1, 0)],
-                cache_path(root, "TMFR1", dt),
-            )
-            with patch("backtest.__main__.BacktestEngine") as engine_cls:
-                rc = main(
-                    [
-                        "--code",
-                        "TMFR1",
-                        "--dates-from-cache",
-                        "--cache-dir",
-                        str(root),
-                    ]
-                )
-            self.assertEqual(rc, 0)
-            engine_cls.assert_called_once()
-            self.assertEqual(engine_cls.call_args[0][1], [dt])
-
-    def test_main_invalid_from_date_exits_1(self):
-        from backtest.__main__ import main
-
-        rc = main(
-            [
-                "--code",
-                "TMFR1",
-                "--dates",
-                "2026-06-22",
-                "--from-date",
-                "not-a-date",
-            ]
-        )
-        self.assertEqual(rc, 1)
-
-    def test_main_report_invokes_emit_report(self):
-        from backtest.__main__ import main
-
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            dt = datetime.date(2026, 6, 22)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 9), "18000", 1, 0)],
-                cache_path(root, "TMFR1", dt),
-            )
-            with patch("backtest.__main__.BacktestEngine") as engine_cls:
-                with patch("backtest.__main__.emit_report") as emit_report:
-                    with patch(
-                        "backtest.__main__.configure_backtest_session_logging"
-                    ) as configure_logging:
-                        rc = main(
-                            [
-                                "--code",
-                                "TMFR1",
-                                "--dates",
-                                "2026-06-22",
-                                "--cache-dir",
-                                str(root),
-                                "--report",
-                            ]
-                        )
-            self.assertEqual(rc, 0)
-            engine_cls.assert_called_once()
-            emit_report.assert_called_once()
-            log_path = emit_report.call_args[0][0]
-            self.assertEqual(log_path.name, "backtest_TMFR1_20260622.log")
-            json_path = emit_report.call_args.kwargs["json_path"]
-            self.assertEqual(json_path.name, "backtest_TMFR1_20260622.json")
-            self.assertTrue(emit_report.call_args.kwargs["print_report"])
-            configure_logging.assert_called_once()
-            self.assertEqual(configure_logging.call_args[0][0], str(log_path))
-            self.assertTrue(configure_logging.call_args.kwargs["truncate"])
-
-    def test_main_plain_backtest_uses_log_file_from_config(self):
-        from backtest.__main__ import main
-
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            log_path = root / "uat.log"
-            dt = datetime.date(2026, 6, 22)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 9), "18000", 1, 0)],
-                cache_path(root, "TMFR1", dt),
-            )
-            with patch("backtest.__main__.LOG_FILE", str(log_path)):
-                with patch("backtest.__main__.BacktestEngine") as engine_cls:
-                    with patch("backtest.__main__.configure_backtest_session_logging") as configure_logging:
-                        rc = main(
-                            [
-                                "--code",
-                                "TMFR1",
-                                "--dates",
-                                "2026-06-22",
-                                "--cache-dir",
-                                str(root),
-                            ]
-                        )
-            self.assertEqual(rc, 0)
-            engine_cls.assert_called_once()
-            configure_logging.assert_called_once_with(
-                str(log_path),
-                console_level=None,
-                truncate=False,
-                level=ANY,
-            )
-
-    def test_cache_dir_output_tag_disambiguates_outside_tick_cache(self):
-        from backtest.__main__ import _cache_dir_output_tag
-
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            outside = root / "runA" / "2026_05"
-            outside.mkdir(parents=True)
-            self.assertEqual(_cache_dir_output_tag(outside), "runA_2026_05")
-
-    def test_default_report_paths_filtered_cache_appends_date_range(self):
-        from backtest.__main__ import default_report_paths
-        from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
-
-        month_dir = DEFAULT_TICK_CACHE_DIR / "2026_05"
-        dates = [datetime.date(2026, 5, 1), datetime.date(2026, 5, 15)]
-        log_path, json_path = default_report_paths(
-            dates_from_cache=True,
-            code="TMFR1",
-            dates=dates,
-            cache_dir=month_dir,
-            date_range_filtered=True,
-        )
-        self.assertEqual(log_path.name, "backtest_2026_05_20260501_20260515.log")
-        self.assertEqual(json_path.name, "backtest_2026_05_20260501_20260515.json")
-
-    def test_main_dates_from_cache_report_uses_cache_dir_name(self):
-        from backtest.__main__ import main
-
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            tick_root = root / "tick_cache"
-            month_dir = tick_root / "2026_05"
-            month_dir.mkdir(parents=True)
-            dt = datetime.date(2026, 5, 2)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 5, 2, 9), "18000", 1, 0)],
-                cache_path(month_dir, "TMFR1", dt),
-            )
-            with patch.dict(os.environ, {"FT003_HOLDOUT_UNSEAL": "1"}):
-                with patch("backtest.__main__.DEFAULT_TICK_CACHE_DIR", tick_root):
-                    with patch("backtest.__main__.BacktestEngine"):
-                        with patch("backtest.__main__.emit_report") as emit_report:
-                            with patch(
-                                "backtest.__main__.configure_backtest_session_logging"
-                            ):
-                                rc = main(
-                                    [
-                                        "--code",
-                                        "TMFR1",
-                                        "--dates-from-cache",
-                                        "--cache-dir",
-                                        str(month_dir),
-                                        "--report",
-                                    ]
-                                )
-            self.assertEqual(rc, 0)
-            emit_report.assert_called_once()
-            log_path = emit_report.call_args[0][0]
-            json_path = emit_report.call_args.kwargs["json_path"]
-            self.assertEqual(log_path.name, "backtest_2026_05.log")
-            self.assertEqual(json_path.name, "backtest_2026_05.json")
-            self.assertTrue(emit_report.call_args.kwargs["print_report"])
-
-    def test_main_dates_from_cache_default_tick_cache_naming(self):
-        from backtest.__main__ import main
-
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            tick_root = root / "tick_cache"
-            tick_root.mkdir()
-            dt = datetime.date(2026, 6, 22)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 9), "18000", 1, 0)],
-                cache_path(tick_root, "TMFR1", dt),
-            )
-            with patch("backtest.__main__.DEFAULT_TICK_CACHE_DIR", tick_root):
-                with patch("backtest.__main__.BacktestEngine"):
-                    with patch("backtest.__main__.emit_report") as emit_report:
-                        with patch(
-                            "backtest.__main__.configure_backtest_session_logging"
-                        ):
-                            rc = main(
-                                [
-                                    "--code",
-                                    "TMFR1",
-                                    "--dates-from-cache",
-                                    "--cache-dir",
-                                    str(tick_root),
-                                    "--report",
-                                ]
-                            )
-            self.assertEqual(rc, 0)
-            emit_report.assert_called_once()
-            log_path = emit_report.call_args[0][0]
-            json_path = emit_report.call_args.kwargs["json_path"]
-            self.assertEqual(log_path.name, "backtest_tick_cache.log")
-            self.assertEqual(json_path.name, "backtest_tick_cache.json")
-
-    def test_main_dates_from_cache_filtered_range_suffix(self):
-        from backtest.__main__ import main
-
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            tick_root = root / "tick_cache"
-            month_dir = tick_root / "2026_05"
-            month_dir.mkdir(parents=True)
-            for day in (1, 15):
-                dt = datetime.date(2026, 5, day)
-                save_ticks_csv(
-                    [ReplayTick(datetime.datetime(2026, 5, day, 9), "18000", 1, 0)],
-                    cache_path(month_dir, "TMFR1", dt),
-                )
-            with patch.dict(os.environ, {"FT003_HOLDOUT_UNSEAL": "1"}):
-                with patch("backtest.__main__.DEFAULT_TICK_CACHE_DIR", tick_root):
-                    with patch("backtest.__main__.BacktestEngine"):
-                        with patch("backtest.__main__.emit_report") as emit_report:
-                            with patch(
-                                "backtest.__main__.configure_backtest_session_logging"
-                            ):
-                                rc = main(
-                                    [
-                                        "--code",
-                                        "TMFR1",
-                                        "--dates-from-cache",
-                                        "--cache-dir",
-                                        str(month_dir),
-                                        "--from-date",
-                                        "2026-05-01",
-                                        "--to-date",
-                                        "2026-05-01",
-                                        "--report",
-                                    ]
-                                )
-            self.assertEqual(rc, 0)
-            emit_report.assert_called_once()
-            log_path = emit_report.call_args[0][0]
-            json_path = emit_report.call_args.kwargs["json_path"]
-            self.assertEqual(log_path.name, "backtest_2026_05_20260501.log")
-            self.assertEqual(json_path.name, "backtest_2026_05_20260501.json")
-
-    def test_main_report_with_custom_log_file_pairs_json_stem(self):
-        from backtest.__main__ import main
-
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            custom_log = root / "custom_run.log"
-            dt = datetime.date(2026, 6, 22)
-            save_ticks_csv(
-                [ReplayTick(datetime.datetime(2026, 6, 22, 9), "18000", 1, 0)],
-                cache_path(root, "TMFR1", dt),
-            )
-            with patch("backtest.__main__.BacktestEngine"):
-                with patch("backtest.__main__.emit_report") as emit_report:
-                    with patch("backtest.__main__.configure_backtest_session_logging"):
-                        rc = main(
-                            [
-                                "--code",
-                                "TMFR1",
-                                "--dates",
-                                "2026-06-22",
-                                "--cache-dir",
-                                str(root),
-                                "--log-file",
-                                str(custom_log),
-                                "--report",
-                            ]
-                        )
-            self.assertEqual(rc, 0)
-            emit_report.assert_called_once()
-            log_path = emit_report.call_args[0][0]
-            json_path = emit_report.call_args.kwargs["json_path"]
-            self.assertEqual(log_path, custom_log)
-            self.assertEqual(json_path.name, "custom_run.json")
-
-    def test_session_logging_writes_audits_before_engine_wiring(self):
-        from backtest.__main__ import configure_backtest_session_logging
-        from trading_engine.logging_setup import shutdown_async_logging
-
-        with tempfile.TemporaryDirectory() as d:
-            path = Path(d) / "backtest.log"
-            configure_backtest_session_logging(str(path), truncate=True)
-            logging.getLogger("trading_engine").info("SIGNAL_AUDIT smoke")
-            shutdown_async_logging()
-            text = path.read_text(encoding="utf-8")
-            self.assertIn("SIGNAL_AUDIT", text)
-
-    def test_session_logging_overwrites_previous_run(self):
-        from backtest.__main__ import configure_backtest_session_logging
-        from trading_engine.logging_setup import shutdown_async_logging
-
-        with tempfile.TemporaryDirectory() as d:
-            path = Path(d) / "backtest.log"
-            configure_backtest_session_logging(str(path), truncate=True)
-            logging.getLogger("trading_engine").info("first-run-marker")
-            shutdown_async_logging()
-            configure_backtest_session_logging(str(path), truncate=True)
-            logging.getLogger("trading_engine").info("second-run-marker")
-            shutdown_async_logging()
-            text = path.read_text(encoding="utf-8")
-            self.assertNotIn("first-run-marker", text)
-            self.assertIn("second-run-marker", text)
-
-
 if __name__ == "__main__":
+    import unittest
     unittest.main()

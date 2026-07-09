@@ -1,9 +1,8 @@
-"""Thin live entry: assemble Shioaji API + TradingEngine."""
+"""Thin live entry: assemble Shioaji API + TradingEngine + Strategy."""
 
 from __future__ import annotations
 
 import argparse
-import datetime
 import os
 import sys
 from pathlib import Path
@@ -11,7 +10,7 @@ from pathlib import Path
 _LIVE_EPILOG = """\
 Examples:
   python -m live
-  CONFIG_PATH=workspaces/gudt-route-a-baseline/config/config.yaml python -m live
+  CONFIG_PATH=apps/trading-app/config/config.yaml python -m live
 
 Environment (see apps/trading-app/README.md):
   SJ_API_KEY, SJ_SEC_KEY          Shioaji credentials
@@ -44,10 +43,10 @@ def main(argv: list[str] | None = None) -> int:
 
     from config import DEFAULT_CONFIG_PATH, load_config
     from core.runtime_config import TradingAppRuntimeConfig, _to_engine_settings
-    from integrations.engine_wiring import build_strategy_session, trading_app_engine_ports
-    from integrations.gudt_live_bootstrap import attach_gudt_live_coordinator, start_live_session
+    from integrations.engine_wiring import trading_app_engine_ports
+    from integrations.live_session import start_live_session
     from observability import DailyObservability
-    from storage.tick_loader import DEFAULT_CACHE_DIR
+    from strategy_simple import SimpleParams, SimpleStrategy
     from trading_engine.engine import TradingEngine
 
     config_path = Path(
@@ -71,9 +70,6 @@ def main(argv: list[str] | None = None) -> int:
     engine_wiring._logging_configured = True
 
     cfg = TradingAppRuntimeConfig(_to_engine_settings(app_settings))
-    code = app_settings.product_code
-    today = datetime.date.today()
-    cache_dir = DEFAULT_CACHE_DIR
     obs = DailyObservability()
 
     api = sj.Shioaji(simulation=app_settings.simulation)
@@ -85,27 +81,14 @@ def main(argv: list[str] | None = None) -> int:
         with_archive=True,
         obs=obs,
     )
-    strategy = build_strategy_session(
-        cfg,
-        obs,
-        code=code,
-        dates=[today],
-        cache_dir=cache_dir,
-        mode="live",
-    )
-    coordinator = attach_gudt_live_coordinator(
-        strategy,
-        cfg,
-        code=code,
-        cache_dir=cache_dir,
-        trade_day=today,
-    )
+    # Code-to-interface: construct Strategy here; Host does not know strategy names.
+    strategy = SimpleStrategy(SimpleParams.from_runtime_config(cfg), obs=obs)
     engine = TradingEngine(
         api=api,
         strategy=strategy,
         **{k: v for k, v in ports.items() if k != "obs"},
     )
-    start_live_session(engine, coordinator=coordinator)
+    start_live_session(engine)
     return 0
 
 

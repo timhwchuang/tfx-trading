@@ -757,8 +757,8 @@ class TestBundleAwareLoad(unittest.TestCase):
             ]
             self.assertEqual(mon_dailies, [])
 
-    def test_calendar_tip_pre_open_only(self):
-        """Live pre-open may soft-tip calendar day for readiness."""
+    def test_no_calendar_tip_pre_open(self):
+        """Disk-only trading_days: pre-open without day bars does not invent a close day."""
         with tempfile.TemporaryDirectory() as tmp:
             cache = Path(tmp)
             cal = cache / "trade_days"
@@ -768,7 +768,8 @@ class TestBundleAwareLoad(unittest.TestCase):
             save_kbars_csv(_day_session_bars(fri), kbar_path(cache, "TX", fri))
             as_of = datetime.datetime.combine(mon, datetime.time(8, 0))
             sc = SessionBarCache.load("TX", as_of, cache_dir=cache, calendar_dir=cal)
-            self.assertIn(mon, sc.trading_days)
+            self.assertIn(fri, sc.trading_days)
+            self.assertNotIn(mon, sc.trading_days)
 
     def test_bars_per_trading_day_both_not_flat_six(self):
         spec_15 = TfSpec(15, 48, "both")

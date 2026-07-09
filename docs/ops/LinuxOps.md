@@ -44,8 +44,8 @@ workspaces/gudt-wash-beta-baseline/ # FT-023 wash-beta sleeve（與 Route A 並�
 └── config/config.yaml            # strategy.name: gudt_wash_beta
 ```
 
-**盤中 live 直接產出**：`tick_cache/`（tick + kbars）、`LOG_FILE`。  
-**收盤後 `post-session.sh`**：`reports/`、`snapshots/`；舊日 tick `.csv` → `.csv.gz`（當日 `.csv` 預設不壓）。GUDT 日會在 cron log 印 `gudt_live state=` / `gudt_skip` 摘要。
+**盤中 live 直接產出**：`tick_cache/`（tick + kbars，**plain CSV only**）、`LOG_FILE`。  
+**收盤後 `post-session.sh`**：`reports/`、`snapshots/`。`tick_cache` 維持 plain CSV（不壓縮、不解壓 gz）。
 
 ### 策略切換（UAT）
 
@@ -274,7 +274,6 @@ sudo -u tfx /opt/tfx-trading/scripts/linux/post-session.sh
 
 `post-session.sh` 會 source `scripts/linux/common-env.sh`（含 `/etc/tfx-trading/env`），並執行：
 
-- `python -m storage`（`storage.compress` 為相容 alias）
 - `python -m reporting $LOG_FILE --json` → `reports/dayYYYYMMDD.json`（log 不存在則略過）
 - GUDT 日：印 `gudt_live state=` / `gudt_skip` / 最後一筆 `DAILY_SUMMARY` 到 cron log
 - `python -m sweep.determinism_check --date …` → `snapshots/determinism_YYYYMMDD.txt`（**依 `CONFIG_PATH` 策略** 回測當日 hash）

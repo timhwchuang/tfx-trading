@@ -5,10 +5,8 @@ from __future__ import annotations
 import atexit
 import csv
 import datetime
-import gzip
 import logging
 import queue
-import shutil
 import threading
 import time
 from dataclasses import dataclass
@@ -70,18 +68,6 @@ def tick_to_archive_record(tick: Any, tick_type: int) -> TickArchiveRecord:
         bid_price=float(getattr(tick, "bid_price", 0) or 0),
         ask_price=float(getattr(tick, "ask_price", 0) or 0),
     )
-
-
-def gzip_csv_file(csv_path: Path) -> Path:
-    """Compress a closed ``*.csv`` to ``*.csv.gz`` and remove the plain file."""
-    csv_path = Path(csv_path)
-    gz_path = Path(str(csv_path) + ".gz")
-    with csv_path.open("rb") as f_in:
-        with gzip.open(gz_path, "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
-    csv_path.unlink()
-    logger.info("Tick 快取已壓縮 | %s → %s", csv_path.name, gz_path.name)
-    return gz_path
 
 
 class TickArchiver:
@@ -184,13 +170,7 @@ class TickArchiver:
     def _rotate_to_date(self, new_date: datetime.date) -> None:
         if self._current_date is not None and self._current_path is not None:
             self._flush(force=True)
-            closed_path = self._current_path
             self._close_file_handles()
-            if closed_path.is_file():
-                try:
-                    gzip_csv_file(closed_path)
-                except OSError as e:
-                    logger.warning("跨日 gzip 失敗 | %s: %s", closed_path, e)
         self._current_date = new_date
         self._open_file_for_date(new_date)
 
@@ -234,6 +214,6 @@ class TickArchiver:
         self._writer = None
 
     def _close_current_file(self) -> None:
-        """Shutdown: flush today's plain CSV; do not gzip in-progress day file."""
+        """Shutdown: flush today's plain CSV."""
         self._flush(force=True)
         self._close_file_handles()
