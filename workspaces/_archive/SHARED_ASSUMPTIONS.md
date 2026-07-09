@@ -1,3 +1,5 @@
+> **ARCHIVED (2026-07)** — FT-003 era. Live research SSOT: [`RESEARCH_CHARTER_v2.md`](../RESEARCH_CHARTER_v2.md). Friction/qty=1 still true as physics, not this file as process.
+
 # FT-003 共享假設（SHARED_ASSUMPTIONS）
 
 | 欄位 | 值 |

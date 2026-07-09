@@ -9,21 +9,29 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from storage.kbar_loader import KBarRecord, kbar_path, save_kbars_csv
+from storage.kbar_loader import KBarRecord, kbar_path, resolve_kbar_path, save_kbars_csv
 from storage.session_bar_cache import (
     DEFAULT_TF_TABLE,
     EXPECTED_DAWN_BARS,
     EXPECTED_DAY_BARS,
     SessionBarCache,
+    TfSpec,
     assess_calendar_day_readiness,
     assess_today_from_bars,
     assess_today_kbar_file,
     build_session_daily_bars,
     count_session_bars,
+    discover_session_close_days,
     kbar_file_date,
+    list_kbar_file_dates,
+    observed_day_session_dates,
     session_label_date,
     yuanta_resample,
     yuanta_resample_instance,
+)
+from storage.session_bar_cache import (
+    _bars_per_trading_day,
+    _estimate_trading_days_needed,
 )
 
 
@@ -297,6 +305,20 @@ class TestSessionLabel(unittest.TestCase):
         ]
         ts = datetime.datetime(2026, 5, 9, 3, 0)
         self.assertEqual(session_label_date(ts, trading), datetime.date(2026, 5, 11))
+
+    def test_friday_night_unlabeled_until_next_observed_close(self):
+        """Disk SSOT: do not invent Monday when only Friday is observed."""
+        fri = datetime.date(2026, 5, 1)
+        tue = datetime.date(2026, 5, 5)
+        ts = datetime.datetime(2026, 5, 1, 16, 0)
+        self.assertIsNone(session_label_date(ts, [fri]))
+        self.assertEqual(session_label_date(ts, [fri, tue]), tue)
+
+    def test_typhoon_monday_skipped_when_tue_observed(self):
+        fri = datetime.date(2026, 5, 1)
+        tue = datetime.date(2026, 5, 5)
+        ts = datetime.datetime(2026, 5, 1, 22, 0)
+        self.assertEqual(session_label_date(ts, [fri, tue]), tue)
 
 
 class TestSettlementTail(unittest.TestCase):
@@ -680,7 +702,8 @@ class TestBundleAwareLoad(unittest.TestCase):
             self.assertGreaterEqual(sc.today_status.day_bars, EXPECTED_DAY_BARS - 1)
             self.assertTrue(sc.today_status.ready)
 
-    def test_missing_trading_days_bundle_aware(self):
+    def test_missing_trading_days_empty_when_disk_present(self):
+        """Disk SSOT: existing files mean non-empty load; missing list stays empty."""
         with tempfile.TemporaryDirectory() as tmp:
             cache = Path(tmp)
             cal = cache / "trade_days"
@@ -690,7 +713,111 @@ class TestBundleAwareLoad(unittest.TestCase):
             save_kbars_csv(_day_session_bars(thu), kbar_path(cache, "TX", wed))
             as_of = datetime.datetime.combine(thu, datetime.time(10, 30))
             sc = SessionBarCache.load("TX", as_of, cache_dir=cache, calendar_dir=cal)
-            self.assertNotIn(thu, sc.missing_trading_days)
+            self.assertEqual(sc.missing_trading_days, [])
+            self.assertIn(thu, sc.trading_days)
+
+    def test_trading_days_from_day_session_bars_not_calendar_hole(self):
+        """No kbar for 'Monday' on calendar → not a trading_day; Tue still loads."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp)
+            cal = cache / "trade_days"
+            fri = datetime.date(2026, 5, 1)
+            mon = datetime.date(2026, 5, 4)  # typhoon: calendar may list, no file
+            tue = datetime.date(2026, 5, 5)
+            self._write_calendar(
+                cal, 2026, ["20260501", "20260504", "20260505"]
+            )
+            save_kbars_csv(_day_session_bars(fri), kbar_path(cache, "TX", fri))
+            save_kbars_csv(_day_session_bars(tue), kbar_path(cache, "TX", tue))
+            as_of = datetime.datetime.combine(tue, datetime.time(13, 45))
+            sc = SessionBarCache.load("TX", as_of, cache_dir=cache, calendar_dir=cal)
+            self.assertIn(fri, sc.trading_days)
+            self.assertIn(tue, sc.trading_days)
+            self.assertNotIn(mon, sc.trading_days)
+            self.assertEqual(sc.missing_trading_days, [])
+
+    def test_calendar_tip_not_applied_at_day_end_without_day_bars(self):
+        """R1: as_of=DAY_END + calendar Mon + no Mon day tape → Mon not trading_day."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp)
+            cal = cache / "trade_days"
+            fri = datetime.date(2026, 5, 1)
+            mon = datetime.date(2026, 5, 4)
+            self._write_calendar(cal, 2026, ["20260501", "20260504"])
+            save_kbars_csv(
+                _day_session_bars(fri) + _evening_bars(fri, 60),
+                kbar_path(cache, "TX", fri),
+            )
+            as_of = datetime.datetime.combine(mon, datetime.time(13, 45))
+            sc = SessionBarCache.load("TX", as_of, cache_dir=cache, calendar_dir=cal)
+            self.assertIn(fri, sc.trading_days)
+            self.assertNotIn(mon, sc.trading_days)
+            mon_dailies = [
+                b for b in sc.daily_closed() if b.ts.date() == mon
+            ]
+            self.assertEqual(mon_dailies, [])
+
+    def test_calendar_tip_pre_open_only(self):
+        """Live pre-open may soft-tip calendar day for readiness."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp)
+            cal = cache / "trade_days"
+            fri = datetime.date(2026, 5, 1)
+            mon = datetime.date(2026, 5, 4)
+            self._write_calendar(cal, 2026, ["20260501", "20260504"])
+            save_kbars_csv(_day_session_bars(fri), kbar_path(cache, "TX", fri))
+            as_of = datetime.datetime.combine(mon, datetime.time(8, 0))
+            sc = SessionBarCache.load("TX", as_of, cache_dir=cache, calendar_dir=cal)
+            self.assertIn(mon, sc.trading_days)
+
+    def test_bars_per_trading_day_both_not_flat_six(self):
+        spec_15 = TfSpec(15, 48, "both")
+        self.assertGreater(_bars_per_trading_day(spec_15), 6)
+        # Large lookback must not explode to hundreds of trading days via old flat-6.
+        n = _estimate_trading_days_needed(
+            {"15m": TfSpec(15, 1900, "both")}, daily_lookback=28
+        )
+        self.assertLess(n, 80)
+
+
+class TestDiskHelpers(unittest.TestCase):
+    def test_list_kbar_file_dates_and_observed_days(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp)
+            d0 = datetime.date(2026, 5, 1)
+            d1 = datetime.date(2026, 5, 5)
+            save_kbars_csv(_day_session_bars(d0), kbar_path(cache, "TX", d0))
+            save_kbars_csv(_day_session_bars(d1), kbar_path(cache, "TX", d1))
+            files = list_kbar_file_dates("TX", cache, d0, d1)
+            self.assertEqual(files, [d0, d1])
+            bars = _day_session_bars(d0) + _day_session_bars(d1)
+            as_of = datetime.datetime.combine(d1, datetime.time(13, 45))
+            self.assertEqual(observed_day_session_dates(bars, as_of), [d0, d1])
+
+    def test_discover_session_close_days_bundle_prior_file(self):
+        """Thu day tape only under Wed file key; --from-date=Thu still finds Thu."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp)
+            wed = datetime.date(2026, 5, 20)
+            thu = datetime.date(2026, 5, 21)
+            # Bundle convention: Thu day bars stored under Wed evening-open key
+            save_kbars_csv(_day_session_bars(thu), kbar_path(cache, "TX", wed))
+            found = discover_session_close_days(
+                "TX", cache, from_date=thu, to_date=thu
+            )
+            self.assertEqual(found, [thu])
+            # Bundle layout: no file keyed by the close day itself
+            self.assertIsNone(resolve_kbar_path(cache, "TX", thu))
+
+    def test_discover_unbounded_to_date_includes_tape_after_last_file_key(self):
+        """to_date=None must not clip as_of to last file key (would drop Thu bars)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp)
+            wed = datetime.date(2026, 5, 20)
+            thu = datetime.date(2026, 5, 21)
+            save_kbars_csv(_day_session_bars(thu), kbar_path(cache, "TX", wed))
+            found = discover_session_close_days("TX", cache)
+            self.assertEqual(found, [thu])
 
 
 class TestCountSessionBars(unittest.TestCase):

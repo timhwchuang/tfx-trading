@@ -40,57 +40,36 @@
 | [`ops/WindowsOps.md`](ops/WindowsOps.md) | Windows 排程、告警、路徑 |
 | [`AGENTS.md`](AGENTS.md) | AI 安全護欄、Callback MUST NOT、Production Gate |
 
-## 4. 研究與 Gate（策略 thesis）
+## 4. 研究（Gen-2 · 極簡）
 
 | 主題 | 文件 |
 | ---- | ---- |
-| **Holdout 契約 v2**（train/valid/holdout、median、方向、**skew 厚尾 v2.2**、**v2.3 Class Appeal**） | [`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) |
-| 資料切分 SSOT | [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) |
-| 回測宿主契約 | [`packages/trading-engine/SPEC.md`](../packages/trading-engine/SPEC.md) §12 |
-| MockBroker / 回放 | [`packages/trading-backtest/SPEC.md`](../packages/trading-backtest/SPEC.md) §5–10 |
-| Audit log、determinism、sweep | [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Integration contracts |
-| AI 回測調參、multi-agent 競賽 | **FT-003** → [`features/ai-backtest-tuning/`](features/ai-backtest-tuning/) · **[`ALPHA_RESEARCH_PLAYBOOK.md`](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md)**（Alpha 儀式 **v1.7**） · **[`OUTCOME_REGISTRY.md`](features/ai-backtest-tuning/OUTCOME_REGISTRY.md)** · **[`META_REVIEW_BRIEF.md`](features/ai-backtest-tuning/META_REVIEW_BRIEF.md)** · **[`GATE_COVERAGE_PREFLIGHT.md`](features/ai-backtest-tuning/GATE_COVERAGE_PREFLIGHT.md)** · **[`HOLDOUT_CONTRACT_v2.md`](features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)** · [`workspaces/NEAR_MISS_REGISTRY.md`](../workspaces/NEAR_MISS_REGISTRY.md) · [`workspaces/THESIS_QUEUE.md`](../workspaces/THESIS_QUEUE.md) · [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) · [`VOLATILITY_BASELINE.md`](../workspaces/VOLATILITY_BASELINE.md) · [`ENTRY_FUNNEL_METRICS.md`](features/ai-backtest-tuning/ENTRY_FUNNEL_METRICS.md) |
-| 歷史 tick/kbar 快取補洞 | [`apps/trading-app/src/backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
-| tick_cache 品質稽核 / 修復 | [`workspaces/CACHE_AUDIT.md`](../workspaces/CACHE_AUDIT.md)（何時重跑）；`storage.cache_audit` / `storage.cache_repair` |
+| **研究 SSOT** | [`workspaces/RESEARCH_CHARTER_v2.md`](../workspaces/RESEARCH_CHARTER_v2.md) · [`RESEARCH_LOG.md`](../workspaces/RESEARCH_LOG.md) |
+| 資料切分（防偷看） | [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) |
+| SessionBarCache / kbar | [`apps/trading-app/src/storage/SPEC.md`](../apps/trading-app/src/storage/SPEC.md) |
+| 回測宿主 / MockBroker | package SPECs（engine · backtest） |
+| tick 補洞 / cache 稽核 | [`backfilldata/SPEC`](../apps/trading-app/src/backfilldata/SPEC.md) · [`CACHE_AUDIT.md`](../workspaces/CACHE_AUDIT.md) |
+
+新研究：**Brief + SessionBars + 一頁報告**。勿載入 tick-era Playbook / Queue。
 
 ## 5. 考古（勿當現行流程）
 
 | 路徑 | 說明 |
 | ---- | ---- |
-| [`ARCHIVE/`](ARCHIVE/) | 舊設計稿（DESIGN/STRATEGY）、BACKTEST_IMPLEMENTATION、RELEASE_CHECKLIST、四-repo 發布紀錄；[`ARCHIVE/specs/`](ARCHIVE/specs/) 為已併入 package SPEC 的舊 standalone 規格 |
-| [`ARCHIVE/UPGRADE_RUNBOOK.md`](ARCHIVE/UPGRADE_RUNBOOK.md) | 已棄用 → 根 [`SPEC.md`](../SPEC.md) §5 |
-| [`ARCHIVE/MONOREPO_MIGRATION_PLAN.md`](ARCHIVE/MONOREPO_MIGRATION_PLAN.md) | 四-repo → monorepo 遷移 checklist（已完成） |
-| [`ARCHIVE/Architecture.md`](ARCHIVE/Architecture.md) | 已併入根 `SPEC.md` §7 |
-| 舊 standalone git+ 安裝 | 僅供歷史；現行用 `scripts/setup-dev.sh` |
+| [`ARCHIVE/research-2026-h1/`](ARCHIVE/research-2026-h1/INDEX.md) | **FT-002～020 研究層冷封存** + 墓誌銘；features 原文在 `features/` 子樹 |
+| [`../workspaces/_archive/`](../workspaces/_archive/README.md) | baselines · OSF/June · FT-003 競賽 · CORPSE/Queue |
+| [`ARCHIVE/`](ARCHIVE/) | 更早設計稿 / monorepo 遷移 / 舊 checklist |
 
-## 6. Features（跨模組 ft）
+## 6. Features（現行 only）
 
-| ID | Slug | Status | 文件 |
-| ---- | ---- | ------ | ---- |
-| FT-001 | audit-event-replay | Landed | [SPEC](features/audit-event-replay/SPEC.md) · [PLAN](features/audit-event-replay/PLAN.md) · [REVIEW](features/audit-event-replay/REVIEW.md) |
-| FT-002 | smc-structure-filter | **MVPClosed** | [SPEC §12](features/smc-structure-filter/SPEC.md) · CAL-8 **放棄**（**vwap-momentum host 已死**，≠ filter 普適無效） |
-| FT-003 | ai-backtest-tuning | MVPClosed | [SPEC](features/ai-backtest-tuning/SPEC.md) · [PLAN](features/ai-backtest-tuning/PLAN.md) · [**ROSTER**](features/ai-backtest-tuning/AGENT_ROSTER.md) · [`election_report.md`](../workspaces/election_report.md) · [`workspaces/`](../workspaces/) |
-| FT-004 | momentum-continuation | **MVPClosed** | [SPEC](features/momentum-continuation/SPEC.md) §8 · [PLAN](features/momentum-continuation/PLAN.md) · [`mc-baseline/`](../workspaces/mc-baseline/) |
-| FT-005 | timeout-continuation | **MVPClosed** | [SPEC](features/timeout-continuation/SPEC.md) §8 · [PLAN](features/timeout-continuation/PLAN.md) · [`tc-baseline/`](../workspaces/tc-baseline/) |
-| FT-006 | vwap-stretch-fade | **MVPClosed** | [SPEC §8](features/vwap-stretch-fade/SPEC.md) · [`gate_report`](../workspaces/vsf-baseline/gate_report.md) |
-| FT-007 | momentum-exhaustion-reversal | MVPClosed | [SPEC §8](features/momentum-exhaustion-reversal/SPEC.md) · [`gate_report`](../workspaces/mer-baseline/gate_report.md) |
-| FT-008 | short-breakout | MVPClosed | [SPEC §8](features/short-breakout/SPEC.md) · [`gate_report`](../workspaces/sb-baseline/gate_report.md) |
-| FT-009 | opening-range-breakout | **MVPClosed** | [SPEC §8](features/opening-range-breakout/SPEC.md) · [`orb-baseline/`](../workspaces/orb-baseline/) |
-| FT-010 | vwap-trend-pullback | **MVPClosed** | [SPEC §11](features/vwap-trend-pullback/SPEC.md) · [`vtp-baseline/`](../workspaces/vtp-baseline/) |
-| FT-011 | session-confluence-breakout | **MVPClosed** | [SPEC §10](features/session-confluence-breakout/SPEC.md) · [`scb-baseline/`](../workspaces/scb-baseline/) |
-| FT-012 | regime-vwap-stretch-fade | **MVPClosed** | [SPEC §8](features/regime-vwap-stretch-fade/SPEC.md) · [`rvsf-baseline/`](../workspaces/rvsf-baseline/) |
-| FT-013 | supertrend-flip | **MVPClosed** | [SPEC](features/supertrend-flip/SPEC.md) · [`stf-baseline/`](../workspaces/stf-baseline/) |
-| FT-014 | morning-vwap-hold-pullback | **MVPClosed** | [SPEC](features/morning-vwap-hold-pullback/SPEC.md) · [`mvhp_fingerprint_fail`](../workspaces/mvhp-baseline/gate_report.md) |
-| FT-015 | fvg-retest-pullback | **MVPClosed** | [SPEC](features/fvg-retest-pullback/SPEC.md) · [`frp_fingerprint_fail`](../workspaces/fvg-baseline/gate_report.md) |
-| FT-016 | gap-drive-continuation | **MVPClosed** | [SPEC](features/gap-drive-continuation/SPEC.md) · `gdc_fingerprint_pass_g1_fail` |
-| FT-017 | compression-flow-attack | **MVPClosed** | [SPEC](features/compression-flow-attack/SPEC.md) · **`spec_anchor_mismatch`**（mislabel: `cfa_fingerprint_fail`） |
-| FT-018 | gap-up-drive-trail | **MVPClosed** | [SPEC](features/gap-up-drive-trail/SPEC.md) · [`gate_report`](../workspaces/gudt-baseline/gate_report.md) · P-011 train champion corpse |
-| FT-019 | sweep-fvg-breakout-trail | **MVPClosed** | [SPEC](features/sweep-fvg-breakout-trail/SPEC.md) · [PLAN](features/sweep-fvg-breakout-trail/PLAN.md) · [`gate_report`](../../workspaces/sfbt-baseline/gate_report.md) |
-| FT-020 | bear-streak-flip-long | **Draft** | [SPEC](features/bear-streak-flip-long/SPEC.md) · [PLAN](features/bear-streak-flip-long/PLAN.md) · P-013 |
-| FT-021 | gudt-route-a | **Draft** | [SPEC](features/gudt-route-a/SPEC.md) · [PLAN](features/gudt-route-a/PLAN.md) · [`gudt-route-a-baseline/`](../workspaces/gudt-route-a-baseline/) |
-| FT-022 | unified-strategy-loading | **Draft** | [SPEC](features/unified-strategy-loading/SPEC.md) · [PLAN](features/unified-strategy-loading/PLAN.md) · `build_strategy_session` · GUDT bootstrap |
+| ID | Status | 文件 |
+| ---- | ------ | ---- |
+| FT-001 audit-event-replay | Landed | [features/](features/audit-event-replay/) |
+| FT-021 gudt-route-a | UAT | [SPEC](features/gudt-route-a/SPEC.md) · [baseline](../workspaces/gudt-route-a-baseline/) |
+| FT-022 unified-strategy-loading | Landed | [SPEC](features/unified-strategy-loading/SPEC.md) |
+| FT-023 gudt-wash-beta | UAT | [SPEC](features/gudt-wash-beta/SPEC.md) · [baseline](../workspaces/gudt-wash-beta-baseline/) |
 
-索引與開 ft SOP：[`features/README.md`](features/README.md)。**Draft / InProgress** 期間以 feature SPEC 為設計真相；**Landed** 後併入 app SPEC §Integration contracts。
+索引：[`features/README.md`](features/README.md)。Archived ft 見 §5。
 
 ## 7. AI 角色與 Grok skills
 
@@ -114,11 +93,9 @@
 | 版本變更寫哪？ | 根 **`CHANGELOG.md`**（對應 package 區塊） |
 | 加新策略？ | `packages/strategies/<name>/` + 根 [`SPEC.md`](../SPEC.md) §4 |
 | 交易視角 / Pilot gate？ | **`/senior-trading-professional`** → [`prompts/roles/`](../prompts/roles/) |
-| 規劃中能力 / 開 ft？ | [`features/README.md`](features/README.md) |
+| 新研究怎麼開？ | [`RESEARCH_CHARTER_v2.md`](../workspaces/RESEARCH_CHARTER_v2.md) · [`features/README.md`](features/README.md) 三行規則 |
 | Audit 事件回放？ | **FT-001** → [`features/audit-event-replay/`](features/audit-event-replay/) |
-| SMC 結構濾網？ | **FT-002** → [`features/smc-structure-filter/`](features/smc-structure-filter/) |
-| CAL-8 為何放棄？濾網還能用嗎？ | **vwap-momentum 已死**，非 filter 普適無效 → Playbook [附錄 A](features/ai-backtest-tuning/ALPHA_RESEARCH_PLAYBOOK.md) · [`strategy_diagnosis` §8.2.1](../workspaces/strategy_diagnosis.md) |
-| Entry Lab（進場診斷） | [`workspaces/entry-lab/`](../workspaces/entry-lab/) · `python -m scripts.run_entry_lab` |
-| 回測調參 / AI 競賽？ | **FT-003** → [ROSTER](features/ai-backtest-tuning/AGENT_ROSTER.md)（編制表）· [SPEC](features/ai-backtest-tuning/SPEC.md) · 角色 [`senior-trading-professional`](../prompts/roles/senior-trading-professional.md) |
+| 現行策略 UAT？ | **GUDT** FT-021/023 · `workspaces/gudt-*-baseline/` |
+| 舊 FT / Playbook / 競賽？ | **封存** → [`ARCHIVE/research-2026-h1/`](ARCHIVE/research-2026-h1/INDEX.md) · [`workspaces/_archive/`](../workspaces/_archive/) |
 | 補歷史 tick/kbar 快取？ | `python -m backfilldata date …` → [`backfilldata/SPEC.md`](../apps/trading-app/src/backfilldata/SPEC.md) |
-| 回測前 tick×kbar 品質？ | `python -m storage.cache_audit --code TMFR1`；修復 `python -m storage.cache_repair --fix` → [`apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) §Tick cache audit |
+| 回測前 tick×kbar 品質？ | `python -m storage.cache_audit --code TMFR1` → [`CACHE_AUDIT.md`](../workspaces/CACHE_AUDIT.md) |

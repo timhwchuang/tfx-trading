@@ -1,8 +1,8 @@
 # 資料切分 SSOT（tick_cache · TMFR1）
 
-> **策略 thesis（FT-011+）**：**[`HOLDOUT_CONTRACT_v2.md` v2.1](../docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)** — 2025 train · 2026 Q1 valid · 2026 Q2 holdout。  
-> **已結案 FT（006–010）**：[`HOLDOUT v2 §2.0`](../docs/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md) legacy 切分，結論不重跑。  
-> **FT-003 grid 競賽**：下表「2026 競賽切分」仍有效。
+> **現行研究**：[`RESEARCH_CHARTER_v2.md`](RESEARCH_CHARTER_v2.md) — 預設精神 2025 探索/訓練 · 2026Q1 OOS；BRIEF 可覆寫。  
+> **舊 Holdout 全文儀式**（skew / Class Appeal 等）：已冷封存 → [`docs/ARCHIVE/research-2026-h1/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md`](../docs/ARCHIVE/research-2026-h1/features/ai-backtest-tuning/HOLDOUT_CONTRACT_v2.md)（考古 only）。  
+> **本檔保留**：日曆切分數字，防樣本偷看。
 
 ## 涵蓋範圍
 

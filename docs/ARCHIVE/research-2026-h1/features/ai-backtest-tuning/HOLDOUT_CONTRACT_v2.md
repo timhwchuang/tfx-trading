@@ -10,6 +10,9 @@ applies_to: FT-004+ counterfactual · plugin baseline · Pilot-prep thesis
 owner: human+agent
 ---
 
+> **ARCHIVED (2026-07)** — SUPERSEDED by [`workspaces/RESEARCH_CHARTER_v2.md`](../../../../workspaces/RESEARCH_CHARTER_v2.md).  
+> Tick-era ritual · **not** binding process. Tombstones: [`INDEX.md`](../INDEX.md).
+
 # Holdout 契約 v2.2.1
 
 > **SSOT**：策略 thesis（`docs/features/<slug>/`）的 **train / valid / holdout / confirm** 切分與 **No-Go 門檻**。  

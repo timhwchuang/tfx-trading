@@ -3,11 +3,29 @@
 > 給**人類**看的進度、Follow-up、待決策。工程路線圖見 [`TODO.md`](TODO.md)；文件職責見 [`DOC_MAP.md`](DOC_MAP.md)。  
 > **歷史週報**（2026-06-12～06-16）→ [`ARCHIVE/weekly-status/weekly-status-2026.md`](ARCHIVE/weekly-status/weekly-status-2026.md)
 
-> **⛔ CAL-8 已放棄（2026-06-28）**：P6-1 / P6-SMC **濾網校準**不再排入 sprint。UAT = 工程線 only；**主 focus = Alpha 新 thesis**。SSOT：[`strategy_diagnosis.md`](../workspaces/strategy_diagnosis.md) §8。
+> **研究層 Gen-2（2026-07-09）**：SSOT [`RESEARCH_CHARTER_v2.md`](../workspaces/RESEARCH_CHARTER_v2.md)。Tick-era FT/Playbook → `ARCHIVE/research-2026-h1` · `workspaces/_archive`。UAT = 工程 + **GUDT**；Main 研究位空。
 
 **用法**：重大決策時在下方新增一節（最新放最上面）。
 
 ---
+
+### 2026-07-09（Research era cutover — 研究層冷封存）
+
+**決策**
+- 採 **Charter v2 + 物理 archive**：失敗研究不再當活規則。
+- 活面：安全護欄 · SessionBarCache · GUDT UAT · FT-001/022。
+- 封存：FT-002～020 features · baselines · OSF/June · Playbook/Queue/CORPSE。
+- Main 研究：**空**（待指定）；禁止單月 knob spam / 自動復活同族。
+
+**人類 Follow-up**
+- [ ] 讀 [`RESEARCH_CHARTER_v2.md`](../workspaces/RESEARCH_CHARTER_v2.md) 是否同意 Main 方向
+- [ ] GUDT 模擬 UAT 繼續（不受 archive 影響）
+- [ ] 需要舊 gate 數字時從 `_archive` / `ARCHIVE/research-2026-h1` 查，不開新 playbook 條款
+
+**備註**
+- 整合：Lead Charter 階梯 + 第二意見「工程留、研究冷封存」。
+- 未刪 git 歷史；路徑搬移 only。
+
 
 ### 2026-07-01（GUDT Route A — 模擬 UAT 啟動 7/2）
 
@@ -28,7 +46,7 @@
 
 **備註**
 - Kernel net **≠** CF oracle 屬預期（出場 IOC、13:40 flatten、`ioc_slippage_points`）；**n 不一致** 才擋。
-- 研究數字對照：[`ROUTE_A_UAT_STACK.md`](../workspaces/gudt-baseline/ROUTE_A_UAT_STACK.md)
+- 研究數字對照：[`ROUTE_A_UAT_STACK.md`](../workspaces/_archive/gudt-baseline/ROUTE_A_UAT_STACK.md)（archive）
 
 ---
 

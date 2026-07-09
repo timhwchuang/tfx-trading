@@ -5,6 +5,9 @@ doc: agent-roster
 status: MVPClosed
 ---
 
+> **ARCHIVED (2026-07)** — SUPERSEDED by [`workspaces/RESEARCH_CHARTER_v2.md`](../../../../workspaces/RESEARCH_CHARTER_v2.md).  
+> Tick-era ritual · **not** binding process. Tombstones: [`INDEX.md`](../INDEX.md).
+
 # FT-003 — 調參 Agent 編制表（AI 必讀）
 
 > **MVP 收尾（2026-06-27）**：[`election_report.md`](../../../workspaces/election_report.md) — `grid_no_viable_solution` + `diagnostic_only`；**不產** `elected_config.yaml`。**勿**再跑本輪 sweep / holdout / round2。

@@ -8,6 +8,9 @@ owner: human+agent
 applies_to: FT-012+
 ---
 
+> **ARCHIVED (2026-07)** — SUPERSEDED by [`workspaces/RESEARCH_CHARTER_v2.md`](../../../../workspaces/RESEARCH_CHARTER_v2.md).  
+> Tick-era ritual · **not** binding process. Tombstones: [`INDEX.md`](../INDEX.md).
+
 # Alpha 研究儀式（Playbook）
 
 > **SSOT**：新策略 thesis 從提案到 MVPClosed / Holdout 的**固定流程**。  

@@ -413,6 +413,15 @@ Initial public release of the first reference `strategy-<name>` plugin for `trad
 
 ### [Unreleased]
 
+#### Fixed
+
+- **SessionBarCache disk SSOT（2026-07-09）**：load window 改為 as_of 前最近 N 個 **on-disk kbar 檔**；`trading_days` 由日盤 1m 推導（有 bar = 交易日）；`both` TF 的 lookback→天數用真實日+夜 bars/day（修 flat `6` 低估）；有 disk 時 `missing_trading_days=[]`；live `on_new_1m` 見到日盤 bar 即 `_note_observed_trading_day`。
+- **SessionBarCache / OSF review follow-up（2026-07-09）**：calendar soft tip 僅 `as_of < 08:45`；night label 不再猜 weekday（無下一個 observed close day → unlabeled）；disk window 不足時 expand scan + warning；`scan_day_long` 空 session short-circuit；CLI 用 `observed_day_session_dates` 發現交易日；`_batch_span_days` 只用 `len(days)`。
+- **FT-024 discover SSOT freeze（2026-07-09）**：共用 `discover_session_close_days`（bundle pad 7 日 + `observed_day_session_dates`）；census + counterfactual 同一套；live `_extend_trading_days_through` 對齊 pre-open tip（不 bulk pin-yi）；sparse `--dates` 僅 stderr 警告、不膨脹 load window；`to_date=None` 時 as_of 用 max loaded bar ts（不誤用 last file key）。
+- **OSF multi-day TF trim / daily_ma20 / scan_15m（2026-07-09）**：`OsfBarStore.load_range` 以 `daily_lookback + batch_span` **線性** 定 1m load window，並從 1m **untrimmed** 重採 closed series，避免整月 batch 時月初 15m/5m/HTF 被 `SessionBarCache` lookback trim 掉 → funnel 偏低、setup 漏報；`daily_ma20` 改為 slice 不夠（`sma` 不足 period）即 `None`，不再 fallback 到區間末端 MA（lookahead）；`scan_day_long` / `replay_day_long` 的 15m/5m 掃描限定 `ts.date() == day`，避免 untrimmed 歷史重掃前一日。
+- **OSF overnight 週一 / funnel（2026-07-09）**：`overnight_bars_before_open` 錨定前一 **交易日** 15:00（非 calendar day-1），週一/假日後可吃到週五夜盤 → `overnight_low` / gap 不再整批 null；liquidity / census / outlook 傳入 `trading_days`；funnel 分階段（sweep → fvg → setup）；load window 不再用 TF bar-count expand（避免 `bars_per_session=6` 把月 batch 估成 ~300 交易日）。
+- **OSF overnight disk SSOT（2026-07-09）**：overnight / gap **只讀已落地 1m** — 有日盤 bar 的日期 = 交易日，無 bar = 非交易日；窗起點 = 最後有日盤資料日的 15:00。移除 `trade_days` / 假日 calendar / weekend fallback（假設 cache 完整正確；無先前日盤 → overnight 空）。
+
 #### Changed
 
 - **FT-019 MVPClosed（2026-06-29）**：`sfbt_fingerprint_pass_g1_fail` · THESIS_QUEUE · CORPSE_ATLAS §FT-019 · SPEC/PLAN status。

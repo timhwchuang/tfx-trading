@@ -15,6 +15,16 @@
 
 **衝突解決順序**：`AGENTS.md` §2 安全護欄 → 本檔其餘章節 → 使用者當次 prompt → 一般 Python/交易常識。
 
+### 研究層時代切換（2026-07 · MUST）
+
+| 做 | 不做 |
+|----|------|
+| 新 alpha 研究讀 [`workspaces/RESEARCH_CHARTER_v2.md`](../workspaces/RESEARCH_CHARTER_v2.md) | 把 `docs/ARCHIVE/research-2026-h1/` 或 `workspaces/_archive/` 當**現行流程 / 開案模板** |
+| 預設用 **SessionBarCache** 表達 setup | 複製 FT-003 multi-agent 競賽或厚 Playbook 儀式 |
+| 現行策略文件：GUDT Route A / Wash Beta | 自動復活 FT-002～020 同族 thesis |
+
+失敗研究 = **墓誌銘 prior**，不是活規則。工程 UAT / Pilot 仍以本檔 §2 與 `uat/APP.md` 為準。
+
 ---
 
 ## 1. 專案角色定位

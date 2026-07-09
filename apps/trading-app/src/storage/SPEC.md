@@ -47,7 +47,19 @@ tick_cache/{code}_kbars_{date}.csv   ← 只存 1m（磁碟）
 | **時間戳** | 週五 → 週一可跳空 55h+；MA 用最近 N 根 **已存在** bar |
 | **禁止** | 假日 forward-fill、合成 OHLC |
 
-載入以 **`trade_days` 交易日** 為 lookback 單位；`missing_trading_days` 僅列 **交易日** 缺檔。
+### Disk SSOT（load window / trading_days）
+
+| 層面 | 規則 |
+|------|------|
+| **有 kbar 檔 / 有日盤 1m** | **是**交易日（session close day） |
+| **無檔、無 bar** | **不是**交易日（颱風假、缺檔、週末同一語意） |
+| **Load window** | 取 as_of 往前最近 **N 個 on-disk kbar 檔**（N 由 TF lookback + daily_lookback 估算；`both` 用真實日+夜 bars/day，不再用 flat 6） |
+| **`trading_days`** | 由已載入 1m 的 **日盤 bar 日期** 推導；calendar soft tip **僅** `as_of.time() < 08:45`（live 開盤前）/ 空 cache fallback |
+| **`missing_trading_days`** | 有 disk 時為 `[]`（無檔 ≠ missing）；僅空 cache 走 calendar 時才列診斷缺檔 |
+| **Night label** | 需 `trading_days` 內已有下一個 close day；否則 unlabeled（不猜 weekday / 颱風週一） |
+| **CLI discover** | `discover_session_close_days`：scan **session close days**（日盤 1m），不是檔名；load 含 `from_date - 7` 檔 key（bundle prior-evening） |
+| **Osf multi-day load** | `load_range` 以 `len(days)` 定 history；**連續**日列表或 month-batch；sparse 兩端點 single load 不支援 |
+| **禁止** | 用 pin-yi `trade_days` 當 overnight / 歷史 session 的主 SSOT；`as_of≥DAY_ANCHOR` 且無日盤 bar 時不得靠 calendar 塞入 close day；為 sparse dates 再膨脹 calendar lookback |
 
 ### 當日 kbar 檔就緒 (`TodayKbarStatus`)
 

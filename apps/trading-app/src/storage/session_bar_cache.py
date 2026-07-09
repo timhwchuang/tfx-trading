@@ -10,8 +10,9 @@ from pathlib import Path
 from typing import Iterable, Literal, Sequence
 
 from storage.cache_paths import DEFAULT_TICK_CACHE_DIR, DEFAULT_TRADE_DAYS_DIR
-from storage.taiwan_calendar import resolve_trading_days_in_range_with_fallback
 from storage.kbar_loader import KBarRecord, iter_kbars_in_range, resolve_kbar_path
+from storage.taiwan_calendar import resolve_trading_days_in_range_with_fallback
+from storage.tick_loader import date_range
 
 logger = logging.getLogger(__name__)
 
@@ -208,11 +209,19 @@ def filter_bars_by_scope(bars: Sequence[BarRecord], scope: SessionScope) -> list
     return [b for b in bars if _in_day_session(b) or _in_night_session(b)]
 
 
-def _next_trading_day(day: datetime.date, trading_days: Sequence[datetime.date]) -> datetime.date:
+def _next_trading_day(
+    day: datetime.date,
+    trading_days: Sequence[datetime.date],
+) -> datetime.date | None:
+    """Next observed session close day after *day*, or None (do not invent weekdays).
+
+    Disk SSOT: Friday night stays unlabeled until a later day-session is observed
+    (e.g. Tue after typhoon Mon), rather than guessing Monday via calendar math.
+    """
     for d in trading_days:
         if d > day:
             return d
-    return day + datetime.timedelta(days=1)
+    return None
 
 
 def _first_trading_day_on_or_after(
@@ -236,8 +245,11 @@ def _evening_start_for_close_day(close_day: datetime.date) -> datetime.date:
 def session_close_day(
     evening_start: datetime.date,
     trading_days: Sequence[datetime.date],
-) -> datetime.date:
-    """Trading day whose 13:45 closes the session opened at *evening_start* 15:00."""
+) -> datetime.date | None:
+    """Trading day whose 13:45 closes the session opened at *evening_start* 15:00.
+
+    Returns None when no later close day is present in ``trading_days`` (defer label).
+    """
     return _next_trading_day(evening_start, trading_days)
 
 
@@ -245,7 +257,10 @@ def session_label_date(
     ts: datetime.datetime,
     trading_days: Sequence[datetime.date],
 ) -> datetime.date | None:
-    """Session-day key: 15:00 → next day-session 13:45, labeled by the 13:45 close day."""
+    """Session-day key: 15:00 → next day-session 13:45, labeled by the 13:45 close day.
+
+    Night/dawn bars without a later observed close day stay unlabeled (None).
+    """
     t = ts.time()
     d = ts.date()
     if DAY_ANCHOR <= t <= DAY_END or t == DAY_SETTLEMENT_TAIL:
@@ -253,11 +268,27 @@ def session_label_date(
     if t >= NIGHT_ANCHOR:
         return session_close_day(d, trading_days)
     if t <= DAWN_END or t == DAWN_SETTLEMENT_TAIL:
-        close_day = _first_trading_day_on_or_after(d, trading_days)
-        if close_day is None:
-            return None
-        return close_day
+        return _first_trading_day_on_or_after(d, trading_days)
     return None
+
+
+def _prior_bundle_file_day(
+    day: datetime.date,
+    trading_days: Sequence[datetime.date],
+) -> datetime.date:
+    """Evening-open file date that may hold *day* dawn/day bars (bundle convention).
+
+    Prefer last observed close day before *day*. If the sparse disk ``trading_days``
+    list has no prior entry yet (live rollover), fall back to previous weekday so
+    bundle paths still resolve.
+    """
+    prior = [x for x in trading_days if x < day]
+    if prior:
+        return prior[-1]
+    prev = day - datetime.timedelta(days=1)
+    while prev.weekday() >= 5:
+        prev -= datetime.timedelta(days=1)
+    return prev
 
 
 def kbar_file_date(
@@ -267,24 +298,15 @@ def kbar_file_date(
     """Map a 1m bar to the on-disk kbar CSV file date (backfill bundle convention)."""
     t = bar.ts.time()
     d = bar.ts.date()
-    trading = set(trading_days)
 
     if t >= NIGHT_ANCHOR:
         return d
 
     if t <= DAWN_END or t == DAWN_SETTLEMENT_TAIL:
-        prev = d - datetime.timedelta(days=1)
-        if prev.weekday() < 5 and prev in trading:
-            return prev
-        return d
+        return _prior_bundle_file_day(d, trading_days)
 
     if DAY_ANCHOR <= t <= DAY_END or t == DAY_SETTLEMENT_TAIL:
-        prev = d - datetime.timedelta(days=1)
-        while prev.weekday() >= 5:
-            prev -= datetime.timedelta(days=1)
-        if prev in trading:
-            return prev
-        return d
+        return _prior_bundle_file_day(d, trading_days)
 
     return d
 
@@ -610,16 +632,31 @@ def daily_mas(closes: Sequence[float]) -> dict[str, float | None]:
     return {f"ma{p}": sma(closes, p) for p in DAILY_MA_PERIODS}
 
 
+def _bars_per_trading_day(spec: TfSpec) -> int:
+    """Closed bars expected per trading day for lookback → day-count conversion.
+
+    Day session ≈ 08:45–13:45 (301 minutes). Night ≈ 15:00–05:00 (841 minutes).
+    Using a flat ``6`` for ``\"both\"`` massively under-counts bars/day and over-loads
+    history when lookback is large.
+    """
+    minutes = max(spec.minutes, 1)
+    day_n = max(1, (5 * 60 + 1) // minutes)
+    night_n = max(1, (14 * 60 + 1) // minutes)
+    if spec.session == "day":
+        return day_n
+    if spec.session == "night":
+        return night_n
+    return day_n + night_n
+
+
 def _tf_rebuild_trading_days_count(tf_table: dict[str, TfSpec]) -> int:
     """Trading days of 1m history needed for incremental TF resample."""
     max_days = 7
     for spec in tf_table.values():
         if spec.minutes <= 0:
             continue
-        bars_per_session = 6
-        if spec.session == "day":
-            bars_per_session = max(1, (5 * 60 + 1) // spec.minutes)
-        sessions_needed = (spec.lookback + bars_per_session - 1) // bars_per_session
+        per_day = _bars_per_trading_day(spec)
+        sessions_needed = (spec.lookback + per_day - 1) // per_day
         max_days = max(max_days, sessions_needed + _TRADING_DAYS_BUFFER)
     return max_days
 
@@ -633,6 +670,99 @@ def _tf_tail_trading_window(
     if not eligible:
         return []
     return eligible[-n_days:] if len(eligible) >= n_days else list(eligible)
+
+
+def list_kbar_file_dates(
+    code: str,
+    cache_dir: Path,
+    start: datetime.date,
+    end: datetime.date,
+) -> list[datetime.date]:
+    """Dates with an on-disk kbar file in ``[start, end]`` (disk SSOT for load window)."""
+    if end < start:
+        return []
+    return [
+        d
+        for d in date_range(start, end)
+        if resolve_kbar_path(cache_dir, code, d) is not None
+    ]
+
+
+def observed_day_session_dates(
+    bars_1m: Sequence[BarRecord],
+    as_of: datetime.datetime,
+) -> list[datetime.date]:
+    """Session close days evidenced by day-session 1m bars (disk SSOT).
+
+    A date with day-session bars is a trading day; dates without bars are not.
+    """
+    days: set[datetime.date] = set()
+    for bar in bars_1m:
+        if bar.ts > as_of:
+            continue
+        if _in_day_session(bar):
+            days.add(bar.ts.date())
+    return sorted(days)
+
+
+# Prior evening-open file lag for day-tape discovery (weekend-safe). Not holiday logic.
+BUNDLE_DISCOVER_PAD_DAYS = 7
+
+
+def discover_session_close_days(
+    code: str,
+    cache_dir: Path,
+    *,
+    from_date: datetime.date | None = None,
+    to_date: datetime.date | None = None,
+) -> list[datetime.date]:
+    """Session close days with day-session 1m in ``[from_date, to_date]`` (disk SSOT).
+
+    On-disk file keys are evening-open dates and may hold the **next** calendar
+    day's day tape. Load includes file keys from
+    ``from_date - BUNDLE_DISCOVER_PAD_DAYS`` so a clamped ``--from-date`` still
+    sees that prior evening file; returned days are filtered to the range only.
+
+    When ``to_date`` is None, ``as_of`` is the max loaded bar ts (not the last
+    file key) so day tape with ``ts.date`` after the key is still counted.
+    """
+    import re
+
+    pat = re.compile(rf"^{re.escape(code)}_kbars_(\d{{4}}-\d{{2}}-\d{{2}})\.csv$")
+    file_days = sorted(
+        {
+            datetime.date.fromisoformat(m.group(1))
+            for path in cache_dir.glob(f"{code}_kbars_*.csv")
+            if (m := pat.match(path.name)) is not None
+        }
+    )
+    if not file_days:
+        return []
+
+    lo_bound = (
+        file_days[0]
+        if from_date is None
+        else from_date - datetime.timedelta(days=BUNDLE_DISCOVER_PAD_DAYS)
+    )
+    # File keys (evening-open) in pad..to_date; prior key alone holds next day's day tape.
+    hi_key = file_days[-1] if to_date is None else to_date
+    load_keys = [d for d in file_days if lo_bound <= d <= hi_key]
+    if not load_keys:
+        return []
+    bars = iter_kbars_in_range(code, load_keys[0], load_keys[-1], cache_dir=cache_dir)
+    # File key ≠ bar ts.date (bundle). Bound by to_date when set; else use loaded bars.
+    if to_date is not None:
+        as_of = _combine(to_date, DAY_END)
+    elif bars:
+        as_of = max(b.ts for b in bars)
+    else:
+        as_of = _combine(file_days[-1], DAY_END)
+    days = observed_day_session_dates(bars, as_of)
+    if from_date is not None:
+        days = [d for d in days if d >= from_date]
+    if to_date is not None:
+        days = [d for d in days if d <= to_date]
+    return days
 
 
 def _index_bars_for_daily(
@@ -659,17 +789,19 @@ def _daily_label_needs_refresh(
     return _combine(label, DAY_END) <= as_of
 
 
-def _estimate_trading_days_needed(tf_table: dict[str, TfSpec]) -> int:
+def _estimate_trading_days_needed(
+    tf_table: dict[str, TfSpec],
+    *,
+    daily_lookback: int = DAILY_LOOKBACK,
+) -> int:
     max_days = _MIN_TRADING_DAYS
     for spec in tf_table.values():
         if spec.minutes <= 0:
             continue
-        bars_per_session = 6
-        if spec.session == "day":
-            bars_per_session = max(1, (5 * 60 + 1) // spec.minutes)
-        sessions_needed = (spec.lookback + bars_per_session - 1) // bars_per_session
+        per_day = _bars_per_trading_day(spec)
+        sessions_needed = (spec.lookback + per_day - 1) // per_day
         max_days = max(max_days, sessions_needed + _TRADING_DAYS_BUFFER)
-    return max(max_days, DAILY_LOOKBACK + _TRADING_DAYS_BUFFER)
+    return max(max_days, daily_lookback + _TRADING_DAYS_BUFFER)
 
 
 def _resolve_lookback_window(
@@ -678,6 +810,7 @@ def _resolve_lookback_window(
     *,
     calendar_dir: Path,
 ) -> tuple[list[datetime.date], list[datetime.date]]:
+    """Calendar-based window (empty-disk / readiness fallback only)."""
     end = as_of.date()
     span = max(n_days * 2, 90)
     start = end - datetime.timedelta(days=span)
@@ -689,6 +822,70 @@ def _resolve_lookback_window(
     eligible = [d for d in trading_days if d <= end]
     window = eligible[-n_days:] if len(eligible) >= n_days else eligible
     return list(trading_days), window
+
+
+def _resolve_disk_load_start(
+    code: str,
+    as_of: datetime.datetime,
+    n_days: int,
+    *,
+    cache_dir: Path,
+) -> datetime.date | None:
+    """Earliest kbar file date covering the last *n_days* files on disk (≤ as_of).
+
+    Expands the calendar scan span when too few files are found (sparse archive /
+    long outages). Logs a warning if still short of *n_days* after the cap.
+    """
+    end = as_of.date()
+    scan_span = max(n_days * 3, 120)
+    scan_cap = max(n_days * 10, 400)
+    file_dates: list[datetime.date] = []
+    start = end
+    while True:
+        start = end - datetime.timedelta(days=scan_span)
+        file_dates = list_kbar_file_dates(code, cache_dir, start, end)
+        if len(file_dates) >= n_days or scan_span >= scan_cap:
+            break
+        scan_span = min(scan_cap, max(scan_span * 2, scan_span + n_days * 2))
+    if not file_dates:
+        return None
+    if len(file_dates) < n_days:
+        logger.warning(
+            "SessionBarCache disk window short: requested_n=%s found_n=%s "
+            "scan_start=%s as_of=%s code=%s",
+            n_days,
+            len(file_dates),
+            start.isoformat(),
+            as_of.isoformat(sep=" ", timespec="minutes"),
+            code,
+        )
+    selected = file_dates[-n_days:] if len(file_dates) >= n_days else file_dates
+    return selected[0]
+
+
+def _merge_trading_days_for_as_of(
+    observed: list[datetime.date],
+    as_of: datetime.datetime,
+    *,
+    calendar_dir: Path,
+) -> list[datetime.date]:
+    """Disk-observed close days + soft calendar tip only **before day open**.
+
+    At/after ``DAY_ANCHOR`` with no day-session bars, pin-yi must not invent a
+    close day (typhoon / missing tape at EOD stays off ``trading_days``).
+    """
+    days = set(observed)
+    as_of_day = as_of.date()
+    if as_of_day not in days and as_of.time() < DAY_ANCHOR:
+        # Live pre-open only: readiness before first day-session bar.
+        cal, _ = resolve_trading_days_in_range_with_fallback(
+            as_of_day - datetime.timedelta(days=7),
+            as_of_day,
+            calendar_dir=calendar_dir,
+        )
+        if as_of_day in cal:
+            days.add(as_of_day)
+    return sorted(days)
 
 
 class SessionBarCache:
@@ -706,12 +903,14 @@ class SessionBarCache:
         missing_trading_days: list[datetime.date],
         today_status: TodayKbarStatus,
         calendar_dir: Path = DEFAULT_TRADE_DAYS_DIR,
+        daily_lookback: int = DAILY_LOOKBACK,
     ) -> None:
         self.code = code
         self.cache_dir = cache_dir
         self._calendar_dir = calendar_dir
         self.as_of = as_of
         self.tf_table = dict(tf_table or DEFAULT_TF_TABLE)
+        self._daily_lookback = daily_lookback
         self.trading_days = list(trading_days)
         self.missing_trading_days = list(missing_trading_days)
         self.today_status = today_status
@@ -738,35 +937,73 @@ class SessionBarCache:
         cache_dir: Path = DEFAULT_TICK_CACHE_DIR,
         tf_table: dict[str, TfSpec] | None = None,
         calendar_dir: Path = DEFAULT_TRADE_DAYS_DIR,
+        daily_lookback: int = DAILY_LOOKBACK,
     ) -> SessionBarCache:
+        """Load 1m kbars from disk and build multi-TF series.
+
+        **Disk SSOT for history:** load window is the last *n* on-disk kbar files
+        (not calendar trading days). Session close days (``trading_days``) are
+        dates with day-session bars present. No file ⇒ not a trading day; calendar
+        is only a soft tip for live pre-open readiness / empty-cache fallback.
+        """
         table = tf_table or DEFAULT_TF_TABLE
-        n_days = _estimate_trading_days_needed(table)
-        trading_days, window = _resolve_lookback_window(
-            as_of, n_days, calendar_dir=calendar_dir
+        n_days = _estimate_trading_days_needed(table, daily_lookback=daily_lookback)
+        end = as_of.date()
+        disk_start = _resolve_disk_load_start(
+            code, as_of, n_days, cache_dir=cache_dir
         )
-        if not window:
-            today_status = assess_calendar_day_readiness(
-                as_of.date(),
-                trading_days=trading_days,
-                as_of=as_of,
-                memory_bars=[],
-                code=code,
-                cache_dir=cache_dir,
+
+        if disk_start is not None:
+            bars_1m = iter_kbars_in_range(code, disk_start, end, cache_dir=cache_dir)
+            bars_1m = [b for b in bars_1m if b.ts <= as_of]
+            observed = observed_day_session_dates(bars_1m, as_of)
+            trading_days = _merge_trading_days_for_as_of(
+                observed, as_of, calendar_dir=calendar_dir
             )
-            return cls(
+            # Disk SSOT: absence of a file means non-trading, not "missing".
+            missing: list[datetime.date] = []
+        else:
+            # Empty cache: calendar window for structure / readiness only.
+            trading_days, window = _resolve_lookback_window(
+                as_of, n_days, calendar_dir=calendar_dir
+            )
+            if not window:
+                today_status = assess_calendar_day_readiness(
+                    as_of.date(),
+                    trading_days=trading_days,
+                    as_of=as_of,
+                    memory_bars=[],
+                    code=code,
+                    cache_dir=cache_dir,
+                )
+                return cls(
+                    code,
+                    cache_dir,
+                    as_of,
+                    tf_table=table,
+                    trading_days=trading_days,
+                    bars_1m=[],
+                    missing_trading_days=[],
+                    today_status=today_status,
+                    calendar_dir=calendar_dir,
+                    daily_lookback=daily_lookback,
+                )
+            bars_1m = iter_kbars_in_range(
+                code, window[0], window[-1], cache_dir=cache_dir
+            )
+            bars_1m = [b for b in bars_1m if b.ts <= as_of]
+            observed = observed_day_session_dates(bars_1m, as_of)
+            if observed:
+                trading_days = _merge_trading_days_for_as_of(
+                    observed, as_of, calendar_dir=calendar_dir
+                )
+            missing = _resolve_missing_trading_days(
                 code,
-                cache_dir,
-                as_of,
-                tf_table=table,
+                window,
+                cache_dir=cache_dir,
                 trading_days=trading_days,
-                bars_1m=[],
-                missing_trading_days=[],
-                today_status=today_status,
-                calendar_dir=calendar_dir,
             )
 
-        bars_1m = iter_kbars_in_range(code, window[0], window[-1], cache_dir=cache_dir)
-        bars_1m = [b for b in bars_1m if b.ts <= as_of]
         today_status = assess_calendar_day_readiness(
             as_of.date(),
             trading_days=trading_days,
@@ -774,12 +1011,6 @@ class SessionBarCache:
             memory_bars=bars_1m,
             code=code,
             cache_dir=cache_dir,
-        )
-        missing = _resolve_missing_trading_days(
-            code,
-            window,
-            cache_dir=cache_dir,
-            trading_days=trading_days,
         )
 
         return cls(
@@ -792,6 +1023,7 @@ class SessionBarCache:
             missing_trading_days=missing,
             today_status=today_status,
             calendar_dir=calendar_dir,
+            daily_lookback=daily_lookback,
         )
 
     def _bars_1m_list(self) -> list[BarRecord]:
@@ -836,7 +1068,7 @@ class SessionBarCache:
             self.trading_days,
             self.as_of,
         )
-        self._daily_closed = daily_bars[-DAILY_LOOKBACK :]
+        self._daily_closed = daily_bars[-self._daily_lookback :]
 
     def _rebuild_tf_series(self) -> None:
         """Resample recent 1m tail and merge with older closed bars (live hot path)."""
@@ -871,23 +1103,33 @@ class SessionBarCache:
             bar = _aggregate(self._daily_source[label].values(), close_ts)
             if bar is not None:
                 daily.append(bar)
-        self._daily_closed = daily[-DAILY_LOOKBACK :]
+        self._daily_closed = daily[-self._daily_lookback :]
+
+    def _note_observed_trading_day(self, day: datetime.date) -> None:
+        """Record a session close day evidenced by a day-session bar (disk SSOT)."""
+        if day in self.trading_days:
+            return
+        self.trading_days.append(day)
+        self.trading_days.sort()
 
     def _extend_trading_days_through(self, day: datetime.date) -> None:
-        if self.trading_days and day <= self.trading_days[-1]:
+        """Soft calendar tip for **current as_of day only**, before day open.
+
+        Matches ``_merge_trading_days_for_as_of`` (R1). No pin-yi bulk insert of
+        historical close days — those require ``_note_observed_trading_day``.
+        """
+        if day in self.trading_days:
             return
-        start = self.trading_days[-1] if self.trading_days else day
-        extra, _ = resolve_trading_days_in_range_with_fallback(
-            start,
+        if day != self.as_of.date() or self.as_of.time() >= DAY_ANCHOR:
+            return
+        cal, _ = resolve_trading_days_in_range_with_fallback(
+            day - datetime.timedelta(days=7),
             day,
             calendar_dir=self._calendar_dir,
         )
-        known = set(self.trading_days)
-        for d in extra:
-            if d not in known:
-                self.trading_days.append(d)
-                known.add(d)
-        self.trading_days.sort()
+        if day in cal:
+            self.trading_days.append(day)
+            self.trading_days.sort()
 
     def _ensure_today_counts(self, day: datetime.date) -> None:
         if self._today_count_day == day:
@@ -987,6 +1229,8 @@ class SessionBarCache:
             self._bars_1m_map[bar.ts] = bar
             if prev is not None:
                 self._unindex_one_bar(prev)
+            if _in_day_session(bar):
+                self._note_observed_trading_day(bar.ts.date())
             self._index_one_bar(bar)
 
             if self._today_count_day != day:
@@ -1024,6 +1268,10 @@ __all__ = [
     "filter_bars_by_scope",
     "kbar_file_date",
     "kbar_file_dates_for_calendar_day",
+    "BUNDLE_DISCOVER_PAD_DAYS",
+    "discover_session_close_days",
+    "list_kbar_file_dates",
+    "observed_day_session_dates",
     "session_close_day",
     "session_label_date",
     "sma",

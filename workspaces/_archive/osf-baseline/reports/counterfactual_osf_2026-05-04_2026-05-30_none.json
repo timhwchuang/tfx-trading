@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "code": "TMFR1",
+  "params": "or30_age8_htfnone_liqpools_or_rf0.33_ksl1",
+  "htf_mode": "none",
+  "liquidity_mode": "pools_or",
+  "rows": [],
+  "funnel": {
+    "days": 24,
+    "or_valid": 20,
+    "htf_ok": 20,
+    "sweep_15m": 0,
+    "fvg_15m": 0,
+    "trigger_5m": 0,
+    "entry": 0
+  },
+  "summary": {
+    "n": 0
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "day": "2026-06-03",
+  "params": "or15_age16_htfnone_liqpools_or_rf0.2_ksl1.2_d0",
+  "htf_mode": "none",
+  "liquidity_mode": "pools_or",
+  "context": {
+    "gap_cohort": "gap_up",
+    "gap_points": 98.0,
+    "or_valid": true,
+    "or_low": 46730.0,
+    "or_high": 46900.0,
+    "dawn_low": 46537.0,
+    "overnight_low": 46180.0,
+    "htf_flags": {
+      "daily_long": true,
+      "h4_bos_long": true,
+      "h4_discount": false,
+      "h1_tactical_long": true,
+      "htf_h4_only": false
+    }
+  },
+  "funnel": {
+    "days": 1,
+    "or_valid": 1,
+    "htf_ok": 1,
+    "sweep_15m": 0,
+    "fvg_15m": 0,
+    "trigger_5m": 0,
+    "entry": 0
+  },
+  "setup_15m_rejects": {
+    "no_fvg": 6,
+    "no_sweep": 6,
+    "bearish_15m_close": 3
+  },
+  "first_setup_bar": null,
+  "entry": null,
+  "outlook": null
+}
