@@ -6,11 +6,10 @@ import datetime
 from pathlib import Path
 from typing import Any
 
-from backfilldata.taiwan_calendar import DEFAULT_TRADE_DAYS_DIR
 from storage.bars.executor import QueryExecutor
 from storage.bars.protocols import BarStore
 from storage.bars.spec import parse_query
-from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
+from storage.cache_paths import DEFAULT_TICK_CACHE_DIR, DEFAULT_TRADE_DAYS_DIR
 from storage.kbar_loader import KBarRecord
 from storage.session_bar_cache import SessionBarCache, TfSpec, TodayKbarStatus
 

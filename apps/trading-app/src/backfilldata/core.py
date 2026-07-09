@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, List, Sequence
 
+from backfilldata.errors import BackfillError
 from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
 from storage.kbar_loader import (
     download_and_cache_kbars,
@@ -34,10 +35,6 @@ _MAX_TICK_DAYS_PER_RUN = 10
 _MAX_KBAR_DAYS_PER_RUN = 270
 
 TAIWAN_TZ = datetime.timezone(datetime.timedelta(hours=8))
-
-
-class BackfillError(RuntimeError):
-    """User-facing backfill failure (missing creds, invalid dates, etc.)."""
 
 
 @dataclass

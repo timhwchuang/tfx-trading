@@ -596,10 +596,9 @@ class TestTaiwanCalendar(unittest.TestCase):
         self.assertIn(datetime.date(2026, 2, 16), skipped["holiday"])
 
     def test_empty_calendar_raises(self):
-        from backfilldata.core import BackfillError
-        from backfilldata.taiwan_calendar import resolve_month_trading_days
+        from storage.taiwan_calendar import CalendarError, resolve_month_trading_days
 
-        with self.assertRaises(BackfillError) as ctx:
+        with self.assertRaises(CalendarError) as ctx:
             resolve_month_trading_days(2026, 4, calendar_year=[])
         self.assertIn("行事曆", str(ctx.exception))
 
@@ -630,14 +629,14 @@ class TestTaiwanCalendar(unittest.TestCase):
         self.assertIn(datetime.date(2026, 4, 2), skipped["missing_calendar"])
 
     def test_invalid_cache_refetches_api(self):
-        from backfilldata.taiwan_calendar import get_taiwan_calendar_year
+        from storage.taiwan_calendar import get_taiwan_calendar_year
 
         with tempfile.TemporaryDirectory() as tmp:
             calendar_dir = Path(tmp)
             (calendar_dir / "2026.json").write_text("[]\n", encoding="utf-8")
             sample = [_pin_yi_day("20260101", is_holiday=True)]
             with patch(
-                "backfilldata.taiwan_calendar.fetch_taiwan_calendar_year",
+                "storage.taiwan_calendar.fetch_taiwan_calendar_year",
                 return_value=sample,
             ) as mock_fetch:
                 data = get_taiwan_calendar_year(2026, calendar_dir=calendar_dir)
@@ -645,12 +644,15 @@ class TestTaiwanCalendar(unittest.TestCase):
             mock_fetch.assert_called_once()
 
     def test_resolve_month_trading_days_with_fallback(self):
-        from backfilldata.taiwan_calendar import resolve_month_trading_days_with_fallback
+        from storage.taiwan_calendar import (
+            CalendarError,
+            resolve_month_trading_days_with_fallback,
+        )
 
         with patch(
-            "backfilldata.taiwan_calendar.resolve_trading_days_in_range",
+            "storage.taiwan_calendar.resolve_trading_days_in_range",
             side_effect=[
-                BackfillError("Taiwan 行事曆 API 無法連線"),
+                CalendarError("Taiwan 行事曆 API 無法連線"),
                 ([datetime.date(2026, 4, 1)], {"weekend": [], "holiday": [], "missing_calendar": []}),
             ],
         ) as mock_resolve:

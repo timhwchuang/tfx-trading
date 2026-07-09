@@ -7,9 +7,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from backfilldata.taiwan_calendar import DEFAULT_TRADE_DAYS_DIR
 from storage.bars import SessionBars
-from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
+from storage.cache_paths import DEFAULT_TICK_CACHE_DIR, DEFAULT_TRADE_DAYS_DIR
 from storage.kbar_loader import KBarRecord, append_kbar_csv, kbar_path, read_last_kbar_ts
 from storage.minute_bar_aggregator import MinuteBarAggregator, minute_floor
 from storage.session_bar_cache import SessionBarCache, kbar_file_date

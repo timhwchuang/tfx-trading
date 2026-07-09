@@ -21,6 +21,7 @@ from backfilldata.core import (
     resolve_kbar_backfill_dates,
 )
 from backfilldata.taiwan_calendar import (
+    CalendarError,
     parse_month_arg,
     resolve_month_trading_days_with_fallback,
     resolve_trading_days_in_range_with_fallback,
@@ -395,7 +396,7 @@ def main(argv: list[str] | None = None) -> int:
             dates=meta["eligible_days"],
             simulation=simulation,
         )
-    except BackfillError as e:
+    except (BackfillError, CalendarError) as e:
         print(f"backfilldata: {e}", file=sys.stderr)
         return 1
     except Exception as e:
