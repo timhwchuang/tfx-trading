@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import datetime
+import logging
 from pathlib import Path
 from typing import Any, Literal
+
+from storage.cache_paths import DEFAULT_TICK_CACHE_DIR
+from storage.live_session_bars import LiveSessionBars
 
 from config import LOG_FILE, LOG_LEVEL
 from core.runtime_config import RuntimeConfig, default_runtime_config
@@ -39,6 +43,8 @@ KNOWN_STRATEGY_NAMES = frozenset(
 )
 
 SessionMode = Literal["backtest", "live"]
+
+logger = logging.getLogger(__name__)
 
 
 def validate_strategy_name(name: str) -> None:
@@ -165,7 +171,22 @@ def trading_app_engine_ports(
     if with_alerts:
         ports["alerts"] = TradingAppAlertPort()
     if with_archive:
-        ports["archive"] = TradingAppArchivePort()
+        live_bars: LiveSessionBars | None = None
+        if cfg.live_bars:
+            code = cfg.product_code
+            try:
+                live_bars = LiveSessionBars.start(
+                    code,
+                    datetime.datetime.now(),
+                    cache_dir=DEFAULT_TICK_CACHE_DIR,
+                    persist_kbars=cfg.live_kbar_persist,
+                )
+            except Exception as exc:
+                logger.warning("LiveSessionBars disabled: %s", exc)
+        archive = TradingAppArchivePort(live_bars=live_bars)
+        ports["archive"] = archive
+        if live_bars is not None:
+            ports["live_bars"] = live_bars
     return ports
 
 

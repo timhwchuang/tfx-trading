@@ -443,10 +443,20 @@ TICK_ARCHIVE = _TICK_ARCHIVE in ("1", "true", "yes")
 _KBARS_ARCHIVE = os.environ.get("KBARS_ARCHIVE", "").strip().lower()
 KBARS_ARCHIVE = _KBARS_ARCHIVE in ("1", "true", "yes")
 
+_LIVE_BARS = os.environ.get("LIVE_BARS", "").strip().lower()
+LIVE_BARS = _LIVE_BARS in ("1", "true", "yes")
+
+_LIVE_KBAR_PERSIST = os.environ.get("LIVE_KBAR_PERSIST", "").strip().lower()
+LIVE_KBAR_PERSIST = _LIVE_KBAR_PERSIST in ("1", "true", "yes")
+
 __all__ = [
     "DEFAULT_CONFIG_PATH",
     "DEFAULT_PRODUCT_CODE",
+    "KBARS_ARCHIVE",
+    "LIVE_BARS",
+    "LIVE_KBAR_PERSIST",
     "Settings",
+    "TICK_ARCHIVE",
     "load_config",
     "settings",
     "PRODUCT_CODE",

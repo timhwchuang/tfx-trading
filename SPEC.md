@@ -189,6 +189,8 @@ Backtest: tick_cache/*.csv(.gz) → load_ticks_csv（整日 RAM）→ iter_repla
 | Event catalog / audit | 熱路徑 MQ |
 | Cache 抽象 | 多 venue 複雜度 |
 
+**落地**：[`apps/trading-app/src/storage/SPEC.md`](apps/trading-app/src/storage/SPEC.md) — `SessionBarCache`（元大 session 錨點、多 TF、日 K MA、`today_status` 當日 kbar 就緒）。
+
 **決策（2026-06-17）**：`trend_filter_enabled` 維持 false。見 [`docs/WeeklyStatus.md`](docs/WeeklyStatus.md)。
 
 ### 7.4 時序與相容性

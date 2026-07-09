@@ -206,6 +206,70 @@ def save_kbars_csv(bars: Iterable[KBarRecord], path: Path) -> int:
     return count
 
 
+def read_last_kbar_ts(path: Path) -> datetime.datetime | None:
+    """Return ``ts`` of the last data row without loading the full file."""
+    path = Path(path)
+    if not path.is_file() or path.stat().st_size == 0:
+        return None
+    with path.open("rb") as f:
+        f.seek(0, 2)
+        size = f.tell()
+        if size == 0:
+            return None
+        chunk = min(size, 4096)
+        f.seek(-chunk, 2)
+        tail = f.read().decode("utf-8", errors="replace")
+    lines = [line.strip() for line in tail.splitlines() if line.strip()]
+    if not lines:
+        return None
+    for line in reversed(lines):
+        if line.startswith("ts,"):
+            continue
+        ts_raw = line.split(",", 1)[0]
+        try:
+            return datetime.datetime.fromisoformat(ts_raw)
+        except ValueError:
+            continue
+    return None
+
+
+def append_kbar_csv(
+    bar: KBarRecord,
+    path: Path,
+    *,
+    last_ts: datetime.datetime | None = None,
+) -> bool:
+    """Append one kbar row; create file with header when missing.
+
+    Returns False when a row with the same ``ts`` already exists (last wins on read).
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.is_file() and path.stat().st_size > 0:
+        tail_ts = last_ts if last_ts is not None else read_last_kbar_ts(path)
+        if tail_ts == bar.ts:
+            return False
+        if tail_ts is None or tail_ts > bar.ts:
+            if any(existing.ts == bar.ts for existing in load_kbars_csv(path)):
+                return False
+    write_header = not path.is_file() or path.stat().st_size == 0
+    with path.open("a", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=_KBARS_CSV_FIELDS)
+        if write_header:
+            writer.writeheader()
+        writer.writerow(
+            {
+                "ts": bar.ts.isoformat(),
+                "Open": bar.Open,
+                "High": bar.High,
+                "Low": bar.Low,
+                "Close": bar.Close,
+                "Volume": bar.Volume,
+            }
+        )
+    return True
+
+
 def load_kbars_csv(path: Path) -> List[KBarRecord]:
     bars: List[KBarRecord] = []
     with _open_tick_csv_reader(Path(path)) as f:

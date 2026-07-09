@@ -18,6 +18,7 @@ Environment (see apps/trading-app/README.md):
   CONFIG_PATH                     config.yaml path
   LOG_FILE, LOG_LEVEL             logging
   TICK_ARCHIVE=1, KBARS_ARCHIVE=1 archive under monorepo tick_cache/
+  LIVE_BARS=1 tick→1m feed into SessionBars; LIVE_KBAR_PERSIST=1 append today's kbars CSV
   SJ_CA_PATH, SJ_CA_PASSWD        required when simulation: false
 
 Config: config/config.yaml — simulation: true for UAT (default).

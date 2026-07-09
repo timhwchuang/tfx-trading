@@ -114,6 +114,13 @@ Tick cache validation and tick×kbar volume semantics: [`packages/trading-backte
 
 Implementation: `storage/cache_audit.py`, `storage/cache_repair.py`, `storage/tick_rollover.py`, `storage/kbar_repair.py`; `kbar_loader.dedupe_kbars` collapses duplicate `ts` on load.
 
+### SessionBarCache (`storage.session_bar_cache`)
+
+Yuanta-anchored multi-TF bars from per-day 1m kbar CSVs. SSOT: [`src/storage/SPEC.md`](src/storage/SPEC.md).
+
+- `SessionBarCache.load(code, as_of)` → `closed(tf)` / `current(tf)` / `daily_mas()` / `today_status`
+- **當日就緒** (`today_status`): 週六需檔案存在且 `00:00–05:00` ≥ 299 根；交易日需日盤 ≥ 299 根（或 dawn-only `dawn_only_ok`）
+
 ## Integration contracts
 
 Stable interfaces between runtime, reporting, and research tooling. **Do not** change log prefixes or JSON field names without updating `reporting/uat_report.py`, determinism tests, and this section.

@@ -47,6 +47,14 @@ class TradingAppRuntimeConfig(EngineRuntimeConfig):
     def kbars_archive(self) -> bool:
         return _config_module.KBARS_ARCHIVE
 
+    @property
+    def live_bars(self) -> bool:
+        return _config_module.LIVE_BARS
+
+    @property
+    def live_kbar_persist(self) -> bool:
+        return _config_module.LIVE_KBAR_PERSIST
+
 
 def default_runtime_config() -> TradingAppRuntimeConfig:
     return TradingAppRuntimeConfig(_to_engine_settings(load_config()))
