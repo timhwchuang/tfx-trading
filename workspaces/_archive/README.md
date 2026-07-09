@@ -1,8 +1,9 @@
 # workspaces/_archive — Gen-1 研究冷封存
 
 ```
-SUPERSEDED by bar-cache era · see ../RESEARCH_CHARTER_v2.md
-Agent: do not treat contents as active research process.
+ARCHIVE / prior only · see ../RESEARCH_CHARTER_v2.md
+Agent: do not treat as process template OR as a permanent ban list.
+Human retest of old stories + new filters is allowed; data decides.
 ```
 
 ## 內容

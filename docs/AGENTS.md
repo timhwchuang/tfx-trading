@@ -15,15 +15,19 @@
 
 **衝突解決順序**：`AGENTS.md` §2 安全護欄 → 本檔其餘章節 → 使用者當次 prompt → 一般 Python/交易常識。
 
-### 研究層時代切換（2026-07 · MUST）
+### 研究層（2026-07 · MUST）
+
+SSOT：[`workspaces/RESEARCH_CHARTER_v2.md`](../workspaces/RESEARCH_CHARTER_v2.md)。
 
 | 做 | 不做 |
 |----|------|
-| 新 alpha 研究讀 [`workspaces/RESEARCH_CHARTER_v2.md`](../workspaces/RESEARCH_CHARTER_v2.md) | 把 `docs/ARCHIVE/research-2026-h1/` 或 `workspaces/_archive/` 當**現行流程 / 開案模板** |
-| 預設用 **SessionBarCache** 表達 setup | 複製 FT-003 multi-agent 競賽或厚 Playbook 儀式 |
-| 現行策略文件：GUDT Route A / Wash Beta | 自動復活 FT-002～020 同族 thesis |
+| **Tick replay 與 SessionBar 雙軌共存**（Brief 標 `instrument`） | 宣稱「只有 bar」或「只有 tick」才合法 |
+| 人類要求重測舊故事 / filter / veto → **用數據回答** | 用 archive / MVPClosed / 墓誌銘說「這條路已死」而拒絕研究 |
+| Archive = **prior 背景**（可讀） | 把 archive 當開案模板或 **永久 ban list** |
+| 缺 cache / 工具先補基礎設施 | 把「跑不起來」寫成「thesis 已死」 |
+| 現行 UAT：GUDT 等 | 未經人類改 `simulation: false` / 真單 |
 
-失敗研究 = **墓誌銘 prior**，不是活規則。工程 UAT / Pilot 仍以本檔 §2 與 `uat/APP.md` 為準。
+§2 安全護欄與 UAT/Pilot 仍硬優先於任何研究指令。
 
 ---
 

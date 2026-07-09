@@ -9,6 +9,15 @@
 
 ---
 
+### 2026-07-09（Dual-track · archive ≠ ban）
+
+**決策**
+- Tick replay 與 SessionBar **並存**；研究 SSOT 見 `RESEARCH_CHARTER_v2.md`。
+- Archive / MVPClosed = **prior**；AI **不得**用文件拒絕人類重測（filter/veto/新儀器）。
+- **數據才是真相**；缺 infra 先補工具。
+
+---
+
 ### 2026-07-09（Research era cutover — 研究層冷封存）
 
 **決策**

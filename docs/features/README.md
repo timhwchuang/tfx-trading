@@ -7,9 +7,9 @@ Archived FT-002～020: docs/ARCHIVE/research-2026-h1/
 
 ## 新開案（三行）
 
-1. **必須能用 SessionBars 表達**（否則先補工具）。  
-2. **先 1～2 週** census / path CF，再決定要不要 SPEC。  
-3. **失敗 → 墓誌銘進 archive**，不累積 playbook 條款。
+1. **標清 instrument**：`tick` / `bar` / `both`（雙軌共存；缺工具先補）。  
+2. **先出數字**（census / path / 小 CF / filter·veto），再決定要不要長 SPEC。  
+3. **失敗 → prior 墓誌銘**；人類可要求 retest——**數據否決故事，文件不否決研究**。
 
 ## Active board
 

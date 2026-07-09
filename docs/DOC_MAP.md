@@ -40,18 +40,17 @@
 | [`ops/WindowsOps.md`](ops/WindowsOps.md) | Windows 排程、告警、路徑 |
 | [`AGENTS.md`](AGENTS.md) | AI 安全護欄、Callback MUST NOT、Production Gate |
 
-## 4. 研究（Gen-2 · 極簡）
+## 4. 研究（Gen-2 dual-track · 極簡）
 
 | 主題 | 文件 |
 | ---- | ---- |
 | **研究 SSOT** | [`workspaces/RESEARCH_CHARTER_v2.md`](../workspaces/RESEARCH_CHARTER_v2.md) · [`RESEARCH_LOG.md`](../workspaces/RESEARCH_LOG.md) |
 | 資料切分（防偷看） | [`workspaces/DATA_SPLIT.md`](../workspaces/DATA_SPLIT.md) |
 | SessionBarCache / kbar | [`apps/trading-app/src/storage/SPEC.md`](../apps/trading-app/src/storage/SPEC.md) |
-| 回測宿主 / MockBroker | package SPECs（engine · backtest） |
+| Tick 回測宿主 / MockBroker | package SPECs（engine · backtest）— **與 bar 並存** |
 | tick 補洞 / cache 稽核 | [`backfilldata/SPEC`](../apps/trading-app/src/backfilldata/SPEC.md) · [`CACHE_AUDIT.md`](../workspaces/CACHE_AUDIT.md) |
 
-新研究：**Brief + SessionBars + 一頁報告**。勿載入 tick-era Playbook / Queue。
-
+新研究：**Brief（標 instrument）+ 數字 + 一頁報告**。Archive = prior，**不是 ban**。
 ## 5. 考古（勿當現行流程）
 
 | 路徑 | 說明 |
