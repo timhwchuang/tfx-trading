@@ -1,4 +1,9 @@
-"""TelemetryPort adapter wrapping trading-app observability."""
+"""LEGACY — TradingAppTelemetryPort (unused by live Host).
+
+Live wiring injects only AlertPort / ArchivePort / CapitalStore.
+This adapter wraps ``observability.DailyObservability`` for historical tests
+or offline tools. Prefer Host FILL_AUDIT + strategy-local logs.
+"""
 
 from __future__ import annotations
 

@@ -31,7 +31,9 @@ strategy:
   max_mdd_points: 0
   # Durable capital book (JSON, atomic write). Empty disables (unit tests).
   capital_state_path: "var/capital_risk.json"
-  # Deprecated gates (ignored by Host capital freeze):
+  # DEPRECATED (Host ignores as capital gates; kept for YAML/compat only):
+  #   max_daily_loss_points — not latched by Host
+  #   max_consecutive_loss — metric-era leftover; not a freeze trigger
   max_daily_loss_points: 120
   max_consecutive_loss: 4
   # IOC / pending

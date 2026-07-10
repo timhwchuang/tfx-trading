@@ -1,8 +1,12 @@
 # Trading Engine — Design & State Machine
 
-This document defines the **kernel invariants**, state dimensions, and transition expectations for the `trading-engine` futures execution host. It is the source of truth for correctness.
+> **SSOT for product architecture / risk / module map:**  
+> [`apps/trading-app/SPEC.md`](../../../apps/trading-app/SPEC.md) (Foundation A–D).  
+> This file retains kernel **invariants** and state-machine notes; prefer the product SPEC for ports, capital MDD, Book/Link/Integrity layout, and live wiring.
 
-See also: [packages/trading-engine/SPEC.md](../../../packages/trading-engine/SPEC.md), [packages/trading-engine/README.md](../../../packages/trading-engine/README.md)
+This document defines the **kernel invariants**, state dimensions, and transition expectations for the `trading-engine` futures execution host.
+
+See also: [packages/trading-engine/SPEC.md](../../../packages/trading-engine/SPEC.md) (if present), [apps/trading-app/SPEC.md](../../../apps/trading-app/SPEC.md).
 
 ## Goals & Non-Goals
 

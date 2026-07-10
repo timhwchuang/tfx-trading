@@ -1,4 +1,4 @@
-"""Tests for observability module."""
+"""Tests for LEGACY observability module (not Host live path)."""
 
 from __future__ import annotations
 

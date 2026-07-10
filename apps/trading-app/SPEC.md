@@ -7,7 +7,7 @@
 
 ---
 
-## 架構（目標 / 現況）
+## 架構（現況 = SSOT）
 
 ```text
                     ┌─────────────────────────────────────┐
@@ -17,20 +17,25 @@
            ┌───────────┬───────────────┼───────────────┬────────────┐
            ▼           ▼               ▼               ▼            ▼
       ┌─────────┐ ┌──────────┐  ┌────────────┐  ┌──────────┐  ┌─────────┐
-      │ Session │ │   Book*  │  │CapitalRisk │  │  Link*   │  │Watchdog*│
-      │ 日曆/   │ │ 持倉+    │  │ 累進 MDD   │  │ 連線/    │  │ no-tick │
-      │ 日切/   │ │ 在途單+  │  │ + JSON 持久│  │ 重連/    │  │ session │
-      │ 強平窗  │ │ 成交套用 │  │            │  │ warmup   │  │ down    │
+      │ Session │ │   Book   │  │CapitalRisk │  │   Link   │  │  Ticks  │
+      │ 日曆/   │ │ 持倉+    │  │ 累進 MDD   │  │ 連線/    │  │ + WD    │
+      │ 日切/   │ │ 在途單   │  │ + JSON 持久│  │ 重連/    │  │ methods │
+      │ 強平窗  │ │          │  │            │  │ warmup   │  │ on eng  │
       └─────────┘ └────┬─────┘  └─────┬──────┘  └──────────┘  └─────────┘
                        │              │
                        │ fill PnL     │ freeze
                        └──────┬───────┘
+                              │
+                    ┌─────────┴─────────┐
+                    │   Integrity       │
+                    │ SETTLING / HALT   │
+                    └─────────┬─────────┘
                               ▼
-              Strategy (port) · AlertPort · ArchivePort
+              Strategy · AlertPort · ArchivePort
               BrokerPort · OrderAdapter
 ```
 
-\* **Book / Link / Watchdog 封裝** 分階段落地（Phase B/C）。Phase A 已落地：**CapitalRisk + 持久化**、**Host 不接 observability**。
+Foundation phases **A–D complete**. Host does **not** inject observability/telemetry.
 
 ### 依賴
 
@@ -84,16 +89,22 @@ Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat
 | 路徑 | 職責 |
 |------|------|
 | `src/trading_engine/` | Host kernel |
+| `src/trading_engine/book.py` | position + flight |
+| `src/trading_engine/connectivity.py` | link / reconnect |
+| `src/trading_engine/integrity.py` | SETTLING / HALT |
+| `src/trading_engine/ticks.py` | tick counters for watchdogs |
 | `src/trading_engine/core/risk.py` | `CapitalRiskState` |
 | `src/trading_engine/core/capital_store.py` | 累進資本帳 JSON 原子讀寫 |
 | `src/trading_engine/core/audit/fill_audit.py` | 進出損益 FILL_AUDIT |
 | `src/storage/` | tick_cache SSOT |
 | `src/strategy_simple.py` | UAT flip |
 | `src/live/` | `python -m live` |
-| `src/integrations/` | alerts / archive / wiring（**無** telemetry） |
+| `src/integrations/` | alerts / archive / wiring（**無** live telemetry） |
+| `src/observability.py` | **LEGACY** VWAP/near-miss metrics（tests only） |
+| `src/integrations/telemetry_port.py` | **LEGACY** adapter（not wired live） |
 | `config/config.yaml` | session + risk + ops |
 
-策略指標（ATR、VWAP…）不在 Host（見 `legacy/`）。
+策略指標（ATR、VWAP…）不在 Host（見 monorepo `legacy/`）。
 
 ---
 
@@ -217,7 +228,7 @@ Gap 有持倉 → sticky force flatten。
 | **A** | CapitalStore 持久化；live 去 observability；SPEC 架構 SSOT | **done** |
 | **B** | Book 封裝（持倉+flight，`trading_engine/book.py`） | **done** |
 | **C** | Link / Integrity / Tick 狀態收攏；`on_tick` 閱讀地圖 | **done** |
-| **D** | 掃尾命名、legacy 標記 | 待做 |
+| **D** | SSOT 定稿、legacy 標記、deprecated 文件化 | **done** |
 
 ### Phase B notes
 
@@ -238,3 +249,11 @@ Gap 有持倉 → sticky force flatten。
 - Field access still via `self._settling` etc. (forwarders).
 - Watchdog **methods** stay on engine (need alerts / resubscribe hooks); they read `_ticks` / `_link`.
 - `on_tick` docstring is the hot-path reading map.
+
+### Phase D notes
+
+- Architecture diagram and module table match the tree above (no pending asterisks).
+- `observability.py` / `integrations/telemetry_port.py` / `TelemetryPort` Protocol: **LEGACY** headers; not live-wired.
+- Config keys `max_consecutive_loss` / `max_daily_loss_points`: kept for YAML compat; **not capital gates**.
+- Naming: `RiskGate.block_new_entry` = **composed** entry block; raw ops latch is `Book.block_new_entry`; use `capital_frozen` + `max_mdd_points` for capital.
+- Kernel detail/history: [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md) defers to this SPEC for product SSOT.

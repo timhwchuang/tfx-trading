@@ -1,4 +1,12 @@
-"""Structured observability: FILL_AUDIT, near-miss counters, DAILY_SUMMARY."""
+"""LEGACY — VWAP / near-miss strategy observability (not Host runtime).
+
+**Do not wire into live TradingEngine.** Host fill ledger is
+``trading_engine.core.audit.fill_audit``; capital risk is ``CapitalRiskState``.
+
+Kept for unit tests (``tests/test_observability.py``) and offline reporting
+helpers that still import ``DailyObservability``. New strategy metrics belong
+on the strategy module, not here.
+"""
 
 from __future__ import annotations
 

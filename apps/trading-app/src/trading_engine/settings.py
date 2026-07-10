@@ -14,7 +14,8 @@ class Settings:
 
     cooldown_sec: int
     max_daily_loss_points: int
-    max_consecutive_loss: int  # deprecated gate; retained for config compat
+    # DEPRECATED as capital gate (Host ignores); YAML/compat only.
+    max_consecutive_loss: int
     pending_timeout_sec: int
     ioc_slippage_points: int
     no_tick_timeout_sec: int

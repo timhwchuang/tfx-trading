@@ -16,7 +16,7 @@
 | 文件 | 職責 |
 |------|------|
 | [`../SPEC.md`](../SPEC.md) | Monorepo 整合 |
-| [`../apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) | 產品邊界 / Host+Strategy |
+| [`../apps/trading-app/SPEC.md`](../apps/trading-app/SPEC.md) | 產品邊界 / Host 架構 SSOT（Foundation A–D） |
 | [`../apps/trading-app/src/storage/SPEC.md`](../apps/trading-app/src/storage/SPEC.md) | tick_cache SSOT |
 
 ## 運維

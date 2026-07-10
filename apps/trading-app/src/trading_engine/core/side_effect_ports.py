@@ -1,4 +1,9 @@
-"""Injectable side-effect ports: alerts, archive, telemetry."""
+"""Injectable side-effect ports: alerts + archive (Host runtime).
+
+``TelemetryPort`` / ``NullTelemetryPort`` are **legacy** stubs retained so
+older tests or offline tools can type-check against the old Protocol.
+Live Host no longer accepts a ``telemetry=`` constructor argument.
+"""
 
 from __future__ import annotations
 
@@ -46,7 +51,7 @@ class NullArchivePort:
 
 
 class NullTelemetryPort:
-    """Minimal telemetry for tests / backtest without app-layer observability."""
+    """LEGACY no-op telemetry (Host runtime does not inject this)."""
 
     def record_lock_wait(self, ms: float) -> None:
         return None
@@ -105,6 +110,8 @@ class NullTelemetryPort:
 
 
 class TelemetryPort(Protocol):
+    """LEGACY protocol — not used by live TradingEngine constructor."""
+
     def record_lock_wait(self, ms: float) -> None: ...
 
     def record_entry_signal(self) -> None: ...
