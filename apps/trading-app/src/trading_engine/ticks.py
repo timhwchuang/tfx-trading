@@ -1,7 +1,7 @@
 """Tick arrival / type-inference bookkeeping for watchdogs and logs.
 
-Owned by TradingEngine as ``_ticks``. No-tick / clock-skew watchdogs read this
-state; they still live as engine methods (I/O + resubscribe hooks).
+Owned by TradingEngine as ``_ticks``. Behavior (no-tick / clock-skew / summary)
+lives in ``tick_watchdog.TickWatchdogMixin``.
 """
 
 from __future__ import annotations

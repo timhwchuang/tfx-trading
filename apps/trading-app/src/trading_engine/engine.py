@@ -5,13 +5,13 @@ import queue
 import threading
 import time
 from collections.abc import Callable
-from enum import Enum, auto
 from typing import Any
 
 from trading_engine.api_errors import is_api_session_error
 from trading_engine.book import BOOK_FIELD_NAMES, Book
 from trading_engine.calendar.port import MarketCalendarPort, TaifexMarketCalendar
 from trading_engine.connectivity import LINK_FIELD_NAMES, ConnectivityState
+from trading_engine.connectivity_ops import ConnectivityOpsMixin, ReconnectOutcome
 from trading_engine.core.capital_store import CapitalStore
 from trading_engine.core.ports import BrokerPort
 from trading_engine.core.risk import CapitalRiskState
@@ -41,6 +41,7 @@ from trading_engine.reconcile import (
     severe_drift_confirmed,
 )
 from trading_engine.session import SessionMixin
+from trading_engine.tick_watchdog import TickWatchdogMixin
 from trading_engine.ticks import TICK_FIELD_NAMES, TickState
 
 logger = get_logger()
@@ -53,14 +54,17 @@ _FORWARDED_FIELD_NAMES: frozenset[str] = (
     | TICK_FIELD_NAMES
 )
 
-
-class ReconnectOutcome(Enum):
-    HEALTHY = auto()
-    UNHEALTHY = auto()
-    STALE = auto()
+# Re-export for call sites / tests that imported from engine historically.
+__all__ = ["TradingEngine", "ReconnectOutcome"]
 
 
-class TradingEngine(OrderExecutorMixin, PositionSyncMixin, SessionMixin):
+class TradingEngine(
+    OrderExecutorMixin,
+    PositionSyncMixin,
+    ConnectivityOpsMixin,
+    TickWatchdogMixin,
+    SessionMixin,
+):
     def __init__(
         self,
         api: BrokerPort,
@@ -310,21 +314,6 @@ class TradingEngine(OrderExecutorMixin, PositionSyncMixin, SessionMixin):
                 current_drawdown=self._capital.current_drawdown,
             )
 
-    def _is_reconnect_warmup_active(self, ts: int) -> bool:
-        return self._reconnect_warmup_until_ts > 0 and ts < self._reconnect_warmup_until_ts
-
-    def _arm_reconnect_warmup_on_first_tick_locked(self, ts: int) -> None:
-        if not self._pending_reconnect_warmup:
-            return
-        warmup_sec = self._cfg.reconnect_warmup_sec
-        self._reconnect_warmup_until_ts = ts + warmup_sec
-        self._pending_reconnect_warmup = False
-        logger.info(
-            "重連暖機開始 | %ds 內禁止新進場（until_ts=%d）",
-            warmup_sec,
-            self._reconnect_warmup_until_ts,
-        )
-
     def _risk_gate(self, ts: int, dt: datetime.datetime) -> RiskGate:
         windows = self._active_session_windows(dt)
         if windows is None:
@@ -485,130 +474,6 @@ class TradingEngine(OrderExecutorMixin, PositionSyncMixin, SessionMixin):
         self._next_signal_seq += 1
         return f"{date_str}-sig-{self._next_signal_seq:03d}"
 
-    def _record_tick_arrival_locked(
-        self, ts: int, exchange_dt: datetime.datetime, tick_type: int
-    ) -> None:
-        """Must be called with self.lock held."""
-        self.last_tick_exchange_ts = ts
-        self._last_tick_wall_time = self._clock()
-        self._last_tick_exchange_dt = exchange_dt
-        bucket = tick_type if tick_type in self._tick_type_counts else 0
-        self._tick_type_counts[bucket] = self._tick_type_counts.get(bucket, 0) + 1
-        self._no_tick_resubscribe_streak = 0
-        self._maybe_warn_clock_skew(ts)
-
-    def _record_tick_arrival(self, ts: int, exchange_dt: datetime.datetime, tick_type: int) -> None:
-        self.last_tick_exchange_ts = ts
-        self._last_tick_wall_time = self._clock()
-        self._last_tick_exchange_dt = exchange_dt
-        bucket = tick_type if tick_type in self._tick_type_counts else 0
-        self._tick_type_counts[bucket] = self._tick_type_counts.get(bucket, 0) + 1
-        self._no_tick_resubscribe_streak = 0
-        self._maybe_warn_clock_skew(ts)
-
-    def _maybe_warn_clock_skew(self, exchange_ts: int) -> None:
-        skew = abs(exchange_ts - self._clock())
-        if skew <= self._cfg.clock_skew_warn_sec:
-            return
-        now = self._clock()
-        if now - self._last_clock_skew_warn_wall < 300:
-            return
-        self._last_clock_skew_warn_wall = now
-        logger.warning(
-            "系統鐘與交易所時間偏差 %.1fs | 策略決策仍以 tick 時間為準",
-            skew,
-        )
-
-    def _maybe_log_tick_type_summary(self) -> None:
-        """P1-3: 每 30 分鐘輸出 tick_type 分布（UAT 觀測）。"""
-        if self._last_tick_exchange_dt is None:
-            return
-        if not self.is_trading_session(self._last_tick_exchange_dt):
-            return
-        now = self._clock()
-        if now - self._last_tick_type_log_wall < 1800:
-            return
-        total = sum(self._tick_type_counts.values())
-        if total == 0:
-            return
-        self._last_tick_type_log_wall = now
-        inferred_total = sum(self._tick_type_inferred_counts.values())
-        logger.info(
-            "tick_type 分布 | type0=%d type1=%d type2=%d total=%d "
-            "| type0_pct=%.1f%% | inferred_buy=%d inferred_sell=%d inferred_total=%d",
-            self._tick_type_counts.get(0, 0),
-            self._tick_type_counts.get(1, 0),
-            self._tick_type_counts.get(2, 0),
-            total,
-            100.0 * self._tick_type_counts.get(0, 0) / total,
-            self._tick_type_inferred_counts.get(1, 0),
-            self._tick_type_inferred_counts.get(2, 0),
-            inferred_total,
-        )
-
-    def _check_no_tick_watchdog(self) -> None:
-        """P4-8: 交易時段內長時間無 tick → 告警並嘗試重訂閱。"""
-        if not self._api_connected or self.contract is None:
-            return
-        if self._last_tick_exchange_dt is None or self._last_tick_wall_time <= 0:
-            return
-        if not self.is_trading_session(self._last_tick_exchange_dt):
-            return
-        silent = self._clock() - self._last_tick_wall_time
-        if silent < self._cfg.no_tick_timeout_sec:
-            return
-        now = self._clock()
-        if now - self._last_no_tick_resubscribe_wall < 60:
-            return
-        self._last_no_tick_resubscribe_wall = now
-        self._no_tick_resubscribe_streak += 1
-        escalate_after = self._cfg.no_tick_resubscribe_escalate_after
-        logger.warning(
-            "No-tick 看門狗 | %.0fs 無 tick，嘗試重訂閱 %s（streak=%d/%d）",
-            silent,
-            self.contract.code,
-            self._no_tick_resubscribe_streak,
-            escalate_after,
-        )
-        try:
-            if self._resubscribe_ticks is None:
-                logger.warning("No-tick 看門狗 | 未設定 tick 重訂閱 hook，略過")
-                return
-            self._resubscribe_ticks()
-            logger.info("No-tick 看門狗 | 重訂閱已送出")
-        except Exception as e:
-            logger.warning("No-tick 看門狗 | 重訂閱失敗: %s", e)
-            self._no_tick_resubscribe_streak = 0
-            self._mark_disconnected()
-            return
-
-        with self.lock:
-            if not self._api_connected:
-                return
-            if self._no_tick_resubscribe_streak < escalate_after:
-                return
-            silent_after = self._clock() - self._last_tick_wall_time
-            if silent_after < self._cfg.no_tick_timeout_sec:
-                return
-            streak = self._no_tick_resubscribe_streak
-            self._no_tick_resubscribe_streak = 0
-            connected_gen = self._connected_reconnect_generation
-
-        if not self._mark_disconnected(
-            require_silent_sec=self._cfg.no_tick_timeout_sec,
-            max_connected_reconnect_generation=connected_gen,
-            require_was_connected=True,
-        ):
-            logger.info("No-tick 升級已取消：tick 或 reconnect 已恢復")
-            return
-
-        msg = (
-            f"No-tick 看門狗 | 連續 {streak} 次重訂閱仍無 tick → "
-            "升級 session relogin"
-        )
-        logger.warning(msg)
-        self._alerts.send(msg, level="CRITICAL")
-
     @staticmethod
     def _is_severe_drift(
         kernel_qty: int,
@@ -660,6 +525,7 @@ class TradingEngine(OrderExecutorMixin, PositionSyncMixin, SessionMixin):
         check_position_reconcile(self)
 
     def _timeout_loop(self):
+        """Background 1s maintenance — order must match pre-Wave-2 cadence."""
         while self._running:
             try:
                 self._check_pending_timeout()
@@ -678,144 +544,6 @@ class TradingEngine(OrderExecutorMixin, PositionSyncMixin, SessionMixin):
                 logger.error("背景維運檢查嚴重異常 (可能殺死 thread): %s", e)
             time.sleep(1)
 
-    def _check_session_watchdog(self) -> None:
-        with self.lock:
-            if self._api_connected:
-                return
-            disconnected_since = self._disconnect_since
-            next_at = self._next_relogin_at
-            attempts = self._session_relogin_attempts
-
-        if disconnected_since <= 0:
-            return
-        now = self._clock()
-        if now < next_at:
-            return
-        if now - disconnected_since < self._cfg.session_watchdog_sec:
-            return
-        if attempts >= self._cfg.session_relogin_max_attempts:
-            self._alerts.send(
-                f"Session 重登入已達上限 {self._cfg.session_relogin_max_attempts}",
-                level="CRITICAL",
-            )
-            with self.lock:
-                self._next_relogin_at = now + 300.0
-            return
-
-        try:
-            logger.warning(
-                "Session 看門狗觸發重登入 | attempt=%d",
-                attempts + 1,
-            )
-            self._call_api(
-                self.api.login,
-                api_key=self._cfg.api_key,
-                secret_key=self._cfg.secret_key,
-                subscribe_trade=True,
-            )
-            with self.lock:
-                if self._api_connected:
-                    logger.info(
-                        "Session 看門狗略過 _on_reconnected：已由其他路徑恢復連線"
-                    )
-                    return
-            outcome = self._on_reconnected()
-            if outcome == ReconnectOutcome.UNHEALTHY:
-                backoff = self._cfg.session_relogin_backoff_base_sec * (2**attempts)
-                logger.error(
-                    "Session 重登入後健康檢查失敗 | backoff=%.1fs", backoff
-                )
-                self._alerts.send(
-                    "Session 重登入後健康檢查失敗（subscribe/trade）",
-                    level="CRITICAL",
-                )
-                with self.lock:
-                    self._session_relogin_attempts = attempts + 1
-                    self._next_relogin_at = now + backoff
-            elif outcome == ReconnectOutcome.STALE:
-                backoff = self._cfg.session_relogin_backoff_base_sec
-                logger.info(
-                    "Session 重登入被較新的 reconnect 取代，短暫 backoff %.1fs",
-                    backoff,
-                )
-                with self.lock:
-                    self._next_relogin_at = now + backoff
-        except Exception as e:
-            backoff = self._cfg.session_relogin_backoff_base_sec * (2**attempts)
-            logger.error("Session 重登入失敗: %s | backoff=%.1fs", e, backoff)
-            self._alerts.send(f"Session 重登入失敗: {e}", level="CRITICAL")
-            with self.lock:
-                self._session_relogin_attempts = attempts + 1
-                self._next_relogin_at = now + backoff
-
-    def _mark_disconnected(
-        self,
-        *,
-        reconnect_generation: int | None = None,
-        require_silent_sec: float | None = None,
-        max_connected_reconnect_generation: int | None = None,
-        require_was_connected: bool = False,
-    ) -> bool:
-        """Mark API disconnected. Returns False when superseded or preconditions fail."""
-        alert_qty = 0
-        alert_dir = "Flat"
-        with self.lock:
-            if require_silent_sec is not None and self._last_tick_wall_time > 0:
-                if self._clock() - self._last_tick_wall_time < require_silent_sec:
-                    return False
-            if (
-                max_connected_reconnect_generation is not None
-                and self._connected_reconnect_generation
-                > max_connected_reconnect_generation
-            ):
-                return False
-            if (
-                reconnect_generation is not None
-                and reconnect_generation != self._reconnect_generation
-            ):
-                return False
-            if (
-                reconnect_generation is not None
-                and self._api_connected
-                and reconnect_generation != self._connected_reconnect_generation
-            ):
-                return False
-            was_connected = self._api_connected
-            self._api_connected = False
-            if reconnect_generation is None:
-                self._connected_reconnect_generation = 0
-            if self._disconnect_since <= 0:
-                self._disconnect_since = self._clock()
-            if was_connected:
-                self._disconnect_count_today += 1
-                alert_qty = self.position_qty
-                alert_dir = self.position_dir
-                disconnect_count = self._disconnect_count_today
-            else:
-                disconnect_count = self._disconnect_count_today
-        if not was_connected:
-            if require_was_connected:
-                return False
-            return True
-        if (
-            alert_qty > 0
-            and self._cfg.alert_on_disconnect_with_position
-        ):
-            self._alerts.send(
-                f"API 斷線且有持倉 | dir={alert_dir} qty={alert_qty} | "
-                f"第 {disconnect_count} 次斷線（今日）",
-                level="CRITICAL",
-            )
-        if disconnect_count >= self._cfg.max_disconnects_per_day:
-            with self.lock:
-                self.block_new_entry = True
-            self._alerts.send(
-                f"單日斷線達 {disconnect_count} 次（上限 "
-                f"{self._cfg.max_disconnects_per_day}）→ 停止新進場至日切換；請排查網路",
-                level="CRITICAL",
-            )
-        return True
-
     def _clear_pending(self, *, watch_late_fill: bool = False):
         if watch_late_fill:
             self._record_cleared_pending()
@@ -825,91 +553,6 @@ class TradingEngine(OrderExecutorMixin, PositionSyncMixin, SessionMixin):
         self._exit_order_retry_at = 0.0
         # P0-5: clear SETTLING only. HALT (_position_unconfirmed) stays sticky.
         self._integrity.clear_settling_window()
-
-    def handle_session_event(self, resp_code: int, event_code: int, info: str, event: str):
-        if event_code == 12:
-            logger.warning("API 重連中 | resp=%s info=%s", resp_code, info)
-            self._mark_disconnected()
-        elif event_code == 13:
-            logger.info("API 重連成功 | resp=%s", resp_code)
-            threading.Thread(
-                target=self._on_reconnected, daemon=True, name="reconnect-sync"
-            ).start()
-
-    def handle_session_down(self):
-        logger.warning("API 連線中斷")
-        self._mark_disconnected()
-
-    def _on_reconnected(self) -> ReconnectOutcome:
-        """P4-1: 先補查 pending，再對帳持倉，最後重新訂閱。
-
-        Returns HEALTHY when subscribe health gate passed and connected state applied.
-        """
-        with self.lock:
-            self._reconnect_generation += 1
-            generation = self._reconnect_generation
-            has_pending = self.is_pending
-
-        if has_pending:
-            try:
-                self._reconcile_pending_trade()
-            except Exception as e:
-                logger.warning("重連後 pending 補查失敗: %s", e)
-
-        self.sync_positions()
-
-        session_healthy = True
-        try:
-            if self._resubscribe_ticks is not None:
-                self._resubscribe_ticks()
-        except Exception as e:
-            logger.warning("重連後 subscribe 失敗: %s", e)
-            session_healthy = False
-
-        # P0-1: re-attach order/deal report channel. A reconnect that restores
-        # only quote ticks (above) but not the trade channel leaves order/fill
-        # callbacks dead -> broker fills silently while kernel keeps timing out.
-        try:
-            if self._resubscribe_trade is not None:
-                self._resubscribe_trade()
-        except Exception as e:
-            logger.warning("重連後委託回報通道重掛失敗: %s", e)
-            session_healthy = False
-
-        with self.lock:
-            if generation != self._reconnect_generation:
-                logger.info(
-                    "重連同步結果已過期，忽略 | gen=%d current=%d healthy=%s",
-                    generation,
-                    self._reconnect_generation,
-                    session_healthy,
-                )
-                return ReconnectOutcome.STALE
-            if session_healthy:
-                self._pending_reconnect_warmup = True
-                self._reconnect_warmup_until_ts = 0
-                self._api_connected = True
-                self._connected_reconnect_generation = generation
-                self._disconnect_since = 0.0
-                self._session_relogin_attempts = 0
-                self._next_relogin_at = 0.0
-                self._no_tick_resubscribe_streak = 0
-
-        if session_healthy:
-            logger.info("重連後狀態同步完成（暖機待首筆 tick 起算）")
-            return ReconnectOutcome.HEALTHY
-
-        logger.warning(
-            "重連後 session 不健康，降級為 disconnected，交由 Session 看門狗重登入"
-        )
-        if not self._mark_disconnected(reconnect_generation=generation):
-            logger.info(
-                "重連不健康結果已過期，略過 disconnect | gen=%d current=%d",
-                generation,
-                self._reconnect_generation,
-            )
-            return ReconnectOutcome.STALE
-        return ReconnectOutcome.UNHEALTHY
 
     def run(self) -> None:
         """Broker-neutral blocking run loop (login + live wiring must be done first)."""

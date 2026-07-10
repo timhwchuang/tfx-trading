@@ -101,9 +101,11 @@ Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat
 | `src/trading_engine/book.py` | position + flight + mutation API |
 | `src/trading_engine/position_sync.py` | broker list_positions → Book adopt |
 | `src/trading_engine/reconcile.py` | periodic position drift / severe HALT |
-| `src/trading_engine/connectivity.py` | link / reconnect |
+| `src/trading_engine/connectivity.py` | link state |
+| `src/trading_engine/connectivity_ops.py` | disconnect / reconnect / session WD |
 | `src/trading_engine/integrity.py` | SETTLING / HALT state |
-| `src/trading_engine/ticks.py` | tick counters for watchdogs |
+| `src/trading_engine/ticks.py` | tick counters |
+| `src/trading_engine/tick_watchdog.py` | no-tick / clock skew / type summary |
 | `src/trading_engine/core/risk.py` | `CapitalRiskState` |
 | `src/trading_engine/core/capital_store.py` | 累進資本帳 JSON 原子讀寫 |
 | `src/trading_engine/core/audit/fill_audit.py` | 進出損益 FILL_AUDIT |
@@ -240,7 +242,7 @@ Gap 有持倉 → sticky force flatten。
 | **B** | Book 封裝（持倉+flight，`trading_engine/book.py`） | **done** |
 | **C** | Link / Integrity / Tick 狀態收攏；`on_tick` 閱讀地圖 | **done** |
 | **D** | SSOT 定稿、legacy 標記、deprecated 文件化 | **done** |
-| **E** | 行為收斂：position domain + 線性 orchestrator（分 Wave） | **Wave 0–1 done**；2–3 pending |
+| **E** | 行為收斂：position domain + 線性 orchestrator（分 Wave） | **Wave 0–2 done**；3 pending |
 
 ### Phase B notes
 
@@ -270,8 +272,9 @@ Gap 有持倉 → sticky force flatten。
 - Naming: `RiskGate.block_new_entry` = **composed** entry block; raw ops latch is `Book.block_new_entry`; use `capital_frozen` + `max_mdd_points` for capital.
 - Kernel detail/history: [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md) defers to this SPEC for product SSOT.
 
-### Phase E notes (Wave 0–1)
+### Phase E notes (Wave 0–2)
 
 - **Wave 0**: reconnect alert 文案去 ATR；engine 移除 `build_*_audit` wrapper；`trailing_peak` 標 legacy bag。
-- **Wave 1**: `Book` mutation API（`apply_entry_fill` / `apply_exit_leg` / `adopt_broker_position` / `to_position_snapshot`）；`position_sync.py`（broker I/O）；`reconcile.py`（週期 drift）；Session 不再擁有持倉讀寫。
-- **Pending Wave 2–3**: Connectivity/Tick WD 行為落地；order pipeline 切塊；`start()` 外移 live。
+- **Wave 1**: `Book` mutation API；`position_sync.py`；`reconcile.py`；Session 不再擁有持倉讀寫。
+- **Wave 2**: `connectivity_ops.py`（disconnect / reconnect / session WD / warmup）；`tick_watchdog.py`（arrival / no-tick / clock skew / type summary）；`engine._timeout_loop` 為委派列表。
+- **Pending Wave 3**: order pipeline 切塊；`start()` 外移 live；RiskAssembler。

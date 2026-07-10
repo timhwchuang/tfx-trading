@@ -2,6 +2,9 @@
 
 Owned by TradingEngine as ``_link``; field names keep leading underscores so
 existing ``self._api_connected`` call sites forward unchanged.
+
+Behavior (disconnect / reconnect / session watchdog) lives in
+``connectivity_ops.ConnectivityOpsMixin``.
 """
 
 from __future__ import annotations
