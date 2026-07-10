@@ -212,7 +212,13 @@ Gap 有持倉 → sticky force flatten。
 
 | Phase | 內容 | 狀態 |
 |-------|------|------|
-| **A** | CapitalStore 持久化；live 去 observability；SPEC 架構 SSOT | **本輪** |
-| **B** | Book 封裝（持倉+flight） | 待做 |
+| **A** | CapitalStore 持久化；live 去 observability；SPEC 架構 SSOT | **done** |
+| **B** | Book 封裝（持倉+flight，`trading_engine/book.py`） | **done** |
 | **C** | Link / Integrity / Watchdog 收攏；engine 變薄 | 待做 |
 | **D** | 掃尾命名、legacy 標記 | 待做 |
+
+### Phase B notes
+
+- `TradingEngine._book` owns position + single pending flight.
+- Call sites keep `host.position_qty` / `host.is_pending` via `__getattr__` / `__setattr__` forwarders.
+- Progressive capital remains on `_capital` / `CapitalStore` (not in Book).

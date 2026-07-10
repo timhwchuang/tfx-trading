@@ -10,6 +10,7 @@ from enum import Enum, auto
 from typing import Any
 
 from trading_engine.api_errors import is_api_session_error
+from trading_engine.book import BOOK_FIELD_NAMES, Book
 from trading_engine.calendar.port import MarketCalendarPort, TaifexMarketCalendar
 from trading_engine.core.audit.signal_audit import SignalAudit
 from trading_engine.core.capital_store import CapitalStore
@@ -81,47 +82,20 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         if strategy is None:
             raise TypeError("strategy is required; inject at app layer")
 
-        # 持倉狀態（Phase 1: position_qty 為單一事實來源；has_position 為 derived property）
-        self.position_qty = 0
-        self.position_dir = "Flat"  # Long / Short / Flat
-        self.entry_price = 0.0
-        self.entry_exchange_ts = 0
-        self.ticks_since_entry = 0
-        self.trailing_peak = 0.0
-        self.last_exit_time = 0
-        self.daily_pnl = 0.0
-        self.consecutive_loss = 0  # metric only; not a capital gate
-        self.block_new_entry = False  # ops / execution sticky (day-resettable)
-        # Progressive capital MDD book (not cleared on trading-day rollover).
-        # Durable across process restarts when capital_state_path is set.
+        # Phase B: position + single flight live on Book (max_qty=1 state machine).
+        # Access still works as host.position_qty / host.is_pending via __getattr__.
+        self._book = Book(pending_ioc_slippage=int(self._cfg.ioc_slippage_points))
+        # Progressive capital MDD (not day-scoped; durable via CapitalStore).
         self._capital_store = capital_store or CapitalStore(
             getattr(runtime_config, "capital_state_path", "") or ""
         )
         self._capital = CapitalRiskState()
         self._trading_date: datetime.date | None = None
 
-        # 下單狀態
-        self.is_pending = False
-        self.pending_intent: str | None = None
-        self.exit_pending = False
-        self.pending_trade = None
-        self.pending_order_id: str | None = None
-        self.pending_since = 0.0  # system time; relative pending timeout only
-        self.pending_exchange_ts = 0
-        self.pending_qty = 0
-        self.pending_signal_price = 0.0
-        self.pending_limit_price = 0.0
-        self.pending_exit_reason = ""
-        self.pending_ioc_slippage = self._cfg.ioc_slippage_points
-        self.pending_market = False  # P0-5: current pending is an emergency market order
         # P0-5: a stop-loss IOC missed → escalate to a kernel-owned market flatten.
         self._stop_market_flatten_request = False
-        self.pending_episode_id: str = ""
-        self.pending_signal_id: str = ""
         self._next_signal_seq: int = 0
         self._current_signal_date: str = ""
-        self.filled_qty = 0  # P2-1: 累計部分成交；IOC 結束前不全解鎖；多口管理前置（Mock+單測）
-        self._pending_exit_pnl = 0.0  # exit IOC 逐筆成交累積 PnL（FILL_AUDIT 用）
         self._api_connected = True
         self._disconnect_since = 0.0
         self._disconnect_count_today = 0
@@ -131,7 +105,6 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._next_relogin_at = 0.0
         self._exit_order_retry_count = 0
         self._exit_order_retry_at = 0.0
-        self._pending_action: str | None = None
         # Staged CRITICAL alert text produced under lock (e.g. orphan deal,
         # position drift); sent outside lock to avoid network I/O on hot path.
         self._staged_critical_alert: str | None = None
@@ -198,6 +171,24 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         # Load-time re-eval / persist may stage CRITICAL with no order path yet.
         self._flush_staged_critical_alert()
 
+    def __getattr__(self, name: str) -> Any:
+        # Forward Book-owned trading state (position + flight).
+        if name != "_book" and name in BOOK_FIELD_NAMES:
+            book = self.__dict__.get("_book")
+            if book is not None:
+                return getattr(book, name)
+        raise AttributeError(
+            f"{type(self).__name__!s} object has no attribute {name!r}"
+        )
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name in BOOK_FIELD_NAMES:
+            book = self.__dict__.get("_book")
+            if book is not None:
+                setattr(book, name, value)
+                return
+        object.__setattr__(self, name, value)
+
     def _call_api(self, fn, *args, **kwargs):
         """Helper to serialize Shioaji mutable calls under _api_lock."""
         with self._api_lock:
@@ -205,8 +196,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
 
     @property
     def has_position(self) -> bool:
-        """Derived from position_qty (single source of truth for Phase 1+)."""
-        return self.position_qty > 0
+        """Derived from Book.position_qty (single source of truth for Phase 1+)."""
+        return self._book.has_position
 
     @property
     def capital_frozen(self) -> bool:
@@ -995,24 +986,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
     def _clear_pending(self, *, watch_late_fill: bool = False):
         if watch_late_fill:
             self._record_cleared_pending()
-        self.is_pending = False
-        self.pending_intent = None
-        self.exit_pending = False
-        self.pending_trade = None
-        self.pending_order_id = None
-        self.pending_since = 0.0
-        self.pending_exchange_ts = 0
-        self.pending_qty = 0
-        self.pending_signal_price = 0.0
-        self.pending_limit_price = 0.0
-        self.pending_exit_reason = ""
-        self.pending_ioc_slippage = self._cfg.ioc_slippage_points
-        self.pending_market = False
-        self.pending_episode_id = ""
-        self.pending_signal_id = ""
-        self.filled_qty = 0
-        self._pending_exit_pnl = 0.0
-        self._pending_action = None
+        self._book.clear_flight()
+        self.pending_ioc_slippage = int(self._cfg.ioc_slippage_points)
         self._exit_order_retry_count = 0
         self._exit_order_retry_at = 0.0
         # P0-5: clearing pending also exits the SETTLING window. ``_position_unconfirmed``

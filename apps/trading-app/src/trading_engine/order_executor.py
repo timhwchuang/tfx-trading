@@ -231,9 +231,7 @@ class OrderExecutorMixin:
         ``clear_capital_risk()``, empty ``capital_state_path``, or deleting
         the capital JSON before start.
         """
-        self.daily_pnl = 0.0
-        self.block_new_entry = False
-        self.consecutive_loss = 0
+        self._book.reset_day_ops()
         self._disconnect_count_today = 0
         # P0-5: lift HALT on trading-day rollover (operator-equivalent reset).
         self._position_unconfirmed = False
@@ -990,10 +988,7 @@ class OrderExecutorMixin:
                     total_pnl,
                 )
                 return True
-            self.position_dir = "Flat"
-            self.entry_price = 0.0
-            self.trailing_peak = 0.0
-            self._clear_entry_tracking()
+            self._book.clear_position()
             logger.info(
                 "平倉完成 | PnL=%.1f | 今日=%.1f | 累進=%.1f | DD=%.1f | 連虧=%d",
                 total_pnl,
