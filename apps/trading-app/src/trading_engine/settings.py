@@ -13,8 +13,8 @@ class Settings:
     product_code: str
 
     cooldown_sec: int
+    # DEPRECATED as capital gates (Host ignores both); YAML/compat only.
     max_daily_loss_points: int
-    # DEPRECATED as capital gate (Host ignores); YAML/compat only.
     max_consecutive_loss: int
     pending_timeout_sec: int
     ioc_slippage_points: int

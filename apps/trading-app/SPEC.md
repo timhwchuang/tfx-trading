@@ -60,11 +60,13 @@ flowchart TD
 
 | 模組 | 擁有狀態 | 做什麼 | 不做什麼 |
 |------|----------|--------|----------|
-| **TradingEngine** | lock、strategy、ports | `on_tick` 順序、組 `RiskGate`、`run/start` | 堆業務欄位（漸進收斂） |
+| **TradingEngine** | lock、strategy、ports | `on_tick` 順序、組 `RiskGate`、`run/start` | 堆業務欄位（狀態在 composition） |
 | **Session** | trading_date、session windows | 日切（**僅 ops**）、force-flatten 時刻 | 持倉、MDD |
-| **Book**（目標） | position + flight | 進場/出場/fill、`max_position_qty=1`、FILL_AUDIT | 連線、策略 alpha |
+| **Book** | position + flight | 進場/出場/fill、`max_position_qty=1`、FILL_AUDIT | 連線、策略 alpha |
 | **CapitalRisk** | realized / peak / frozen | 累進 MDD gate + **JSON 持久化** | 下單、部位 |
-| **Link / Integrity / Watchdog** | 連線 / settle-halt / no-tick | 重連、UNKNOWN→SETTLE、告警 | 資本帳、alpha |
+| **Link** | connected / reconnect / warmup | 重連、session 健康 | 資本帳 |
+| **Integrity** | SETTLING / HALT / reconcile | UNKNOWN→SETTLE、收斂 flatten | 策略 alpha |
+| **Ticks + WD methods** | last tick / no-tick counters | 到價 tick 計數；engine 上 WD 迴圈 | 改持倉 |
 | **Strategy** | 策略 episode | 回 `OrderSignal \| None` | 碰 broker / 資本帳 |
 | **AlertPort** | — | Telegram / CRITICAL | 決策 |
 | **ArchivePort** | — | tick/kbar 落盤（可選） | 風控 |
@@ -89,6 +91,7 @@ Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat
 | 路徑 | 職責 |
 |------|------|
 | `src/trading_engine/` | Host kernel |
+| `src/trading_engine/session.py` | SessionMixin：日切 / session windows / force-flatten 時刻 |
 | `src/trading_engine/book.py` | position + flight |
 | `src/trading_engine/connectivity.py` | link / reconnect |
 | `src/trading_engine/integrity.py` | SETTLING / HALT |
