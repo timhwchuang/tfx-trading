@@ -441,7 +441,7 @@ class TestEntryMissResume(unittest.TestCase):
         def _capture(msg, *args, **kwargs):
             logged.append(msg % args if args else str(msg))
 
-        with patch("trading_engine.order_executor.logger.info", side_effect=_capture):
+        with patch("trading_engine.orders.logutil.logger.info", side_effect=_capture):
             host.handle_order_event(
                 "FuturesDeal",
                 {

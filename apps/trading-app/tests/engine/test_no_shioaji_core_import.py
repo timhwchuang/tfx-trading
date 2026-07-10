@@ -15,6 +15,8 @@ _CORE_FILES = (
     _APP_ROOT / "src/trading_engine/engine.py",
     _APP_ROOT / "src/trading_engine/session.py",
     _APP_ROOT / "src/trading_engine/order_executor.py",
+    _APP_ROOT / "src/trading_engine/risk_gate.py",
+    *sorted((_APP_ROOT / "src/trading_engine/orders").glob("*.py")),
 )
 
 

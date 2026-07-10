@@ -14,7 +14,7 @@ class TestQtyMismatchGuard(unittest.TestCase):
         host = make_host()
         arm_pending_entry(host, qty=1)
 
-        with patch("trading_engine.order_executor.logger") as mock_log:
+        with patch("trading_engine.orders.fill.logger.warning") as mock_warning:
             msg = {
                 "price": "18010",
                 "quantity": 5,
@@ -24,7 +24,7 @@ class TestQtyMismatchGuard(unittest.TestCase):
             host.handle_order_event(FUTURES_DEAL, msg)
 
             self.assertEqual(host.position_qty, 5)
-            warning_text = " ".join(str(call) for call in mock_log.warning.call_args_list)
+            warning_text = " ".join(str(call) for call in mock_warning.call_args_list)
             self.assertIn("超過 pending", warning_text)
 
 

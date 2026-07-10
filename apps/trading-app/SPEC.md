@@ -61,7 +61,7 @@ flowchart TD
 
 | 模組 | 擁有狀態 | 做什麼 | 不做什麼 |
 |------|----------|--------|----------|
-| **TradingEngine** | lock、strategy、ports | `on_tick` 順序、組 `RiskGate`、`run/start` | 堆業務欄位（狀態在 composition） |
+| **TradingEngine** | lock、strategy、ports | `on_tick` 順序、組 `RiskGate`、`run` | 堆業務欄位；live 用 `start_live_session` 非 `engine.start` |
 | **Session** | trading_date、session windows | login / CA / contract / 日切 ops 時刻 | broker 持倉 I/O、MDD |
 | **Book** | position + flight | **唯一**持倉 mutation API、`to_position_snapshot`、`max_qty=1` | 連線、策略 alpha、broker I/O |
 | **PositionSync** | —（寫 Book） | `list_positions` → adopt broker 真相 | 策略決策、session 日曆 |
@@ -106,6 +106,10 @@ Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat
 | `src/trading_engine/integrity.py` | SETTLING / HALT state |
 | `src/trading_engine/ticks.py` | tick counters |
 | `src/trading_engine/tick_watchdog.py` | no-tick / clock skew / type summary |
+| `src/trading_engine/risk_gate.py` | `build_risk_gate` RiskAssembler |
+| `src/trading_engine/orders/` | order pipeline mixins (Wave 3) |
+| `src/trading_engine/order_executor.py` | facade → `orders.OrderExecutorMixin` |
+| `src/integrations/live_session.py` | live bootstrap entry (not on engine) |
 | `src/trading_engine/core/risk.py` | `CapitalRiskState` |
 | `src/trading_engine/core/capital_store.py` | 累進資本帳 JSON 原子讀寫 |
 | `src/trading_engine/core/audit/fill_audit.py` | 進出損益 FILL_AUDIT |
@@ -242,7 +246,7 @@ Gap 有持倉 → sticky force flatten。
 | **B** | Book 封裝（持倉+flight，`trading_engine/book.py`） | **done** |
 | **C** | Link / Integrity / Tick 狀態收攏；`on_tick` 閱讀地圖 | **done** |
 | **D** | SSOT 定稿、legacy 標記、deprecated 文件化 | **done** |
-| **E** | 行為收斂：position domain + 線性 orchestrator（分 Wave） | **Wave 0–2 done**；3 pending |
+| **E** | 行為收斂：position domain + 線性 orchestrator（分 Wave） | **Wave 0–3 done** |
 
 ### Phase B notes
 
@@ -272,9 +276,9 @@ Gap 有持倉 → sticky force flatten。
 - Naming: `RiskGate.block_new_entry` = **composed** entry block; raw ops latch is `Book.block_new_entry`; use `capital_frozen` + `max_mdd_points` for capital.
 - Kernel detail/history: [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md) defers to this SPEC for product SSOT.
 
-### Phase E notes (Wave 0–2)
+### Phase E notes (Wave 0–3)
 
 - **Wave 0**: reconnect alert 文案去 ATR；engine 移除 `build_*_audit` wrapper；`trailing_peak` 標 legacy bag。
 - **Wave 1**: `Book` mutation API；`position_sync.py`；`reconcile.py`；Session 不再擁有持倉讀寫。
-- **Wave 2**: `connectivity_ops.py`（disconnect / reconnect / session WD / warmup）；`tick_watchdog.py`（arrival / no-tick / clock skew / type summary）；`engine._timeout_loop` 為委派列表。
-- **Pending Wave 3**: order pipeline 切塊；`start()` 外移 live；RiskAssembler。
+- **Wave 2**: `connectivity_ops.py`；`tick_watchdog.py`；`engine._timeout_loop` 委派列表。
+- **Wave 3**: `orders/*` pipeline mixins（flight/place/callbacks/fill/flatten/settle/strategy_host）；`risk_gate.build_risk_gate`；`engine.start()` 移除（live → `integrations.live_session.start_live_session`）；`order_executor` 為 facade re-export。

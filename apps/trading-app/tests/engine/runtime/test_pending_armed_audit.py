@@ -30,7 +30,7 @@ class TestPendingArmedAudit(unittest.TestCase):
         def _capture(msg, *args, **kwargs):
             logged.append(msg % args if args else str(msg))
 
-        with patch("trading_engine.order_executor.logger.info", side_effect=_capture):
+        with patch("trading_engine.orders.logutil.logger.info", side_effect=_capture):
             host.place_order(
                 OrderSignal(
                     "Buy",
@@ -66,7 +66,7 @@ class TestPendingArmedAudit(unittest.TestCase):
         def _capture(msg, *args, **kwargs):
             logged.append(msg % args if args else str(msg))
 
-        with patch("trading_engine.order_executor.logger.info", side_effect=_capture):
+        with patch("trading_engine.orders.logutil.logger.info", side_effect=_capture):
             host.place_order(
                 OrderSignal(
                     "Buy",
@@ -106,7 +106,7 @@ class TestPendingArmedAudit(unittest.TestCase):
             "trade_id": "OID-backfill",
         }
 
-        with patch("trading_engine.order_executor.logger.info", side_effect=_capture):
+        with patch("trading_engine.orders.logutil.logger.info", side_effect=_capture):
             host.handle_order_event(FUTURES_ORDER, order_msg)
 
         armed_lines = [
@@ -135,7 +135,7 @@ class TestPendingArmedAudit(unittest.TestCase):
             "trade_id": "OID-deal-first",
         }
 
-        with patch("trading_engine.order_executor.logger.info", side_effect=_capture):
+        with patch("trading_engine.orders.logutil.logger.info", side_effect=_capture):
             host.handle_order_event(FUTURES_DEAL, deal_msg)
 
         armed_lines = [

@@ -40,6 +40,7 @@ from trading_engine.reconcile import (
     is_severe_drift,
     severe_drift_confirmed,
 )
+from trading_engine.risk_gate import build_risk_gate
 from trading_engine.session import SessionMixin
 from trading_engine.tick_watchdog import TickWatchdogMixin
 from trading_engine.ticks import TICK_FIELD_NAMES, TickState
@@ -315,39 +316,8 @@ class TradingEngine(
             )
 
     def _risk_gate(self, ts: int, dt: datetime.datetime) -> RiskGate:
-        windows = self._active_session_windows(dt)
-        if windows is None:
-            # Inter-session gap (e.g. 13:45–15:00, 05:00–08:45): if still
-            # holding, keep force_flatten sticky so kernel converges to flat.
-            after_flatten = self.position_qty > 0
-            force_flatten = self.position_qty > 0
-        else:
-            start, end, flatten, force = windows
-            after_flatten = self._calendar.is_at_or_after(
-                dt, flatten, session_start=start, session_end=end
-            )
-            force_flatten = self._calendar.is_at_or_after(
-                dt, force, session_start=start, session_end=end
-            )
-        return RiskGate(
-            api_connected=self._api_connected,
-            is_pending=self.is_pending,
-            exit_pending=self.exit_pending,
-            cooldown_active=ts - self.last_exit_time < self._cfg.cooldown_sec,
-            in_trading_session=self.is_trading_session(dt),
-            block_new_entry=self.entry_blocked,
-            consecutive_loss=self.consecutive_loss,
-            daily_pnl=self.daily_pnl,
-            after_flatten_time=after_flatten,
-            force_flatten=force_flatten,
-            reconnect_warmup_active=self._is_reconnect_warmup_active(ts),
-            settling=self._settling,
-            position_unconfirmed=self._position_unconfirmed,
-            capital_frozen=self._capital.capital_frozen,
-            realized_pnl=self._capital.realized_pnl,
-            equity_peak=self._capital.equity_peak,
-            current_drawdown=self._capital.current_drawdown,
-        )
+        """Delegate to ``risk_gate.build_risk_gate`` (Wave 3 RiskAssembler)."""
+        return build_risk_gate(self, ts, dt)
 
     def _parse_tick_locked(self, tick: Any) -> tuple[int, float, int, int, int]:
         """Parse tick inside lock; infer buy/sell from price when type0."""
@@ -597,8 +567,3 @@ class TradingEngine(
                     logger.warning("logout 失敗: %s", e)
             shutdown_async_logging()
 
-    def start(self) -> None:
-        """Live Shioaji convenience entry (delegates to ShioajiLiveBootstrap)."""
-        from trading_engine.adapters.shioaji_live import ShioajiLiveBootstrap
-
-        ShioajiLiveBootstrap(self).start_live()

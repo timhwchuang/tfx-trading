@@ -14,6 +14,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **Phase E Wave 3 order pipeline + RiskAssembler（2026-07-10）**：`order_executor` 拆為 `orders/{flight,place,callbacks,fill,flatten,settle,strategy_host}` 複合 mixin；共享 `orders/logutil` logger；`risk_gate.build_risk_gate`；移除 `TradingEngine.start()`（live 既有 `start_live_session`）；engine 僅 `run`。
 - **Phase E Wave 2 connectivity + tick WD（2026-07-10）**：`connectivity_ops.py`（`ReconnectOutcome`、disconnect/reconnect/session WD/warmup）；`tick_watchdog.py`（arrival/no-tick/clock skew/type summary）；engine mixin MRO 委派；`_timeout_loop` 分區註解為委派列表。
 - **Phase E review follow-up（2026-07-10）**：嚴重 drift 單次 `sync` + 單一 CRITICAL（`send_alert=False`）；`set_qty_dir(0)` 走 `clear_position`；刪 dead entry-tracking / `_exit_leg_pnl` wrapper；`note_tick_while_held` / `mark_exit_time`；`PositionSnapshot` frozen；`severe_drift_confirmed` unit tests。
 - **Phase E Wave 0–1 position domain（2026-07-10）**：`Book` 成為持倉 mutation SSOT（`apply_entry_fill` / `apply_exit_leg` / `adopt_broker_position` / `to_position_snapshot`）；broker 讀寫抽至 `position_sync.py`；週期 drift 抽至 `reconcile.py`；`SessionMixin` 只留 login/CA/contract。Engine 移除 `build_*_audit` wrapper；reconnect alert 改 `subscribe/trade`（不再寫 ATR）。`trailing_peak` 文件化為 legacy bag（不做 trailing 邏輯）。
