@@ -26,9 +26,9 @@ def _pos(qty: int, direction: str, price: float = 100.0) -> SimpleNamespace:
 class TestFreezeOnUncertainty(unittest.TestCase):
     def test_settling_rejects_new_entry_and_exit(self) -> None:
         host = make_host()
-        host._settling = True
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._integrity._settling = True
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         entry = OrderSignal("Buy", 1, 100.0, "entry", exchange_ts=1)
         exit_ = OrderSignal("Sell", 1, 100.0, "exit", exchange_ts=1)
         self.assertFalse(host._validate_order_signal(entry))
@@ -36,9 +36,9 @@ class TestFreezeOnUncertainty(unittest.TestCase):
 
     def test_unconfirmed_rejects_new_entry_and_exit(self) -> None:
         host = make_host()
-        host._position_unconfirmed = True
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._integrity._position_unconfirmed = True
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         entry = OrderSignal("Buy", 1, 100.0, "entry", exchange_ts=1)
         exit_ = OrderSignal("Sell", 1, 100.0, "exit", exchange_ts=1)
         self.assertFalse(host._validate_order_signal(entry))
@@ -46,10 +46,10 @@ class TestFreezeOnUncertainty(unittest.TestCase):
 
     def test_kernel_converging_flag_bypasses_freeze_for_exit(self) -> None:
         host = make_host()
-        host._position_unconfirmed = True
-        host.position_qty = 1
-        host.position_dir = "Long"
-        host._kernel_converging = True
+        host._integrity._position_unconfirmed = True
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
+        host._integrity._kernel_converging = True
         exit_ = OrderSignal("Sell", 1, 100.0, "exit", exchange_ts=1)
         self.assertTrue(host._validate_order_signal(exit_))
 
@@ -62,13 +62,13 @@ class TestLateFillAttribution(unittest.TestCase):
         host = make_host()
         host._cfg.simulation = True
         host.contract = MagicMock(code="TXFR1")
-        host.position_qty = 1
-        host.position_dir = "Long"
-        host.entry_price = 100.0
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
+        host._book.entry_price = 100.0
         arm_pending_exit(host, order_id="X", signal_price=100.0)
         # Enter settling; broker is momentarily unreadable so it won't resolve.
-        host._settling = True
-        host._settle_since = host._clock()
+        host._integrity._settling = True
+        host._integrity._settle_since = host._clock()
         host.api.list_positions.side_effect = RuntimeError("down")
 
         # The delayed deal callback for the SAME pending order finally arrives.
@@ -77,10 +77,10 @@ class TestLateFillAttribution(unittest.TestCase):
             {"price": 99.0, "quantity": 1, "action": "Sell", "trade_id": "X"},
         )
 
-        self.assertEqual(host.position_qty, 0)
-        self.assertFalse(host.is_pending)
-        self.assertFalse(host._settling)
-        self.assertFalse(host._position_unconfirmed)
+        self.assertEqual(host._book.position_qty, 0)
+        self.assertFalse(host._book.is_pending)
+        self.assertFalse(host._integrity._settling)
+        self.assertFalse(host._integrity._position_unconfirmed)
 
     def test_mismatched_deal_while_pending_halts_and_enters_settling(self) -> None:
         """A fill for a different order while pending → HALT, but it must also
@@ -91,18 +91,18 @@ class TestLateFillAttribution(unittest.TestCase):
         host.api.futopt_account = MagicMock()
         host.api.list_positions.return_value = [_pos(1, "Buy")]
         arm_pending_exit(host, order_id="A")
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
 
         host.handle_order_event(
             "FuturesDeal",
             {"price": 100.0, "quantity": 1, "action": "Buy", "trade_id": "B"},
         )
 
-        self.assertTrue(host._position_unconfirmed)
-        self.assertTrue(host.block_new_entry)
-        self.assertTrue(host._settling)
-        self.assertTrue(host.is_pending)
+        self.assertTrue(host._integrity._position_unconfirmed)
+        self.assertTrue(host._book.block_new_entry)
+        self.assertTrue(host._integrity._settling)
+        self.assertTrue(host._book.is_pending)
 
     def test_orphan_deal_with_no_pending_halts(self) -> None:
         host = make_host()
@@ -115,8 +115,8 @@ class TestLateFillAttribution(unittest.TestCase):
             {"price": 100.0, "quantity": 1, "action": "Buy", "trade_id": "Z"},
         )
 
-        self.assertTrue(host._position_unconfirmed)
-        self.assertTrue(host.block_new_entry)
+        self.assertTrue(host._integrity._position_unconfirmed)
+        self.assertTrue(host._book.block_new_entry)
 
 
 class TestSettleResolution(unittest.TestCase):
@@ -124,12 +124,12 @@ class TestSettleResolution(unittest.TestCase):
         host._cfg.simulation = True
         host.contract = MagicMock(code="TXFR1")
         host.api.futopt_account = MagicMock()
-        host.position_qty = 1
-        host.position_dir = "Long"
-        host.entry_price = 100.0
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
+        host._book.entry_price = 100.0
         arm_pending_exit(host, order_id="X", signal_price=100.0)
-        host.pending_trade = MagicMock()
-        host.pending_since = host._clock() - host._cfg.pending_timeout_sec - 1
+        host._book.pending_trade = MagicMock()
+        host._book.pending_since = host._clock() - host._cfg.pending_timeout_sec - 1
 
     def test_exit_nofill_consistent_keeps_settling(self) -> None:
         host = make_host()
@@ -138,11 +138,11 @@ class TestSettleResolution(unittest.TestCase):
 
         host._check_pending_timeout()
 
-        self.assertTrue(host.is_pending)
-        self.assertTrue(host._settling)
-        self.assertFalse(host._position_unconfirmed)
-        self.assertFalse(host.block_new_entry)
-        self.assertEqual(host.position_qty, 1)
+        self.assertTrue(host._book.is_pending)
+        self.assertTrue(host._integrity._settling)
+        self.assertFalse(host._integrity._position_unconfirmed)
+        self.assertFalse(host._book.block_new_entry)
+        self.assertEqual(host._book.position_qty, 1)
 
     def test_exit_filled_confirmed_resolves_to_flat(self) -> None:
         host = make_host()
@@ -151,9 +151,9 @@ class TestSettleResolution(unittest.TestCase):
 
         host._check_pending_timeout()
 
-        self.assertFalse(host.is_pending)
-        self.assertFalse(host._position_unconfirmed)
-        self.assertEqual(host.position_qty, 0)
+        self.assertFalse(host._book.is_pending)
+        self.assertFalse(host._integrity._position_unconfirmed)
+        self.assertEqual(host._book.position_qty, 0)
 
     def test_unreadable_broker_settles_then_halts_after_window(self) -> None:
         host = make_host()
@@ -162,18 +162,18 @@ class TestSettleResolution(unittest.TestCase):
         host.api.list_positions.side_effect = RuntimeError("broker down")
 
         host._check_pending_timeout()
-        self.assertTrue(host._settling)
-        self.assertTrue(host.is_pending)
-        self.assertFalse(host.block_new_entry)
+        self.assertTrue(host._integrity._settling)
+        self.assertTrue(host._book.is_pending)
+        self.assertFalse(host._book.block_new_entry)
 
-        host._settle_since = host._clock() - host._cfg.settle_timeout_sec - 1
+        host._integrity._settle_since = host._clock() - host._cfg.settle_timeout_sec - 1
         host._settle_via_reconcile()
 
-        self.assertTrue(host._position_unconfirmed)
-        self.assertTrue(host.block_new_entry)
+        self.assertTrue(host._integrity._position_unconfirmed)
+        self.assertTrue(host._book.block_new_entry)
         # Single-flight: an EXIT/flatten may still be working at the broker, so
         # HALT must NOT drop its order_id (would let convergence double-send).
-        self.assertTrue(host.is_pending)
+        self.assertTrue(host._book.is_pending)
 
     def test_debounce_requires_consecutive_consistent_reads(self) -> None:
         host = make_host()
@@ -189,14 +189,14 @@ class TestSettleResolution(unittest.TestCase):
 class TestCeilingBackstopAndConverge(unittest.TestCase):
     def _arm_reconcile(self, host, *, kernel_qty, kernel_dir, broker_positions):
         host._alerts = MagicMock()
-        host._api_connected = True
+        host._link._api_connected = True
         host.contract = MagicMock(code="TXFR1")
-        host._last_tick_exchange_dt = datetime.datetime(2026, 6, 24, 10, 0, 0)
-        host.position_qty = kernel_qty
-        host.position_dir = kernel_dir
+        host._ticks._last_tick_exchange_dt = datetime.datetime(2026, 6, 24, 10, 0, 0)
+        host._book.position_qty = kernel_qty
+        host._book.position_dir = kernel_dir
         host.api.futopt_account = MagicMock()
         host.api.list_positions.return_value = broker_positions
-        host._last_reconcile_wall = 0.0
+        host._integrity._last_reconcile_wall = 0.0
         host._clock = lambda: 10_000.0
 
     def test_reconcile_ceiling_breach_halts_then_converges_single_exit(self) -> None:
@@ -212,10 +212,10 @@ class TestCeilingBackstopAndConverge(unittest.TestCase):
         host._check_position_reconcile()
 
         # Broker holds 2 (> kernel 0 and > ceiling 1) -> HALT + adopt truth.
-        self.assertTrue(host._position_unconfirmed)
-        self.assertTrue(host.block_new_entry)
-        self.assertEqual(host.position_qty, 2)
-        self.assertEqual(host.position_dir, "Long")
+        self.assertTrue(host._integrity._position_unconfirmed)
+        self.assertTrue(host._book.block_new_entry)
+        self.assertEqual(host._book.position_qty, 2)
+        self.assertEqual(host._book.position_dir, "Long")
 
         # Convergence sends exactly ONE flatten sized to the held qty.
         host._maybe_converge_flatten()
@@ -223,9 +223,9 @@ class TestCeilingBackstopAndConverge(unittest.TestCase):
         self.assertEqual(placed[0].intent, "exit")
         self.assertEqual(placed[0].action, "Sell")
         self.assertEqual(placed[0].qty, 2)
-        self.assertTrue(host.is_pending)
+        self.assertTrue(host._book.is_pending)
         # Convergence returns to SETTLING so the settle loop polls for its outcome.
-        self.assertTrue(host._settling)
+        self.assertTrue(host._integrity._settling)
 
         # While that convergence order is in flight, no second flatten is sent.
         host._maybe_converge_flatten()
@@ -234,21 +234,21 @@ class TestCeilingBackstopAndConverge(unittest.TestCase):
     def test_converge_lifts_halt_when_confirmed_flat(self) -> None:
         host = make_host()
         host._alerts = MagicMock()
-        host._api_connected = True
+        host._link._api_connected = True
         host.contract = MagicMock(code="TXFR1")
         host.api.futopt_account = MagicMock()
         host.api.list_positions.return_value = []  # broker confirmed flat
         host._cfg.reconcile_confirm_reads = 1
-        host._position_unconfirmed = True
-        host.block_new_entry = True
-        host.position_qty = 0
-        host.position_dir = "Flat"
+        host._integrity._position_unconfirmed = True
+        host._book.block_new_entry = True
+        host._book.position_qty = 0
+        host._book.position_dir = "Flat"
 
         host._maybe_converge_flatten()
 
-        self.assertFalse(host._position_unconfirmed)
+        self.assertFalse(host._integrity._position_unconfirmed)
         # Entries stay blocked until daily reset / manual clear.
-        self.assertTrue(host.block_new_entry)
+        self.assertTrue(host._book.block_new_entry)
 
     def test_converge_single_flight_no_second_order_on_redetect(self) -> None:
         """While a convergence flatten is in flight, a re-detected extra position
@@ -265,14 +265,14 @@ class TestCeilingBackstopAndConverge(unittest.TestCase):
         host._check_position_reconcile()  # HALT + adopt Long 2
         host._maybe_converge_flatten()  # exactly ONE flatten, now pending
         self.assertEqual(len(placed), 1)
-        self.assertTrue(host.is_pending)
+        self.assertTrue(host._book.is_pending)
 
         # Re-running reconcile / convergence while the flatten is live must not
         # issue another order — the live order keeps its order_id (single-flight).
         host._check_position_reconcile()
         host._maybe_converge_flatten()
         self.assertEqual(len(placed), 1)
-        self.assertTrue(host.is_pending)
+        self.assertTrue(host._book.is_pending)
 
 
 class TestEntryNeverClearsOnFlat(unittest.TestCase):
@@ -281,14 +281,14 @@ class TestEntryNeverClearsOnFlat(unittest.TestCase):
         flat broker snapshot (a stale flat read is not proof of non-fill)."""
         host = make_host()
         arm_pending_entry(host, order_id="E1", signal_price=18000.0)
-        host.position_qty = 0
-        host.position_dir = "Flat"
+        host._book.position_qty = 0
+        host._book.position_dir = "Flat"
 
         resolved = host._apply_pending_broker_truth(0, "Flat")
 
         self.assertFalse(resolved)  # keep settling
-        self.assertTrue(host.is_pending)  # order_id retained, never re-armed
-        self.assertFalse(host._position_unconfirmed)
+        self.assertTrue(host._book.is_pending)  # order_id retained, never re-armed
+        self.assertFalse(host._integrity._position_unconfirmed)
 
 
 class TestIncidentReplayNeverExceedsOneLot(unittest.TestCase):
@@ -300,7 +300,7 @@ class TestIncidentReplayNeverExceedsOneLot(unittest.TestCase):
     def test_late_entry_fill_after_miss_orphan_converges_single_flatten(self) -> None:
         host = make_host()
         host._alerts = MagicMock()
-        host._api_connected = True
+        host._link._api_connected = True
         host.contract = MagicMock(code="TXFR1")
         host.api.futopt_account = MagicMock()
         host._order_sync_mode = True
@@ -315,30 +315,30 @@ class TestIncidentReplayNeverExceedsOneLot(unittest.TestCase):
         host.api.list_positions.side_effect = lambda account=None: broker_state["pos"]
 
         def net() -> int:
-            return abs(host.position_qty)
+            return abs(host._book.position_qty)
 
         arm_pending_entry(host, order_id="E1", signal_price=18000.0)
-        host.pending_since = 0.0
-        host.position_qty = 0
-        host.position_dir = "Flat"
+        host._book.pending_since = 0.0
+        host._book.position_qty = 0
+        host._book.position_dir = "Flat"
 
         clock["t"] = host._cfg.pending_timeout_sec + 1
         host._check_pending_timeout()
-        self.assertTrue(host._settling)
-        self.assertTrue(host.is_pending)
+        self.assertTrue(host._integrity._settling)
+        self.assertTrue(host._book.is_pending)
         self.assertLessEqual(net(), 1)
 
         for _ in range(2):
             host._settle_via_reconcile()
-            self.assertTrue(host.is_pending)
+            self.assertTrue(host._book.is_pending)
             self.assertLessEqual(net(), 1)
 
         # Stable flat past confirm window → MISSED (resume, no sticky day-HALT).
-        clock["t"] = host._settle_since + host._cfg.entry_miss_confirm_sec + 1
+        clock["t"] = host._integrity._settle_since + host._cfg.entry_miss_confirm_sec + 1
         host._settle_via_reconcile()
-        self.assertFalse(host.is_pending)
-        self.assertFalse(host._position_unconfirmed)
-        self.assertFalse(host.block_new_entry)
+        self.assertFalse(host._book.is_pending)
+        self.assertFalse(host._integrity._position_unconfirmed)
+        self.assertFalse(host._book.block_new_entry)
         self.assertLessEqual(net(), 1)
 
         # Late fill arrives as orphan → HALT (backstop), then single convergence.
@@ -346,8 +346,8 @@ class TestIncidentReplayNeverExceedsOneLot(unittest.TestCase):
             "FuturesDeal",
             {"price": 18000.0, "quantity": 1, "action": "Buy", "trade_id": "E1"},
         )
-        self.assertTrue(host._position_unconfirmed)
-        self.assertTrue(host.block_new_entry)
+        self.assertTrue(host._integrity._position_unconfirmed)
+        self.assertTrue(host._book.block_new_entry)
 
         broker_state["pos"] = [_pos(1, "Buy")]
         clock["t"] += host._cfg.reconcile_fast_sec + 1
@@ -355,7 +355,7 @@ class TestIncidentReplayNeverExceedsOneLot(unittest.TestCase):
         self.assertEqual(len(placed), 1)
         self.assertEqual(placed[0].action, "Sell")
         self.assertEqual(placed[0].qty, 1)
-        self.assertTrue(host.is_pending)
+        self.assertTrue(host._book.is_pending)
         self.assertLessEqual(net(), 1)
 
         host._maybe_converge_flatten()
@@ -365,10 +365,10 @@ class TestIncidentReplayNeverExceedsOneLot(unittest.TestCase):
         clock["t"] += host._cfg.reconcile_fast_sec + 1
         host._settle_via_reconcile()
         host._maybe_converge_flatten()
-        self.assertFalse(host.is_pending)
-        self.assertEqual(host.position_qty, 0)
-        self.assertFalse(host._position_unconfirmed)
-        self.assertTrue(host.block_new_entry)
+        self.assertFalse(host._book.is_pending)
+        self.assertEqual(host._book.position_qty, 0)
+        self.assertFalse(host._integrity._position_unconfirmed)
+        self.assertTrue(host._book.block_new_entry)
 
 
 class TestEntryMissResume(unittest.TestCase):
@@ -383,16 +383,16 @@ class TestEntryMissResume(unittest.TestCase):
         host.api.list_positions.return_value = []
         host._cfg.reconcile_confirm_reads = 1
         arm_pending_entry(host, order_id="E1")
-        host._settling = True
-        host._settle_since = host._clock() - host._cfg.entry_miss_confirm_sec - 1
+        host._integrity._settling = True
+        host._integrity._settle_since = host._clock() - host._cfg.entry_miss_confirm_sec - 1
 
         host._settle_via_reconcile()
 
-        self.assertFalse(host.is_pending)
-        self.assertFalse(host._settling)
-        self.assertFalse(host._position_unconfirmed)
-        self.assertFalse(host.block_new_entry)
-        self.assertEqual(host._consecutive_missed_entries, 1)
+        self.assertFalse(host._book.is_pending)
+        self.assertFalse(host._integrity._settling)
+        self.assertFalse(host._integrity._position_unconfirmed)
+        self.assertFalse(host._book.block_new_entry)
+        self.assertEqual(host._integrity._consecutive_missed_entries, 1)
 
     def test_late_entry_fill_adopted_resets_miss_counter(self) -> None:
         host = make_host()
@@ -401,18 +401,18 @@ class TestEntryMissResume(unittest.TestCase):
         host.api.list_positions.return_value = [_pos(1, "Buy")]
         host._cfg.reconcile_confirm_reads = 1
         arm_pending_entry(host, order_id="E1")
-        host._settling = True
-        host._settle_since = 0.0
-        host._consecutive_missed_entries = 2
-        host.position_qty = 0
-        host.position_dir = "Flat"
+        host._integrity._settling = True
+        host._integrity._settle_since = 0.0
+        host._integrity._consecutive_missed_entries = 2
+        host._book.position_qty = 0
+        host._book.position_dir = "Flat"
 
         host._settle_via_reconcile()
 
-        self.assertFalse(host.is_pending)
-        self.assertEqual(host.position_qty, 1)
-        self.assertEqual(host._consecutive_missed_entries, 0)
-        self.assertFalse(host._position_unconfirmed)
+        self.assertFalse(host._book.is_pending)
+        self.assertEqual(host._book.position_qty, 1)
+        self.assertEqual(host._integrity._consecutive_missed_entries, 0)
+        self.assertFalse(host._integrity._position_unconfirmed)
 
     def test_circuit_breaker_halts_after_consecutive_misses(self) -> None:
         host = make_host()
@@ -422,16 +422,16 @@ class TestEntryMissResume(unittest.TestCase):
         host.api.list_positions.return_value = []
         host._cfg.reconcile_confirm_reads = 1
         host._cfg.max_consecutive_missed_entries = 2
-        host._consecutive_missed_entries = 1
+        host._integrity._consecutive_missed_entries = 1
         arm_pending_entry(host, order_id="E2")
-        host._settling = True
-        host._settle_since = host._clock() - host._cfg.entry_miss_confirm_sec - 1
+        host._integrity._settling = True
+        host._integrity._settle_since = host._clock() - host._cfg.entry_miss_confirm_sec - 1
 
         host._settle_via_reconcile()
 
-        self.assertTrue(host._position_unconfirmed)
-        self.assertTrue(host.block_new_entry)
-        self.assertEqual(host._consecutive_missed_entries, 2)
+        self.assertTrue(host._integrity._position_unconfirmed)
+        self.assertTrue(host._book.block_new_entry)
+        self.assertEqual(host._integrity._consecutive_missed_entries, 2)
 
     def test_callback_latency_logged(self) -> None:
         host = make_host()
@@ -468,7 +468,7 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
     def _market_host(self):
         host = make_host()
         host._alerts = MagicMock()
-        host._api_connected = True
+        host._link._api_connected = True
         host.contract = MagicMock(code="TXFR1")
         host.api.futopt_account = MagicMock()
         host._order_sync_mode = True
@@ -476,9 +476,9 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
 
     def test_stop_loss_ioc_miss_escalates_to_market(self) -> None:
         host = self._market_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
-        host.entry_price = 18000.0
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
+        host._book.entry_price = 18000.0
         arm_pending_exit(host, order_id="X", exit_reason="stop_loss")
         placed: list[OrderSignal] = []
         host.place_order = lambda sig: placed.append(sig)
@@ -491,8 +491,8 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
                 "status": {"status": "Cancelled", "deal_quantity": 0, "id": "X"},
             },
         )
-        self.assertFalse(host.is_pending)  # cancelled → cleared
-        self.assertTrue(host._stop_market_flatten_request)
+        self.assertFalse(host._book.is_pending)  # cancelled → cleared
+        self.assertTrue(host._integrity._stop_market_flatten_request)
 
         # Kernel escalates to a single guaranteed-fill market flatten.
         host._maybe_emergency_market_flatten()
@@ -501,8 +501,8 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
         self.assertEqual(placed[0].action, "Sell")
         self.assertEqual(placed[0].qty, 1)
         self.assertEqual(placed[0].intent, "exit")
-        self.assertTrue(host.is_pending)
-        self.assertFalse(host._stop_market_flatten_request)
+        self.assertTrue(host._book.is_pending)
+        self.assertFalse(host._integrity._stop_market_flatten_request)
 
         # Single-flight: no second market order while the first is in flight.
         host._maybe_emergency_market_flatten()
@@ -511,23 +511,23 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
     def test_strategy_blocked_while_market_flatten_pending(self) -> None:
         """Bugbot: strategy must not re-arm limit stop between miss-clear and market."""
         host = self._market_host()
-        host.position_qty = 1
-        host.position_dir = "Short"
-        host._stop_market_flatten_request = True
-        host._settling = False
+        host._book.position_qty = 1
+        host._book.position_dir = "Short"
+        host._integrity._stop_market_flatten_request = True
+        host._integrity._settling = False
 
         sig = OrderSignal(
             "Buy", 1, 18000.0, "exit", exchange_ts=100, audit=None
         )
         self.assertFalse(host._validate_order_signal(sig))
 
-        host._kernel_converging = True
+        host._integrity._kernel_converging = True
         self.assertTrue(host._validate_order_signal(sig))
 
     def test_profit_exit_ioc_miss_does_not_escalate(self) -> None:
         host = self._market_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         arm_pending_exit(host, order_id="X", exit_reason="take_profit")
         placed: list[OrderSignal] = []
         host.place_order = lambda sig: placed.append(sig)
@@ -539,15 +539,15 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
                 "status": {"status": "Cancelled", "deal_quantity": 0, "id": "X"},
             },
         )
-        self.assertFalse(host._stop_market_flatten_request)
+        self.assertFalse(host._integrity._stop_market_flatten_request)
         host._maybe_emergency_market_flatten()
         self.assertEqual(len(placed), 0)  # profit exits keep limit-IOC retry
 
     def test_stop_escalation_disabled_when_config_off(self) -> None:
         host = self._market_host()
         host._cfg.emergency_market_orders = False
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         arm_pending_exit(host, order_id="X", exit_reason="stop_loss")
         placed: list[OrderSignal] = []
         host.place_order = lambda sig: placed.append(sig)
@@ -559,7 +559,7 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
                 "status": {"status": "Cancelled", "deal_quantity": 0, "id": "X"},
             },
         )
-        self.assertFalse(host._stop_market_flatten_request)
+        self.assertFalse(host._integrity._stop_market_flatten_request)
         host._maybe_emergency_market_flatten()
         self.assertEqual(len(placed), 0)
 
@@ -567,10 +567,10 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
         host = self._market_host()
         host.api.list_positions.return_value = [_pos(1, "Buy")]
         host._cfg.reconcile_confirm_reads = 1
-        host._position_unconfirmed = True
-        host.block_new_entry = True
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._integrity._position_unconfirmed = True
+        host._book.block_new_entry = True
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         placed: list[OrderSignal] = []
         host.place_order = lambda sig: placed.append(sig)
 
@@ -585,10 +585,10 @@ class TestEmergencyMarketEscalation(unittest.TestCase):
         host._cfg.emergency_market_orders = False
         host.api.list_positions.return_value = [_pos(1, "Buy")]
         host._cfg.reconcile_confirm_reads = 1
-        host._position_unconfirmed = True
-        host.block_new_entry = True
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._integrity._position_unconfirmed = True
+        host._book.block_new_entry = True
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         placed: list[OrderSignal] = []
         host.place_order = lambda sig: placed.append(sig)
 
@@ -606,46 +606,46 @@ class TestHaltNoConsistentClear(unittest.TestCase):
 
     def test_consistent_read_during_halt_keeps_flatten_pending(self) -> None:
         host = make_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         arm_pending_exit(host, order_id="F1", exit_reason="stop_loss", qty=1)
-        host._position_unconfirmed = True
-        host._settling = True
+        host._integrity._position_unconfirmed = True
+        host._integrity._settling = True
 
         # Broker still reports the pre-flatten position (report latency) — looks
         # 'consistent' with the kernel but the flatten is genuinely in flight.
         resolved = host._apply_pending_broker_truth(1, "Long")
 
         self.assertFalse(resolved)  # keep settling, do NOT infer-clear
-        self.assertTrue(host.is_pending)  # live flatten retained (single-flight)
-        self.assertEqual(host.pending_order_id, "F1")
+        self.assertTrue(host._book.is_pending)  # live flatten retained (single-flight)
+        self.assertEqual(host._book.pending_order_id, "F1")
 
     def test_consistent_read_never_infer_clears_exit(self) -> None:
         # L3 unchanged read must NOT clear exit pending (single-flight).
         host = make_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         arm_pending_exit(host, order_id="F1", exit_reason="take_profit", qty=1)
 
         resolved = host._apply_pending_broker_truth(1, "Long")
 
         self.assertFalse(resolved)
-        self.assertTrue(host.is_pending)
-        self.assertEqual(host.pending_order_id, "F1")
+        self.assertTrue(host._book.is_pending)
+        self.assertEqual(host._book.pending_order_id, "F1")
 
     def test_l3_unchanged_never_clears_even_if_halt_races(self) -> None:
         """L3 unchanged read never infer-clears exit pending (single-flight)."""
         host = make_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         arm_pending_exit(host, order_id="F1", exit_reason="stop_loss", qty=1)
-        host._settling = True
+        host._integrity._settling = True
 
         resolved = host._apply_pending_broker_truth(1, "Long")
 
         self.assertFalse(resolved)
-        self.assertTrue(host.is_pending)
-        self.assertEqual(host.pending_order_id, "F1")
+        self.assertTrue(host._book.is_pending)
+        self.assertEqual(host._book.pending_order_id, "F1")
 
 
 class TestExitMissResolve(unittest.TestCase):
@@ -657,58 +657,58 @@ class TestExitMissResolve(unittest.TestCase):
         host = make_host()
         self._arm(host)
         host._cfg.reconcile_confirm_reads = 1
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         arm_pending_exit(host, order_id="tp-1", exit_reason="take_profit", qty=1)
-        host._settling = True
-        host._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
+        host._integrity._settling = True
+        host._integrity._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
         host.api.list_positions.return_value = [_pos(1, "Buy")]
 
         host._settle_via_reconcile()
 
-        self.assertFalse(host.is_pending)
-        self.assertFalse(host._stop_market_flatten_request)
+        self.assertFalse(host._book.is_pending)
+        self.assertFalse(host._integrity._stop_market_flatten_request)
 
     def test_exit_miss_stop_loss_escalates_market(self) -> None:
         host = make_host()
         self._arm(host)
         host._cfg.reconcile_confirm_reads = 1
-        host.position_qty = 1
-        host.position_dir = "Short"
+        host._book.position_qty = 1
+        host._book.position_dir = "Short"
         arm_pending_exit(host, order_id="sl-1", exit_reason="stop_loss", qty=1)
-        host._settling = True
-        host._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
+        host._integrity._settling = True
+        host._integrity._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
         host.api.list_positions.return_value = [_pos(1, "Sell")]
 
         host._settle_via_reconcile()
 
-        self.assertFalse(host.is_pending)
-        self.assertTrue(host._stop_market_flatten_request)
+        self.assertFalse(host._book.is_pending)
+        self.assertTrue(host._integrity._stop_market_flatten_request)
 
     def test_exit_miss_blocks_strategy_before_market_flatten(self) -> None:
         host = make_host()
         self._arm(host)
         host._cfg.reconcile_confirm_reads = 1
-        host.position_qty = 1
-        host.position_dir = "Short"
+        host._book.position_qty = 1
+        host._book.position_dir = "Short"
         arm_pending_exit(host, order_id="sl-2", exit_reason="stop_loss", qty=1)
-        host._settling = True
-        host._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
+        host._integrity._settling = True
+        host._integrity._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
         host.api.list_positions.return_value = [_pos(1, "Sell")]
 
         host._settle_via_reconcile()
 
-        self.assertFalse(host.is_pending)
-        self.assertTrue(host._stop_market_flatten_request)
+        self.assertFalse(host._book.is_pending)
+        self.assertTrue(host._integrity._stop_market_flatten_request)
         sig = OrderSignal("Buy", 1, 18000.0, "exit", exchange_ts=200)
         self.assertFalse(host._validate_order_signal(sig))
 
     def test_late_deal_on_cleared_exit_halts(self) -> None:
         host = make_host()
         host._alerts = MagicMock()
-        host.position_qty = 0
-        host.position_dir = "Flat"
-        host._recent_cleared_orders.append(
+        host._book.position_qty = 0
+        host._book.position_dir = "Flat"
+        host._integrity._recent_cleared_orders.append(
             ("old-exit", PendingIntent.EXIT, host._clock())
         )
 
@@ -723,24 +723,24 @@ class TestExitMissResolve(unittest.TestCase):
                 }
             )
         self.assertTrue(needs_sync)
-        self.assertTrue(host._position_unconfirmed)
-        self.assertTrue(host.block_new_entry)
+        self.assertTrue(host._integrity._position_unconfirmed)
+        self.assertTrue(host._book.block_new_entry)
 
     def test_normal_fill_clear_does_not_register_for_late_deal_scan(self) -> None:
         """Bugbot: successful fill clear must not spuriously HALT on deal_records."""
         host = make_host()
         host._alerts = MagicMock()
-        host.position_qty = 1
-        host.position_dir = "Short"
+        host._book.position_qty = 1
+        host._book.position_dir = "Short"
         arm_pending_exit(host, order_id="filled-exit", exit_reason="stop_loss", qty=1)
-        host.filled_qty = 1
-        host._pending_exit_pnl = -5.0
+        host._book.filled_qty = 1
+        host._book._pending_exit_pnl = -5.0
 
         with host.lock:
             host._apply_deal_fill(18000.0, is_buy=True, deal_qty=1)
 
-        self.assertFalse(host.is_pending)
-        self.assertEqual(len(host._recent_cleared_orders), 0)
+        self.assertFalse(host._book.is_pending)
+        self.assertEqual(len(host._integrity._recent_cleared_orders), 0)
 
         host.api.order_deal_records = MagicMock(
             return_value=[
@@ -756,8 +756,8 @@ class TestExitMissResolve(unittest.TestCase):
         )
         host._reconcile_recent_cleared_deals()
 
-        self.assertFalse(host._position_unconfirmed)
-        self.assertFalse(host.block_new_entry)
+        self.assertFalse(host._integrity._position_unconfirmed)
+        self.assertFalse(host._book.block_new_entry)
         host._alerts.send.assert_not_called()
 
 

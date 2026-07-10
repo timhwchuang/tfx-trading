@@ -75,17 +75,17 @@ class TestBook(unittest.TestCase):
 
     def test_engine_forwards_book_fields(self):
         host = make_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         self.assertEqual(host._book.position_qty, 1)
         self.assertTrue(host.has_position)
-        host.is_pending = True
-        host.pending_intent = "entry"
+        host._book.is_pending = True
+        host._book.pending_intent = "entry"
         self.assertTrue(host._book.is_pending)
         host._book.reset_day_ops()
-        host.block_new_entry = True
+        host._book.block_new_entry = True
         host._book.reset_day_ops()
-        self.assertFalse(host.block_new_entry)
+        self.assertFalse(host._book.block_new_entry)
         snap = host._position_snapshot()
         self.assertTrue(snap.has_position)
         self.assertEqual(snap.qty, 1)

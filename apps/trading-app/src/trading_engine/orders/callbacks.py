@@ -52,7 +52,7 @@ class OrderCallbackMixin:
 
 
     def _matches_pending_order(self, msg: dict) -> bool:
-        expected = self.pending_order_id
+        expected = self._book.pending_order_id
         if not expected:
             return False
         actual = self._event_order_id(msg)
@@ -98,21 +98,21 @@ class OrderCallbackMixin:
             self._event_order_id(msg),
         )
 
-        if not self.is_pending:
+        if not self._book.is_pending:
             return
         actual_id = self._event_order_id(msg)
-        if not self.pending_order_id and actual_id:
+        if not self._book.pending_order_id and actual_id:
             # Backfill order_id from first callback if it was empty at place time (common in sim/PendingSubmit).
             # Re-emit armed with real id (to satisfy SPEC §5.3 and audit completeness).
-            self.pending_order_id = actual_id
+            self._book.pending_order_id = actual_id
             try:
                 exec_audit = ExecAudit(
                     event_type="pending_armed",
-                    ts=getattr(self, 'pending_exchange_ts', 0) or 0,
-                    signal_id=self.pending_signal_id,
-                    order_id=self.pending_order_id,
-                    limit_price=self.pending_limit_price,
-                    direction=self._pending_action or "",
+                    ts=self._book.pending_exchange_ts or 0,
+                    signal_id=self._book.pending_signal_id,
+                    order_id=self._book.pending_order_id,
+                    limit_price=self._book.pending_limit_price,
+                    direction=self._book._pending_action or "",
                 )
                 logger.info("EXEC_AUDIT %s (backfilled)", format_exec_audit(exec_audit))
             except Exception:
@@ -120,7 +120,7 @@ class OrderCallbackMixin:
         if not self._matches_pending_order(msg):
             logger.warning(
                 "忽略非當前委託狀態回報 | expected=%s got=%s",
-                self.pending_order_id,
+                self._book.pending_order_id,
                 actual_id,
             )
             return
@@ -133,12 +133,12 @@ class OrderCallbackMixin:
         if status in ("Cancelled", "Failed", "Inactive") or op_type in ("Cancel", "Delete"):
             deal_qty = int(msg.get("status", {}).get("deal_quantity", 0) or 0)
             if deal_qty == 0:
-                if self.pending_intent == PendingIntent.ENTRY:
+                if self._book.pending_intent == PendingIntent.ENTRY:
                     tag = "intent_cancelled"
                     if (
-                        self._pending_intent_cancel_exchange_dt is not None
+                        self._integrity._pending_intent_cancel_exchange_dt is not None
                         and self._calendar.is_opening_session_window(
-                            self._pending_intent_cancel_exchange_dt
+                            self._integrity._pending_intent_cancel_exchange_dt
                         )
                     ):
                         tag = "intent_cancelled_open_session"
@@ -155,22 +155,22 @@ class OrderCallbackMixin:
                     # escalate to a kernel-owned MARKET flatten (guaranteed fill).
                     if (
                         bool(self._cfg.emergency_market_orders)
-                        and self.pending_exit_reason in _STOP_LOSS_REASONS
-                        and self.position_qty > 0
+                        and self._book.pending_exit_reason in _STOP_LOSS_REASONS
+                        and self._book.position_qty > 0
                     ):
-                        self._stop_market_flatten_request = True
+                        self._integrity._stop_market_flatten_request = True
                         logger.warning(
                             "停損 IOC 未成交 → 安排市價平倉（emergency）| reason=%s",
-                            self.pending_exit_reason,
+                            self._book.pending_exit_reason,
                         )
                 # Emit EXEC cancel (Phase 2) - for non-happy cancel path coverage
                 try:
                     exec_audit = ExecAudit(
                         event_type="pending_cancelled",
-                        ts=int(self.pending_exchange_ts or 0),
-                        signal_id=self.pending_signal_id,
+                        ts=int(self._book.pending_exchange_ts or 0),
+                        signal_id=self._book.pending_signal_id,
                         tag=cancel_tag,
-                        order_id=self.pending_order_id or "",
+                        order_id=self._book.pending_order_id or "",
                     )
                     logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
                 except Exception:
@@ -192,7 +192,7 @@ class OrderCallbackMixin:
             order_id,
         )
 
-        if not self.is_pending:
+        if not self._book.is_pending:
             recent = self._lookup_recent_cleared_order(order_id)
             if recent is not None:
                 _oid, cleared_intent = recent
@@ -203,8 +203,8 @@ class OrderCallbackMixin:
                     qty,
                     price,
                 )
-                self.block_new_entry = True
-                self._position_unconfirmed = True
+                self._book.block_new_entry = True
+                self._integrity._position_unconfirmed = True
                 self._stage_critical_alert(
                     f"遲到成交於已清 pending | order={order_id} intent={cleared_intent} "
                     f"qty={qty} @ {price} → 已 HALT；請人工核對券商部位"
@@ -222,8 +222,8 @@ class OrderCallbackMixin:
             # P0-5: unattributable fill → position is unconfirmed. Freeze BOTH
             # entry and exit (not just block_new_entry); kernel converges via
             # reconcile + single flatten once broker truth is adopted.
-            self.block_new_entry = True
-            self._position_unconfirmed = True
+            self._book.block_new_entry = True
+            self._integrity._position_unconfirmed = True
             self._stage_critical_alert(
                 f"孤兒成交回報（無 pending）| order={order_id} qty={qty} @ {price} "
                 "→ 已 HALT 並凍結所有新單；請人工核對券商部位"
@@ -231,17 +231,17 @@ class OrderCallbackMixin:
             return True  # trigger sync_positions in caller
 
         # Symmetric backfill for deal-first events (if pending_order_id was empty at place time)
-        if not self.pending_order_id and order_id:
-            self.pending_order_id = order_id
+        if not self._book.pending_order_id and order_id:
+            self._book.pending_order_id = order_id
             logger.debug("Backfilled pending_order_id from deal event: %s", order_id)
             try:
                 exec_audit = ExecAudit(
                     event_type="pending_armed",
-                    ts=getattr(self, 'pending_exchange_ts', 0) or 0,
-                    signal_id=self.pending_signal_id,
-                    order_id=self.pending_order_id,
-                    limit_price=self.pending_limit_price,
-                    direction=self._pending_action or "",
+                    ts=self._book.pending_exchange_ts or 0,
+                    signal_id=self._book.pending_signal_id,
+                    order_id=self._book.pending_order_id,
+                    limit_price=self._book.pending_limit_price,
+                    direction=self._book._pending_action or "",
                 )
                 logger.info("EXEC_AUDIT %s (backfilled from deal)", format_exec_audit(exec_audit))
             except Exception:
@@ -253,7 +253,7 @@ class OrderCallbackMixin:
             # leg). Reconcile instead of dropping; keep current pending intact.
             logger.warning(
                 "非當前委託成交回報 → HALT 並全面凍結新單 | expected=%s got=%s qty=%d @ %.1f",
-                self.pending_order_id,
+                self._book.pending_order_id,
                 order_id,
                 qty,
                 price,
@@ -263,15 +263,15 @@ class OrderCallbackMixin:
             # transition the in-flight pending into SETTLING so the settle loop
             # (and, via it, the convergence flatten) starts polling the broker
             # immediately instead of waiting out pending_timeout_sec.
-            self.block_new_entry = True
-            self._position_unconfirmed = True
-            if not self._settling:
-                self._settling = True
-                self._settle_since = self._clock()
-                self._reconcile_last_read = None
-                self._reconcile_read_streak = 0
+            self._book.block_new_entry = True
+            self._integrity._position_unconfirmed = True
+            if not self._integrity._settling:
+                self._integrity._settling = True
+                self._integrity._settle_since = self._clock()
+                self._integrity._reconcile_last_read = None
+                self._integrity._reconcile_read_streak = 0
             self._stage_critical_alert(
-                f"非當前委託成交回報 | expected={self.pending_order_id} got={order_id} "
+                f"非當前委託成交回報 | expected={self._book.pending_order_id} got={order_id} "
                 f"qty={qty} @ {price} → 已 HALT 並凍結所有新單；請人工核對券商部位"
             )
             return True  # trigger sync_positions in caller

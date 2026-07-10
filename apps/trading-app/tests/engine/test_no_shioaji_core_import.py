@@ -94,8 +94,8 @@ class TestNoShioajiCoreImport(unittest.TestCase):
             host.on_tick(tick)
 
             # Force flatten path also exercises without shioaji
-            host.position_qty = 1
-            host.position_dir = "Long"
+            host._book.position_qty = 1
+            host._book.position_dir = "Long"
             sig = host._maybe_kernel_force_flatten(1_700_000_000, 18055.0, tick.datetime)
             # In this dt (09:30) force_flatten is false, so None or not
             self.assertTrue(sig is None or sig.intent == "exit")

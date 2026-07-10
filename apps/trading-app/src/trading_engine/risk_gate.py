@@ -15,15 +15,9 @@ from trading_engine.core.types import RiskGate
 class RiskGateHost(Protocol):
     """Minimal surface for build_risk_gate (implemented by TradingEngine)."""
 
-    position_qty: int
-    is_pending: bool
-    exit_pending: bool
-    last_exit_time: int
-    consecutive_loss: int
-    daily_pnl: float
-    _api_connected: bool
-    _settling: bool
-    _position_unconfirmed: bool
+    _book: Any
+    _link: Any
+    _integrity: Any
     _capital: Any
     _cfg: Any
     _calendar: Any
@@ -43,8 +37,8 @@ def build_risk_gate(host: RiskGateHost, ts: int, dt: datetime.datetime) -> RiskG
     windows = host._active_session_windows(dt)
     if windows is None:
         # Inter-session gap: if still holding, keep force_flatten sticky.
-        after_flatten = host.position_qty > 0
-        force_flatten = host.position_qty > 0
+        after_flatten = host._book.position_qty > 0
+        force_flatten = host._book.position_qty > 0
     else:
         start, end, flatten, force = windows
         after_flatten = host._calendar.is_at_or_after(
@@ -54,19 +48,19 @@ def build_risk_gate(host: RiskGateHost, ts: int, dt: datetime.datetime) -> RiskG
             dt, force, session_start=start, session_end=end
         )
     return RiskGate(
-        api_connected=host._api_connected,
-        is_pending=host.is_pending,
-        exit_pending=host.exit_pending,
-        cooldown_active=ts - host.last_exit_time < host._cfg.cooldown_sec,
+        api_connected=host._link._api_connected,
+        is_pending=host._book.is_pending,
+        exit_pending=host._book.exit_pending,
+        cooldown_active=ts - host._book.last_exit_time < host._cfg.cooldown_sec,
         in_trading_session=host.is_trading_session(dt),
         block_new_entry=host.entry_blocked,
-        consecutive_loss=host.consecutive_loss,
-        daily_pnl=host.daily_pnl,
+        consecutive_loss=host._book.consecutive_loss,
+        daily_pnl=host._book.daily_pnl,
         after_flatten_time=after_flatten,
         force_flatten=force_flatten,
         reconnect_warmup_active=host._is_reconnect_warmup_active(ts),
-        settling=host._settling,
-        position_unconfirmed=host._position_unconfirmed,
+        settling=host._integrity._settling,
+        position_unconfirmed=host._integrity._position_unconfirmed,
         capital_frozen=host._capital.capital_frozen,
         realized_pnl=host._capital.realized_pnl,
         equity_peak=host._capital.equity_peak,

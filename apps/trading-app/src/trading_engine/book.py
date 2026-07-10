@@ -3,8 +3,7 @@
 Book is the single owner of held position and the single pending flight.
 Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat.
 
-TradingEngine keeps property-compatible access via ``_book`` forwarding so
-existing call sites and tests continue to use ``host.position_qty`` etc.
+Call sites use explicit ``host._book.*`` (Phase G1 — no engine ``__getattr__``).
 Capital risk (progressive MDD) stays in ``CapitalRiskState`` — not here.
 
 **Mutation policy (Phase E):** prefer Book methods over scattering

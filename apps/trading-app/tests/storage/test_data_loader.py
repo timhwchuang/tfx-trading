@@ -449,7 +449,7 @@ class TestInjectedClock(unittest.TestCase):
         host._record_tick_arrival(
             100, datetime.datetime(2026, 6, 12, 9, 0), tick_type=1
         )
-        self.assertEqual(host._last_tick_wall_time, 12345.0)
+        self.assertEqual(host._ticks._last_tick_wall_time, 12345.0)
         host._clock.assert_called()
 
     def test_pending_timeout_uses_injected_clock(self):
@@ -458,13 +458,13 @@ class TestInjectedClock(unittest.TestCase):
         host = make_host()
         clock_value = {"t": 1000.0}
         host._clock = lambda: clock_value["t"]
-        host.is_pending = True
-        host.pending_intent = "entry"
-        host.pending_since = 1000.0
-        host.pending_trade = None
+        host._book.is_pending = True
+        host._book.pending_intent = "entry"
+        host._book.pending_since = 1000.0
+        host._book.pending_trade = None
         # not yet timed out → still in fast (callback) wait.
         host._check_pending_timeout()
-        self.assertTrue(host.is_pending)
+        self.assertTrue(host._book.is_pending)
         # advance past timeout → the injected clock drives the timeout. P0-5: an
         # ENTRY is NEVER resolved as a clean no-fill from a flat snapshot (a stale
         # flat read is not proof of non-fill). Timeout = UNKNOWN → enter SETTLING
@@ -472,8 +472,8 @@ class TestInjectedClock(unittest.TestCase):
         # routes entry uncertainty to HALT, never back to a re-armable clear.
         clock_value["t"] = 1000.0 + PENDING_TIMEOUT_SEC + 1
         host._check_pending_timeout()
-        self.assertTrue(host.is_pending)
-        self.assertTrue(host._settling)
+        self.assertTrue(host._book.is_pending)
+        self.assertTrue(host._integrity._settling)
 
     def test_default_clock_is_time_time(self):
         import time
@@ -484,7 +484,7 @@ class TestInjectedClock(unittest.TestCase):
     def test_today_prefers_tick_date(self):
         host = make_host()
         self.assertEqual(host._today(), datetime.date.today())
-        host._last_tick_exchange_dt = datetime.datetime(2020, 1, 2, 9, 0)
+        host._ticks._last_tick_exchange_dt = datetime.datetime(2020, 1, 2, 9, 0)
         self.assertEqual(host._today(), datetime.date(2020, 1, 2))
 
 

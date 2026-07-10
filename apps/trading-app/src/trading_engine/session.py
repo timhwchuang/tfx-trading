@@ -99,8 +99,11 @@ class SessionMixin:
     def _resolve_contract(self):
         code = self._cfg.product_code
         category = code[:3]  # TXF / MXF / TMF for TXFR1, MXFR1, TMFR1, ...
-        with self._api_lock:
-            cat = getattr(self.api.Contracts.Futures, category, None)
-            if cat is not None and hasattr(cat, code):
-                return getattr(cat, code)
-            return self.api.Contracts.Futures[code]
+        # Phase G0: Contracts lookup is broker I/O — never under domain lock.
+        return self._call_api(self._resolve_contract_unlocked, code, category)
+
+    def _resolve_contract_unlocked(self, code: str, category: str):
+        cat = getattr(self.api.Contracts.Futures, category, None)
+        if cat is not None and hasattr(cat, code):
+            return getattr(cat, code)
+        return self.api.Contracts.Futures[code]

@@ -8,9 +8,9 @@ from collections.abc import Callable
 from typing import Any
 
 from trading_engine.api_errors import is_api_session_error
-from trading_engine.book import BOOK_FIELD_NAMES, Book
+from trading_engine.book import Book
 from trading_engine.calendar.port import MarketCalendarPort, TaifexMarketCalendar
-from trading_engine.connectivity import LINK_FIELD_NAMES, ConnectivityState
+from trading_engine.connectivity import ConnectivityState
 from trading_engine.connectivity_ops import ConnectivityOpsMixin, ReconnectOutcome
 from trading_engine.capital import CapitalService
 from trading_engine.core.capital_store import CapitalStore
@@ -31,8 +31,10 @@ from trading_engine.core.types import (
     RiskGate,
     TickSnapshot,
 )
-from trading_engine.integrity import INTEGRITY_FIELD_NAMES, IntegrityState
+from trading_engine.integrity import IntegrityState
+from trading_engine.locking import DomainLock, assert_api_entry_allowed
 from trading_engine.logging_setup import get_logger, shutdown_async_logging
+from trading_engine.maintenance import MaintenanceScheduler, default_engine_jobs
 from trading_engine.order_executor import OrderExecutorMixin
 from trading_engine.position_sync import PositionSyncMixin
 from trading_engine.reconcile import (
@@ -43,17 +45,9 @@ from trading_engine.reconcile import (
 from trading_engine.risk_gate import build_risk_gate
 from trading_engine.session import SessionMixin
 from trading_engine.tick_watchdog import TickWatchdogMixin
-from trading_engine.ticks import TICK_FIELD_NAMES, TickState
+from trading_engine.ticks import TickState
 
 logger = get_logger()
-
-# Hot-path membership check: avoid rebuilding the union on every __setattr__.
-_FORWARDED_FIELD_NAMES: frozenset[str] = (
-    BOOK_FIELD_NAMES
-    | LINK_FIELD_NAMES
-    | INTEGRITY_FIELD_NAMES
-    | TICK_FIELD_NAMES
-)
 
 # Re-export for call sites / tests that imported from engine historically.
 __all__ = ["TradingEngine", "ReconnectOutcome"]
@@ -102,7 +96,7 @@ class TradingEngine(
         if strategy is None:
             raise TypeError("strategy is required; inject at app layer")
 
-        # Phase B/C: composed state owners (forwarded via __getattr__/__setattr__).
+        # Phase B/C/G1: composed state owners (explicit access only — no __getattr__).
         #   _book       — position + single flight (max_qty=1)
         #   _link       — broker connectivity / reconnect / warmup
         #   _integrity  — SETTLING / HALT / reconcile / miss CB
@@ -130,7 +124,9 @@ class TradingEngine(
         self._staged_critical_alert: str | None = None
 
         self.strategy: Strategy = strategy
-        self.lock = threading.Lock()
+        # Phase G0 dual-lock contract — see trading_engine.locking:
+        # never acquire _api_lock while holding domain lock (self.lock).
+        self.lock = DomainLock()
         self._api_lock = threading.RLock()  # Shioaji mutable ops; avoid PyBorrowMutError
         self.contract = None
         self._running = False
@@ -138,66 +134,26 @@ class TradingEngine(
         self._order_queue: queue.Queue[OrderSignal | None] = queue.Queue()
         self._order_sync_mode = False
         self._order_worker_started = False
+        # Phase G4: isolated jobs replace serial _timeout_loop blob.
+        self._maintenance = MaintenanceScheduler(
+            default_engine_jobs(self),
+            clock=self._clock,
+        )
+        # Phase G3 partial: lifecycle list (scheduler first; more services later).
+        self._services: list[Any] = [self._maintenance]
 
         # After staged-alert attr exists (persist fail may stage CRITICAL).
         self._load_capital_state()
         self._flush_staged_critical_alert()
 
-    def _state_owner(self, name: str) -> Any | None:
-        """Return the composed state object that owns ``name``, if any."""
-        d = self.__dict__
-        if name in BOOK_FIELD_NAMES:
-            return d.get("_book")
-        if name in LINK_FIELD_NAMES:
-            return d.get("_link")
-        if name in INTEGRITY_FIELD_NAMES:
-            return d.get("_integrity")
-        if name in TICK_FIELD_NAMES:
-            return d.get("_ticks")
-        return None
-
-    def __getattr__(self, name: str) -> Any:
-        owner = self._state_owner(name) if name not in (
-            "_book",
-            "_link",
-            "_integrity",
-            "_ticks",
-        ) else None
-        if owner is not None:
-            return getattr(owner, name)
-        raise AttributeError(
-            f"{type(self).__name__!s} object has no attribute {name!r}"
-        )
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        # Test helper: rebind capital store → rebuild CapitalService.
-        if name == "_capital_store" and "_capital_svc" in self.__dict__:
-            object.__setattr__(
-                self,
-                "_capital_svc",
-                CapitalService(
-                    value,
-                    product_code=str(self._cfg.product_code),
-                    max_mdd_points=lambda: float(
-                        getattr(self._cfg, "max_mdd_points", 0) or 0
-                    ),
-                ),
-            )
-            return
-        # Avoid recursion before composed state objects exist.
-        if name in ("_book", "_link", "_integrity", "_ticks") or name not in (
-            _FORWARDED_FIELD_NAMES
-        ):
-            object.__setattr__(self, name, value)
-            return
-        owner = self._state_owner(name)
-        if owner is not None:
-            setattr(owner, name, value)
-            return
-        object.__setattr__(self, name, value)
-
     def _call_api(self, fn, *args, **kwargs):
-        """Helper to serialize Shioaji mutable calls under _api_lock."""
+        """Serialize Shioaji mutable calls under ``_api_lock`` (Phase G0).
+
+        Must not be entered while the current thread holds the domain lock.
+        Pattern: broker I/O first (or after releasing domain lock) → then
+        ``with self.lock:`` for Book/Link/Integrity mutations.
+        """
+        assert_api_entry_allowed(self.lock)
         with self._api_lock:
             return fn(*args, **kwargs)
 
@@ -215,6 +171,17 @@ class TradingEngine(
     def _capital_store(self) -> CapitalStore:
         """Durable capital store (owned by CapitalService)."""
         return self._capital_svc.store
+
+    @_capital_store.setter
+    def _capital_store(self, value: CapitalStore) -> None:
+        """Test/helper rebind: rebuild CapitalService around a new store."""
+        self._capital_svc = CapitalService(
+            value,
+            product_code=str(self._cfg.product_code),
+            max_mdd_points=lambda: float(
+                getattr(self._cfg, "max_mdd_points", 0) or 0
+            ),
+        )
 
     @property
     def capital_frozen(self) -> bool:
@@ -240,7 +207,7 @@ class TradingEngine(
     @property
     def entry_blocked(self) -> bool:
         """Ops latch or active capital freeze (Host entry gate, not strategy)."""
-        return self.block_new_entry or self._capital_svc.blocks_entry()
+        return self._book.block_new_entry or self._capital_svc.blocks_entry()
 
     def clear_capital_risk(self) -> None:
         """Operator action: reset progressive MDD book and unfreeze capital."""
@@ -281,23 +248,23 @@ class TradingEngine(
         """
         with self.lock:
             return EngineStateSnapshot(
-                position_qty=self.position_qty,
-                position_dir=self.position_dir,
-                entry_price=self.entry_price,
-                is_pending=self.is_pending,
-                pending_intent=self.pending_intent,
-                exit_pending=self.exit_pending,
-                pending_qty=self.pending_qty,
-                filled_qty=self.filled_qty,
-                daily_pnl=self.daily_pnl,
-                consecutive_loss=self.consecutive_loss,
+                position_qty=self._book.position_qty,
+                position_dir=self._book.position_dir,
+                entry_price=self._book.entry_price,
+                is_pending=self._book.is_pending,
+                pending_intent=self._book.pending_intent,
+                exit_pending=self._book.exit_pending,
+                pending_qty=self._book.pending_qty,
+                filled_qty=self._book.filled_qty,
+                daily_pnl=self._book.daily_pnl,
+                consecutive_loss=self._book.consecutive_loss,
                 block_new_entry=self.entry_blocked,
-                api_connected=self._api_connected,
+                api_connected=self._link._api_connected,
                 has_position=self.has_position,
-                trailing_peak=self.trailing_peak,
-                ticks_since_entry=self.ticks_since_entry,
-                settling=self._settling,
-                position_unconfirmed=self._position_unconfirmed,
+                trailing_peak=self._book.trailing_peak,
+                ticks_since_entry=self._book.ticks_since_entry,
+                settling=self._integrity._settling,
+                position_unconfirmed=self._integrity._position_unconfirmed,
                 capital_frozen=self._capital.capital_frozen,
                 realized_pnl=self._capital.realized_pnl,
                 equity_peak=self._capital.equity_peak,
@@ -316,16 +283,16 @@ class TradingEngine(
         original_tick_type = int(getattr(tick, "tick_type", 0) or 0)
         tick_type = original_tick_type
 
-        if tick_type == 0 and self.last_tick_price > 0:
-            if price > self.last_tick_price:
+        if tick_type == 0 and self._ticks.last_tick_price > 0:
+            if price > self._ticks.last_tick_price:
                 tick_type = 1
-            elif price < self.last_tick_price:
+            elif price < self._ticks.last_tick_price:
                 tick_type = 2
 
-        self.last_tick_price = price
+        self._ticks.last_tick_price = price
         if original_tick_type == 0 and tick_type in (1, 2):
-            self._tick_type_inferred_counts[tick_type] = (
-                self._tick_type_inferred_counts.get(tick_type, 0) + 1
+            self._ticks._tick_type_inferred_counts[tick_type] = (
+                self._ticks._tick_type_inferred_counts.get(tick_type, 0) + 1
             )
         return ts, price, volume, tick_type, original_tick_type
 
@@ -357,11 +324,11 @@ class TradingEngine(
                 tick_type = tick.tick_type
                 original_tick_type = tick_type  # already normalized by adapter
                 exchange_dt = tick.exchange_dt
-                self.last_tick_price = price  # minimal side effect for inference path
+                self._ticks.last_tick_price = price  # minimal side effect for inference path
             else:
                 ts, price, volume, tick_type, original_tick_type = self._parse_tick_locked(tick)
                 exchange_dt = getattr(tick, "datetime", None) or (
-                    self._last_tick_exchange_dt or datetime.datetime.fromtimestamp(ts)
+                    self._ticks._last_tick_exchange_dt or datetime.datetime.fromtimestamp(ts)
                 )
 
             # --- 2. arrival + warmup ---
@@ -382,14 +349,14 @@ class TradingEngine(
                     signal = None
                 else:
                     if signal.intent == "entry":
-                        self._pending_intent_cancel_exchange_dt = dt_for_risk
+                        self._integrity._pending_intent_cancel_exchange_dt = dt_for_risk
                     elif signal.intent == "exit":
                         # P1-1: kernel owns exit sizing — always flatten the full
                         # held position regardless of what the strategy requested
                         # (strategy may default to 1 lot). Prevents leaving a
                         # residual broker position unmanaged after a stop/exit.
-                        if self.position_qty > 0:
-                            signal.qty = self.position_qty
+                        if self._book.position_qty > 0:
+                            signal.qty = self._book.position_qty
                     if not getattr(signal, "signal_id", ""):
                         signal.signal_id = self._make_signal_id(signal.exchange_ts or ts)
                     if signal.audit is not None and not getattr(signal.audit, "signal_id", ""):
@@ -413,8 +380,8 @@ class TradingEngine(
 
     def _today(self) -> datetime.date:
         """交易所「今天」：有 tick 時以 tick 日期為準（回測確定性），否則用系統日期。"""
-        if self._last_tick_exchange_dt is not None:
-            return self._last_tick_exchange_dt.date()
+        if self._ticks._last_tick_exchange_dt is not None:
+            return self._ticks._last_tick_exchange_dt.date()
         return datetime.date.today()
 
     def _make_signal_id(self, ts: int) -> str:
@@ -459,22 +426,22 @@ class TradingEngine(
         if ttl <= 0:
             return
         now = self._clock()
-        while self._recent_cleared_orders and now - self._recent_cleared_orders[0][2] > ttl:
-            self._recent_cleared_orders.popleft()
+        while self._integrity._recent_cleared_orders and now - self._integrity._recent_cleared_orders[0][2] > ttl:
+            self._integrity._recent_cleared_orders.popleft()
 
     def _record_cleared_pending(self) -> None:
         """Caller holds lock."""
-        order_id = self.pending_order_id
-        intent = self.pending_intent
+        order_id = self._book.pending_order_id
+        intent = self._book.pending_intent
         if not order_id or not intent:
             return
         if int(self._cfg.cleared_order_registry_sec) <= 0:
             return
-        self._recent_cleared_orders.append((order_id, intent, self._clock()))
+        self._integrity._recent_cleared_orders.append((order_id, intent, self._clock()))
 
     def _lookup_recent_cleared_order(self, order_id: str) -> tuple[str, str] | None:
         self._prune_cleared_orders()
-        for oid, intent, _ in self._recent_cleared_orders:
+        for oid, intent, _ in self._integrity._recent_cleared_orders:
             if oid == order_id:
                 return oid, intent
         return None
@@ -484,32 +451,19 @@ class TradingEngine(
         check_position_reconcile(self)
 
     def _timeout_loop(self):
-        """Background 1s maintenance — order must match pre-Wave-2 cadence."""
-        while self._running:
-            try:
-                self._check_pending_timeout()
-                self._settle_via_reconcile()
-                self._maybe_converge_flatten()
-                self._maybe_emergency_market_flatten()
-                self._check_exit_order_retry()
-                self._check_session_watchdog()
-                self._check_no_tick_watchdog()
-                self._check_position_reconcile()
-                self._reconcile_recent_cleared_deals()
-                self._maybe_log_tick_type_summary()
-            except BaseException as e:
-                # Catch PanicException etc. from PyO3 to prevent silent thread death.
-                # Log and continue (thread may be compromised; monitor will notice).
-                logger.error("背景維運檢查嚴重異常 (可能殺死 thread): %s", e)
-            time.sleep(1)
+        """Deprecated entry: prefer ``self._maintenance`` (Phase G4).
+
+        Kept as a thin compat wrapper for tests that still target the old name.
+        """
+        self._maintenance.run_once()
 
     def _clear_pending(self, *, watch_late_fill: bool = False):
         if watch_late_fill:
             self._record_cleared_pending()
         self._book.clear_flight()
-        self.pending_ioc_slippage = int(self._cfg.ioc_slippage_points)
-        self._exit_order_retry_count = 0
-        self._exit_order_retry_at = 0.0
+        self._book.pending_ioc_slippage = int(self._cfg.ioc_slippage_points)
+        self._integrity._exit_order_retry_count = 0
+        self._integrity._exit_order_retry_at = 0.0
         # P0-5: clear SETTLING only. HALT (_position_unconfirmed) stays sticky.
         self._integrity.clear_settling_window()
 
@@ -532,7 +486,8 @@ class TradingEngine(
             self._cfg.simulation,
         )
 
-        threading.Thread(target=self._timeout_loop, daemon=True).start()
+        for svc in self._services:
+            svc.start()
         self._start_order_worker()
 
         try:
@@ -542,6 +497,11 @@ class TradingEngine(
             logger.info("策略手動停止")
         finally:
             self._running = False
+            for svc in reversed(self._services):
+                try:
+                    svc.stop()
+                except Exception as e:
+                    logger.warning("service stop 失敗: %s", e)
             if not self._order_sync_mode:
                 self._order_queue.put_nowait(None)
             self._archive.shutdown_tick_archive()

@@ -49,11 +49,17 @@ class ShioajiLiveBootstrap:
         """Preferred entry point from live quote callback."""
         self.engine.on_tick(self.tick_to_snapshot(tick))
 
+    def _api_section(self):
+        """Enter API lock only after Phase G0 domain-lock check."""
+        from trading_engine.locking import api_critical_section
+
+        return api_critical_section(self.engine.lock, self.engine._api_lock)
+
     def subscribe_tick(self) -> None:
         import shioaji as sj
 
         if self.engine.contract is not None:
-            with self.engine._api_lock:
+            with self._api_section():
                 self.engine.api.subscribe(self.engine.contract, quote_type=sj.QuoteType.Tick)
 
     def resubscribe_trade(self) -> None:
@@ -64,7 +70,7 @@ class ShioajiLiveBootstrap:
         delivery so the kernel pending state machine keeps working instead of
         timing out on every order while the broker silently fills.
         """
-        with self.engine._api_lock:
+        with self._api_section():
             account = self.engine.api.futopt_account
             if account is None:
                 raise RuntimeError("futopt_account is None; cannot resubscribe trade channel")
@@ -80,7 +86,7 @@ class ShioajiLiveBootstrap:
         def _on_tick(tick: TickFOPv1):
             self.on_tick_from_shioaji(tick)
 
-        with self.engine._api_lock:
+        with self._api_section():
             self.engine.api.set_order_callback(self.engine.handle_order_event)
             self.engine.api.set_event_callback(self.engine.handle_session_event)
             if hasattr(self.engine.api, "set_session_down_callback"):

@@ -14,9 +14,9 @@ class OrderFlattenMixin:
         (for price/slippage/audit customization). If None, kernel synthesizes a
         standard full exit using flatten_slippage_points.
         """
-        if self.position_qty <= 0:
+        if self._book.position_qty <= 0:
             return None
-        if self.is_pending or self.exit_pending:
+        if self._book.is_pending or self._book.exit_pending:
             return None
         risk = self._risk_gate(ts, dt)
         if not risk.force_flatten:
@@ -41,10 +41,10 @@ class OrderFlattenMixin:
                 return custom
 
         # Default kernel-produced exit (full position, using configured flatten slippage)
-        action = "Sell" if self.position_dir == "Long" else "Buy"
+        action = "Sell" if self._book.position_dir == "Long" else "Buy"
         return OrderSignal(
             action=action,
-            qty=self.position_qty,
+            qty=self._book.position_qty,
             ref_price=price,
             intent="exit",
             exchange_ts=ts,
@@ -55,10 +55,10 @@ class OrderFlattenMixin:
 
     def _check_exit_order_retry(self) -> None:
         with self.lock:
-            retry_at = self._exit_order_retry_at
+            retry_at = self._integrity._exit_order_retry_at
             if retry_at <= 0 or self._clock() < retry_at:
                 return
-            self._exit_order_retry_at = 0.0
+            self._integrity._exit_order_retry_at = 0.0
 
         signal = self._reconstruct_pending_signal()
         if signal is None:
@@ -74,18 +74,18 @@ class OrderFlattenMixin:
         ``_kernel_converging`` because we KNOW we hold a position to kill."""
         signal = None
         with self.lock:
-            if not self._stop_market_flatten_request:
+            if not self._integrity._stop_market_flatten_request:
                 return
-            if self.is_pending or self._settling:
+            if self._book.is_pending or self._integrity._settling:
                 return  # single-flight; retry next loop once the slot is free
-            if self.position_qty <= 0:
-                self._stop_market_flatten_request = False
+            if self._book.position_qty <= 0:
+                self._integrity._stop_market_flatten_request = False
                 return
-            self._stop_market_flatten_request = False
-            action = "Sell" if self.position_dir == "Long" else "Buy"
-            qty = self.position_qty
-            ref_price = self.last_tick_price or self.entry_price
-            ts = int(self.last_tick_exchange_ts or self._last_tick_exchange_ts_or_zero())
+            self._integrity._stop_market_flatten_request = False
+            action = "Sell" if self._book.position_dir == "Long" else "Buy"
+            qty = self._book.position_qty
+            ref_price = self._ticks.last_tick_price or self._book.entry_price
+            ts = int(self._ticks.last_tick_exchange_ts or self._last_tick_exchange_ts_or_zero())
             signal = OrderSignal(
                 action=action,
                 qty=qty,
@@ -94,7 +94,7 @@ class OrderFlattenMixin:
                 exchange_ts=ts,
                 market=True,
             )
-            self._kernel_converging = True
+            self._integrity._kernel_converging = True
             try:
                 if self._validate_order_signal(signal):
                     if not getattr(signal, "signal_id", ""):
@@ -103,7 +103,7 @@ class OrderFlattenMixin:
                 else:
                     signal = None
             finally:
-                self._kernel_converging = False
+                self._integrity._kernel_converging = False
         if signal is not None:
             logger.warning(
                 "停損市價平倉 | %s %d 口（kernel 主動，guaranteed fill）",

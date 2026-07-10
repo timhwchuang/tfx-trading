@@ -43,14 +43,14 @@ class OrderSettleMixin:
         alert and ``sync_positions`` outside the lock).
         """
         with self.lock:
-            already = self._position_unconfirmed
-            self._position_unconfirmed = True
-            self.block_new_entry = True
-            if clear_pending and self.is_pending:
+            already = self._integrity._position_unconfirmed
+            self._integrity._position_unconfirmed = True
+            self._book.block_new_entry = True
+            if clear_pending and self._book.is_pending:
                 self._clear_pending(watch_late_fill=True)
             # A still-live pending means a kernel order may be working at the
             # broker; do not disturb it (no clear, no sync) to stay single-flight.
-            keep_live_order = self.is_pending
+            keep_live_order = self._book.is_pending
         logger.warning("部位未確認（HALT）| %s", reason)
         if not keep_live_order:
             try:
@@ -79,14 +79,14 @@ class OrderSettleMixin:
         ceiling = self._cfg.max_position_qty
         within_ceiling = ceiling <= 0 or broker_qty <= ceiling
         with self.lock:
-            if not self.is_pending:
+            if not self._book.is_pending:
                 return True
-            intent = self.pending_intent
-            kernel_qty = self.position_qty
-            kernel_dir = self.position_dir
-            pending_qty = self.pending_qty if self.pending_qty > 0 else 1
-            pending_action = self._pending_action or ""
-            fill_price = self.pending_signal_price
+            intent = self._book.pending_intent
+            kernel_qty = self._book.position_qty
+            kernel_dir = self._book.position_dir
+            pending_qty = self._book.pending_qty if self._book.pending_qty > 0 else 1
+            pending_action = self._book._pending_action or ""
+            fill_price = self._book.pending_signal_price
 
         # Ceiling backstop: the broker holds MORE than the kernel believed AND
         # more than the ceiling → accumulation anomaly (the >1-lot failure mode).
@@ -116,8 +116,8 @@ class OrderSettleMixin:
             if entry_filled:
                 if kernel_qty == broker_qty and kernel_dir == expected_dir:
                     with self.lock:
-                        if self.is_pending:
-                            self._consecutive_missed_entries = 0
+                        if self._book.is_pending:
+                            self._integrity._consecutive_missed_entries = 0
                             self._clear_pending()
                     return True
                 logger.info(
@@ -127,15 +127,15 @@ class OrderSettleMixin:
                 )
                 need_sync = False
                 with self.lock:
-                    if not self.is_pending:
+                    if not self._book.is_pending:
                         return True
-                    self.filled_qty = 0
+                    self._book.filled_qty = 0
                     self._apply_deal_fill(
                         fill_price,
                         broker_dir == "Long",
                         deal_qty=max(1, broker_qty - kernel_qty),
                     )
-                    need_sync = not self.is_pending
+                    need_sync = not self._book.is_pending
                 if need_sync:
                     self.sync_positions()
                 return need_sync
@@ -156,14 +156,14 @@ class OrderSettleMixin:
                 )
                 need_sync = False
                 with self.lock:
-                    if not self.is_pending:
+                    if not self._book.is_pending:
                         return True
-                    self.filled_qty = 0
-                    is_buy = self.position_dir == "Short"
+                    self._book.filled_qty = 0
+                    is_buy = self._book.position_dir == "Short"
                     self._apply_deal_fill(
                         fill_price, is_buy, deal_qty=max(1, kernel_qty - broker_qty)
                     )
-                    need_sync = not self.is_pending
+                    need_sync = not self._book.is_pending
                 if need_sync:
                     self.sync_positions()
                 return need_sync
@@ -197,12 +197,12 @@ class OrderSettleMixin:
         observed ``reconcile_confirm_reads`` times in a row (P0-5)."""
         need = max(1, int(self._cfg.reconcile_confirm_reads))
         with self.lock:
-            if self._reconcile_last_read == broker:
-                self._reconcile_read_streak += 1
+            if self._integrity._reconcile_last_read == broker:
+                self._integrity._reconcile_read_streak += 1
             else:
-                self._reconcile_last_read = broker
-                self._reconcile_read_streak = 1
-            return self._reconcile_read_streak >= need
+                self._integrity._reconcile_last_read = broker
+                self._integrity._reconcile_read_streak = 1
+            return self._integrity._reconcile_read_streak >= need
 
 
     def _resolve_entry_missed(self) -> None:
@@ -213,11 +213,11 @@ class OrderSettleMixin:
         """
         max_miss = int(self._cfg.max_consecutive_missed_entries)
         with self.lock:
-            if not self.is_pending or self.pending_intent != PendingIntent.ENTRY:
+            if not self._book.is_pending or self._book.pending_intent != PendingIntent.ENTRY:
                 return
-            self._consecutive_missed_entries += 1
-            count = self._consecutive_missed_entries
-            order_id = self.pending_order_id or ""
+            self._integrity._consecutive_missed_entries += 1
+            count = self._integrity._consecutive_missed_entries
+            order_id = self._book.pending_order_id or ""
 
         logger.warning(
             "entry IOC 未成交 → 視為 miss，恢復正常 | order=%s consecutive=%d",
@@ -233,7 +233,7 @@ class OrderSettleMixin:
             return
 
         with self.lock:
-            if self.is_pending:
+            if self._book.is_pending:
                 self._clear_pending(watch_late_fill=True)
 
 
@@ -244,10 +244,10 @@ class OrderSettleMixin:
         limit retry). Profit/trailing exits clear pending for a single retry.
         """
         with self.lock:
-            if not self.is_pending or self.pending_intent != PendingIntent.EXIT:
+            if not self._book.is_pending or self._book.pending_intent != PendingIntent.EXIT:
                 return
-            exit_reason = self.pending_exit_reason or ""
-            order_id = self.pending_order_id or ""
+            exit_reason = self._book.pending_exit_reason or ""
+            order_id = self._book.pending_order_id or ""
 
         logger.warning(
             "exit IOC 未成交 → 視為 miss | order=%s reason=%s",
@@ -257,15 +257,15 @@ class OrderSettleMixin:
 
         if exit_reason in _STOP_LOSS_REASONS and self._cfg.emergency_market_orders:
             with self.lock:
-                if self.is_pending and self.pending_intent == PendingIntent.EXIT:
-                    self._stop_market_flatten_request = True
+                if self._book.is_pending and self._book.pending_intent == PendingIntent.EXIT:
+                    self._integrity._stop_market_flatten_request = True
                     logger.warning(
                         "停損 IOC 未成交（L3 miss）→ 安排市價平倉 | reason=%s",
                         exit_reason,
                     )
 
         with self.lock:
-            if self.is_pending:
+            if self._book.is_pending:
                 self._clear_pending(watch_late_fill=True)
 
 
@@ -275,12 +275,12 @@ class OrderSettleMixin:
         sticky HALT is reserved for genuine anomalies (unreadable broker, ceiling
         breach, orphan fill, consecutive-miss circuit breaker)."""
         with self.lock:
-            if not self._settling or not self.is_pending:
+            if not self._integrity._settling or not self._book.is_pending:
                 return
-            settle_since = self._settle_since
-            intent = self.pending_intent
-            kernel_qty = self.position_qty
-            kernel_dir = self.position_dir
+            settle_since = self._integrity._settle_since
+            intent = self._book.pending_intent
+            kernel_qty = self._book.position_qty
+            kernel_dir = self._book.position_dir
         clear_on_halt = intent == PendingIntent.ENTRY
 
         broker = self.read_broker_position()
@@ -343,12 +343,12 @@ class OrderSettleMixin:
         flight. Lifts HALT once the broker is confirmed flat (``block_new_entry``
         stays sticky until daily reset / manual clear)."""
         with self.lock:
-            if not self._position_unconfirmed:
+            if not self._integrity._position_unconfirmed:
                 return
-            if self.is_pending or self._settling:
+            if self._book.is_pending or self._integrity._settling:
                 return  # single-flight: an order is already in flight / confirming
             now = self._clock()
-            if now < self._converge_flatten_at:
+            if now < self._integrity._converge_flatten_at:
                 return
 
         # Size to a fresh, debounced broker read. Never act on an unreadable or
@@ -363,27 +363,27 @@ class OrderSettleMixin:
 
         signal = None
         with self.lock:
-            if not self._position_unconfirmed or self.is_pending or self._settling:
+            if not self._integrity._position_unconfirmed or self._book.is_pending or self._integrity._settling:
                 return
             if broker_qty <= 0:
                 # Confirmed flat → lift HALT. Keep block_new_entry sticky so no
                 # NEW entry resumes until the operator / daily reset clears it.
-                self._position_unconfirmed = False
-                self._converge_flatten_at = 0.0
-                self._reconcile_last_read = None
-                self._reconcile_read_streak = 0
-                if self.position_qty != 0:
+                self._integrity._position_unconfirmed = False
+                self._integrity._converge_flatten_at = 0.0
+                self._integrity._reconcile_last_read = None
+                self._integrity._reconcile_read_streak = 0
+                if self._book.position_qty != 0:
                     self._book.set_qty_dir(0, "Flat")
                 logger.info("部位已確認 flat → 解除 HALT（block_new_entry 維持至日切/人工）")
                 return
             # Adopt broker truth into kernel accounting, then flatten exactly it.
             self._book.set_qty_dir(broker_qty, broker_dir)
             now = self._clock()
-            self._converge_flatten_at = now + max(1, int(self._cfg.reconcile_fast_sec))
+            self._integrity._converge_flatten_at = now + max(1, int(self._cfg.reconcile_fast_sec))
             action = "Sell" if broker_dir == "Long" else "Buy"
             qty = broker_qty
-            ref_price = self.last_tick_price or self.entry_price
-            ts = int(self.last_tick_exchange_ts or self._last_tick_exchange_ts_or_zero())
+            ref_price = self._ticks.last_tick_price or self._book.entry_price
+            ts = int(self._ticks.last_tick_exchange_ts or self._last_tick_exchange_ts_or_zero())
             use_market = bool(self._cfg.emergency_market_orders)
             signal = OrderSignal(
                 action=action,
@@ -398,7 +398,7 @@ class OrderSettleMixin:
             # the settling/unconfirmed freeze in _validate_order_signal). Emergency
             # market order → guaranteed fill so the HALT actually converges to flat
             # instead of chasing with limit IOCs.
-            self._kernel_converging = True
+            self._integrity._kernel_converging = True
             try:
                 if self._validate_order_signal(signal):
                     if not getattr(signal, "signal_id", ""):
@@ -407,14 +407,14 @@ class OrderSettleMixin:
                     # Return to SETTLING so _settle_via_reconcile actively polls
                     # the broker for the convergence outcome instead of waiting on
                     # callbacks / a full pending_timeout_sec.
-                    self._settling = True
-                    self._settle_since = self._clock()
-                    self._reconcile_last_read = None
-                    self._reconcile_read_streak = 0
+                    self._integrity._settling = True
+                    self._integrity._settle_since = self._clock()
+                    self._integrity._reconcile_last_read = None
+                    self._integrity._reconcile_read_streak = 0
                 else:
                     signal = None
             finally:
-                self._kernel_converging = False
+                self._integrity._kernel_converging = False
         if signal is not None:
             logger.warning(
                 "HALT 收斂平倉 | %s %d 口 @ ref=%.1f（kernel 主動，唯一一張）",
@@ -426,7 +426,7 @@ class OrderSettleMixin:
 
 
     def _last_tick_exchange_ts_or_zero(self) -> int:
-        dt = self._last_tick_exchange_dt
+        dt = self._ticks._last_tick_exchange_dt
         return int(dt.timestamp()) if dt is not None else 0
 
 
@@ -452,7 +452,7 @@ class OrderSettleMixin:
             logger.warning("order_deal_records 補查失敗: %s", e)
             records = []
 
-        order_id = self.pending_order_id
+        order_id = self._book.pending_order_id
         if not order_id:
             return self._reconcile_pending_via_broker_snapshot()
 
@@ -463,7 +463,7 @@ class OrderSettleMixin:
                 continue
             needs_sync = False
             with self.lock:
-                if not self.is_pending or self.pending_order_id != order_id:
+                if not self._book.is_pending or self._book.pending_order_id != order_id:
                     return True
                 logger.info("order_deal_records 補查到成交")
                 needs_sync = self._handle_futures_deal(event)
@@ -479,12 +479,12 @@ class OrderSettleMixin:
         if int(self._cfg.cleared_order_registry_sec) <= 0:
             return
         with self.lock:
-            if self.is_pending:
+            if self._book.is_pending:
                 return
             self._prune_cleared_orders()
-            if not self._recent_cleared_orders:
+            if not self._integrity._recent_cleared_orders:
                 return
-            target_ids = {oid for oid, _, _ in self._recent_cleared_orders}
+            target_ids = {oid for oid, _, _ in self._integrity._recent_cleared_orders}
 
         try:
             records = self._call_api(self.api.order_deal_records)
@@ -499,7 +499,7 @@ class OrderSettleMixin:
             if oid not in target_ids:
                 continue
             with self.lock:
-                if self.is_pending:
+                if self._book.is_pending:
                     return
                 recent = self._lookup_recent_cleared_order(oid)
                 if recent is None:
@@ -512,8 +512,8 @@ class OrderSettleMixin:
                     oid,
                     cleared_intent,
                 )
-                self.block_new_entry = True
-                self._position_unconfirmed = True
+                self._book.block_new_entry = True
+                self._integrity._position_unconfirmed = True
                 self._stage_critical_alert(
                     f"order_deal_records 遲到成交（已清 pending）| order={oid} "
                     f"intent={cleared_intent} qty={qty} @ {price} → 已 HALT；請人工核對"

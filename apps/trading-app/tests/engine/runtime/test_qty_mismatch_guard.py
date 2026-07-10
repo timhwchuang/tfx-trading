@@ -19,11 +19,11 @@ class TestQtyMismatchGuard(unittest.TestCase):
                 "price": "18010",
                 "quantity": 5,
                 "action": "Buy",
-                "trade_id": host.pending_order_id,
+                "trade_id": host._book.pending_order_id,
             }
             host.handle_order_event(FUTURES_DEAL, msg)
 
-            self.assertEqual(host.position_qty, 5)
+            self.assertEqual(host._book.position_qty, 5)
             warning_text = " ".join(str(call) for call in mock_warning.call_args_list)
             self.assertIn("超過 pending", warning_text)
 

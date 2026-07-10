@@ -41,10 +41,10 @@ class _ForceSpyStrategy(BaseStrategy):
 class TestKernelForceFlatten(unittest.TestCase):
     def test_stub_strategy_no_signal_kernel_produces_default_exit(self):
         host = make_host()
-        host.position_qty = 2
-        host.position_dir = "Long"
-        host.entry_price = 18000.0
-        host.trailing_peak = 18010.0
+        host._book.position_qty = 2
+        host._book.position_dir = "Long"
+        host._book.entry_price = 18000.0
+        host._book.trailing_peak = 18010.0
 
         sig = host._maybe_kernel_force_flatten(1_700_000_100, 18005.0, _dt_force())
 
@@ -58,9 +58,9 @@ class TestKernelForceFlatten(unittest.TestCase):
     def test_custom_strategy_signal_is_used(self):
         spy = _ForceSpyStrategy()
         host = make_host(decision=spy)
-        host.position_qty = 1
-        host.position_dir = "Short"
-        host.entry_price = 18100.0
+        host._book.position_qty = 1
+        host._book.position_dir = "Short"
+        host._book.entry_price = 18100.0
 
         custom = OrderSignal(
             "Buy", 1, 18090.0, "exit", exchange_ts=1_700_000_200, slippage_points=5
@@ -74,29 +74,29 @@ class TestKernelForceFlatten(unittest.TestCase):
 
     def test_no_trigger_when_no_position(self):
         host = make_host()
-        host.position_qty = 0
-        host.position_dir = "Flat"
+        host._book.position_qty = 0
+        host._book.position_dir = "Flat"
 
         sig = host._maybe_kernel_force_flatten(1_700_000_300, 18000.0, _dt_force())
         self.assertIsNone(sig)
 
     def test_no_trigger_when_pending(self):
         host = make_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
-        host.is_pending = True
-        host.pending_intent = "entry"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
+        host._book.is_pending = True
+        host._book.pending_intent = "entry"
 
         sig = host._maybe_kernel_force_flatten(1_700_000_400, 18000.0, _dt_force())
         self.assertIsNone(sig)
 
     def test_no_trigger_when_exit_pending(self):
         host = make_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
-        host.exit_pending = True
-        host.is_pending = True
-        host.pending_intent = "exit"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
+        host._book.exit_pending = True
+        host._book.is_pending = True
+        host._book.pending_intent = "exit"
 
         sig = host._maybe_kernel_force_flatten(1_700_000_500, 18000.0, _dt_force())
         self.assertIsNone(sig)
@@ -107,9 +107,9 @@ class TestKernelForceFlatten(unittest.TestCase):
         host._order_sync_mode = True  # direct place in this test (no worker)
         host.contract = MagicMock(code="TXFR1")
         host.api.futopt_account = MagicMock()
-        host.position_qty = 1
-        host.position_dir = "Long"
-        host.entry_price = 18000.0
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
+        host._book.entry_price = 18000.0
 
         tick = MagicMock()
         tick.datetime = _dt_force()
@@ -119,10 +119,10 @@ class TestKernelForceFlatten(unittest.TestCase):
 
         host.on_tick(tick)
 
-        self.assertTrue(host.is_pending)
-        self.assertTrue(host.exit_pending)
-        self.assertEqual(host.pending_intent, "exit")
-        self.assertEqual(host.pending_qty, 1)
+        self.assertTrue(host._book.is_pending)
+        self.assertTrue(host._book.exit_pending)
+        self.assertEqual(host._book.pending_intent, "exit")
+        self.assertEqual(host._book.pending_qty, 1)
 
 
 if __name__ == "__main__":

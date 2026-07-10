@@ -54,17 +54,17 @@ def arm_pending_entry(
     qty: int = 1,
 ) -> None:
     """Arm a pending entry for kernel tests. Phase 1: supports qty."""
-    host.is_pending = True
-    host.pending_intent = "entry"
-    host.pending_order_id = order_id
-    host.pending_qty = qty
-    host.pending_exchange_ts = exchange_ts
-    host.pending_signal_price = signal_price
-    host.pending_limit_price = signal_price + 3
-    host.pending_ioc_slippage = 3
-    host.pending_episode_id = ""
-    host.pending_signal_id = ""
-    host._pending_action = "Buy"
+    host._book.is_pending = True
+    host._book.pending_intent = "entry"
+    host._book.pending_order_id = order_id
+    host._book.pending_qty = qty
+    host._book.pending_exchange_ts = exchange_ts
+    host._book.pending_signal_price = signal_price
+    host._book.pending_limit_price = signal_price + 3
+    host._book.pending_ioc_slippage = 3
+    host._book.pending_episode_id = ""
+    host._book.pending_signal_id = ""
+    host._book._pending_action = "Buy"
 
 
 def arm_pending_exit(
@@ -77,17 +77,17 @@ def arm_pending_exit(
     qty: int = 1,
 ) -> None:
     """Arm a pending exit for kernel tests. Phase 1: supports qty (for reconstruct)."""
-    host.is_pending = True
-    host.pending_intent = "exit"
-    host.pending_order_id = order_id
-    host.pending_qty = qty
-    host.pending_exchange_ts = exchange_ts
-    host.pending_signal_price = signal_price
-    host.pending_limit_price = signal_price - 3
-    host.pending_ioc_slippage = 3
-    host.pending_exit_reason = exit_reason
-    host.pending_episode_id = ""
-    host.pending_signal_id = ""
+    host._book.is_pending = True
+    host._book.pending_intent = "exit"
+    host._book.pending_order_id = order_id
+    host._book.pending_qty = qty
+    host._book.pending_exchange_ts = exchange_ts
+    host._book.pending_signal_price = signal_price
+    host._book.pending_limit_price = signal_price - 3
+    host._book.pending_ioc_slippage = 3
+    host._book.pending_exit_reason = exit_reason
+    host._book.pending_episode_id = ""
+    host._book.pending_signal_id = ""
 
 
 def make_broker_with_positions(*positions: dict) -> MagicMock:

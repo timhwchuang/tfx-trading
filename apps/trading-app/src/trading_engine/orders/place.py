@@ -41,22 +41,22 @@ class OrderPlaceMixin:
                 )
             oid = str(getattr(trade.order, "id", "") or "")
             with self.lock:
-                self.pending_trade = trade
-                self.pending_order_id = oid
-                self.pending_since = self._clock()
-                self._exit_order_retry_count = 0
-                self._exit_order_retry_at = 0.0
+                self._book.pending_trade = trade
+                self._book.pending_order_id = oid
+                self._book.pending_since = self._clock()
+                self._integrity._exit_order_retry_count = 0
+                self._integrity._exit_order_retry_at = 0.0
 
                 # Phase 2: Emit pending_armed only when order_id is known (SPEC §5.3 MUST).
                 # If oid empty at place time, defer to first callback backfill (avoids duplicate armed).
-                if self.pending_order_id:
+                if self._book.pending_order_id:
                     try:
                         exec_audit = ExecAudit(
                             event_type="pending_armed",
                             ts=signal.exchange_ts or 0,
-                            signal_id=signal.signal_id or self.pending_signal_id,
-                            order_id=self.pending_order_id,
-                            limit_price=self.pending_limit_price,
+                            signal_id=signal.signal_id or self._book.pending_signal_id,
+                            order_id=self._book.pending_order_id,
+                            limit_price=self._book.pending_limit_price,
                             direction=signal.action,
                         )
                         logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
@@ -94,7 +94,7 @@ class OrderPlaceMixin:
             return
 
         with self.lock:
-            attempt = self._exit_order_retry_count
+            attempt = self._integrity._exit_order_retry_count
 
         if should_retry_order(
             intent=intent,
@@ -103,8 +103,8 @@ class OrderPlaceMixin:
             max_retries=self._cfg.exit_order_max_retries,
         ):
             with self.lock:
-                self._exit_order_retry_count = attempt + 1
-                self._exit_order_retry_at = self._clock() + self._cfg.exit_order_retry_delay_sec
+                self._integrity._exit_order_retry_count = attempt + 1
+                self._integrity._exit_order_retry_at = self._clock() + self._cfg.exit_order_retry_delay_sec
             logger.warning(
                 "出場下單將退避重試 | attempt=%d/%d delay=%.1fs",
                 attempt + 1,
@@ -118,7 +118,7 @@ class OrderPlaceMixin:
             level="CRITICAL",
         )
         with self.lock:
-            self.block_new_entry = True
+            self._book.block_new_entry = True
         try:
             self.sync_positions()
         except Exception as sync_err:
@@ -127,21 +127,21 @@ class OrderPlaceMixin:
 
     def _reconstruct_pending_signal(self) -> OrderSignal | None:
         with self.lock:
-            if not self.is_pending or self.pending_intent != "exit":
+            if not self._book.is_pending or self._book.pending_intent != "exit":
                 return None
-            action = self._pending_action
+            action = self._book._pending_action
             if not action:
-                action = "Sell" if self.position_dir == "Long" else "Buy"
+                action = "Sell" if self._book.position_dir == "Long" else "Buy"
             # Phase 1: prefer actual position_qty for exit sizing (full flatten policy)
-            exit_qty = self.position_qty if self.position_qty > 0 else (self.pending_qty or 1)
+            exit_qty = self._book.position_qty if self._book.position_qty > 0 else (self._book.pending_qty or 1)
             return OrderSignal(
                 action,
                 exit_qty,
-                self.pending_signal_price,
+                self._book.pending_signal_price,
                 "exit",
-                exchange_ts=self.pending_exchange_ts,
-                slippage_points=self.pending_ioc_slippage,
-                market=getattr(self, "pending_market", False),
+                exchange_ts=self._book.pending_exchange_ts,
+                slippage_points=self._book.pending_ioc_slippage,
+                market=self._book.pending_market,
             )
 
 

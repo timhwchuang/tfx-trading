@@ -79,12 +79,12 @@ class StrategyHostMixin:
             "DAILY_SUMMARY %s",
             {
                 "date": trade_date.isoformat(),
-                "daily_pnl": self.daily_pnl,
+                "daily_pnl": self._book.daily_pnl,
                 "realized_pnl": self.realized_pnl,
                 "equity_peak": self.equity_peak,
                 "drawdown": self.current_drawdown,
                 "capital_frozen": self.capital_frozen,
-                "consecutive_loss": self.consecutive_loss,
+                "consecutive_loss": self._book.consecutive_loss,
             },
         )
 
@@ -98,7 +98,7 @@ class StrategyHostMixin:
             self._risk_gate(ts, dt),
         )
         if effects.block_new_entry:
-            self.block_new_entry = True
+            self._book.block_new_entry = True
         return signal
 
 

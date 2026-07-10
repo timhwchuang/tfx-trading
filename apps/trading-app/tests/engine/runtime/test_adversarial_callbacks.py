@@ -22,14 +22,14 @@ class TestAdversarialCallbacks(unittest.TestCase):
         msg = {"price": "18010", "quantity": 1, "action": "Buy", "trade_id": "dup-1"}
 
         host.handle_order_event(FUTURES_DEAL, msg)
-        self.assertEqual(host.position_qty, 1)
+        self.assertEqual(host._book.position_qty, 1)
 
         # Replay the same deal after position applied. P0-2: an unattributable
         # deal (pending already cleared) is no longer silently dropped — it forces
         # a broker reconcile + circuit-break, but must NOT double-count.
         host.handle_order_event(FUTURES_DEAL, msg)
-        self.assertEqual(host.position_qty, 1)
-        self.assertTrue(host.block_new_entry)
+        self.assertEqual(host._book.position_qty, 1)
+        self.assertTrue(host._book.block_new_entry)
 
     def test_wrong_order_id_deal_ignored_even_when_pending(self):
         host = make_host()
@@ -38,8 +38,8 @@ class TestAdversarialCallbacks(unittest.TestCase):
 
         host.handle_order_event(FUTURES_DEAL, bad)
 
-        self.assertTrue(host.is_pending)
-        self.assertEqual(host.position_qty, 0)
+        self.assertTrue(host._book.is_pending)
+        self.assertEqual(host._book.position_qty, 0)
 
     def test_entry_deal_while_flat_but_no_pending_is_ignored(self):
         host = make_host()
@@ -48,7 +48,7 @@ class TestAdversarialCallbacks(unittest.TestCase):
 
         host.handle_order_event(FUTURES_DEAL, msg)
 
-        self.assertEqual(host.position_qty, 0)
+        self.assertEqual(host._book.position_qty, 0)
         self.assertFalse(host.has_position)
 
     def test_orphan_deal_adopts_broker_and_circuit_breaks(self):
@@ -66,9 +66,9 @@ class TestAdversarialCallbacks(unittest.TestCase):
         msg = {"price": "46590", "quantity": 1, "action": "Sell", "trade_id": "ghost"}
         host.handle_order_event(FUTURES_DEAL, msg)
 
-        self.assertTrue(host.block_new_entry)
-        self.assertEqual(host.position_qty, 24)
-        self.assertEqual(host.position_dir, "Short")
+        self.assertTrue(host._book.block_new_entry)
+        self.assertEqual(host._book.position_qty, 24)
+        self.assertEqual(host._book.position_dir, "Short")
         alerts.send.assert_called()
         self.assertEqual(alerts.send.call_args.kwargs.get("level"), "CRITICAL")
 
@@ -79,8 +79,8 @@ class TestAdversarialCallbacks(unittest.TestCase):
 
         host.handle_order_event(FUTURES_DEAL, second)
 
-        self.assertTrue(host.is_pending)
-        self.assertEqual(host.position_qty, 0)
+        self.assertTrue(host._book.is_pending)
+        self.assertEqual(host._book.position_qty, 0)
 
     def test_order_event_cancelled_clears_pending(self):
         host = make_host()
@@ -93,5 +93,5 @@ class TestAdversarialCallbacks(unittest.TestCase):
         }
         host.handle_order_event(FUTURES_ORDER, cancel_msg)
 
-        self.assertFalse(host.is_pending)
-        self.assertEqual(host.position_qty, 0)
+        self.assertFalse(host._book.is_pending)
+        self.assertEqual(host._book.position_qty, 0)

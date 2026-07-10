@@ -6,11 +6,13 @@ import unittest
 from unittest.mock import MagicMock
 
 from trading_engine.adapters.shioaji_live import ShioajiLiveBootstrap
+from trading_engine.locking import DomainLock
 
 
 def _make_engine() -> MagicMock:
     engine = MagicMock()
-    # _api_lock must be a usable context manager.
+    # Phase G0: api_critical_section checks domain lock then enters _api_lock.
+    engine.lock = DomainLock()
     engine._api_lock = MagicMock()
     engine._api_lock.__enter__ = MagicMock(return_value=None)
     engine._api_lock.__exit__ = MagicMock(return_value=False)

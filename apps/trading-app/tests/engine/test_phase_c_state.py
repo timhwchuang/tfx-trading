@@ -1,4 +1,4 @@
-"""Phase C: connectivity / integrity / ticks composition + forwarders."""
+"""Phase C/G1: connectivity / integrity / ticks composition (explicit owners)."""
 
 from __future__ import annotations
 
@@ -11,28 +11,28 @@ from trading_engine.ticks import TickState
 
 
 class TestPhaseCState(unittest.TestCase):
-    def test_engine_forwards_link_and_integrity(self):
+    def test_engine_composes_link_and_integrity(self):
         host = make_host()
-        host._api_connected = False
+        host._link._api_connected = False
         self.assertFalse(host._link._api_connected)
-        host._settling = True
+        host._integrity._settling = True
         self.assertTrue(host._integrity._settling)
         host._integrity.clear_settling_window()
-        self.assertFalse(host._settling)
-        host._no_tick_resubscribe_streak = 3
+        self.assertFalse(host._integrity._settling)
+        host._ticks._no_tick_resubscribe_streak = 3
         self.assertEqual(host._ticks._no_tick_resubscribe_streak, 3)
 
     def test_day_ops_resets_composed_states(self):
         host = make_host()
-        host._disconnect_count_today = 2
-        host._position_unconfirmed = True
-        host._consecutive_missed_entries = 2
-        host._tick_type_counts[1] = 9
+        host._link._disconnect_count_today = 2
+        host._integrity._position_unconfirmed = True
+        host._integrity._consecutive_missed_entries = 2
+        host._ticks._tick_type_counts[1] = 9
         host._reset_daily_state()
-        self.assertEqual(host._disconnect_count_today, 0)
-        self.assertFalse(host._position_unconfirmed)
-        self.assertEqual(host._consecutive_missed_entries, 0)
-        self.assertEqual(host._tick_type_counts[1], 0)
+        self.assertEqual(host._link._disconnect_count_today, 0)
+        self.assertFalse(host._integrity._position_unconfirmed)
+        self.assertEqual(host._integrity._consecutive_missed_entries, 0)
+        self.assertEqual(host._ticks._tick_type_counts[1], 0)
 
     def test_state_dataclasses_standalone(self):
         link = ConnectivityState()
@@ -51,28 +51,28 @@ class TestPhaseCState(unittest.TestCase):
     def test_clear_settling_does_not_lift_halt(self):
         """P0-5: clearing pending/SETTLING must leave HALT sticky."""
         host = make_host()
-        host._settling = True
-        host._settle_since = 1.0
-        host._reconcile_last_read = (1, "Long")
-        host._reconcile_read_streak = 2
-        host._position_unconfirmed = True
+        host._integrity._settling = True
+        host._integrity._settle_since = 1.0
+        host._integrity._reconcile_last_read = (1, "Long")
+        host._integrity._reconcile_read_streak = 2
+        host._integrity._position_unconfirmed = True
 
         host._integrity.clear_settling_window()
-        self.assertFalse(host._settling)
-        self.assertEqual(host._settle_since, 0.0)
-        self.assertIsNone(host._reconcile_last_read)
-        self.assertEqual(host._reconcile_read_streak, 0)
-        self.assertTrue(host._position_unconfirmed)
+        self.assertFalse(host._integrity._settling)
+        self.assertEqual(host._integrity._settle_since, 0.0)
+        self.assertIsNone(host._integrity._reconcile_last_read)
+        self.assertEqual(host._integrity._reconcile_read_streak, 0)
+        self.assertTrue(host._integrity._position_unconfirmed)
 
         # Full pending clear path also must not lift HALT.
-        host._settling = True
-        host._position_unconfirmed = True
-        host.is_pending = True
-        host.pending_intent = "exit"
+        host._integrity._settling = True
+        host._integrity._position_unconfirmed = True
+        host._book.is_pending = True
+        host._book.pending_intent = "exit"
         host._clear_pending()
-        self.assertFalse(host.is_pending)
-        self.assertFalse(host._settling)
-        self.assertTrue(host._position_unconfirmed)
+        self.assertFalse(host._book.is_pending)
+        self.assertFalse(host._integrity._settling)
+        self.assertTrue(host._integrity._position_unconfirmed)
 
 
 if __name__ == "__main__":

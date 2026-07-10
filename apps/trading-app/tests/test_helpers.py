@@ -44,14 +44,14 @@ def arm_pending_entry(
     signal_price: float = 18000.0,
     exchange_ts: int = 1000,
 ) -> None:
-    host.is_pending = True
-    host.pending_intent = "entry"
-    host.pending_order_id = order_id
-    host.pending_qty = 1
-    host.pending_exchange_ts = exchange_ts
-    host.pending_signal_price = signal_price
-    host.pending_limit_price = signal_price + 3
-    host.pending_ioc_slippage = 3
+    host._book.is_pending = True
+    host._book.pending_intent = "entry"
+    host._book.pending_order_id = order_id
+    host._book.pending_qty = 1
+    host._book.pending_exchange_ts = exchange_ts
+    host._book.pending_signal_price = signal_price
+    host._book.pending_limit_price = signal_price + 3
+    host._book.pending_ioc_slippage = 3
 
 
 def arm_pending_exit(
@@ -62,12 +62,12 @@ def arm_pending_exit(
     exchange_ts: int = 2000,
     exit_reason: str = "take_profit",
 ) -> None:
-    host.is_pending = True
-    host.pending_intent = "exit"
-    host.pending_order_id = order_id
-    host.pending_qty = 1
-    host.pending_exchange_ts = exchange_ts
-    host.pending_signal_price = signal_price
-    host.pending_limit_price = signal_price - 3
-    host.pending_ioc_slippage = 3
-    host.pending_exit_reason = exit_reason
+    host._book.is_pending = True
+    host._book.pending_intent = "exit"
+    host._book.pending_order_id = order_id
+    host._book.pending_qty = 1
+    host._book.pending_exchange_ts = exchange_ts
+    host._book.pending_signal_price = signal_price
+    host._book.pending_limit_price = signal_price - 3
+    host._book.pending_ioc_slippage = 3
+    host._book.pending_exit_reason = exit_reason

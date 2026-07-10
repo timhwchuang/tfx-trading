@@ -24,27 +24,27 @@ class ConnectivityOpsMixin:
     """Mixin: broker link lifecycle (TradingEngine composes this)."""
 
     def _is_reconnect_warmup_active(self, ts: int) -> bool:
-        return self._reconnect_warmup_until_ts > 0 and ts < self._reconnect_warmup_until_ts
+        return self._link._reconnect_warmup_until_ts > 0 and ts < self._link._reconnect_warmup_until_ts
 
     def _arm_reconnect_warmup_on_first_tick_locked(self, ts: int) -> None:
-        if not self._pending_reconnect_warmup:
+        if not self._link._pending_reconnect_warmup:
             return
         warmup_sec = self._cfg.reconnect_warmup_sec
-        self._reconnect_warmup_until_ts = ts + warmup_sec
-        self._pending_reconnect_warmup = False
+        self._link._reconnect_warmup_until_ts = ts + warmup_sec
+        self._link._pending_reconnect_warmup = False
         logger.info(
             "重連暖機開始 | %ds 內禁止新進場（until_ts=%d）",
             warmup_sec,
-            self._reconnect_warmup_until_ts,
+            self._link._reconnect_warmup_until_ts,
         )
 
     def _check_session_watchdog(self) -> None:
         with self.lock:
-            if self._api_connected:
+            if self._link._api_connected:
                 return
-            disconnected_since = self._disconnect_since
-            next_at = self._next_relogin_at
-            attempts = self._session_relogin_attempts
+            disconnected_since = self._link._disconnect_since
+            next_at = self._link._next_relogin_at
+            attempts = self._link._session_relogin_attempts
 
         if disconnected_since <= 0:
             return
@@ -59,7 +59,7 @@ class ConnectivityOpsMixin:
                 level="CRITICAL",
             )
             with self.lock:
-                self._next_relogin_at = now + 300.0
+                self._link._next_relogin_at = now + 300.0
             return
 
         try:
@@ -74,7 +74,7 @@ class ConnectivityOpsMixin:
                 subscribe_trade=True,
             )
             with self.lock:
-                if self._api_connected:
+                if self._link._api_connected:
                     logger.info(
                         "Session 看門狗略過 _on_reconnected：已由其他路徑恢復連線"
                     )
@@ -90,8 +90,8 @@ class ConnectivityOpsMixin:
                     level="CRITICAL",
                 )
                 with self.lock:
-                    self._session_relogin_attempts = attempts + 1
-                    self._next_relogin_at = now + backoff
+                    self._link._session_relogin_attempts = attempts + 1
+                    self._link._next_relogin_at = now + backoff
             elif outcome == ReconnectOutcome.STALE:
                 backoff = self._cfg.session_relogin_backoff_base_sec
                 logger.info(
@@ -99,14 +99,14 @@ class ConnectivityOpsMixin:
                     backoff,
                 )
                 with self.lock:
-                    self._next_relogin_at = now + backoff
+                    self._link._next_relogin_at = now + backoff
         except Exception as e:
             backoff = self._cfg.session_relogin_backoff_base_sec * (2**attempts)
             logger.error("Session 重登入失敗: %s | backoff=%.1fs", e, backoff)
             self._alerts.send(f"Session 重登入失敗: {e}", level="CRITICAL")
             with self.lock:
-                self._session_relogin_attempts = attempts + 1
-                self._next_relogin_at = now + backoff
+                self._link._session_relogin_attempts = attempts + 1
+                self._link._next_relogin_at = now + backoff
 
     def _mark_disconnected(
         self,
@@ -120,39 +120,39 @@ class ConnectivityOpsMixin:
         alert_qty = 0
         alert_dir = "Flat"
         with self.lock:
-            if require_silent_sec is not None and self._last_tick_wall_time > 0:
-                if self._clock() - self._last_tick_wall_time < require_silent_sec:
+            if require_silent_sec is not None and self._ticks._last_tick_wall_time > 0:
+                if self._clock() - self._ticks._last_tick_wall_time < require_silent_sec:
                     return False
             if (
                 max_connected_reconnect_generation is not None
-                and self._connected_reconnect_generation
+                and self._link._connected_reconnect_generation
                 > max_connected_reconnect_generation
             ):
                 return False
             if (
                 reconnect_generation is not None
-                and reconnect_generation != self._reconnect_generation
+                and reconnect_generation != self._link._reconnect_generation
             ):
                 return False
             if (
                 reconnect_generation is not None
-                and self._api_connected
-                and reconnect_generation != self._connected_reconnect_generation
+                and self._link._api_connected
+                and reconnect_generation != self._link._connected_reconnect_generation
             ):
                 return False
-            was_connected = self._api_connected
-            self._api_connected = False
+            was_connected = self._link._api_connected
+            self._link._api_connected = False
             if reconnect_generation is None:
-                self._connected_reconnect_generation = 0
-            if self._disconnect_since <= 0:
-                self._disconnect_since = self._clock()
+                self._link._connected_reconnect_generation = 0
+            if self._link._disconnect_since <= 0:
+                self._link._disconnect_since = self._clock()
             if was_connected:
-                self._disconnect_count_today += 1
-                alert_qty = self.position_qty
-                alert_dir = self.position_dir
-                disconnect_count = self._disconnect_count_today
+                self._link._disconnect_count_today += 1
+                alert_qty = self._book.position_qty
+                alert_dir = self._book.position_dir
+                disconnect_count = self._link._disconnect_count_today
             else:
-                disconnect_count = self._disconnect_count_today
+                disconnect_count = self._link._disconnect_count_today
         if not was_connected:
             if require_was_connected:
                 return False
@@ -168,7 +168,7 @@ class ConnectivityOpsMixin:
             )
         if disconnect_count >= self._cfg.max_disconnects_per_day:
             with self.lock:
-                self.block_new_entry = True
+                self._book.block_new_entry = True
             self._alerts.send(
                 f"單日斷線達 {disconnect_count} 次（上限 "
                 f"{self._cfg.max_disconnects_per_day}）→ 停止新進場至日切換；請排查網路",
@@ -198,9 +198,9 @@ class ConnectivityOpsMixin:
         Returns HEALTHY when subscribe health gate passed and connected state applied.
         """
         with self.lock:
-            self._reconnect_generation += 1
-            generation = self._reconnect_generation
-            has_pending = self.is_pending
+            self._link._reconnect_generation += 1
+            generation = self._link._reconnect_generation
+            has_pending = self._book.is_pending
 
         if has_pending:
             try:
@@ -229,23 +229,23 @@ class ConnectivityOpsMixin:
             session_healthy = False
 
         with self.lock:
-            if generation != self._reconnect_generation:
+            if generation != self._link._reconnect_generation:
                 logger.info(
                     "重連同步結果已過期，忽略 | gen=%d current=%d healthy=%s",
                     generation,
-                    self._reconnect_generation,
+                    self._link._reconnect_generation,
                     session_healthy,
                 )
                 return ReconnectOutcome.STALE
             if session_healthy:
-                self._pending_reconnect_warmup = True
-                self._reconnect_warmup_until_ts = 0
-                self._api_connected = True
-                self._connected_reconnect_generation = generation
-                self._disconnect_since = 0.0
-                self._session_relogin_attempts = 0
-                self._next_relogin_at = 0.0
-                self._no_tick_resubscribe_streak = 0
+                self._link._pending_reconnect_warmup = True
+                self._link._reconnect_warmup_until_ts = 0
+                self._link._api_connected = True
+                self._link._connected_reconnect_generation = generation
+                self._link._disconnect_since = 0.0
+                self._link._session_relogin_attempts = 0
+                self._link._next_relogin_at = 0.0
+                self._ticks._no_tick_resubscribe_streak = 0
 
         if session_healthy:
             logger.info("重連後狀態同步完成（暖機待首筆 tick 起算）")
@@ -258,7 +258,7 @@ class ConnectivityOpsMixin:
             logger.info(
                 "重連不健康結果已過期，略過 disconnect | gen=%d current=%d",
                 generation,
-                self._reconnect_generation,
+                self._link._reconnect_generation,
             )
             return ReconnectOutcome.STALE
         return ReconnectOutcome.UNHEALTHY

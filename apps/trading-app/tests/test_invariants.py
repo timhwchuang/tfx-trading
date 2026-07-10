@@ -12,10 +12,10 @@ from trading_engine.core.order_events import FUTURES_DEAL, FUTURES_ORDER
 class TestIntentCancelledTag(unittest.TestCase):
     def test_open_session_entry_cancel_tag(self):
         host = make_host()
-        host.is_pending = True
-        host.pending_intent = "entry"
-        host.pending_order_id = "ord-1"
-        host._pending_intent_cancel_exchange_dt = datetime.datetime(2026, 6, 10, 8, 50)
+        host._book.is_pending = True
+        host._book.pending_intent = "entry"
+        host._book.pending_order_id = "ord-1"
+        host._integrity._pending_intent_cancel_exchange_dt = datetime.datetime(2026, 6, 10, 8, 50)
 
         with self.assertLogs("trading_engine", level="INFO") as logs:
             host._handle_futures_order(
@@ -26,7 +26,7 @@ class TestIntentCancelledTag(unittest.TestCase):
                 }
             )
 
-        self.assertFalse(host.is_pending)
+        self.assertFalse(host._book.is_pending)
         # Legacy log for intent_cancelled (ensure exact message, not polluted by new EXEC)
         cancelled = [
             line for line in logs.output

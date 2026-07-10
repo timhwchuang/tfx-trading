@@ -6,6 +6,7 @@ import threading
 import unittest
 from types import SimpleNamespace
 
+from trading_engine.integrity import IntegrityState
 from trading_engine.reconcile import is_severe_drift, severe_drift_confirmed
 
 
@@ -30,8 +31,7 @@ class TestSevereDriftConfirmed(unittest.TestCase):
         return SimpleNamespace(
             lock=threading.Lock(),
             _cfg=SimpleNamespace(reconcile_confirm_reads=need),
-            _severe_drift_broker_read=None,
-            _severe_drift_read_streak=0,
+            _integrity=IntegrityState(),
         )
 
     def test_streak_reaches_need(self):
@@ -39,29 +39,29 @@ class TestSevereDriftConfirmed(unittest.TestCase):
         self.assertFalse(
             severe_drift_confirmed(host, 0, "Flat", 1, "Long")
         )
-        self.assertEqual(host._severe_drift_read_streak, 1)
+        self.assertEqual(host._integrity._severe_drift_read_streak, 1)
         self.assertTrue(
             severe_drift_confirmed(host, 0, "Flat", 1, "Long")
         )
-        self.assertEqual(host._severe_drift_read_streak, 2)
+        self.assertEqual(host._integrity._severe_drift_read_streak, 2)
 
     def test_broker_tuple_change_resets_streak(self):
         host = self._host(need=2)
         severe_drift_confirmed(host, 0, "Flat", 1, "Long")
-        self.assertEqual(host._severe_drift_read_streak, 1)
+        self.assertEqual(host._integrity._severe_drift_read_streak, 1)
         severe_drift_confirmed(host, 0, "Flat", 2, "Long")
-        self.assertEqual(host._severe_drift_read_streak, 1)
-        self.assertEqual(host._severe_drift_broker_read, (2, "Long"))
+        self.assertEqual(host._integrity._severe_drift_read_streak, 1)
+        self.assertEqual(host._integrity._severe_drift_broker_read, (2, "Long"))
 
     def test_non_severe_clears_streak(self):
         host = self._host(need=2)
         severe_drift_confirmed(host, 0, "Flat", 1, "Long")
-        self.assertEqual(host._severe_drift_read_streak, 1)
+        self.assertEqual(host._integrity._severe_drift_read_streak, 1)
         self.assertFalse(
             severe_drift_confirmed(host, 1, "Long", 1, "Long")
         )
-        self.assertEqual(host._severe_drift_read_streak, 0)
-        self.assertIsNone(host._severe_drift_broker_read)
+        self.assertEqual(host._integrity._severe_drift_read_streak, 0)
+        self.assertIsNone(host._integrity._severe_drift_broker_read)
 
 
 if __name__ == "__main__":

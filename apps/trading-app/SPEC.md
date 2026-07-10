@@ -107,6 +107,9 @@ Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat
 | `src/trading_engine/integrity.py` | SETTLING / HALT state |
 | `src/trading_engine/ticks.py` | tick counters |
 | `src/trading_engine/tick_watchdog.py` | no-tick / clock skew / type summary |
+| `src/trading_engine/locking.py` | Phase G0 domain/API lock contract |
+| `src/trading_engine/maintenance.py` | Phase G4 background job scheduler |
+| `src/trading_engine/core/engine_service.py` | Phase G3 start/stop Protocol |
 | `src/trading_engine/risk_gate.py` | `build_risk_gate` RiskAssembler |
 | `src/trading_engine/orders/` | order pipeline mixins (Wave 3) |
 | `src/trading_engine/order_executor.py` | facade → `orders.OrderExecutorMixin` |
@@ -249,11 +252,12 @@ Gap 有持倉 → sticky force flatten。
 | **C** | Link / Integrity / Tick 狀態收攏；`on_tick` 閱讀地圖 | **done** |
 | **D** | SSOT 定稿、legacy 標記、deprecated 文件化 | **done** |
 | **E** | 行為收斂：position domain + 線性 orchestrator（分 Wave） | **Wave 0–3 done** |
+| **F** | CapitalService 抽出 | **done** |
+| **G** | 結構硬化：鎖契約 / 去魔術 / Protocol / 排程器 | **G0–G2 + G4 done；G3 partial** |
 
 ### Phase B notes
 
 - `TradingEngine._book` owns position + single pending flight.
-- Call sites keep `host.position_qty` / `host.is_pending` via `__getattr__` / `__setattr__` forwarders.
 - Progressive capital remains on `_capital` / `CapitalStore` (not in Book).
 
 ### Phase C notes
@@ -266,7 +270,7 @@ Gap 有持倉 → sticky force flatten。
 | `_ticks` | `ticks.py` | last tick, type counts, no-tick streaks |
 | `_capital` | `core/risk.py` | progressive MDD |
 
-- Field access still via `self._settling` etc. (forwarders).
+- Field access is **explicit** `self._book.*` / `self._link.*` / `self._integrity.*` / `self._ticks.*` (Phase G1；無 `__getattr__` forwarders).
 - Watchdog **methods** stay on engine (need alerts / resubscribe hooks); they read `_ticks` / `_link`.
 - `on_tick` docstring is the hot-path reading map.
 
@@ -286,3 +290,17 @@ Gap 有持倉 → sticky force flatten。
 - **Wave 1**: `Book` mutation API；`position_sync.py`；`reconcile.py`；Session 不再擁有持倉讀寫。
 - **Wave 2**: `connectivity_ops.py`；`tick_watchdog.py`；`engine._timeout_loop` 委派列表。
 - **Wave 3**: `orders/*` pipeline mixins（flight/place/callbacks/fill/flatten/settle/strategy_host）；`risk_gate.build_risk_gate`；`engine.start()` 移除（live → `integrations.live_session.start_live_session`）；`order_executor` 為 facade re-export。
+
+### Phase G notes (structural hardening)
+
+| Wave | 內容 | 狀態 |
+|------|------|------|
+| **G0** | Dual-lock 契約：`DomainLock` + `_call_api` 禁止持 domain lock 進 API；`locking.py`；AST 稽核測試 | **done** |
+| **G1** | 移除 `__getattr__`/`__setattr__`；全站 `self._book.*` 等顯式 SSOT | **done** |
+| **G2** | `RiskGateHost` / `ReconcileHost` / `PositionSyncHost` 改為 composed state ports | **done** |
+| **G3** | `EngineService` Protocol + `run()` lifecycle 列表；**Mixin→獨立 Service 本體仍待後續** | **partial** |
+| **G4** | `MaintenanceScheduler` Option A（單執行緒 + per-job due + 100ms duration warn）；取代 serial `_timeout_loop` | **done** |
+
+**Lock order (G0):** never acquire `_api_lock` while current thread holds domain `self.lock`. Hot path `on_tick` = domain lock only.
+
+**Public contracts unchanged:** Strategy still `evaluate(market, position, risk)`；`get_state_snapshot()` 仍為 app/smoke 唯讀面。

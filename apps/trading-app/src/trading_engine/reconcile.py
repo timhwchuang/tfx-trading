@@ -22,19 +22,10 @@ class ReconcileHost(Protocol):
     lock: Any
     contract: Any
     _cfg: Any
-    _api_connected: bool
-    _last_tick_exchange_dt: Any
-    is_pending: bool
-    _settling: bool
-    position_qty: int
-    position_dir: str
-    _position_unconfirmed: bool
-    _post_exit_reconcile_until: float
-    _last_reconcile_wall: float
-    _position_drift_detected: bool
-    _severe_drift_broker_read: Any
-    _severe_drift_read_streak: int
-    block_new_entry: bool
+    _book: Any
+    _link: Any
+    _integrity: Any
+    _ticks: Any
     _alerts: Any
 
     def _clock(self) -> float: ...
@@ -84,18 +75,18 @@ def severe_drift_confirmed(
     """True once severe drift is seen on debounced consecutive broker reads."""
     if not is_severe_drift(kernel_qty, kernel_dir, broker_qty, broker_dir):
         with host.lock:
-            host._severe_drift_broker_read = None
-            host._severe_drift_read_streak = 0
+            host._integrity._severe_drift_broker_read = None
+            host._integrity._severe_drift_read_streak = 0
         return False
     broker = (broker_qty, broker_dir)
     need = max(1, int(host._cfg.reconcile_confirm_reads))
     with host.lock:
-        if host._severe_drift_broker_read == broker:
-            host._severe_drift_read_streak += 1
+        if host._integrity._severe_drift_broker_read == broker:
+            host._integrity._severe_drift_read_streak += 1
         else:
-            host._severe_drift_broker_read = broker
-            host._severe_drift_read_streak = 1
-        return host._severe_drift_read_streak >= need
+            host._integrity._severe_drift_broker_read = broker
+            host._integrity._severe_drift_read_streak = 1
+        return host._integrity._severe_drift_read_streak >= need
 
 
 def check_position_reconcile(host: ReconcileHost) -> None:
@@ -114,20 +105,20 @@ def check_position_reconcile(host: ReconcileHost) -> None:
     steady = host._cfg.position_reconcile_sec
     if steady <= 0:
         return
-    if not host._api_connected or host.contract is None:
+    if not host._link._api_connected or host.contract is None:
         return
-    if host._last_tick_exchange_dt is None:
+    if host._ticks._last_tick_exchange_dt is None:
         return
-    if not host.is_trading_session(host._last_tick_exchange_dt):
+    if not host.is_trading_session(host._ticks._last_tick_exchange_dt):
         return
 
     with host.lock:
-        if host.is_pending or host._settling:
+        if host._book.is_pending or host._integrity._settling:
             return
-        kernel_qty = host.position_qty
-        kernel_dir = host.position_dir
-        unconfirmed = host._position_unconfirmed
-        post_exit = host._clock() < host._post_exit_reconcile_until
+        kernel_qty = host._book.position_qty
+        kernel_dir = host._book.position_dir
+        unconfirmed = host._integrity._position_unconfirmed
+        post_exit = host._clock() < host._integrity._post_exit_reconcile_until
 
     interval = (
         max(1, int(host._cfg.reconcile_fast_sec))
@@ -135,7 +126,7 @@ def check_position_reconcile(host: ReconcileHost) -> None:
         else steady
     )
     now = host._clock()
-    if now - host._last_reconcile_wall < interval:
+    if now - host._integrity._last_reconcile_wall < interval:
         return
 
     broker = host.read_broker_position()
@@ -144,11 +135,11 @@ def check_position_reconcile(host: ReconcileHost) -> None:
     broker_qty, broker_dir = broker
 
     # Only consume the throttle after a successful broker read and comparison.
-    host._last_reconcile_wall = now
+    host._integrity._last_reconcile_wall = now
 
     ceiling = host._cfg.max_position_qty
     if ceiling > 0 and broker_qty > ceiling and broker_qty > kernel_qty:
-        host._position_drift_detected = True
+        host._integrity._position_drift_detected = True
         host._halt_position_unconfirmed(
             f"週期對帳發現超過部位上限 | kernel={kernel_dir} {kernel_qty}口 "
             f"broker={broker_dir} {broker_qty}口 > max={ceiling}"
@@ -160,7 +151,7 @@ def check_position_reconcile(host: ReconcileHost) -> None:
             host, kernel_qty, kernel_dir, broker_qty, broker_dir
         ):
             return
-        host._position_drift_detected = True
+        host._integrity._position_drift_detected = True
         logger.warning(
             "嚴重持倉漂移 | kernel=%s %d口 broker=%s %d口 → HALT 並收斂平倉",
             kernel_dir,
@@ -169,8 +160,8 @@ def check_position_reconcile(host: ReconcileHost) -> None:
             broker_qty,
         )
         with host.lock:
-            host._severe_drift_broker_read = None
-            host._severe_drift_read_streak = 0
+            host._integrity._severe_drift_broker_read = None
+            host._integrity._severe_drift_read_streak = 0
         # Halt already syncs when no live pending; suppress generic CRITICAL so
         # this path emits a single severe-specific alert (no double list_positions).
         host._halt_position_unconfirmed(
@@ -187,14 +178,14 @@ def check_position_reconcile(host: ReconcileHost) -> None:
         return
 
     if broker_qty == kernel_qty and broker_dir == kernel_dir:
-        if host._position_drift_detected:
+        if host._integrity._position_drift_detected:
             logger.info(
                 "週期對帳 | 已恢復一致 | %s %d口", kernel_dir, kernel_qty
             )
-        host._position_drift_detected = False
+        host._integrity._position_drift_detected = False
         with host.lock:
-            host._severe_drift_broker_read = None
-            host._severe_drift_read_streak = 0
+            host._integrity._severe_drift_broker_read = None
+            host._integrity._severe_drift_read_streak = 0
         return
 
     logger.warning(
@@ -204,9 +195,9 @@ def check_position_reconcile(host: ReconcileHost) -> None:
         broker_dir,
         broker_qty,
     )
-    host._position_drift_detected = True
+    host._integrity._position_drift_detected = True
     with host.lock:
-        host.block_new_entry = True
+        host._book.block_new_entry = True
     host.sync_positions()
     host._alerts.send(
         f"持倉漂移 | kernel={kernel_dir} {kernel_qty}口 vs broker={broker_dir} "

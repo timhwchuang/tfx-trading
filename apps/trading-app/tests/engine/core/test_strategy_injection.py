@@ -64,7 +64,7 @@ class TestStrategyInterfaceInjection(unittest.TestCase):
             runtime_config=default_runtime_config(),
             order_adapter=MockOrderAdapter(api),
         )
-        host._api_connected = True
+        host._link._api_connected = True
         host._order_sync_mode = True
         tick = MagicMock()
         tick.datetime = datetime.datetime(2026, 6, 12, 9, 0, 0)

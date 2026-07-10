@@ -19,8 +19,8 @@ class TestSyncPositions(unittest.TestCase):
 
         host.sync_positions()
 
-        self.assertEqual(host.position_qty, 1)
-        self.assertEqual(host.position_dir, "Short")
+        self.assertEqual(host._book.position_qty, 1)
+        self.assertEqual(host._book.position_dir, "Short")
 
     def test_multiple_open_positions_takes_first_matching_code(self):
         broker = make_broker_with_positions(
@@ -32,7 +32,7 @@ class TestSyncPositions(unittest.TestCase):
 
         host.sync_positions()
 
-        self.assertEqual(host.position_qty, 2)  # first match wins per current impl
+        self.assertEqual(host._book.position_qty, 2)  # first match wins per current impl
 
     def test_zero_quantity_positions_are_ignored(self):
         broker = make_broker_with_positions(
@@ -41,9 +41,9 @@ class TestSyncPositions(unittest.TestCase):
         )
         host = make_host(api=broker)
         host.contract = MagicMock(code="TXFR1")
-        host.position_qty = 99
+        host._book.position_qty = 99
 
         host.sync_positions()
 
         # Should go flat because no non-zero matched
-        self.assertEqual(host.position_qty, 0)
+        self.assertEqual(host._book.position_qty, 0)

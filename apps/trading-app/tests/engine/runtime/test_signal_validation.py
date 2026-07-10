@@ -27,7 +27,7 @@ class TestSignalValidation(unittest.TestCase):
 
     def test_rejects_entry_when_block_new_entry(self):
         host = make_host()
-        host.block_new_entry = True
+        host._book.block_new_entry = True
         signal = OrderSignal("Buy", 1, 18000.0, "entry", exchange_ts=1)
         self.assertFalse(host._validate_order_signal(signal))
 
@@ -43,8 +43,8 @@ class TestSignalValidation(unittest.TestCase):
 
     def test_accepts_valid_exit_with_position(self):
         host = make_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         signal = OrderSignal("Sell", 1, 18000.0, "exit", exchange_ts=1)
         self.assertTrue(host._validate_order_signal(signal))
 

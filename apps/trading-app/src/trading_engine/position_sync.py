@@ -130,7 +130,7 @@ class PositionSyncMixin:
 
             if qty_before != qty_after:
                 try:
-                    ts = getattr(self, "last_tick_exchange_ts", 0) or int(time.time())
+                    ts = self._ticks.last_tick_exchange_ts or int(time.time())
                     exec_audit = ExecAudit(
                         event_type="position_sync",
                         ts=ts,

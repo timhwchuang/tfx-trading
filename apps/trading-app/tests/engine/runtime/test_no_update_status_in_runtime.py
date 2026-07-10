@@ -29,15 +29,15 @@ class TestNoUpdateStatusInvariant(unittest.TestCase):
     def test_timeout_path_never_updates_status(self) -> None:
         host = self._host()
         arm_pending_entry(host, order_id="ord-1")
-        host.pending_since = host._clock() - 10
+        host._book.pending_since = host._clock() - 10
         host._check_pending_timeout()
         host.api.update_status.assert_not_called()
 
     def test_settle_path_never_updates_status(self) -> None:
         host = self._host()
         arm_pending_entry(host, order_id="ord-1")
-        host._settling = True
-        host._settle_since = host._clock()
+        host._integrity._settling = True
+        host._integrity._settle_since = host._clock()
         host._settle_via_reconcile()
         host.api.update_status.assert_not_called()
 
@@ -64,10 +64,10 @@ class TestCancelCallbackNoDeadlock(unittest.TestCase):
     def test_cancel_under_lock_does_not_deadlock(self) -> None:
         """Regression: _handle_futures_order must not re-acquire self.lock."""
         host = make_host()
-        host.is_pending = True
-        host.pending_intent = "entry"
-        host.pending_order_id = "ord-cancel-1"
-        host._pending_action = "Buy"
+        host._book.is_pending = True
+        host._book.pending_intent = "entry"
+        host._book.pending_order_id = "ord-cancel-1"
+        host._book._pending_action = "Buy"
         msg = {
             "operation": {"op_type": "Cancel", "op_code": "00"},
             "status": {"status": "Cancelled", "deal_quantity": 0},
@@ -75,7 +75,7 @@ class TestCancelCallbackNoDeadlock(unittest.TestCase):
         }
         with host.lock:
             host._handle_futures_order(msg)
-        self.assertFalse(host.is_pending)
+        self.assertFalse(host._book.is_pending)
 
 
 if __name__ == "__main__":

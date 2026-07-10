@@ -181,18 +181,18 @@ class TestDailyStateReset(unittest.TestCase):
     def test_reset_on_exchange_date_change(self):
         host = make_host()
         host._cfg.apply_overlay({"max_mdd_points": 30.0})  # gate on so freeze blocks entry
-        host.daily_pnl = -150.0
-        host.block_new_entry = True
-        host.consecutive_loss = 3
+        host._book.daily_pnl = -150.0
+        host._book.block_new_entry = True
+        host._book.consecutive_loss = 3
         host._capital.apply_realized_pnl(-40.0)
         host._capital.evaluate_mdd(30)  # freezes capital
         host._trading_date = datetime.date(2026, 6, 9)
 
         host._maybe_reset_daily_state(_dt(8, 45))
 
-        self.assertEqual(host.daily_pnl, 0.0)
-        self.assertFalse(host.block_new_entry)
-        self.assertEqual(host.consecutive_loss, 0)
+        self.assertEqual(host._book.daily_pnl, 0.0)
+        self.assertFalse(host._book.block_new_entry)
+        self.assertEqual(host._book.consecutive_loss, 0)
         self.assertEqual(host._trading_date, datetime.date(2026, 6, 10))
         # Progressive capital book survives day rollover
         self.assertEqual(host.realized_pnl, -40.0)
@@ -201,14 +201,14 @@ class TestDailyStateReset(unittest.TestCase):
 
     def test_same_day_no_reset(self):
         host = make_host()
-        host.daily_pnl = -80.0
-        host.block_new_entry = True
+        host._book.daily_pnl = -80.0
+        host._book.block_new_entry = True
         host._trading_date = datetime.date(2026, 6, 10)
 
         host._maybe_reset_daily_state(_dt(10, 0))
 
-        self.assertEqual(host.daily_pnl, -80.0)
-        self.assertTrue(host.block_new_entry)
+        self.assertEqual(host._book.daily_pnl, -80.0)
+        self.assertTrue(host._book.block_new_entry)
 
     def test_night_and_following_day_share_trading_day_budget(self):
         """Mon 15:00 night + Tue day session share one TAIFEX trading day."""
@@ -219,32 +219,32 @@ class TestDailyStateReset(unittest.TestCase):
         host._trading_date = None
         host._maybe_reset_daily_state(mon_night)
         self.assertEqual(host._trading_date, datetime.date(2026, 6, 9))
-        host.daily_pnl = -50.0
-        host.consecutive_loss = 2
-        host.block_new_entry = True
+        host._book.daily_pnl = -50.0
+        host._book.consecutive_loss = 2
+        host._book.block_new_entry = True
 
         # Tue 09:00 → same trading day (Jun 9); must NOT reset
         tue_day = datetime.datetime(2026, 6, 9, 9, 0)
         host._maybe_reset_daily_state(tue_day)
         self.assertEqual(host._trading_date, datetime.date(2026, 6, 9))
-        self.assertEqual(host.daily_pnl, -50.0)
-        self.assertEqual(host.consecutive_loss, 2)
-        self.assertTrue(host.block_new_entry)
+        self.assertEqual(host._book.daily_pnl, -50.0)
+        self.assertEqual(host._book.consecutive_loss, 2)
+        self.assertTrue(host._book.block_new_entry)
 
         # Tue 15:00 → new trading day Wed; reset
         tue_night = datetime.datetime(2026, 6, 9, 15, 0)
         host._maybe_reset_daily_state(tue_night)
         self.assertEqual(host._trading_date, datetime.date(2026, 6, 10))
-        self.assertEqual(host.daily_pnl, 0.0)
-        self.assertEqual(host.consecutive_loss, 0)
-        self.assertFalse(host.block_new_entry)
+        self.assertEqual(host._book.daily_pnl, 0.0)
+        self.assertEqual(host._book.consecutive_loss, 0)
+        self.assertFalse(host._book.block_new_entry)
 
 
 class TestGapForceFlatten(unittest.TestCase):
     def test_gap_with_position_forces_flatten(self):
         host = make_host()
-        host.position_qty = 1
-        host.position_dir = "Long"
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
         # 14:00 is between day end and night start
         gap = datetime.datetime(2026, 6, 10, 14, 0)
         risk = host._risk_gate(int(gap.timestamp()), gap)
@@ -253,7 +253,7 @@ class TestGapForceFlatten(unittest.TestCase):
 
     def test_gap_flat_no_force(self):
         host = make_host()
-        host.position_qty = 0
+        host._book.position_qty = 0
         gap = datetime.datetime(2026, 6, 10, 14, 0)
         risk = host._risk_gate(int(gap.timestamp()), gap)
         self.assertFalse(risk.force_flatten)
@@ -309,17 +309,17 @@ class TestCooldownUsesExchangeTs(unittest.TestCase):
     def test_exit_fill_records_exchange_ts_not_system_clock(self):
         host = make_host()
         exit_ts = 1_700_000_000
-        host.position_qty = 1
-        host.position_dir = "Long"
-        host.entry_price = 18000.0
-        host.trailing_peak = 18020.0
-        host.pending_intent = "exit"
-        host.pending_exchange_ts = exit_ts
+        host._book.position_qty = 1
+        host._book.position_dir = "Long"
+        host._book.entry_price = 18000.0
+        host._book.trailing_peak = 18020.0
+        host._book.pending_intent = "exit"
+        host._book.pending_exchange_ts = exit_ts
 
         host._apply_deal_fill(18011.0, is_buy=False)
 
-        self.assertEqual(host.last_exit_time, exit_ts)
-        self.assertNotEqual(host.last_exit_time, int(__import__("time").time()))
+        self.assertEqual(host._book.last_exit_time, exit_ts)
+        self.assertNotEqual(host._book.last_exit_time, int(__import__("time").time()))
 
 
 if __name__ == "__main__":

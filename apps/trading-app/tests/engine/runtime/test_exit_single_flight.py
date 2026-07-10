@@ -23,11 +23,11 @@ class TestExitSingleFlight(unittest.TestCase):
         host = make_host()
         self._arm(host)
         host._cfg.reconcile_confirm_reads = 1
-        host.position_qty = 1
-        host.position_dir = "Short"
+        host._book.position_qty = 1
+        host._book.position_dir = "Short"
         arm_pending_exit(host, order_id="100609", exit_reason="stop_loss", qty=1)
-        host._settling = True
-        host._settle_since = host._clock()
+        host._integrity._settling = True
+        host._integrity._settle_since = host._clock()
         host.api.list_positions.return_value = [_pos(1, "Sell")]
         placed: list[OrderSignal] = []
         host.place_order = lambda sig: placed.append(sig)
@@ -35,27 +35,27 @@ class TestExitSingleFlight(unittest.TestCase):
         for _ in range(5):
             host._settle_via_reconcile()
 
-        self.assertTrue(host.is_pending)
-        self.assertEqual(host.pending_order_id, "100609")
+        self.assertTrue(host._book.is_pending)
+        self.assertEqual(host._book.pending_order_id, "100609")
         self.assertEqual(len(placed), 0)
 
     def test_after_miss_window_stop_loss_escalates_not_strategy_retry(self) -> None:
         host = make_host()
         self._arm(host)
         host._cfg.reconcile_confirm_reads = 1
-        host.position_qty = 1
-        host.position_dir = "Short"
+        host._book.position_qty = 1
+        host._book.position_dir = "Short"
         arm_pending_exit(host, order_id="100609", exit_reason="stop_loss", qty=1)
-        host._settling = True
-        host._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
+        host._integrity._settling = True
+        host._integrity._settle_since = host._clock() - host._cfg.exit_miss_confirm_sec - 1
         host.api.list_positions.return_value = [_pos(1, "Sell")]
         placed: list[OrderSignal] = []
         host.place_order = lambda sig: placed.append(sig)
 
         host._settle_via_reconcile()
 
-        self.assertFalse(host.is_pending)
-        self.assertTrue(host._stop_market_flatten_request)
+        self.assertFalse(host._book.is_pending)
+        self.assertTrue(host._integrity._stop_market_flatten_request)
         self.assertEqual(len(placed), 0)
 
 
