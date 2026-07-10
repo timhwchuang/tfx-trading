@@ -12,9 +12,9 @@ from trading_engine.book import BOOK_FIELD_NAMES, Book
 from trading_engine.calendar.port import MarketCalendarPort, TaifexMarketCalendar
 from trading_engine.connectivity import LINK_FIELD_NAMES, ConnectivityState
 from trading_engine.connectivity_ops import ConnectivityOpsMixin, ReconnectOutcome
+from trading_engine.capital import CapitalService
 from trading_engine.core.capital_store import CapitalStore
 from trading_engine.core.ports import BrokerPort
-from trading_engine.core.risk import CapitalRiskState
 from trading_engine.core.runtime_config import RuntimeConfig
 from trading_engine.core.side_effect_ports import (
     AlertPort,
@@ -107,15 +107,21 @@ class TradingEngine(
         #   _link       — broker connectivity / reconnect / warmup
         #   _integrity  — SETTLING / HALT / reconcile / miss CB
         #   _ticks      — last tick + no-tick counters
-        #   _capital    — progressive MDD (not forwarded; explicit properties)
+        #   _capital_svc — progressive MDD Host policy (impl not inlined here)
         self._book = Book(pending_ioc_slippage=int(self._cfg.ioc_slippage_points))
         self._link = ConnectivityState()
         self._integrity = IntegrityState()
         self._ticks = TickState()
-        self._capital_store = capital_store or CapitalStore(
+        store = capital_store or CapitalStore(
             getattr(runtime_config, "capital_state_path", "") or ""
         )
-        self._capital = CapitalRiskState()
+        self._capital_svc = CapitalService(
+            store,
+            product_code=str(self._cfg.product_code),
+            max_mdd_points=lambda: float(
+                getattr(self._cfg, "max_mdd_points", 0) or 0
+            ),
+        )
         self._trading_date: datetime.date | None = None
 
         self._next_signal_seq: int = 0
@@ -133,7 +139,7 @@ class TradingEngine(
         self._order_sync_mode = False
         self._order_worker_started = False
 
-        # After lock / staged-alert attrs exist (persist fail may stage CRITICAL).
+        # After staged-alert attr exists (persist fail may stage CRITICAL).
         self._load_capital_state()
         self._flush_staged_critical_alert()
 
@@ -164,6 +170,20 @@ class TradingEngine(
         )
 
     def __setattr__(self, name: str, value: Any) -> None:
+        # Test helper: rebind capital store → rebuild CapitalService.
+        if name == "_capital_store" and "_capital_svc" in self.__dict__:
+            object.__setattr__(
+                self,
+                "_capital_svc",
+                CapitalService(
+                    value,
+                    product_code=str(self._cfg.product_code),
+                    max_mdd_points=lambda: float(
+                        getattr(self._cfg, "max_mdd_points", 0) or 0
+                    ),
+                ),
+            )
+            return
         # Avoid recursion before composed state objects exist.
         if name in ("_book", "_link", "_integrity", "_ticks") or name not in (
             _FORWARDED_FIELD_NAMES
@@ -187,91 +207,60 @@ class TradingEngine(
         return self._book.has_position
 
     @property
+    def _capital(self):
+        """Progressive capital book state (owned by CapitalService)."""
+        return self._capital_svc.state
+
+    @property
+    def _capital_store(self) -> CapitalStore:
+        """Durable capital store (owned by CapitalService)."""
+        return self._capital_svc.store
+
+    @property
     def capital_frozen(self) -> bool:
         """Sticky flag on the capital book (may be ignored when MDD gate is off)."""
-        return self._capital.capital_frozen
+        return self._capital_svc.capital_frozen
 
     @property
     def realized_pnl(self) -> float:
-        return self._capital.realized_pnl
+        return self._capital_svc.realized_pnl
 
     @property
     def equity_peak(self) -> float:
-        return self._capital.equity_peak
+        return self._capital_svc.equity_peak
 
     @property
     def current_drawdown(self) -> float:
-        return self._capital.current_drawdown
+        return self._capital_svc.current_drawdown
 
     def _capital_gate_active(self) -> bool:
         """True when progressive MDD is configured to block entries (limit > 0)."""
-        return float(getattr(self._cfg, "max_mdd_points", 0) or 0) > 0
+        return self._capital_svc.gate_active()
 
     @property
     def entry_blocked(self) -> bool:
-        """Ops latch or active capital freeze.
-
-        When ``max_mdd_points <= 0`` the MDD gate is disabled: sticky
-        ``capital_frozen`` from disk is **not** applied (UAT / gate-off).
-        """
-        capital_blocks = self._capital_gate_active() and self._capital.capital_frozen
-        return self.block_new_entry or capital_blocks
+        """Ops latch or active capital freeze (Host entry gate, not strategy)."""
+        return self.block_new_entry or self._capital_svc.blocks_entry()
 
     def clear_capital_risk(self) -> None:
-        """Operator action: reset progressive MDD book and unfreeze capital.
-
-        Holds ``self.lock`` so clear cannot race exit-fill capital updates.
-        Persist failure stages CRITICAL; flushed once after the lock.
-        """
+        """Operator action: reset progressive MDD book and unfreeze capital."""
         with self.lock:
-            self._capital.clear()
-            self._persist_capital_state()
+            _ok, alert = self._capital_svc.clear()
+            if alert:
+                self._stage_critical_alert(alert)
         self._flush_staged_critical_alert()
         logger.warning("資本風控已手動清除（realized_pnl / equity_peak / capital_frozen）")
 
     def _load_capital_state(self) -> None:
-        loaded = self._capital_store.load(product_code=str(self._cfg.product_code))
-        if loaded is not None:
-            self._capital = loaded
-        max_mdd = float(getattr(self._cfg, "max_mdd_points", 0) or 0)
-        if max_mdd <= 0:
-            if self._capital.capital_frozen:
-                logger.info(
-                    "max_mdd_points<=0：MDD 閘門關閉，不套用 sticky capital_frozen "
-                    "（帳本 realized/peak 仍保留）| frozen_on_disk=%s",
-                    self._capital.capital_frozen,
-                )
-            return
-        # Re-evaluate limit on start: enabling max_mdd against an existing
-        # progressive book must freeze immediately (not wait for next exit).
-        if self._capital.evaluate_mdd(max_mdd):
-            logger.warning(
-                "啟動載入後累進 MDD 已達上限 %.1f（drawdown=%.1f）→ capital_frozen",
-                max_mdd,
-                self._capital.current_drawdown,
-            )
-            self._persist_capital_state()
+        """Boot/reload capital book via CapitalService; stage any CRITICAL alerts."""
+        for msg in self._capital_svc.load():
+            self._stage_critical_alert(msg)
 
     def _persist_capital_state(self) -> bool:
-        """Write capital book. Returns False only when store is enabled and write failed."""
-        if not self._capital_store.enabled:
-            return True
-        ok = self._capital_store.save(
-            self._capital, product_code=str(self._cfg.product_code)
-        )
-        if not ok:
-            logger.error(
-                "資本帳寫入失敗 | path=%s frozen=%s realized=%.2f",
-                self._capital_store.path,
-                self._capital.capital_frozen,
-                self._capital.realized_pnl,
-            )
-            self._stage_critical_alert(
-                f"資本帳寫入失敗 | path={self._capital_store.path} "
-                f"frozen={self._capital.capital_frozen} "
-                f"realized={self._capital.realized_pnl:.2f} "
-                f"— 記憶體狀態可能在重啟後遺失；請檢查磁碟權限/路徑"
-            )
+        """Thin wrapper: persist capital book (fill path prefers on_exit_fill)."""
+        ok, alert = self._capital_svc.persist()
+        if alert:
+            self._stage_critical_alert(alert)
         return ok
 
     def _market_snapshot(

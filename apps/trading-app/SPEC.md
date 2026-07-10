@@ -66,7 +66,8 @@ flowchart TD
 | **Book** | position + flight | **唯一**持倉 mutation API、`to_position_snapshot`、`max_qty=1` | 連線、策略 alpha、broker I/O |
 | **PositionSync** | —（寫 Book） | `list_positions` → adopt broker 真相 | 策略決策、session 日曆 |
 | **Reconcile** | integrity drift flags | 週期 kernel↔broker drift / severe HALT | alpha、正常 fill 路徑 |
-| **CapitalRisk** | realized / peak / frozen | 累進 MDD gate + **JSON 持久化** | 下單、部位 |
+| **CapitalRisk / CapitalService** | realized / peak / frozen | 累進 MDD **Host 政策** + JSON 持久化；`on_exit_fill` / `blocks_entry` | 策略 alpha、engine 內嵌 I/O |
+| **TradingEngine（capital）** | 注入 `_capital_svc` | boot `load`、組 gate、public `clear_capital_risk` | MDD 公式 / persist 實作 |
 | **Link** | connected / reconnect / warmup | 重連、session 健康 | 資本帳 |
 | **Integrity** | SETTLING / HALT / reconcile debounce | UNKNOWN→SETTLE、收斂 flatten | 策略 alpha、正常持倉帳本 |
 | **Ticks + WD methods** | last tick / no-tick counters | 到價 tick 計數；engine 上 WD 迴圈 | 改持倉 |
@@ -112,6 +113,7 @@ Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat
 | `src/integrations/live_session.py` | live bootstrap entry (not on engine) |
 | `src/trading_engine/core/risk.py` | `CapitalRiskState` |
 | `src/trading_engine/core/capital_store.py` | 累進資本帳 JSON 原子讀寫 |
+| `src/trading_engine/capital.py` | `CapitalService`（MDD load/exit/clear/gate） |
 | `src/trading_engine/core/audit/fill_audit.py` | 進出損益 FILL_AUDIT |
 | `src/storage/` | tick_cache SSOT |
 | `src/strategy_simple.py` | UAT flip |

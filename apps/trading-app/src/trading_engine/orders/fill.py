@@ -89,30 +89,17 @@ class OrderFillMixin:
             self._pending_exit_pnl = 0.0
 
             # Progressive capital book (cross-day); daily_pnl already updated per leg.
-            self._capital.apply_realized_pnl(total_pnl)
             if total_pnl < 0:
                 self.consecutive_loss += 1
             else:
                 self.consecutive_loss = 0
 
-            max_mdd = float(getattr(self._cfg, "max_mdd_points", 0) or 0)
-            if self._capital.evaluate_mdd(max_mdd):
-                logger.warning(
-                    "累進 MDD 達上限 %.1f（drawdown=%.1f peak=%.1f equity=%.1f）"
-                    " → capital_frozen；凍結新進場直到 clear_capital_risk()",
-                    max_mdd,
-                    self.current_drawdown,
-                    self.equity_peak,
-                    self.realized_pnl,
-                )
-                self._stage_critical_alert(
-                    f"累進 MDD 觸頂 | drawdown={self.current_drawdown:.1f} "
-                    f"limit={max_mdd:.1f} realized={self.realized_pnl:.1f} "
-                    f"peak={self.equity_peak:.1f} → 已凍結新進場；請檢視策略後 clear_capital_risk()"
-                )
-            # Durable progressive book (restart-safe); position still broker-SSOT.
-            # Persist under lock intentionally (durability > latency; max_qty=1).
-            self._persist_capital_state()
+            # Host capital policy: apply PnL + MDD + persist (not inlined in engine).
+            cap_evt = self._capital_svc.on_exit_fill(total_pnl)
+            if cap_evt.freeze_alert:
+                self._stage_critical_alert(cap_evt.freeze_alert)
+            if cap_evt.persist_alert:
+                self._stage_critical_alert(cap_evt.persist_alert)
 
             fill_audit = FillAudit(
                 intent="exit",
