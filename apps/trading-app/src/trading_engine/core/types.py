@@ -33,8 +33,10 @@ class MarketSnapshot:
     dt: datetime.datetime
 
 
-@dataclass
+@dataclass(frozen=True)
 class PositionSnapshot:
+    """Immutable read-only view for Strategy.evaluate (does not write Book)."""
+
     has_position: bool
     position_dir: str
     entry_price: float

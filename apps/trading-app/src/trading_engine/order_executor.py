@@ -335,19 +335,6 @@ class OrderExecutorMixin:
         if message:
             self._alerts.send(message, level="CRITICAL")
 
-    def _clear_entry_tracking(self) -> None:
-        self.entry_exchange_ts = 0
-        self.ticks_since_entry = 0
-
-    def _begin_entry_tracking(self, exchange_ts: int) -> None:
-        self.entry_exchange_ts = exchange_ts
-        self.ticks_since_entry = 0
-
-    def _clear_entry_grace_on_resync(self) -> None:
-        """重啟對帳持倉：進場時間未知，清除 entry tracking。"""
-        self.entry_exchange_ts = 0
-        self.ticks_since_entry = 0
-
     def place_order(self, signal: OrderSignal):
         action = signal.action
         qty = signal.qty
@@ -842,22 +829,9 @@ class OrderExecutorMixin:
         is_buy = self._is_buy_action(action)
         return self._apply_deal_fill(price, is_buy, deal_qty=qty)
 
-    def _exit_leg_pnl(self, price: float, leg_qty: int) -> float:
-        """Per-lot PnL for one exit fill leg (points, not currency)."""
-        if leg_qty <= 0:
-            return 0.0
-        if self.position_dir == "Long":
-            return (price - self.entry_price) * leg_qty
-        return (self.entry_price - price) * leg_qty
-
     def _apply_exit_deal_leg(self, price: float, deal_qty: int) -> float:
-        """Apply one exit deal leg: reduce position and accumulate PnL immediately."""
-        leg_qty = min(deal_qty, self.position_qty)
-        leg_pnl = self._exit_leg_pnl(price, leg_qty)
-        if leg_qty > 0:
-            self.position_qty -= leg_qty
-            self.daily_pnl += leg_pnl
-            self._pending_exit_pnl += leg_pnl
+        """Apply one exit deal leg via Book mutation API."""
+        _leg_qty, leg_pnl = self._book.apply_exit_leg(price, deal_qty)
         return leg_pnl
 
     def _apply_deal_fill(self, price: float, is_buy: bool, deal_qty: int = 1) -> bool:
@@ -906,11 +880,13 @@ class OrderExecutorMixin:
                     self.position_dir,
                     order_id,
                 )
-            self.position_qty = self.filled_qty  # Phase 1: use accumulated filled for this pending
-            self.entry_price = price
-            self.position_dir = "Long" if is_buy else "Short"
-            self.trailing_peak = price
-            self._begin_entry_tracking(self.pending_exchange_ts)
+            # Phase 1: use accumulated filled for this pending (Book SSOT).
+            self._book.apply_entry_fill(
+                self.filled_qty,
+                price,
+                "Long" if is_buy else "Short",
+                self.pending_exchange_ts,
+            )
             fill_audit = FillAudit(
                 intent="entry",
                 direction=direction,
@@ -977,7 +953,7 @@ class OrderExecutorMixin:
             )
             logger.info("FILL_AUDIT %s", format_fill_audit(fill_audit))
 
-            self.last_exit_time = self.pending_exchange_ts
+            self._book.mark_exit_time(self.pending_exchange_ts)
             self._clear_pending()
             if self.position_qty > 0:
                 logger.warning(
@@ -1052,12 +1028,17 @@ class OrderExecutorMixin:
         return self._apply_pending_broker_truth(broker[0], broker[1])
 
     def _halt_position_unconfirmed(
-        self, reason: str, *, clear_pending: bool = False
+        self,
+        reason: str,
+        *,
+        clear_pending: bool = False,
+        send_alert: bool = True,
     ) -> None:
         """P0-5: enter HALT — broker position not confirmed / anomalous.
 
         Freezes BOTH entry and exit (``_position_unconfirmed`` + ``block_new_entry``)
-        and raises a one-shot CRITICAL.
+        and raises a one-shot CRITICAL when ``send_alert`` is True (callers that
+        own a more specific CRITICAL should pass ``send_alert=False``).
 
         Single-flight discipline (the never->1-lot guarantee): a live order's
         ``order_id`` is NEVER dropped here unless ``clear_pending=True`` is set by
@@ -1085,7 +1066,7 @@ class OrderExecutorMixin:
                 self.sync_positions()
             except Exception as e:
                 logger.error("HALT 後對帳失敗: %s", e)
-        if not already:
+        if send_alert and not already:
             try:
                 self._alerts.send(
                     f"部位未確認，已凍結所有新單（entry+exit）| {reason} "
@@ -1395,13 +1376,11 @@ class OrderExecutorMixin:
                 self._reconcile_last_read = None
                 self._reconcile_read_streak = 0
                 if self.position_qty != 0:
-                    self.position_qty = 0
-                    self.position_dir = "Flat"
+                    self._book.set_qty_dir(0, "Flat")
                 logger.info("部位已確認 flat → 解除 HALT（block_new_entry 維持至日切/人工）")
                 return
             # Adopt broker truth into kernel accounting, then flatten exactly it.
-            self.position_qty = broker_qty
-            self.position_dir = broker_dir
+            self._book.set_qty_dir(broker_qty, broker_dir)
             now = self._clock()
             self._converge_flatten_at = now + max(1, int(self._cfg.reconcile_fast_sec))
             action = "Sell" if broker_dir == "Long" else "Buy"

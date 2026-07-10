@@ -20,7 +20,7 @@
 - **單一產品**：`apps/trading-app` = lean Host（safety kernel）+ storage + live + `strategy_simple`。
 - **不接多交易所**；不維護獨立 PyPI `trading-engine`。
 - 真正分離的是 **Host（safety kernel）** vs **Strategy（決策 Protocol）**，不是 package 邊界。
-- **Host** = session / 風控 / pending·settle·reconcile / tick archive；**Strategy** = UAT flip（`strategy_simple`）。
+- **Host** = session / 風控 / Book 持倉 + position_sync·reconcile / pending·settle / tick archive；**Strategy** = UAT flip（`strategy_simple`）。持倉寫入只走 `Book` mutation（策略禁止改 `position_qty`）。
 - `legacy/` = 歷史研究（strategies / reporting / sweep / research engine tests），**不進 build / CI**。
 
 **當前階段**：基礎設施 UAT soak（日盤+夜盤、`tick_cache` SSOT、simulation）。不驗 alpha 績效。

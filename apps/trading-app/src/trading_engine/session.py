@@ -1,12 +1,12 @@
-"""Session management: login, reconnect, watchdog."""
+"""Session management: login, CA, contract resolve.
+
+Position broker I/O lives in ``position_sync.PositionSyncMixin`` (Phase E).
+"""
 
 from __future__ import annotations
 
-import datetime
 import os
-import time
 
-from trading_engine.core.audit.exec_audit import ExecAudit, format_exec_audit
 from trading_engine.logging_setup import get_logger
 
 logger = get_logger()
@@ -95,125 +95,6 @@ class SessionMixin:
                 usage.remaining_bytes,
                 usage.limit_bytes,
             )
-
-    def _contract_position_codes(self) -> set:
-        codes = {self.contract.code}
-        for attr in ("target_code", "symbol"):
-            value = getattr(self.contract, attr, None)
-            if value:
-                codes.add(value)
-        return codes
-
-    def _position_matches_contract(self, pos) -> bool:
-        return pos.code in self._contract_position_codes()
-
-    def read_broker_position(self) -> tuple[int, str] | None:
-        """Read the first matching non-zero broker position as (qty, dir).
-
-        Returns ``(0, "Flat")`` when the broker is flat for this contract, or
-        ``None`` when the broker query failed (caller should not act on a failed
-        read). Pure query (``list_positions``); does not mutate kernel state.
-        """
-        try:
-            account = self._call_api(lambda: self.api.futopt_account)
-            positions = list(self._call_api(self.api.list_positions, account=account))
-        except Exception as e:
-            logger.warning("讀取券商持倉失敗: %s", e)
-            return None
-
-        from trading_engine.adapters.position_normalizer import is_long_direction
-
-        for pos in positions:
-            if int(pos.quantity) == 0:
-                continue
-            if self._position_matches_contract(pos):
-                direction = "Long" if is_long_direction(pos.direction) else "Short"
-                return int(pos.quantity), direction
-        return 0, "Flat"
-
-    def sync_positions(self, *, force_resync: bool = False):
-        """啟動時從券商同步持倉，避免重啟後策略與實際部位脫節。"""
-        try:
-            account = self._call_api(lambda: self.api.futopt_account)
-            positions = list(self._call_api(self.api.list_positions, account=account))
-        except Exception as e:
-            logger.warning("持倉對帳失敗: %s", e)
-            return
-
-        matched = None
-        for pos in positions:
-            if int(pos.quantity) == 0:
-                continue
-            if self._position_matches_contract(pos):
-                matched = pos
-                break
-
-        with self.lock:
-            if matched is None:
-                self.position_qty = 0
-                self.position_dir = "Flat"
-                self.entry_price = 0.0
-                self.trailing_peak = 0.0
-                self._clear_entry_tracking()
-                open_positions = [p for p in positions if int(p.quantity) != 0]
-                if open_positions:
-                    logger.warning(
-                        "券商有 %d 筆持倉，但無法對應合約 %s（%s）",
-                        len(open_positions),
-                        self.contract.code,
-                        ", ".join(p.code for p in open_positions),
-                    )
-                else:
-                    logger.info("持倉對帳 | 無持倉")
-                return
-
-            from trading_engine.adapters.position_normalizer import is_long_direction
-
-            is_long = is_long_direction(matched.direction)
-            new_dir = "Long" if is_long else "Short"
-            had_position = self.position_qty > 0
-            same_direction = had_position and self.position_dir == new_dir
-            preserve_peak = had_position and same_direction and not force_resync
-
-            qty_before = self.position_qty
-            self.position_qty = int(matched.quantity)
-            qty_after = self.position_qty
-            self.position_dir = new_dir
-
-            if qty_before != qty_after:
-                try:
-                    ts = getattr(self, 'last_tick_exchange_ts', 0) or int(time.time())
-                    exec_audit = ExecAudit(
-                        event_type="position_sync",
-                        ts=ts,
-                        qty_before=qty_before,
-                        qty_after=qty_after,
-                        position_dir=new_dir,
-                    )
-                    logger.info("EXEC_AUDIT %s", format_exec_audit(exec_audit))
-                except Exception:
-                    pass
-            self.entry_price = float(matched.price)
-            if preserve_peak:
-                logger.info(
-                    "持倉對帳 | 保留 trailing_peak=%.1f | %s %d口 @ %.1f",
-                    self.trailing_peak,
-                    self.position_dir,
-                    matched.quantity,
-                    self.entry_price,
-                )
-            else:
-                self.trailing_peak = self.entry_price
-            self._clear_entry_grace_on_resync()
-            self.reset_strategy_state()
-            if not preserve_peak:
-                logger.info(
-                    "持倉對帳 | %s %d口 @ %.1f | code=%s",
-                    self.position_dir,
-                    matched.quantity,
-                    self.entry_price,
-                    matched.code,
-                )
 
     def _resolve_contract(self):
         code = self._cfg.product_code

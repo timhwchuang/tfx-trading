@@ -18,12 +18,13 @@
            ▼           ▼               ▼               ▼            ▼
       ┌─────────┐ ┌──────────┐  ┌────────────┐  ┌──────────┐  ┌─────────┐
       │ Session │ │   Book   │  │CapitalRisk │  │   Link   │  │  Ticks  │
-      │ 日曆/   │ │ 持倉+    │  │ 累進 MDD   │  │ 連線/    │  │ + WD    │
-      │ 日切/   │ │ 在途單   │  │ + JSON 持久│  │ 重連/    │  │ methods │
-      │ 強平窗  │ │          │  │            │  │ warmup   │  │ on eng  │
+      │ login/  │ │ 持倉+    │  │ 累進 MDD   │  │ 連線/    │  │ + WD    │
+      │ 合約/   │ │ flight   │  │ + JSON 持久│  │ 重連/    │  │ methods │
+      │ 日切窗  │ │ mutation │  │            │  │ warmup   │  │ on eng  │
       └─────────┘ └────┬─────┘  └─────┬──────┘  └──────────┘  └─────────┘
                        │              │
-                       │ fill PnL     │ freeze
+            PositionSync │ fill PnL   │ freeze
+            + Reconcile  │            │
                        └──────┬───────┘
                               │
                     ┌─────────┴─────────┐
@@ -35,7 +36,7 @@
               BrokerPort · OrderAdapter
 ```
 
-Foundation phases **A–D complete**. Host does **not** inject observability/telemetry.
+Foundation **A–D complete**; **Phase E Wave 0–1** (position domain + noise cleanup) in progress toward linear orchestrator. Host does **not** inject observability/telemetry.
 
 ### 依賴
 
@@ -61,15 +62,20 @@ flowchart TD
 | 模組 | 擁有狀態 | 做什麼 | 不做什麼 |
 |------|----------|--------|----------|
 | **TradingEngine** | lock、strategy、ports | `on_tick` 順序、組 `RiskGate`、`run/start` | 堆業務欄位（狀態在 composition） |
-| **Session** | trading_date、session windows | 日切（**僅 ops**）、force-flatten 時刻 | 持倉、MDD |
-| **Book** | position + flight | 進場/出場/fill、`max_position_qty=1`、FILL_AUDIT | 連線、策略 alpha |
+| **Session** | trading_date、session windows | login / CA / contract / 日切 ops 時刻 | broker 持倉 I/O、MDD |
+| **Book** | position + flight | **唯一**持倉 mutation API、`to_position_snapshot`、`max_qty=1` | 連線、策略 alpha、broker I/O |
+| **PositionSync** | —（寫 Book） | `list_positions` → adopt broker 真相 | 策略決策、session 日曆 |
+| **Reconcile** | integrity drift flags | 週期 kernel↔broker drift / severe HALT | alpha、正常 fill 路徑 |
 | **CapitalRisk** | realized / peak / frozen | 累進 MDD gate + **JSON 持久化** | 下單、部位 |
 | **Link** | connected / reconnect / warmup | 重連、session 健康 | 資本帳 |
-| **Integrity** | SETTLING / HALT / reconcile | UNKNOWN→SETTLE、收斂 flatten | 策略 alpha |
+| **Integrity** | SETTLING / HALT / reconcile debounce | UNKNOWN→SETTLE、收斂 flatten | 策略 alpha、正常持倉帳本 |
 | **Ticks + WD methods** | last tick / no-tick counters | 到價 tick 計數；engine 上 WD 迴圈 | 改持倉 |
-| **Strategy** | 策略 episode | 回 `OrderSignal \| None` | 碰 broker / 資本帳 |
+| **Strategy** | 策略 episode | 回 `OrderSignal \| None` | 碰 broker / 資本帳 / 寫 `position_qty` |
 | **AlertPort** | — | Telegram / CRITICAL | 決策 |
 | **ArchivePort** | — | tick/kbar 落盤（可選） | 風控 |
+
+**持倉領域（Phase E）**：kernel 真相 = `Book`；重啟/對帳 = `position_sync`；背景 drift = `reconcile`；餵策略 = `PositionSnapshot`（唯讀）；ops 觀測 = `get_state_snapshot()`。  
+`trailing_peak` = **legacy bag**（snapshot/audit 相容）；kernel 不做 trailing stop。
 
 **刻意不存在：** 大一統 `Trader`、Host 內 `TelemetryPort` / `DailyObservability`、一般化多部位 portfolio。
 
@@ -91,10 +97,12 @@ Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat
 | 路徑 | 職責 |
 |------|------|
 | `src/trading_engine/` | Host kernel |
-| `src/trading_engine/session.py` | SessionMixin：日切 / session windows / force-flatten 時刻 |
-| `src/trading_engine/book.py` | position + flight |
+| `src/trading_engine/session.py` | SessionMixin：login / CA / contract |
+| `src/trading_engine/book.py` | position + flight + mutation API |
+| `src/trading_engine/position_sync.py` | broker list_positions → Book adopt |
+| `src/trading_engine/reconcile.py` | periodic position drift / severe HALT |
 | `src/trading_engine/connectivity.py` | link / reconnect |
-| `src/trading_engine/integrity.py` | SETTLING / HALT |
+| `src/trading_engine/integrity.py` | SETTLING / HALT state |
 | `src/trading_engine/ticks.py` | tick counters for watchdogs |
 | `src/trading_engine/core/risk.py` | `CapitalRiskState` |
 | `src/trading_engine/core/capital_store.py` | 累進資本帳 JSON 原子讀寫 |
@@ -232,6 +240,7 @@ Gap 有持倉 → sticky force flatten。
 | **B** | Book 封裝（持倉+flight，`trading_engine/book.py`） | **done** |
 | **C** | Link / Integrity / Tick 狀態收攏；`on_tick` 閱讀地圖 | **done** |
 | **D** | SSOT 定稿、legacy 標記、deprecated 文件化 | **done** |
+| **E** | 行為收斂：position domain + 線性 orchestrator（分 Wave） | **Wave 0–1 done**；2–3 pending |
 
 ### Phase B notes
 
@@ -260,3 +269,9 @@ Gap 有持倉 → sticky force flatten。
 - Config keys `max_consecutive_loss` / `max_daily_loss_points`: kept for YAML compat; **not capital gates**.
 - Naming: `RiskGate.block_new_entry` = **composed** entry block; raw ops latch is `Book.block_new_entry`; use `capital_frozen` + `max_mdd_points` for capital.
 - Kernel detail/history: [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md) defers to this SPEC for product SSOT.
+
+### Phase E notes (Wave 0–1)
+
+- **Wave 0**: reconnect alert 文案去 ATR；engine 移除 `build_*_audit` wrapper；`trailing_peak` 標 legacy bag。
+- **Wave 1**: `Book` mutation API（`apply_entry_fill` / `apply_exit_leg` / `adopt_broker_position` / `to_position_snapshot`）；`position_sync.py`（broker I/O）；`reconcile.py`（週期 drift）；Session 不再擁有持倉讀寫。
+- **Pending Wave 2–3**: Connectivity/Tick WD 行為落地；order pipeline 切塊；`start()` 外移 live。

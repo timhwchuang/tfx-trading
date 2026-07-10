@@ -12,7 +12,6 @@ from trading_engine.api_errors import is_api_session_error
 from trading_engine.book import BOOK_FIELD_NAMES, Book
 from trading_engine.calendar.port import MarketCalendarPort, TaifexMarketCalendar
 from trading_engine.connectivity import LINK_FIELD_NAMES, ConnectivityState
-from trading_engine.core.audit.signal_audit import SignalAudit
 from trading_engine.core.capital_store import CapitalStore
 from trading_engine.core.ports import BrokerPort
 from trading_engine.core.risk import CapitalRiskState
@@ -35,6 +34,12 @@ from trading_engine.core.types import (
 from trading_engine.integrity import INTEGRITY_FIELD_NAMES, IntegrityState
 from trading_engine.logging_setup import get_logger, shutdown_async_logging
 from trading_engine.order_executor import OrderExecutorMixin
+from trading_engine.position_sync import PositionSyncMixin
+from trading_engine.reconcile import (
+    check_position_reconcile,
+    is_severe_drift,
+    severe_drift_confirmed,
+)
 from trading_engine.session import SessionMixin
 from trading_engine.ticks import TICK_FIELD_NAMES, TickState
 
@@ -55,7 +60,7 @@ class ReconnectOutcome(Enum):
     STALE = auto()
 
 
-class TradingEngine(OrderExecutorMixin, SessionMixin):
+class TradingEngine(OrderExecutorMixin, PositionSyncMixin, SessionMixin):
     def __init__(
         self,
         api: BrokerPort,
@@ -269,45 +274,9 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
     ) -> MarketSnapshot:
         return MarketSnapshot(ts=ts, price=price, dt=dt)
 
-    def build_entry_audit(
-        self, dt: datetime.datetime, price: float, ts: int, direction: str
-    ) -> SignalAudit:
-        market = self._market_snapshot(ts, price, dt)
-        return self.strategy.build_entry_audit(market, direction)
-
-    def build_exit_audit(
-        self,
-        price: float,
-        ts: int,
-        direction: str,
-        reason: str,
-        *,
-        entry_price: float = 0.0,
-        hold_ticks: int = 0,
-        trailing_peak: float = 0.0,
-    ) -> SignalAudit:
-        """Delegate to strategy. Wrapper for API symmetry and future kernel use."""
-        dt = self._last_tick_exchange_dt or datetime.datetime.fromtimestamp(ts)
-        market = self._market_snapshot(ts, price, dt)
-        return self.strategy.build_exit_audit(
-            market,
-            direction,
-            reason,
-            entry_price=entry_price,
-            hold_ticks=hold_ticks,
-            trailing_peak=trailing_peak,
-        )
-
     def _position_snapshot(self) -> PositionSnapshot:
-        return PositionSnapshot(
-            has_position=self.has_position,
-            position_dir=self.position_dir,
-            entry_price=self.entry_price,
-            trailing_peak=self.trailing_peak,
-            entry_exchange_ts=self.entry_exchange_ts,
-            ticks_since_entry=self.ticks_since_entry,
-            qty=self.position_qty,
-        )
+        """Read-only Book view for Strategy.evaluate."""
+        return self._book.to_position_snapshot()
 
     def get_state_snapshot(self) -> EngineStateSnapshot:
         """Return a frozen read-only view of engine state.
@@ -450,8 +419,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             # --- 2. arrival + warmup ---
             self._record_tick_arrival_locked(ts, exchange_dt, tick_type)
             self._arm_reconnect_warmup_on_first_tick_locked(ts)
-            if self.has_position:
-                self.ticks_since_entry += 1
+            self._book.note_tick_while_held()
 
             # --- 3–4. kernel flatten, then strategy ---
             dt_for_risk = (
@@ -648,18 +616,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         broker_qty: int,
         broker_dir: str,
     ) -> bool:
-        """Over-flatten or direction reversal — must HALT, not strategy retry."""
-        if kernel_qty == 0 and broker_qty > 0:
-            return True
-        if (
-            kernel_qty > 0
-            and broker_qty > 0
-            and kernel_dir not in ("Flat", "")
-            and broker_dir not in ("Flat", "")
-            and kernel_dir != broker_dir
-        ):
-            return True
-        return False
+        """Delegate to reconcile module (compat for tests / call sites)."""
+        return is_severe_drift(kernel_qty, kernel_dir, broker_qty, broker_dir)
 
     def _severe_drift_confirmed(
         self,
@@ -668,23 +626,9 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         broker_qty: int,
         broker_dir: str,
     ) -> bool:
-        """True once severe drift is seen on debounced consecutive broker reads."""
-        if not self._is_severe_drift(
-            kernel_qty, kernel_dir, broker_qty, broker_dir
-        ):
-            with self.lock:
-                self._severe_drift_broker_read = None
-                self._severe_drift_read_streak = 0
-            return False
-        broker = (broker_qty, broker_dir)
-        need = max(1, int(self._cfg.reconcile_confirm_reads))
-        with self.lock:
-            if self._severe_drift_broker_read == broker:
-                self._severe_drift_read_streak += 1
-            else:
-                self._severe_drift_broker_read = broker
-                self._severe_drift_read_streak = 1
-            return self._severe_drift_read_streak >= need
+        return severe_drift_confirmed(
+            self, kernel_qty, kernel_dir, broker_qty, broker_dir
+        )
 
     def _prune_cleared_orders(self) -> None:
         ttl = int(self._cfg.cleared_order_registry_sec)
@@ -712,123 +656,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         return None
 
     def _check_position_reconcile(self) -> None:
-        """P0-3: periodically reconcile kernel position with the broker.
-
-        Background safety net for lost order/fill callbacks: if the broker shows
-        a different position than the kernel believes, adopt the broker truth,
-        block new entries, and raise a CRITICAL alert. Exchange-time gated.
-
-        P0-5: cadence is ``reconcile_fast_sec`` whenever the position is
-        unconfirmed (HALT) so the kernel re-checks the broker quickly; otherwise
-        the steady ``position_reconcile_sec``. Skipped while an order is in flight
-        (pending) or settling — those windows are owned by ``_settle_via_reconcile``
-        / ``_maybe_converge_flatten`` at the fast (1s) loop cadence, so the root
-        cause "had a pending → never reconciled" no longer applies.
-        """
-        steady = self._cfg.position_reconcile_sec
-        if steady <= 0:
-            return
-        if not self._api_connected or self.contract is None:
-            return
-        if self._last_tick_exchange_dt is None:
-            return
-        if not self.is_trading_session(self._last_tick_exchange_dt):
-            return
-
-        with self.lock:
-            if self.is_pending or self._settling:
-                return
-            kernel_qty = self.position_qty
-            kernel_dir = self.position_dir
-            unconfirmed = self._position_unconfirmed
-            post_exit = self._clock() < self._post_exit_reconcile_until
-
-        interval = (
-            max(1, int(self._cfg.reconcile_fast_sec))
-            if (unconfirmed or post_exit)
-            else steady
-        )
-        now = self._clock()
-        if now - self._last_reconcile_wall < interval:
-            return
-
-        broker = self.read_broker_position()
-        if broker is None:
-            return  # failed read; throttle not consumed — retry next cycle
-        broker_qty, broker_dir = broker
-
-        # Only consume the throttle after a successful broker read and comparison.
-        self._last_reconcile_wall = now
-
-        ceiling = self._cfg.max_position_qty
-        if ceiling > 0 and broker_qty > ceiling and broker_qty > kernel_qty:
-            # P0-5 hard backstop: broker holds more than the kernel believed and
-            # over the ceiling → HALT + converge flatten (catches the >1-lot
-            # accumulation even if every other guard somehow missed it).
-            self._position_drift_detected = True
-            self._halt_position_unconfirmed(
-                f"週期對帳發現超過部位上限 | kernel={kernel_dir} {kernel_qty}口 "
-                f"broker={broker_dir} {broker_qty}口 > max={ceiling}"
-            )
-            return
-
-        if self._is_severe_drift(kernel_qty, kernel_dir, broker_qty, broker_dir):
-            if not self._severe_drift_confirmed(
-                kernel_qty, kernel_dir, broker_qty, broker_dir
-            ):
-                return
-            self._position_drift_detected = True
-            logger.warning(
-                "嚴重持倉漂移 | kernel=%s %d口 broker=%s %d口 → HALT 並收斂平倉",
-                kernel_dir,
-                kernel_qty,
-                broker_dir,
-                broker_qty,
-            )
-            with self.lock:
-                self._severe_drift_broker_read = None
-                self._severe_drift_read_streak = 0
-            self._halt_position_unconfirmed(
-                f"週期對帳嚴重漂移 | kernel={kernel_dir} {kernel_qty}口 "
-                f"broker={broker_dir} {broker_qty}口",
-                clear_pending=False,
-            )
-            self.sync_positions()
-            self._alerts.send(
-                f"嚴重持倉漂移 | kernel={kernel_dir} {kernel_qty}口 vs "
-                f"broker={broker_dir} {broker_qty}口 → 已 HALT 並收斂平倉；請人工核對",
-                level="CRITICAL",
-            )
-            return
-
-        if broker_qty == kernel_qty and broker_dir == kernel_dir:
-            if self._position_drift_detected:
-                logger.info(
-                    "週期對帳 | 已恢復一致 | %s %d口", kernel_dir, kernel_qty
-                )
-            self._position_drift_detected = False
-            with self.lock:
-                self._severe_drift_broker_read = None
-                self._severe_drift_read_streak = 0
-            return
-
-        logger.warning(
-            "持倉漂移偵測 | kernel=%s %d口 broker=%s %d口 → 以券商為準並停止新進場",
-            kernel_dir,
-            kernel_qty,
-            broker_dir,
-            broker_qty,
-        )
-        self._position_drift_detected = True
-        with self.lock:
-            self.block_new_entry = True
-        # Adopt broker truth via the canonical write path.
-        self.sync_positions()
-        self._alerts.send(
-            f"持倉漂移 | kernel={kernel_dir} {kernel_qty}口 vs broker={broker_dir} "
-            f"{broker_qty}口 → 已以券商為準並停止新進場；請人工核對",
-            level="CRITICAL",
-        )
+        """Delegate to ``reconcile.check_position_reconcile`` (position domain)."""
+        check_position_reconcile(self)
 
     def _timeout_loop(self):
         while self._running:
@@ -897,7 +726,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                     "Session 重登入後健康檢查失敗 | backoff=%.1fs", backoff
                 )
                 self._alerts.send(
-                    "Session 重登入後健康檢查失敗（subscribe/ATR）",
+                    "Session 重登入後健康檢查失敗（subscribe/trade）",
                     level="CRITICAL",
                 )
                 with self.lock:
