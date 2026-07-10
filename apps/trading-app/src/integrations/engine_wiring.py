@@ -1,7 +1,7 @@
 """TradingEngine port wiring for trading-app (live / tests).
 
-Host receives a Strategy instance from the caller; this module only wires
-side-effect ports (alerts, archive, telemetry, adapters).
+Host receives a Strategy instance from the caller; this module wires
+side-effect ports (alerts, archive, adapters). No observability / telemetry.
 """
 
 from __future__ import annotations
@@ -17,11 +17,10 @@ from config import LOG_FILE, LOG_LEVEL
 from core.runtime_config import RuntimeConfig, default_runtime_config
 from integrations.alerts_port import TradingAppAlertPort
 from integrations.archive_port import TradingAppArchivePort
-from integrations.telemetry_port import TradingAppTelemetryPort
-from observability import DailyObservability
 from strategy_simple import SimpleParams, SimpleStrategy
 from trading_engine.adapters.mock import MockOrderAdapter
 from trading_engine.adapters.shioaji import ShioajiOrderAdapter
+from trading_engine.core.capital_store import CapitalStore
 from trading_engine.logging_setup import setup_async_logging
 
 _logging_configured = False
@@ -43,15 +42,9 @@ def order_adapter_for(api: Any, *, use_mock: bool) -> Any:
     return ShioajiOrderAdapter(api)
 
 
-def default_strategy(
-    cfg: RuntimeConfig,
-    obs: DailyObservability,
-) -> SimpleStrategy:
+def default_strategy(cfg: RuntimeConfig) -> SimpleStrategy:
     """Test / helper constructor for the in-tree simple strategy."""
-    return SimpleStrategy(
-        params=SimpleParams.from_runtime_config(cfg),
-        obs=obs,
-    )
+    return SimpleStrategy(params=SimpleParams.from_runtime_config(cfg))
 
 
 def trading_app_engine_ports(
@@ -61,17 +54,14 @@ def trading_app_engine_ports(
     runtime_config: RuntimeConfig | None = None,
     with_alerts: bool = False,
     with_archive: bool = False,
-    obs: DailyObservability | None = None,
 ) -> dict:
     """Return kwargs for ``TradingEngine(api=api, **trading_app_engine_ports(...))``."""
     _ensure_logging()
     cfg = runtime_config or default_runtime_config()
-    shared_obs = obs if obs is not None else DailyObservability()
     ports: dict = {
         "runtime_config": cfg,
         "order_adapter": order_adapter_for(api, use_mock=use_mock_adapter),
-        "telemetry": TradingAppTelemetryPort(obs=shared_obs, runtime_config=cfg),
-        "obs": shared_obs,
+        "capital_store": CapitalStore(getattr(cfg, "capital_state_path", "") or ""),
     }
     if with_alerts:
         ports["alerts"] = TradingAppAlertPort()

@@ -26,6 +26,31 @@ def _section(data: Mapping[str, Any], name: str) -> dict[str, Any]:
     return dict(block) if isinstance(block, dict) else {}
 
 
+def resolve_capital_state_path(
+    raw: str | Path | None,
+    *,
+    base_dir: Path | None = None,
+) -> str:
+    """Resolve capital JSON path to an absolute string (or empty if disabled).
+
+    Relative paths are anchored at ``base_dir`` (default: trading-app root),
+    not process CWD — so ``cd …/src; python -m live`` still writes
+    ``apps/trading-app/var/capital_risk.json``.
+    """
+    if raw is None:
+        return ""
+    text = str(raw).strip()
+    if not text:
+        return ""
+    path = Path(text).expanduser()
+    if not path.is_absolute():
+        root = base_dir if base_dir is not None else _PROJECT_ROOT
+        path = (root / path).resolve()
+    else:
+        path = path.resolve()
+    return str(path)
+
+
 @dataclass(frozen=True)
 class Settings:
     simulation: bool
@@ -35,6 +60,8 @@ class Settings:
     cooldown_sec: int
     max_daily_loss_points: int
     max_consecutive_loss: int
+    max_mdd_points: float
+    capital_state_path: str
     pending_timeout_sec: int
     ioc_slippage_points: int
     no_tick_timeout_sec: int
@@ -124,6 +151,12 @@ def load_config(path: str | Path | None = None) -> Settings:
         cooldown_sec=int(strategy.get("cooldown_sec", 10)),
         max_daily_loss_points=int(strategy.get("max_daily_loss_points", 120)),
         max_consecutive_loss=int(strategy.get("max_consecutive_loss", 4)),
+        max_mdd_points=float(strategy.get("max_mdd_points", 0)),
+        capital_state_path=resolve_capital_state_path(
+            strategy.get("capital_state_path")
+            or _section(raw, "risk").get("capital_state_path")
+            or ""
+        ),
         pending_timeout_sec=int(strategy.get("pending_timeout_sec", 1)),
         ioc_slippage_points=int(strategy.get("ioc_slippage_points", 3)),
         no_tick_timeout_sec=int(strategy.get("no_tick_timeout_sec", 45)),
@@ -216,6 +249,7 @@ PRODUCT_CODE = settings.product_code
 COOLDOWN_SEC = settings.cooldown_sec
 MAX_DAILY_LOSS_POINTS = settings.max_daily_loss_points
 MAX_CONSECUTIVE_LOSS = settings.max_consecutive_loss
+MAX_MDD_POINTS = settings.max_mdd_points
 PENDING_TIMEOUT_SEC = settings.pending_timeout_sec
 IOC_SLIPPAGE_POINTS = settings.ioc_slippage_points
 NO_TICK_TIMEOUT_SEC = settings.no_tick_timeout_sec

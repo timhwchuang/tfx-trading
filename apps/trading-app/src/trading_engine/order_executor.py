@@ -6,8 +6,10 @@ import datetime
 import threading
 
 from trading_engine.core.audit.exec_audit import ExecAudit, format_exec_audit
+from trading_engine.core.audit.fill_audit import FillAudit, format_fill_audit
 from trading_engine.core.audit.signal_audit import format_signal_audit
 from trading_engine.core.order_events import is_futures_deal, is_futures_order
+from trading_engine.core.risk import compute_limit_price
 from trading_engine.core.trading_state import PendingIntent
 from trading_engine.core.types import OrderSignal
 from trading_engine.logging_setup import get_logger
@@ -65,8 +67,13 @@ class OrderExecutorMixin:
             )
             return False
         if signal.intent == "entry":
-            if self.block_new_entry:
-                logger.warning("拒絕 entry OrderSignal: block_new_entry=True")
+            if self.entry_blocked:
+                logger.warning(
+                    "拒絕 entry OrderSignal: entry_blocked "
+                    "(block_new_entry=%s capital_frozen=%s)",
+                    self.block_new_entry,
+                    self.capital_frozen,
+                )
                 return False
             if self.position_qty > 0:
                 logger.warning(
@@ -113,7 +120,7 @@ class OrderExecutorMixin:
             self.pending_ioc_slippage = 0
             self.pending_limit_price = 0.0
         else:
-            self.pending_limit_price = self._telemetry.compute_limit_price(
+            self.pending_limit_price = compute_limit_price(
                 signal.ref_price,
                 is_buy=is_buy,
                 ioc_slippage=self.pending_ioc_slippage,
@@ -211,12 +218,19 @@ class OrderExecutorMixin:
         )
         self._emit_daily_summary(self._trading_date)
         self._reset_daily_state()
-        self._telemetry.reset()
         self._tick_type_counts = {0: 0, 1: 0, 2: 0}
         self._tick_type_inferred_counts = {1: 0, 2: 0}
         self._trading_date = trade_date
 
     def _reset_daily_state(self) -> None:
+        """Reset day-scoped ops state only.
+
+        Progressive capital book (``realized_pnl`` / ``equity_peak`` /
+        ``capital_frozen``) is intentionally **not** cleared on day rollover
+        or plain process restart (durable store reloads it). Clear only via
+        ``clear_capital_risk()``, empty ``capital_state_path``, or deleting
+        the capital JSON before start.
+        """
         self.daily_pnl = 0.0
         self.block_new_entry = False
         self.consecutive_loss = 0
@@ -227,10 +241,19 @@ class OrderExecutorMixin:
         self._consecutive_missed_entries = 0
 
     def _emit_daily_summary(self, trade_date: datetime.date) -> None:
-        self._telemetry.snapshot_tick_types(self._tick_type_counts)
-        self._telemetry.update_risk_state(self.daily_pnl, self.consecutive_loss)
-        summary = self._telemetry.build_summary(trade_date.isoformat())
-        logger.info("DAILY_SUMMARY %s", self._telemetry.format_daily_summary(summary))
+        # Host day line: simple ledger snapshot (not legacy observability).
+        logger.info(
+            "DAILY_SUMMARY %s",
+            {
+                "date": trade_date.isoformat(),
+                "daily_pnl": self.daily_pnl,
+                "realized_pnl": self.realized_pnl,
+                "equity_peak": self.equity_peak,
+                "drawdown": self.current_drawdown,
+                "capital_frozen": self.capital_frozen,
+                "consecutive_loss": self.consecutive_loss,
+            },
+        )
 
     def process_strategy(self, ts: int, price: float, dt: datetime.datetime) -> OrderSignal | None:
         self._maybe_reset_daily_state(dt)
@@ -292,7 +315,7 @@ class OrderExecutorMixin:
             intent="exit",
             exchange_ts=ts,
             slippage_points=self._cfg.flatten_slippage_points,
-            # audit left to None for pure kernel forced; consumers can enrich via telemetry
+            # audit left to None for pure kernel forced exit
         )
 
     def _stage_critical_alert(self, message: str) -> None:
@@ -301,8 +324,13 @@ class OrderExecutorMixin:
         Must be called with ``self.lock`` held. The actual send happens via
         ``_flush_staged_critical_alert`` after the lock is released, so we never
         do network I/O on the callback hot path.
+
+        Multiple stages in one critical section are joined (not overwritten).
         """
-        self._staged_critical_alert = message
+        if self._staged_critical_alert:
+            self._staged_critical_alert = f"{self._staged_critical_alert}\n{message}"
+        else:
+            self._staged_critical_alert = message
 
     def _flush_staged_critical_alert(self) -> None:
         """Send any staged CRITICAL alert. Call OUTSIDE the lock."""
@@ -683,7 +711,6 @@ class OrderExecutorMixin:
                         )
                     ):
                         tag = "intent_cancelled_open_session"
-                    self._telemetry.record_intent_cancelled(tag)
                     logger.info(
                         "委託未成交/已取消，重置 pending | tag=%s",
                         tag,
@@ -889,20 +916,20 @@ class OrderExecutorMixin:
             self.position_dir = "Long" if is_buy else "Short"
             self.trailing_peak = price
             self._begin_entry_tracking(self.pending_exchange_ts)
-            fill_audit = self._telemetry.record_fill(
+            fill_audit = FillAudit(
                 intent="entry",
                 direction=direction,
-                signal_price=self.pending_signal_price,
                 fill_price=price,
-                is_buy=is_buy,
-                limit_price=self.pending_limit_price,
+                qty=self.position_qty,
+                pnl_points=0.0,
+                realized_pnl=self.realized_pnl,
+                equity_peak=self.equity_peak,
+                drawdown=self.current_drawdown,
                 order_id=order_id,
                 ts=self.pending_exchange_ts,
-                ioc_slippage_allowed=self.pending_ioc_slippage,
-                episode_id=self.pending_episode_id,
                 signal_id=self.pending_signal_id,
             )
-            logger.info("FILL_AUDIT %s", self._telemetry.format_fill_audit(fill_audit))
+            logger.info("FILL_AUDIT %s", format_fill_audit(fill_audit))
             self.reset_strategy_state()
             self._consecutive_missed_entries = 0
             self._clear_pending()
@@ -913,40 +940,46 @@ class OrderExecutorMixin:
             total_pnl = self._pending_exit_pnl
             self._pending_exit_pnl = 0.0
 
-            hold_sec = 0
-            if self.entry_exchange_ts > 0:
-                hold_sec = max(0, self.pending_exchange_ts - self.entry_exchange_ts)
-
+            # Progressive capital book (cross-day); daily_pnl already updated per leg.
+            self._capital.apply_realized_pnl(total_pnl)
             if total_pnl < 0:
                 self.consecutive_loss += 1
             else:
                 self.consecutive_loss = 0
 
-            max_consec = int(getattr(self._cfg, "max_consecutive_loss", 0) or 0)
-            if max_consec > 0 and self.consecutive_loss >= max_consec:
-                self.block_new_entry = True
+            max_mdd = float(getattr(self._cfg, "max_mdd_points", 0) or 0)
+            if self._capital.evaluate_mdd(max_mdd):
                 logger.warning(
-                    "連續虧損達上限 %d → block_new_entry（交易日內禁止新進場）",
-                    max_consec,
+                    "累進 MDD 達上限 %.1f（drawdown=%.1f peak=%.1f equity=%.1f）"
+                    " → capital_frozen；凍結新進場直到 clear_capital_risk()",
+                    max_mdd,
+                    self.current_drawdown,
+                    self.equity_peak,
+                    self.realized_pnl,
                 )
+                self._stage_critical_alert(
+                    f"累進 MDD 觸頂 | drawdown={self.current_drawdown:.1f} "
+                    f"limit={max_mdd:.1f} realized={self.realized_pnl:.1f} "
+                    f"peak={self.equity_peak:.1f} → 已凍結新進場；請檢視策略後 clear_capital_risk()"
+                )
+            # Durable progressive book (restart-safe); position still broker-SSOT.
+            self._persist_capital_state()
 
-            fill_audit = self._telemetry.record_fill(
+            fill_audit = FillAudit(
                 intent="exit",
                 direction=direction,
-                signal_price=self.pending_signal_price,
                 fill_price=price,
-                is_buy=is_buy,
-                limit_price=self.pending_limit_price,
+                qty=self.filled_qty,
+                pnl_points=total_pnl,
+                realized_pnl=self.realized_pnl,
+                equity_peak=self.equity_peak,
+                drawdown=self.current_drawdown,
                 order_id=order_id,
                 ts=self.pending_exchange_ts,
-                ioc_slippage_allowed=self.pending_ioc_slippage,
-                exit_reason=self.pending_exit_reason,
-                pnl_points=total_pnl,
-                hold_sec=hold_sec,
                 signal_id=self.pending_signal_id,
+                exit_reason=self.pending_exit_reason,
             )
-            self._telemetry.update_risk_state(self.daily_pnl, self.consecutive_loss)
-            logger.info("FILL_AUDIT %s", self._telemetry.format_fill_audit(fill_audit))
+            logger.info("FILL_AUDIT %s", format_fill_audit(fill_audit))
 
             self.last_exit_time = self.pending_exchange_ts
             self._clear_pending()
@@ -962,9 +995,11 @@ class OrderExecutorMixin:
             self.trailing_peak = 0.0
             self._clear_entry_tracking()
             logger.info(
-                "平倉完成 | PnL=%.1f | 今日=%.1f | 連續虧損=%d",
+                "平倉完成 | PnL=%.1f | 今日=%.1f | 累進=%.1f | DD=%.1f | 連虧=%d",
                 total_pnl,
                 self.daily_pnl,
+                self.realized_pnl,
+                self.current_drawdown,
                 self.consecutive_loss,
             )
             self._post_exit_reconcile_until = self._clock() + max(

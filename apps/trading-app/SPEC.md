@@ -1,33 +1,101 @@
-# trading-app — Product SPEC
+# trading-app — Product SPEC (SSOT)
 
-> 永豐 Shioaji 台指期 **lean Host**：safety kernel（session / 風控 / 委託）+ storage + live；Strategy = UAT flip（`strategy_simple`）。  
-> 歷史研究見 [`legacy/`](../../legacy/README.md)。
+> 永豐 Shioaji 台指期 **lean Host**：safety kernel（session / 資本風控 / 委託）+ storage + live。  
+> Strategy = UAT flip（`strategy_simple`）。歷史研究見 [`legacy/`](../../legacy/README.md)。
 
-## 依賴
+本文是 **Host 架構與契約的 SSOT**。實作細節可對照 `trading_engine/`；安全失敗模式見 [`docs/ops/LIVE_SAFETY.md`](../../docs/ops/LIVE_SAFETY.md)。
+
+---
+
+## 架構（目標 / 現況）
+
+```text
+                    ┌─────────────────────────────────────┐
+                    │           TradingEngine              │
+                    │   tick 編排 · 一把 lock · 對外 API    │
+                    └──────────────────┬──────────────────┘
+           ┌───────────┬───────────────┼───────────────┬────────────┐
+           ▼           ▼               ▼               ▼            ▼
+      ┌─────────┐ ┌──────────┐  ┌────────────┐  ┌──────────┐  ┌─────────┐
+      │ Session │ │   Book*  │  │CapitalRisk │  │  Link*   │  │Watchdog*│
+      │ 日曆/   │ │ 持倉+    │  │ 累進 MDD   │  │ 連線/    │  │ no-tick │
+      │ 日切/   │ │ 在途單+  │  │ + JSON 持久│  │ 重連/    │  │ session │
+      │ 強平窗  │ │ 成交套用 │  │            │  │ warmup   │  │ down    │
+      └─────────┘ └────┬─────┘  └─────┬──────┘  └──────────┘  └─────────┘
+                       │              │
+                       │ fill PnL     │ freeze
+                       └──────┬───────┘
+                              ▼
+              Strategy (port) · AlertPort · ArchivePort
+              BrokerPort · OrderAdapter
+```
+
+\* **Book / Link / Watchdog 封裝** 分階段落地（Phase B/C）。Phase A 已落地：**CapitalRisk + 持久化**、**Host 不接 observability**。
+
+### 依賴
 
 ```mermaid
 flowchart TD
-  APP[trading-app]
-  TE[trading_engine in-app]
+  APP[trading-app live]
+  TE[trading_engine Host]
   SS[strategy_simple]
+  ALERT[AlertPort]
+  ARCH[ArchivePort]
+  CAP[CapitalStore JSON]
 
   APP --> TE
   APP --> SS
   SS --> TE
+  TE --> ALERT
+  TE --> ARCH
+  TE --> CAP
 ```
 
-## 模組
+### 職責表
+
+| 模組 | 擁有狀態 | 做什麼 | 不做什麼 |
+|------|----------|--------|----------|
+| **TradingEngine** | lock、strategy、ports | `on_tick` 順序、組 `RiskGate`、`run/start` | 堆業務欄位（漸進收斂） |
+| **Session** | trading_date、session windows | 日切（**僅 ops**）、force-flatten 時刻 | 持倉、MDD |
+| **Book**（目標） | position + flight | 進場/出場/fill、`max_position_qty=1`、FILL_AUDIT | 連線、策略 alpha |
+| **CapitalRisk** | realized / peak / frozen | 累進 MDD gate + **JSON 持久化** | 下單、部位 |
+| **Link / Integrity / Watchdog** | 連線 / settle-halt / no-tick | 重連、UNKNOWN→SETTLE、告警 | 資本帳、alpha |
+| **Strategy** | 策略 episode | 回 `OrderSignal \| None` | 碰 broker / 資本帳 |
+| **AlertPort** | — | Telegram / CRITICAL | 決策 |
+| **ArchivePort** | — | tick/kbar 落盤（可選） | 風控 |
+
+**刻意不存在：** 大一統 `Trader`、Host 內 `TelemetryPort` / `DailyObservability`、一般化多部位 portfolio。
+
+### 持倉與 buy/sell
+
+本 Host 是 **max_qty=1、單向、全進全出**。持倉與在途單是同一狀態機：
+
+```text
+Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat
+```
+
+- **不**把部位寫進檔案；重啟後部位 **只信 broker**（`sync_positions`）。
+- 資本帳（MDD）才持久化——券商不知道你的 HWM。
+
+---
+
+## 模組路徑
 
 | 路徑 | 職責 |
 |------|------|
-| `src/trading_engine/` | Host：session、風控、委託、adapters（**無**策略指標） |
+| `src/trading_engine/` | Host kernel |
+| `src/trading_engine/core/risk.py` | `CapitalRiskState` |
+| `src/trading_engine/core/capital_store.py` | 累進資本帳 JSON 原子讀寫 |
+| `src/trading_engine/core/audit/fill_audit.py` | 進出損益 FILL_AUDIT |
 | `src/storage/` | tick_cache SSOT |
-| `src/strategy_simple.py` | UAT flip：成交後 N 秒 flat→Buy / long→Sell；強平交 Host |
+| `src/strategy_simple.py` | UAT flip |
 | `src/live/` | `python -m live` |
-| `src/integrations/` | alerts / archive / telemetry ports |
-| `config/config.yaml` | session + risk + ops（非策略 alpha） |
+| `src/integrations/` | alerts / archive / wiring（**無** telemetry） |
+| `config/config.yaml` | session + risk + ops |
 
-Host tick path owns risk / order / session / pending / flatten only. Strategy indicators (ATR, VWAP, momentum, trend, structure) live outside Host (see `legacy/`).
+策略指標（ATR、VWAP…）不在 Host（見 `legacy/`）。
+
+---
 
 ## Wiring
 
@@ -36,27 +104,115 @@ from strategy_simple import SimpleParams, SimpleStrategy
 from integrations.engine_wiring import trading_app_engine_ports
 from trading_engine.engine import TradingEngine
 
-ports = trading_app_engine_ports(api=api, use_mock_adapter=False, with_alerts=True, with_archive=True)
-strategy = SimpleStrategy(SimpleParams.from_runtime_config(cfg), obs=obs)
-TradingEngine(api=api, strategy=strategy, **{k: v for k, v in ports.items() if k != "obs"})
+ports = trading_app_engine_ports(
+    api=api, use_mock_adapter=False, with_alerts=True, with_archive=True
+)
+strategy = SimpleStrategy(SimpleParams.from_runtime_config(cfg))
+TradingEngine(
+    api=api,
+    strategy=strategy,
+    **{k: v for k, v in ports.items() if k != "live_bars"},
+)
 ```
+
+Host **不**注入 observability。策略觀測若需要，由策略自己 log。
+
+---
+
+## 資本風控（累進 MDD + 持久化）
+
+### 語意
+
+```text
+realized_pnl  += exit_pnl          # 跨日累積
+equity_peak    = max(peak, realized)
+drawdown       = peak - realized
+capital_frozen = drawdown >= max_mdd_points   # sticky
+```
+
+- `max_mdd_points <= 0` → 關閉（UAT 預設 **0**）
+- **日切不清** 資本帳；只清日內 ops（`daily_pnl` 顯示、disconnect 計數、日內 HALT…）
+- 解除：`clear_capital_risk()` 或刪檔後重啟（刪檔 = 空白帳）
+
+### 持久化檔
+
+```yaml
+# config.yaml strategy:
+max_mdd_points: 0
+capital_state_path: "var/capital_risk.json"
+```
+
+```json
+{
+  "version": 1,
+  "product_code": "TMFR1",
+  "realized_pnl": -40.0,
+  "equity_peak": 120.0,
+  "capital_frozen": true,
+  "updated_at": "..."
+}
+```
+
+- 寫入：`tmp → fsync → rename`（原子）；失敗 → CRITICAL alert（記憶體仍 freeze，但重啟可能丟狀態）
+- 讀：啟動時 load；缺/不符 `product_code` 則忽略；load 後若 `max_mdd>0` 且回撤已超限 → 立即 freeze
+- 相對路徑：錨定 **trading-app root**（`config.resolve_capital_state_path`），不依 CWD
+- 空 path：不持久化（單元測試）
+
+### 重啟契約
+
+```text
+START
+  1. load capital JSON → CapitalRisk
+  2. connect broker → sync_positions → position
+  3. pending/flight = empty
+  4. capital_frozen → entry 立即 blocked
+```
+
+### 三種凍結
+
+| 凍結 | 擁有者 | 跨日 | 跨重啟 |
+|------|--------|------|--------|
+| `capital_frozen` | CapitalRisk | 保留 | **JSON 保留** |
+| `block_new_entry`（ops） | 日內 ops / integrity | 日切清 | 重啟清 |
+| settle / unconfirmed | integrity | 日切可 lift | 重啟清；broker 為準 |
+
+合成：`entry_blocked = block_new_entry | capital_frozen`（外加 settle 等執行凍結）。
+
+### Host FILL_AUDIT
+
+僅進出損益帳本：intent / fill / qty / pnl / realized / peak / drawdown。  
+**不含** near-miss / VWAP（legacy `observability.py` 不進 live）。
+
+### Deprecated config
+
+`max_consecutive_loss` / `max_daily_loss_points`：**不當 capital gate**（欄位相容保留）。
+
+---
+
+## Sessions
+
+日盤 `08:45–13:45`；夜盤 `15:00–05:00`（`night_enabled`）。  
+TAIFEX 交易日約 15:00 切換；夜盤+次日日盤共用 **日內** 預算顯示，**不**重置累進 MDD。  
+Gap 有持倉 → sticky force flatten。
+
+---
 
 ## CLI
 
 | Command | Purpose |
 |---------|---------|
 | `python -m live` | Sim / live（日+夜） |
-| `python -m storage` | tick_cache helpers（CSV-only） |
-| `python -m backfilldata` | historical download（`date` / `month`；calendar-day AllDay） |
+| `python -m storage` | tick_cache helpers |
+| `python -m backfilldata` | historical download |
 | `python -m cli_help` | catalog |
 
-## 風控（Host）
+---
 
-- `max_consecutive_loss` → exit fill 後 `block_new_entry`（Host 執行）
-- `max_daily_loss_points`：UAT flip soak **刻意不**由 Host/SimpleStrategy latch（欄位保留給日後策略）；改風控底線仍須問人
-- TAIFEX 交易日 15:00 切換；夜盤+次日日盤共用預算
-- Gap 有持倉 → sticky force flatten
+## 分階段路線（Foundation）
 
-## Sessions
-
-日盤 `08:45–13:45`；夜盤 `15:00–05:00`（`night_enabled`）。
+| Phase | 內容 | 狀態 |
+|-------|------|------|
+| **A** | CapitalStore 持久化；live 去 observability；SPEC 架構 SSOT | **本輪** |
+| **B** | Book 封裝（持倉+flight） | 待做 |
+| **C** | Link / Integrity / Watchdog 收攏；engine 變薄 | 待做 |
+| **D** | 掃尾命名、legacy 標記 | 待做 |

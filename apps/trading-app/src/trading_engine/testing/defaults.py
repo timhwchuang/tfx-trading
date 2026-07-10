@@ -16,6 +16,7 @@ def default_test_settings() -> Settings:
         cooldown_sec=10,
         max_daily_loss_points=120,
         max_consecutive_loss=4,
+        max_mdd_points=0.0,  # UAT: capital freeze disabled
         pending_timeout_sec=1,
         ioc_slippage_points=3,
         no_tick_timeout_sec=45,

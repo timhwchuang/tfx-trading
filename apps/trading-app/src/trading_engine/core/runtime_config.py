@@ -13,6 +13,7 @@ _MISSING = object()
 # Host-owned risk/ops fields that may be overlaid in tests.
 SWEEP_FIELD_TO_CONST: dict[str, str] = {
     "max_consecutive_loss": "MAX_CONSECUTIVE_LOSS",
+    "max_mdd_points": "MAX_MDD_POINTS",
     "ioc_slippage_points": "IOC_SLIPPAGE_POINTS",
     "pending_timeout_sec": "PENDING_TIMEOUT_SEC",
     "flatten_slippage_points": "FLATTEN_SLIPPAGE_POINTS",
@@ -22,6 +23,7 @@ SWEEP_FIELD_TO_CONST: dict[str, str] = {
 
 _CONST_TO_SNAKE = {
     "MAX_CONSECUTIVE_LOSS": "max_consecutive_loss",
+    "MAX_MDD_POINTS": "max_mdd_points",
     "IOC_SLIPPAGE_POINTS": "ioc_slippage_points",
     "PENDING_TIMEOUT_SEC": "pending_timeout_sec",
     "FLATTEN_SLIPPAGE_POINTS": "flatten_slippage_points",

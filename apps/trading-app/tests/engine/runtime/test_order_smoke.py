@@ -207,10 +207,10 @@ class TestOrderSmoke(unittest.TestCase):
         self.assertFalse(resolved)
         self.assertTrue(host.is_pending)
 
-    def test_max_consecutive_loss_sets_block_new_entry(self):
-        """Kernel owns consec-loss cap: losing exit fill → block_new_entry."""
+    def test_consecutive_loss_does_not_freeze_capital(self):
+        """Consec-loss is metric only; with max_mdd=0 a single loss does not freeze."""
         host = make_host()
-        host._cfg.max_consecutive_loss = 1
+        host._cfg.max_mdd_points = 0
         host._validate_order_signal = MagicMock(return_value=True)
 
         entry = OrderSignal("Buy", 1, 18000.0, "entry", exchange_ts=100, signal_id="cl-e1")
@@ -225,7 +225,29 @@ class TestOrderSmoke(unittest.TestCase):
 
         self.assertEqual(host.position_qty, 0)
         self.assertEqual(host.consecutive_loss, 1)
-        self.assertTrue(host.block_new_entry)
+        self.assertFalse(host.capital_frozen)
+        self.assertFalse(host.entry_blocked)
+
+    def test_progressive_mdd_freezes_capital(self):
+        """Realized drawdown from HWM latches capital_frozen (not day-scoped)."""
+        host = make_host()
+        host._cfg.max_mdd_points = 10
+        host._validate_order_signal = MagicMock(return_value=True)
+
+        entry = OrderSignal("Buy", 1, 18000.0, "entry", exchange_ts=100, signal_id="mdd-e1")
+        host._arm_pending(entry)
+        host.handle_order_event(FUTURES_ORDER, _order_new("mdd-buy-1"))
+        host.handle_order_event(FUTURES_DEAL, _deal("mdd-buy-1", action="Buy", price="18000"))
+
+        exit_sig = OrderSignal("Sell", 1, 17990.0, "exit", exchange_ts=200, signal_id="mdd-x1")
+        host._arm_pending(exit_sig)
+        host.handle_order_event(FUTURES_ORDER, _order_new("mdd-sell-1"))
+        host.handle_order_event(FUTURES_DEAL, _deal("mdd-sell-1", action="Sell", price="17990"))
+
+        self.assertEqual(host.realized_pnl, -10.0)
+        self.assertEqual(host.current_drawdown, 10.0)
+        self.assertTrue(host.capital_frozen)
+        self.assertTrue(host.entry_blocked)
 
 
 if __name__ == "__main__":

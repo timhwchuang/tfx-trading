@@ -6,6 +6,7 @@ from typing import Any
 from unittest.mock import MagicMock
 
 from integrations.engine_wiring import default_strategy, trading_app_engine_ports
+from trading_engine.core.capital_store import CapitalStore
 from trading_engine.core.strategy import Strategy
 from trading_engine.engine import TradingEngine
 
@@ -23,11 +24,13 @@ def make_host(
     broker = api if api is not None else MagicMock()
     ports = trading_app_engine_ports(api=broker, use_mock_adapter=True)
     if decision is None:
-        decision = default_strategy(ports["runtime_config"], ports["obs"])
+        decision = default_strategy(ports["runtime_config"])
+    # Unit tests must not touch durable capital JSON on disk.
+    ports["capital_store"] = CapitalStore(None)
     return TradingEngine(
         api=broker,
         strategy=decision,
-        **{k: v for k, v in ports.items() if k != "obs"},
+        **{k: v for k, v in ports.items() if k != "live_bars"},
     )
 
 

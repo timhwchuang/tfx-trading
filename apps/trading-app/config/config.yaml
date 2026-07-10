@@ -26,8 +26,12 @@ strategy:
   flip_interval_sec: 300
   # Post-exit Host cooldown (seconds)
   cooldown_sec: 10
-  # Risk caps: Host latches max_consecutive_loss on exit fill.
-  # max_daily_loss_points kept for future strategies; UAT flip intentionally ignores it.
+  # Capital risk: progressive realized MDD (cross-day). <=0 disables (UAT).
+  # Not day-scoped; clear_capital_risk() is the only operator reset.
+  max_mdd_points: 0
+  # Durable capital book (JSON, atomic write). Empty disables (unit tests).
+  capital_state_path: "var/capital_risk.json"
+  # Deprecated gates (ignored by Host capital freeze):
   max_daily_loss_points: 120
   max_consecutive_loss: 4
   # IOC / pending

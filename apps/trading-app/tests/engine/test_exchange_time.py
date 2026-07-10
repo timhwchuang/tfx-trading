@@ -183,6 +183,8 @@ class TestDailyStateReset(unittest.TestCase):
         host.daily_pnl = -150.0
         host.block_new_entry = True
         host.consecutive_loss = 3
+        host._capital.apply_realized_pnl(-40.0)
+        host._capital.evaluate_mdd(30)  # freezes capital
         host._trading_date = datetime.date(2026, 6, 9)
 
         host._maybe_reset_daily_state(_dt(8, 45))
@@ -191,6 +193,10 @@ class TestDailyStateReset(unittest.TestCase):
         self.assertFalse(host.block_new_entry)
         self.assertEqual(host.consecutive_loss, 0)
         self.assertEqual(host._trading_date, datetime.date(2026, 6, 10))
+        # Progressive capital book survives day rollover
+        self.assertEqual(host.realized_pnl, -40.0)
+        self.assertTrue(host.capital_frozen)
+        self.assertTrue(host.entry_blocked)
 
     def test_same_day_no_reset(self):
         host = make_host()

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import datetime
 from dataclasses import dataclass
-from typing import Any
+from typing import Any  # RuntimeConfig duck-typing in SimpleParams.from_runtime_config
 
 from trading_engine.core.audit.signal_audit import SignalAudit
 from trading_engine.core.strategy import BaseStrategy
@@ -56,10 +56,9 @@ class SimpleParams:
 class SimpleStrategy(BaseStrategy):
     """UAT soak: flip long/flat every N seconds after last fill."""
 
-    def __init__(self, params: SimpleParams, obs: Any | None = None) -> None:
+    def __init__(self, params: SimpleParams) -> None:
         super().__init__()
         self.params = params
-        self.obs = obs
         self._last_fill_ts: int | None = None
         self._had_position: bool = False
 

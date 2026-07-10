@@ -54,7 +54,7 @@ class RiskGate:
     cooldown_active: bool
     in_trading_session: bool
     block_new_entry: bool
-    consecutive_loss: int
+    consecutive_loss: int  # metric only; not a capital gate
     daily_pnl: float
     after_flatten_time: bool
     force_flatten: bool
@@ -65,6 +65,11 @@ class RiskGate:
     # kernel owns convergence in these states.
     settling: bool = False
     position_unconfirmed: bool = False
+    # Progressive capital book (not day-scoped)
+    capital_frozen: bool = False
+    realized_pnl: float = 0.0
+    equity_peak: float = 0.0
+    current_drawdown: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -92,6 +97,10 @@ class EngineStateSnapshot:
     ticks_since_entry: int
     settling: bool = False
     position_unconfirmed: bool = False
+    capital_frozen: bool = False
+    realized_pnl: float = 0.0
+    equity_peak: float = 0.0
+    current_drawdown: float = 0.0
 
 
 @dataclass

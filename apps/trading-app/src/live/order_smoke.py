@@ -331,7 +331,7 @@ def main(argv: list[str] | None = None) -> int:
         engine = TradingEngine(
             api=api,
             strategy=StubStrategy(),
-            **{k: v for k, v in ports.items() if k != "obs"},
+            **{k: v for k, v in ports.items() if k != "live_bars"},
         )
         engine.contract = contract
         engine.sync_positions(force_resync=True)

@@ -14,7 +14,7 @@ class Settings:
 
     cooldown_sec: int
     max_daily_loss_points: int
-    max_consecutive_loss: int
+    max_consecutive_loss: int  # deprecated gate; retained for config compat
     pending_timeout_sec: int
     ioc_slippage_points: int
     no_tick_timeout_sec: int
@@ -35,6 +35,10 @@ class Settings:
     session_watchdog_sec: float
     session_relogin_max_attempts: int
     session_relogin_backoff_base_sec: float
+    # Progressive realized MDD freeze. <=0 disables (UAT). Not day-scoped.
+    max_mdd_points: float = 0.0
+    # JSON path for durable capital book across restarts. Empty = disabled (tests).
+    capital_state_path: str = ""
     # Optional overnight session (15:00–05:00). Disabled when night_enabled=False.
     night_enabled: bool = False
     night_session_start: datetime.time = datetime.time(15, 0)

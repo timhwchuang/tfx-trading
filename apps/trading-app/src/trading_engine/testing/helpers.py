@@ -6,10 +6,10 @@ from typing import Any
 from unittest.mock import MagicMock
 
 from trading_engine.adapters.mock import MockOrderAdapter
+from trading_engine.core.capital_store import CapitalStore
 from trading_engine.core.side_effect_ports import (
     NullAlertPort,
     NullArchivePort,
-    NullTelemetryPort,
 )
 from trading_engine.core.strategy import BaseStrategy, Strategy, StrategySideEffects
 from trading_engine.engine import TradingEngine
@@ -39,9 +39,9 @@ def make_host(
         strategy=strategy,
         runtime_config=cfg,
         order_adapter=MockOrderAdapter(broker),
-        telemetry=NullTelemetryPort(),
         alerts=NullAlertPort(),
         archive=NullArchivePort(),
+        capital_store=CapitalStore(None),  # no durable capital in unit tests
     )
 
 

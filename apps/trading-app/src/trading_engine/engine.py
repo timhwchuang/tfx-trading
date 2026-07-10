@@ -12,15 +12,15 @@ from typing import Any
 from trading_engine.api_errors import is_api_session_error
 from trading_engine.calendar.port import MarketCalendarPort, TaifexMarketCalendar
 from trading_engine.core.audit.signal_audit import SignalAudit
+from trading_engine.core.capital_store import CapitalStore
 from trading_engine.core.ports import BrokerPort
+from trading_engine.core.risk import CapitalRiskState
 from trading_engine.core.runtime_config import RuntimeConfig
 from trading_engine.core.side_effect_ports import (
     AlertPort,
     ArchivePort,
     NullAlertPort,
     NullArchivePort,
-    NullTelemetryPort,
-    TelemetryPort,
 )
 from trading_engine.core.strategy import Strategy
 from trading_engine.core.types import (
@@ -52,17 +52,16 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         strategy: Strategy | None = None,
         runtime_config: RuntimeConfig | None = None,
         order_adapter: Any = None,
-        telemetry: TelemetryPort | None = None,
         alerts: AlertPort | None = None,
         archive: ArchivePort | None = None,
         calendar: MarketCalendarPort | None = None,
+        capital_store: CapitalStore | None = None,
     ):
         if runtime_config is None:
             raise TypeError("runtime_config is required; inject at app layer")
         if order_adapter is None:
             raise TypeError("order_adapter is required; inject at app layer")
         self._cfg = runtime_config
-        self._telemetry = telemetry or NullTelemetryPort()
         self._alerts = alerts or NullAlertPort()
         self._archive = archive or NullArchivePort()
         self._calendar = calendar or TaifexMarketCalendar()
@@ -91,8 +90,14 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.trailing_peak = 0.0
         self.last_exit_time = 0
         self.daily_pnl = 0.0
-        self.consecutive_loss = 0
-        self.block_new_entry = False
+        self.consecutive_loss = 0  # metric only; not a capital gate
+        self.block_new_entry = False  # ops / execution sticky (day-resettable)
+        # Progressive capital MDD book (not cleared on trading-day rollover).
+        # Durable across process restarts when capital_state_path is set.
+        self._capital_store = capital_store or CapitalStore(
+            getattr(runtime_config, "capital_state_path", "") or ""
+        )
+        self._capital = CapitalRiskState()
         self._trading_date: datetime.date | None = None
 
         # 下單狀態
@@ -188,6 +193,11 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self._order_sync_mode = False
         self._order_worker_started = False
 
+        # After lock / staged-alert attrs exist (persist fail may stage CRITICAL).
+        self._load_capital_state()
+        # Load-time re-eval / persist may stage CRITICAL with no order path yet.
+        self._flush_staged_critical_alert()
+
     def _call_api(self, fn, *args, **kwargs):
         """Helper to serialize Shioaji mutable calls under _api_lock."""
         with self._api_lock:
@@ -197,6 +207,76 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
     def has_position(self) -> bool:
         """Derived from position_qty (single source of truth for Phase 1+)."""
         return self.position_qty > 0
+
+    @property
+    def capital_frozen(self) -> bool:
+        return self._capital.capital_frozen
+
+    @property
+    def realized_pnl(self) -> float:
+        return self._capital.realized_pnl
+
+    @property
+    def equity_peak(self) -> float:
+        return self._capital.equity_peak
+
+    @property
+    def current_drawdown(self) -> float:
+        return self._capital.current_drawdown
+
+    @property
+    def entry_blocked(self) -> bool:
+        """Ops block or progressive capital freeze."""
+        return self.block_new_entry or self._capital.capital_frozen
+
+    def clear_capital_risk(self) -> None:
+        """Operator action: reset progressive MDD book and unfreeze capital.
+
+        Holds ``self.lock`` so clear cannot race exit-fill capital updates.
+        Persist failure stages CRITICAL; flushed once after the lock.
+        """
+        with self.lock:
+            self._capital.clear()
+            self._persist_capital_state()
+        self._flush_staged_critical_alert()
+        logger.warning("資本風控已手動清除（realized_pnl / equity_peak / capital_frozen）")
+
+    def _load_capital_state(self) -> None:
+        loaded = self._capital_store.load(product_code=str(self._cfg.product_code))
+        if loaded is not None:
+            self._capital = loaded
+        # Re-evaluate limit on start: enabling max_mdd against an existing
+        # progressive book must freeze immediately (not wait for next exit).
+        max_mdd = float(getattr(self._cfg, "max_mdd_points", 0) or 0)
+        if self._capital.evaluate_mdd(max_mdd):
+            logger.warning(
+                "啟動載入後累進 MDD 已達上限 %.1f（drawdown=%.1f）→ capital_frozen",
+                max_mdd,
+                self._capital.current_drawdown,
+            )
+            self._persist_capital_state()
+
+    def _persist_capital_state(self) -> bool:
+        """Write capital book. Returns False only when store is enabled and write failed."""
+        if not self._capital_store.enabled:
+            return True
+        ok = self._capital_store.save(
+            self._capital, product_code=str(self._cfg.product_code)
+        )
+        if not ok:
+            logger.error(
+                "資本帳寫入失敗 | path=%s frozen=%s realized=%.2f",
+                self._capital_store.path,
+                self._capital.capital_frozen,
+                self._capital.realized_pnl,
+            )
+            self._stage_critical_alert(
+                f"資本帳寫入失敗 | path={self._capital_store.path} "
+                f"frozen={self._capital.capital_frozen} "
+                f"realized={self._capital.realized_pnl:.2f} "
+                f"— 記憶體狀態可能在重啟後遺失；請檢查磁碟權限/路徑"
+            )
+        return ok
 
     def _market_snapshot(
         self, ts: int, price: float, dt: datetime.datetime
@@ -247,8 +327,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         """Return a frozen read-only view of engine state.
 
         **Do not** assign to ``TradingEngine`` attributes (``position_qty``,
-        ``is_pending``, etc.) from telemetry, strategy, or app code — that
-        bypasses kernel invariants.
+        ``is_pending``, etc.) from strategy or app code — that bypasses
+        kernel invariants.
         """
         with self.lock:
             return EngineStateSnapshot(
@@ -262,13 +342,17 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 filled_qty=self.filled_qty,
                 daily_pnl=self.daily_pnl,
                 consecutive_loss=self.consecutive_loss,
-                block_new_entry=self.block_new_entry,
+                block_new_entry=self.entry_blocked,
                 api_connected=self._api_connected,
                 has_position=self.has_position,
                 trailing_peak=self.trailing_peak,
                 ticks_since_entry=self.ticks_since_entry,
                 settling=self._settling,
                 position_unconfirmed=self._position_unconfirmed,
+                capital_frozen=self._capital.capital_frozen,
+                realized_pnl=self._capital.realized_pnl,
+                equity_peak=self._capital.equity_peak,
+                current_drawdown=self._capital.current_drawdown,
             )
 
     def _is_reconnect_warmup_active(self, ts: int) -> bool:
@@ -307,7 +391,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             exit_pending=self.exit_pending,
             cooldown_active=ts - self.last_exit_time < self._cfg.cooldown_sec,
             in_trading_session=self.is_trading_session(dt),
-            block_new_entry=self.block_new_entry,
+            block_new_entry=self.entry_blocked,
             consecutive_loss=self.consecutive_loss,
             daily_pnl=self.daily_pnl,
             after_flatten_time=after_flatten,
@@ -315,6 +399,10 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             reconnect_warmup_active=self._is_reconnect_warmup_active(ts),
             settling=self._settling,
             position_unconfirmed=self._position_unconfirmed,
+            capital_frozen=self._capital.capital_frozen,
+            realized_pnl=self._capital.realized_pnl,
+            equity_peak=self._capital.equity_peak,
+            current_drawdown=self._capital.current_drawdown,
         )
 
     def _parse_tick_locked(self, tick: Any) -> tuple[int, float, int, int, int]:
@@ -336,7 +424,6 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             self._tick_type_inferred_counts[tick_type] = (
                 self._tick_type_inferred_counts.get(tick_type, 0) + 1
             )
-            self._telemetry.record_tick_type(original_tick_type, tick_type)
         return ts, price, volume, tick_type, original_tick_type
 
     def on_tick(self, tick: Any):
@@ -350,10 +437,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         tick_type = 0
         original_tick_type = 0
         exchange_dt = None
-        lock_wait_start = time.perf_counter()
         with self.lock:
-            self._telemetry.record_lock_wait((time.perf_counter() - lock_wait_start) * 1000)
-
             if isinstance(tick, TickSnapshot):
                 ts = tick.ts
                 price = tick.price
@@ -388,7 +472,6 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                 else:
                     if signal.intent == "entry":
                         self._pending_intent_cancel_exchange_dt = dt_for_risk
-                        self._telemetry.record_entry_signal()
                     elif signal.intent == "exit":
                         # P1-1: kernel owns exit sizing — always flatten the full
                         # held position regardless of what the strategy requested
@@ -396,7 +479,6 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                         # residual broker position unmanaged after a stop/exit.
                         if self.position_qty > 0:
                             signal.qty = self.position_qty
-                        self._telemetry.record_exit_signal()
                     if not getattr(signal, "signal_id", ""):
                         signal.signal_id = self._make_signal_id(signal.exchange_ts or ts)
                     if signal.audit is not None and not getattr(signal.audit, "signal_id", ""):
@@ -516,7 +598,6 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         if now - self._last_no_tick_resubscribe_wall < 60:
             return
         self._last_no_tick_resubscribe_wall = now
-        self._telemetry.record_no_tick_resubscribe()
         self._no_tick_resubscribe_streak += 1
         escalate_after = self._cfg.no_tick_resubscribe_escalate_after
         logger.warning(
@@ -558,7 +639,6 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
             logger.info("No-tick 升級已取消：tick 或 reconnect 已恢復")
             return
 
-        self._telemetry.record_no_tick_escalation()
         msg = (
             f"No-tick 看門狗 | 連續 {streak} 次重訂閱仍無 tick → "
             "升級 session relogin"

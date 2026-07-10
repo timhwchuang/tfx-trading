@@ -45,7 +45,6 @@ def main(argv: list[str] | None = None) -> int:
     from core.runtime_config import TradingAppRuntimeConfig, _to_engine_settings
     from integrations.engine_wiring import trading_app_engine_ports
     from integrations.live_session import start_live_session
-    from observability import DailyObservability
     from strategy_simple import SimpleParams, SimpleStrategy
     from trading_engine.engine import TradingEngine
 
@@ -70,7 +69,6 @@ def main(argv: list[str] | None = None) -> int:
     engine_wiring._logging_configured = True
 
     cfg = TradingAppRuntimeConfig(_to_engine_settings(app_settings))
-    obs = DailyObservability()
 
     api = sj.Shioaji(simulation=app_settings.simulation)
     ports = trading_app_engine_ports(
@@ -79,14 +77,13 @@ def main(argv: list[str] | None = None) -> int:
         runtime_config=cfg,
         with_alerts=True,
         with_archive=True,
-        obs=obs,
     )
     # Code-to-interface: construct Strategy here; Host does not know strategy names.
-    strategy = SimpleStrategy(SimpleParams.from_runtime_config(cfg), obs=obs)
+    strategy = SimpleStrategy(SimpleParams.from_runtime_config(cfg))
     engine = TradingEngine(
         api=api,
         strategy=strategy,
-        **{k: v for k, v in ports.items() if k != "obs"},
+        **{k: v for k, v in ports.items() if k != "live_bars"},
     )
     start_live_session(engine)
     return 0

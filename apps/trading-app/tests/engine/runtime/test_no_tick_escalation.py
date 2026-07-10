@@ -34,15 +34,12 @@ class TestNoTickEscalation(unittest.TestCase):
 
     def test_escalates_after_threshold_resubscribes(self) -> None:
         host = self._host(escalate_after=3)
-        telemetry = MagicMock()
-        host._telemetry = telemetry
 
         for _ in range(3):
             host._check_no_tick_watchdog()
             host._wall += 61
 
         host._mark_disconnected.assert_called_once()
-        telemetry.record_no_tick_escalation.assert_called_once()
         host._alerts.send.assert_called_once()
         self.assertEqual(host._no_tick_resubscribe_streak, 0)
 
