@@ -219,8 +219,6 @@ class OrderExecutorMixin:
         )
         self._emit_daily_summary(self._trading_date)
         self._reset_daily_state()
-        self._tick_type_counts = {0: 0, 1: 0, 2: 0}
-        self._tick_type_inferred_counts = {1: 0, 2: 0}
         self._trading_date = trade_date
 
     def _reset_daily_state(self) -> None:
@@ -233,11 +231,9 @@ class OrderExecutorMixin:
         the capital JSON before start.
         """
         self._book.reset_day_ops()
-        self._disconnect_count_today = 0
-        # P0-5: lift HALT on trading-day rollover (operator-equivalent reset).
-        self._position_unconfirmed = False
-        self._converge_flatten_at = 0.0
-        self._consecutive_missed_entries = 0
+        self._link.reset_day_ops()
+        self._integrity.reset_day_ops()
+        self._ticks.reset_day_counters()
 
     def _emit_daily_summary(self, trade_date: datetime.date) -> None:
         # Host day line: simple ledger snapshot (not legacy observability).

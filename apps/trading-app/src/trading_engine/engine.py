@@ -4,7 +4,6 @@ import datetime
 import queue
 import threading
 import time
-from collections import deque
 from collections.abc import Callable
 from enum import Enum, auto
 from typing import Any
@@ -12,6 +11,7 @@ from typing import Any
 from trading_engine.api_errors import is_api_session_error
 from trading_engine.book import BOOK_FIELD_NAMES, Book
 from trading_engine.calendar.port import MarketCalendarPort, TaifexMarketCalendar
+from trading_engine.connectivity import LINK_FIELD_NAMES, ConnectivityState
 from trading_engine.core.audit.signal_audit import SignalAudit
 from trading_engine.core.capital_store import CapitalStore
 from trading_engine.core.ports import BrokerPort
@@ -32,9 +32,11 @@ from trading_engine.core.types import (
     RiskGate,
     TickSnapshot,
 )
+from trading_engine.integrity import INTEGRITY_FIELD_NAMES, IntegrityState
 from trading_engine.logging_setup import get_logger, shutdown_async_logging
 from trading_engine.order_executor import OrderExecutorMixin
 from trading_engine.session import SessionMixin
+from trading_engine.ticks import TICK_FIELD_NAMES, TickState
 
 logger = get_logger()
 
@@ -82,111 +84,81 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         if strategy is None:
             raise TypeError("strategy is required; inject at app layer")
 
-        # Phase B: position + single flight live on Book (max_qty=1 state machine).
-        # Access still works as host.position_qty / host.is_pending via __getattr__.
+        # Phase B/C: composed state owners (forwarded via __getattr__/__setattr__).
+        #   _book       — position + single flight (max_qty=1)
+        #   _link       — broker connectivity / reconnect / warmup
+        #   _integrity  — SETTLING / HALT / reconcile / miss CB
+        #   _ticks      — last tick + no-tick counters
+        #   _capital    — progressive MDD (not forwarded; explicit properties)
         self._book = Book(pending_ioc_slippage=int(self._cfg.ioc_slippage_points))
-        # Progressive capital MDD (not day-scoped; durable via CapitalStore).
+        self._link = ConnectivityState()
+        self._integrity = IntegrityState()
+        self._ticks = TickState()
         self._capital_store = capital_store or CapitalStore(
             getattr(runtime_config, "capital_state_path", "") or ""
         )
         self._capital = CapitalRiskState()
         self._trading_date: datetime.date | None = None
 
-        # P0-5: a stop-loss IOC missed → escalate to a kernel-owned market flatten.
-        self._stop_market_flatten_request = False
         self._next_signal_seq: int = 0
         self._current_signal_date: str = ""
-        self._api_connected = True
-        self._disconnect_since = 0.0
-        self._disconnect_count_today = 0
-        self._reconnect_warmup_until_ts = 0
-        self._pending_reconnect_warmup = False
-        self._session_relogin_attempts = 0
-        self._next_relogin_at = 0.0
-        self._exit_order_retry_count = 0
-        self._exit_order_retry_at = 0.0
-        # Staged CRITICAL alert text produced under lock (e.g. orphan deal,
-        # position drift); sent outside lock to avoid network I/O on hot path.
+        # Staged CRITICAL alert (under lock) → flush outside lock.
         self._staged_critical_alert: str | None = None
-        # Set True once a broker/kernel position mismatch is detected; cleared on
-        # a clean reconcile. Observability only.
-        self._position_drift_detected = False
-        self._last_reconcile_wall = 0.0
-        # P0-5 (truth-driven execution) state machine extension.
-        # _settling: pending timed out → outcome UNKNOWN → actively reconciling
-        #   against the broker (no callback trust); new orders frozen.
-        # _settle_since: wall-time the SETTLING window started.
-        # _position_unconfirmed: broker truth not yet confirmed / mismatch / ceiling
-        #   breach → HALT; kernel converges (single flatten) but strategy is frozen.
-        # _reconcile_last_read / _reconcile_read_streak: debounce broker reads.
-        # _converge_flatten_at: throttle for kernel convergence flatten.
-        self._settling = False
-        self._settle_since = 0.0
-        self._position_unconfirmed = False
-        self._reconcile_last_read: tuple[int, str] | None = None
-        self._reconcile_read_streak = 0
-        # Debounce severe-drift HALT in periodic reconcile (post-exit broker lag).
-        self._severe_drift_broker_read: tuple[int, str] | None = None
-        self._severe_drift_read_streak = 0
-        self._converge_flatten_at = 0.0
-        # P0-5: consecutive entry IOC misses (clean resume path); circuit breaker
-        # trips to HALT when max_consecutive_missed_entries is exceeded.
-        self._consecutive_missed_entries = 0
-        # True only while the kernel arms its own convergence flatten (lets that
-        # one order bypass the settling/unconfirmed freeze in _validate_order_signal).
-        self._kernel_converging = False
-        # Monotonic pending generation: bumped on every arm (audit / future guards).
-        self._pending_generation = 0
-        # Post-exit fast reconcile window (over-flatten detection).
-        self._post_exit_reconcile_until = 0.0
-        # Recently cleared pending orders for late-deal attribution.
-        self._recent_cleared_orders: deque[tuple[str, str, float]] = deque(maxlen=64)
 
-        self.last_tick_price = 0.0
         self.strategy: Strategy = strategy
-
         self.lock = threading.Lock()
-        self._api_lock = threading.RLock()  # 保護 Shioaji api 的 mutable 操作，避免 PyBorrowMutError
+        self._api_lock = threading.RLock()  # Shioaji mutable ops; avoid PyBorrowMutError
         self.contract = None
         self._running = False
         self._raw_order_evt_dumped: set = set()
-        self.last_tick_exchange_ts = 0
-        self._last_tick_wall_time = 0.0
-        self._last_tick_exchange_dt: datetime.datetime | None = None
-        self._tick_type_counts = {0: 0, 1: 0, 2: 0}
-        self._tick_type_inferred_counts = {1: 0, 2: 0}
-        self._last_tick_type_log_wall = 0.0
-        self._last_clock_skew_warn_wall = 0.0
-        self._last_no_tick_resubscribe_wall = 0.0
-        self._no_tick_resubscribe_streak = 0
-        self._reconnect_generation = 0
-        self._connected_reconnect_generation = 0
-        self._pending_intent_cancel_exchange_dt: datetime.datetime | None = None
         self._order_queue: queue.Queue[OrderSignal | None] = queue.Queue()
         self._order_sync_mode = False
         self._order_worker_started = False
 
         # After lock / staged-alert attrs exist (persist fail may stage CRITICAL).
         self._load_capital_state()
-        # Load-time re-eval / persist may stage CRITICAL with no order path yet.
         self._flush_staged_critical_alert()
 
+    def _state_owner(self, name: str) -> Any | None:
+        """Return the composed state object that owns ``name``, if any."""
+        d = self.__dict__
+        if name in BOOK_FIELD_NAMES:
+            return d.get("_book")
+        if name in LINK_FIELD_NAMES:
+            return d.get("_link")
+        if name in INTEGRITY_FIELD_NAMES:
+            return d.get("_integrity")
+        if name in TICK_FIELD_NAMES:
+            return d.get("_ticks")
+        return None
+
     def __getattr__(self, name: str) -> Any:
-        # Forward Book-owned trading state (position + flight).
-        if name != "_book" and name in BOOK_FIELD_NAMES:
-            book = self.__dict__.get("_book")
-            if book is not None:
-                return getattr(book, name)
+        owner = self._state_owner(name) if name not in (
+            "_book",
+            "_link",
+            "_integrity",
+            "_ticks",
+        ) else None
+        if owner is not None:
+            return getattr(owner, name)
         raise AttributeError(
             f"{type(self).__name__!s} object has no attribute {name!r}"
         )
 
     def __setattr__(self, name: str, value: Any) -> None:
-        if name in BOOK_FIELD_NAMES:
-            book = self.__dict__.get("_book")
-            if book is not None:
-                setattr(book, name, value)
-                return
+        # Avoid recursion before composed state objects exist.
+        if name in ("_book", "_link", "_integrity", "_ticks") or name not in (
+            BOOK_FIELD_NAMES
+            | LINK_FIELD_NAMES
+            | INTEGRITY_FIELD_NAMES
+            | TICK_FIELD_NAMES
+        ):
+            object.__setattr__(self, name, value)
+            return
+        owner = self._state_owner(name)
+        if owner is not None:
+            setattr(owner, name, value)
+            return
         object.__setattr__(self, name, value)
 
     def _call_api(self, fn, *args, **kwargs):
@@ -436,8 +408,16 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         return ts, price, volume, tick_type, original_tick_type
 
     def on_tick(self, tick: Any):
-        """Accept either native broker tick (e.g. Shioaji TickFOPv1 via live adapter)
-        or a TickSnapshot (preferred internal normalized form for decoupling).
+        """Hot path for one market tick (broker native or TickSnapshot).
+
+        Reading map (under ``self.lock``):
+          1. Normalize tick → price/ts/type (``_ticks``)
+          2. Record arrival + reconnect warmup (``_link`` / ``_ticks``)
+          3. Kernel force-flatten at session boundary (session)
+          4. Strategy evaluate → OrderSignal | None (uses Book + RiskGate)
+          5. Validate + arm flight (Book) / audit
+        Outside lock: archive enqueue, place order worker.
+        Integrity (SETTLING/HALT) freezes strategy via RiskGate; capital via entry_blocked.
         """
         signal: OrderSignal | None = None
         ts = 0
@@ -447,6 +427,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         original_tick_type = 0
         exchange_dt = None
         with self.lock:
+            # --- 1. normalize ---
             if isinstance(tick, TickSnapshot):
                 ts = tick.ts
                 price = tick.price
@@ -461,13 +442,13 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
                     self._last_tick_exchange_dt or datetime.datetime.fromtimestamp(ts)
                 )
 
+            # --- 2. arrival + warmup ---
             self._record_tick_arrival_locked(ts, exchange_dt, tick_type)
             self._arm_reconnect_warmup_on_first_tick_locked(ts)
             if self.has_position:
                 self.ticks_since_entry += 1
 
-            # Kernel force-flatten (owned by host for hard session boundary safety).
-            # Runs before normal strategy decision so force exit has priority.
+            # --- 3–4. kernel flatten, then strategy ---
             dt_for_risk = (
                 exchange_dt or tick.datetime if not isinstance(tick, TickSnapshot) else exchange_dt
             )
@@ -1008,13 +989,8 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         self.pending_ioc_slippage = int(self._cfg.ioc_slippage_points)
         self._exit_order_retry_count = 0
         self._exit_order_retry_at = 0.0
-        # P0-5: clearing pending also exits the SETTLING window. ``_position_unconfirmed``
-        # (HALT) is intentionally NOT reset here — it is a sticky safety flag lifted
-        # only by a clean confirmed reconcile or daily reset, never by clearing pending.
-        self._settling = False
-        self._settle_since = 0.0
-        self._reconcile_last_read = None
-        self._reconcile_read_streak = 0
+        # P0-5: clear SETTLING only. HALT (_position_unconfirmed) stays sticky.
+        self._integrity.clear_settling_window()
 
     def handle_session_event(self, resp_code: int, event_code: int, info: str, event: str):
         if event_code == 12:
