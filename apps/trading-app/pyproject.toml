@@ -39,7 +39,7 @@ Repository = "https://github.com/timhwchuang/tfx-trading"
 "" = "src"
 
 [tool.setuptools]
-py-modules = ["config", "strategy_simple", "observability", "metrics", "alerts", "cli_help"]
+py-modules = ["config", "strategy_simple", "alerts", "cli_help"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

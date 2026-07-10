@@ -117,9 +117,9 @@ Flat ⇄ Flight(entry) ⇄ Long|Short ⇄ Flight(exit) ⇄ Flat
 | `src/strategy_simple.py` | UAT flip |
 | `src/live/` | `python -m live` |
 | `src/integrations/` | alerts / archive / wiring（**無** live telemetry） |
-| `src/observability.py` | **LEGACY** VWAP/near-miss metrics（tests only） |
-| `src/integrations/telemetry_port.py` | **LEGACY** adapter（not wired live） |
 | `config/config.yaml` | session + risk + ops |
+| ~~`src/observability.py` / `metrics.py` / `telemetry_port`~~ | 已移至 [`legacy/apps/trading-app/src/`](../../legacy/apps/trading-app/src/) |
+| ~~`trading_engine/exchange_time.py`~~ | 已刪；用 `calendar.taifex` |
 
 策略指標（ATR、VWAP…）不在 Host（見 monorepo `legacy/`）。
 
@@ -211,7 +211,7 @@ START
 ### Host FILL_AUDIT
 
 僅進出損益帳本：intent / fill / qty / pnl / realized / peak / drawdown。  
-**不含** near-miss / VWAP（legacy `observability.py` 不進 live）。
+**不含** near-miss / VWAP（legacy `observability` / `metrics` 在 `legacy/`，不進 live）。
 
 ### Deprecated config
 
@@ -271,7 +271,8 @@ Gap 有持倉 → sticky force flatten。
 ### Phase D notes
 
 - Architecture diagram and module table match the tree above (no pending asterisks).
-- `observability.py` / `integrations/telemetry_port.py` / `TelemetryPort` Protocol: **LEGACY** headers; not live-wired.
+- `observability.py` / `metrics.py` / `telemetry_port.py` → `legacy/apps/trading-app/src/`（不進 active install）。
+- `exchange_time.py` removed; use `calendar.taifex`.
 - Config keys `max_consecutive_loss` / `max_daily_loss_points`: kept for YAML compat; **not capital gates**.
 - Naming: `RiskGate.block_new_entry` = **composed** entry block; raw ops latch is `Book.block_new_entry`; use `capital_frozen` + `max_mdd_points` for capital.
 - Kernel detail/history: [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md) defers to this SPEC for product SSOT.

@@ -14,6 +14,7 @@ Historical standalone-repo release links are kept for archaeology only; developm
 
 #### Changed
 
+- **Host tree hygiene（2026-07-10）**：`observability.py` / `metrics.py` / `integrations/telemetry_port.py` + 對應 tests → `legacy/apps/trading-app/`；刪 deprecated `exchange_time.py`（用 `calendar.taifex`）；清 pyc-only 幽靈目錄（`src/reporting|sweep|backtest|scripts`、`integrations/market_context|strategy_handler`）與誤放的 `src/shioaji.log`；`pyproject` 不再 install obs/metrics。
 - **Phase E Wave 3 order pipeline + RiskAssembler（2026-07-10）**：`order_executor` 拆為 `orders/{flight,place,callbacks,fill,flatten,settle,strategy_host}` 複合 mixin；共享 `orders/logutil` logger；`risk_gate.build_risk_gate`；移除 `TradingEngine.start()`（live 既有 `start_live_session`）；engine 僅 `run`。
 - **Phase E Wave 2 connectivity + tick WD（2026-07-10）**：`connectivity_ops.py`（`ReconnectOutcome`、disconnect/reconnect/session WD/warmup）；`tick_watchdog.py`（arrival/no-tick/clock skew/type summary）；engine mixin MRO 委派；`_timeout_loop` 分區註解為委派列表。
 - **Phase E review follow-up（2026-07-10）**：嚴重 drift 單次 `sync` + 單一 CRITICAL（`send_alert=False`）；`set_qty_dir(0)` 走 `clear_position`；刪 dead entry-tracking / `_exit_leg_pnl` wrapper；`note_tick_while_held` / `mark_exit_time`；`PositionSnapshot` frozen；`severe_drift_confirmed` unit tests。

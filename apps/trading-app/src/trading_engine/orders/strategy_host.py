@@ -41,7 +41,7 @@ class StrategyHostMixin:
 
 
     def _maybe_reset_daily_state(self, dt: datetime.datetime) -> None:
-        """P0-8: 交易日變更時重置日內風控（日盤 = 日曆日，見 exchange_time）。"""
+        """P0-8: 交易日變更時重置日內風控（見 calendar.taifex / trading_day_for_daily_reset）。"""
         trade_date = self._calendar.trading_day_for_daily_reset(dt)
         if self._trading_date is None:
             self._trading_date = trade_date

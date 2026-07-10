@@ -3,9 +3,9 @@
 **Do not wire into live TradingEngine.** Host fill ledger is
 ``trading_engine.core.audit.fill_audit``; capital risk is ``CapitalRiskState``.
 
-Kept for unit tests (``tests/test_observability.py``) and offline reporting
-helpers that still import ``DailyObservability``. New strategy metrics belong
-on the strategy module, not here.
+Lives under ``legacy/apps/trading-app/src/`` only. Offline reporting / legacy
+tests that still import ``DailyObservability`` add this path to ``PYTHONPATH``.
+Not installed with active ``trading-app``.
 """
 
 from __future__ import annotations
