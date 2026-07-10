@@ -273,6 +273,7 @@ Gap 有持倉 → sticky force flatten。
 - Architecture diagram and module table match the tree above (no pending asterisks).
 - `observability.py` / `metrics.py` / `telemetry_port.py` → `legacy/apps/trading-app/src/`（不進 active install）。
 - `exchange_time.py` removed; use `calendar.taifex`.
+- `plugins.py` / `TelemetryPort` / `NullTelemetryPort` removed from active Host.
 - Config keys `max_consecutive_loss` / `max_daily_loss_points`: kept for YAML compat; **not capital gates**.
 - Naming: `RiskGate.block_new_entry` = **composed** entry block; raw ops latch is `Book.block_new_entry`; use `capital_frozen` + `max_mdd_points` for capital.
 - Kernel detail/history: [`docs/ARCHIVE/engine/DESIGN.md`](../../docs/ARCHIVE/engine/DESIGN.md) defers to this SPEC for product SSOT.

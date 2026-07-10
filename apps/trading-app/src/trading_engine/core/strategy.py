@@ -87,7 +87,7 @@ class BaseStrategy(ABC):
     ) -> tuple[OrderSignal | None, StrategySideEffects]: ...
 
     def reset(self) -> None:
-        """Reset strategy-local state. Override in plugins as needed."""
+        """Reset strategy-local state after fills / session events."""
         return None
 
     def manage_exit(

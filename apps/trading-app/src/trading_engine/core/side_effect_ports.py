@@ -1,8 +1,6 @@
 """Injectable side-effect ports: alerts + archive (Host runtime).
 
-``TelemetryPort`` / ``NullTelemetryPort`` are **legacy** stubs retained so
-older tests or offline tools can type-check against the old Protocol.
-Live Host no longer accepts a ``telemetry=`` constructor argument.
+Live Host does not inject telemetry/observability ports.
 """
 
 from __future__ import annotations
@@ -50,106 +48,9 @@ class NullArchivePort:
         return None
 
 
-class NullTelemetryPort:
-    """LEGACY no-op telemetry (Host runtime does not inject this)."""
-
-    def record_lock_wait(self, ms: float) -> None:
-        return None
-
-    def record_entry_signal(self) -> None:
-        return None
-
-    def record_exit_signal(self) -> None:
-        return None
-
-    def record_tick_type(self, original: int, effective: int) -> None:
-        return None
-
-    def record_intent_cancelled(self, tag: str) -> None:
-        return None
-
-    def record_no_tick_resubscribe(self) -> None:
-        return None
-
-    def record_no_tick_escalation(self) -> None:
-        return None
-
-    def reset(self) -> None:
-        return None
-
-    def snapshot_tick_types(self, counts: Any) -> None:
-        return None
-
-    def update_risk_state(self, daily_pnl: float, consecutive_loss: int) -> None:
-        return None
-
-    def record_fill(self, **kwargs: Any) -> Any:
-        return kwargs
-
-    def build_summary(self, trade_date: str) -> dict[str, Any]:
-        return {"date": trade_date}
-
-    def format_daily_summary(self, summary: dict[str, Any]) -> str:
-        import json
-
-        return json.dumps(summary, ensure_ascii=False, separators=(",", ":"))
-
-    def format_fill_audit(self, audit: Any) -> str:
-        import json
-
-        if hasattr(audit, "__dataclass_fields__"):
-            from dataclasses import asdict
-
-            return json.dumps(asdict(audit), ensure_ascii=False, separators=(",", ":"))
-        return json.dumps(audit, ensure_ascii=False, separators=(",", ":"))
-
-    def compute_limit_price(self, signal_price: float, *, is_buy: bool, ioc_slippage: int) -> float:
-        if is_buy:
-            return signal_price + ioc_slippage
-        return signal_price - ioc_slippage
-
-
-class TelemetryPort(Protocol):
-    """LEGACY protocol — not used by live TradingEngine constructor."""
-
-    def record_lock_wait(self, ms: float) -> None: ...
-
-    def record_entry_signal(self) -> None: ...
-
-    def record_exit_signal(self) -> None: ...
-
-    def record_tick_type(self, original: int, effective: int) -> None: ...
-
-    def record_intent_cancelled(self, tag: str) -> None: ...
-
-    def record_no_tick_resubscribe(self) -> None: ...
-
-    def record_no_tick_escalation(self) -> None: ...
-
-    def reset(self) -> None: ...
-
-    def snapshot_tick_types(self, counts: Any) -> None: ...
-
-    def update_risk_state(self, daily_pnl: float, consecutive_loss: int) -> None: ...
-
-    def record_fill(self, **kwargs: Any) -> Any: ...
-
-    def build_summary(self, trade_date: str) -> dict[str, Any]: ...
-
-    def format_daily_summary(self, summary: dict[str, Any]) -> str: ...
-
-    def format_fill_audit(self, audit: Any) -> str: ...
-
-    def compute_limit_price(
-        self, signal_price: float, *, is_buy: bool, ioc_slippage: int
-    ) -> float: ...
-
-
 __all__ = [
     "AlertPort",
     "ArchivePort",
     "NullAlertPort",
     "NullArchivePort",
-    "NullTelemetryPort",
-    "TelemetryPort",
 ]
