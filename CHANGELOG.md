@@ -18,9 +18,9 @@ Historical standalone-repo release links are kept for archaeology only; developm
   - **G0** `locking.py`：`DomainLock` + API entry guard；AST audit + denylist；cross-thread domain hold ok。
   - **G1** 去魔術 SSOT：`_book/_link/_integrity/_ticks`；reject flat setattr；無 silent dead attrs。
   - **G2** Host Protocols（Order / PositionSync / Reconcile / RiskGate / Connectivity / TickWatchdog / Session）。
-  - **G3** Engine 無 Mixin MRO；`OrderExecutor` + small services host-bound 注入；`_services` lifecycle；facade 保留 `engine.place_order` 等。
-  - **G4** `MaintenanceScheduler` Option A（serial within poll、skip/defer、>100ms warn、stop join timeout CRITICAL）。
-  - Review follow-ups：run() start in try/finally；scheduler sleep 包在 try；docs 誠實描述 Option A 限制。
+  - **G3** Engine 無 Mixin MRO；host-bound services；**全部**進 `_services` LIFO（session/positions/connectivity/watchdog 今日 passive no-op；orders + maintenance 有 thread）。
+  - **G4** `MaintenanceScheduler` Option A（serial within poll、skip/defer、>100ms warn、stop join timeout）。
+  - Review follow-ups：`OrderExecutor.start` 走 host lookup；order worker join；join 逾時則 **跳過 logout**；`__getattr__` 快取；Job.fn 綁定時機文件化。
 - **Phase F CapitalService（2026-07-10）**：累進 MDD 實作抽出 `capital.CapitalService`（load / on_exit_fill / clear / blocks_entry）；engine 只委派；exit fill 經 service 寫帳；**MDD 仍是 Host 政策**，非策略、非刪除風控。
 - **Host stub cleanup（2026-07-10）**：刪 `plugins.py`（entry-point discovery 已移除）與 package export；`side_effect_ports` 去掉 `TelemetryPort` / `NullTelemetryPort` legacy stubs（只留 Alert/Archive）。
 - **Host tree hygiene（2026-07-10）**：`observability.py` / `metrics.py` / `integrations/telemetry_port.py` + 對應 tests → `legacy/apps/trading-app/`；刪 deprecated `exchange_time.py`（用 `calendar.taifex`）；清 pyc-only 幽靈目錄（`src/reporting|sweep|backtest|scripts`、`integrations/market_context|strategy_handler`）與誤放的 `src/shioaji.log`；`pyproject` 不再 install obs/metrics。

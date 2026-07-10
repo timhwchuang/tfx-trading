@@ -166,6 +166,11 @@ def default_engine_jobs(engine: Any) -> list[Job]:
     """Job inventory: critical safety first, then broker-heavy, then logs.
 
     Order matters when many jobs share the same due tick (serial within poll).
+
+    **Binding time:** each ``Job.fn`` is the bound method resolved *now*
+    (construction of ``MaintenanceScheduler``). Later
+    ``engine._check_pending_timeout = mock`` does **not** rewire existing jobs;
+    rebuild the scheduler (or pass a custom ``jobs=`` list) in tests.
     """
     return [
         Job("pending_timeout", 1.0, engine._check_pending_timeout),

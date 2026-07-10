@@ -298,7 +298,7 @@ Gap 有持倉 → sticky force flatten。
 | **G0** | Dual-lock 契約：`DomainLock` + `_call_api` 禁止持 domain lock 進 API；`locking.py`；AST 稽核（含 denylist） | **done** |
 | **G1** | 移除 flat SSOT forwarders；`self._book.*` 等；reject setattr 防 dead attrs | **done** |
 | **G2** | Host Protocols：`OrderHost` / `PositionSyncHost` / `ReconcileHost` / `RiskGateHost` / `ConnectivityOpsHost` / `TickWatchdogHost` / `SessionHost` | **done** |
-| **G3** | `TradingEngine` **無 Mixin MRO**；`OrderExecutor` / `PositionSyncService` / `ConnectivityOpsService` / `TickWatchdogService` / `SessionService` 以 host-bound methods 注入；`run()` lifecycle | **done** |
+| **G3** | `TradingEngine` **無 Mixin MRO**；services host-bound 注入；**全部**進 `_services` LIFO lifecycle（今日 passive 為 no-op start/stop；日後有背景 thread 只補實作） | **done** |
 | **G4** | `MaintenanceScheduler` Option A（單執行緒 serial within poll + per-job skip/defer + 100ms warn） | **done** |
 
 **Lock order (G0):** never acquire `_api_lock` while current thread holds domain `self.lock`. Hot path `on_tick` = domain lock only.

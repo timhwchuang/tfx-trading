@@ -147,33 +147,57 @@ class TradingEngine:
         self._order_queue: queue.Queue[OrderSignal | None] = queue.Queue()
         self._order_sync_mode = False
         self._order_worker_started = False
-        # Phase G3: injected services (host-backed; engine is dispatcher only).
-        self.orders = OrderExecutor(self)
+        self._order_worker_thread: threading.Thread | None = None
+        self._order_worker_join_timed_out = False
+        # Phase G3: injected services (host-bound methods; engine is dispatcher).
+        # Passive / positions / connectivity / watchdog are **passive** today
+        # (no background threads; methods run on caller threads only).
+        # They still implement EngineService (no-op start/stop) and sit in
+        # ``_services`` so future autonomous threads (reconnect worker,
+        # watchdog timer, …) only need real start/stop — ``run()`` already
+        # tears them down LIFO before logout.
+        self.session = SessionService(self)
         self.positions = PositionSyncService(self)
         self.connectivity = ConnectivityOpsService(self)
         self.watchdog = TickWatchdogService(self)
-        self.session = SessionService(self)
+        self.orders = OrderExecutor(self)
         # Phase G4: isolated jobs replace serial _timeout_loop blob.
+        # Job.fn callables are bound at install time — rebinding host methods
+        # later does not rewire jobs (rebuild scheduler in tests if needed).
         self._maintenance = MaintenanceScheduler(
             default_engine_jobs(self),
             clock=self._clock,
         )
-        # Lifecycle-owned services (start/stop from run()).
-        self._services: list[EngineService] = [self._maintenance, self.orders]
+        # Start order: passive → orders worker → maintenance (stop is reverse).
+        self._services: list[EngineService] = [
+            self.session,
+            self.positions,
+            self.connectivity,
+            self.watchdog,
+            self.orders,
+            self._maintenance,
+        ]
 
         # After staged-alert attr exists (persist fail may stage CRITICAL).
         self._load_capital_state()
         self._flush_staged_critical_alert()
 
     def __getattr__(self, name: str) -> Any:
-        """Facade: route pipeline methods to the service that defines them."""
+        """Facade: route pipeline methods to the service that defines them.
+
+        Successful hits are cached on the instance dict so hot-path ticks do
+        not re-walk services every call. Explicit ``engine.foo = mock`` still
+        wins because instance attrs shadow this path.
+        """
         if name.startswith("__") and name.endswith("__"):
             raise AttributeError(name)
         d = object.__getattribute__(self, "__dict__")
         for key in ("orders", "positions", "connectivity", "watchdog", "session"):
             svc = d.get(key)
             if svc is not None and service_defines(svc, name):
-                return getattr(svc, name)
+                attr = getattr(svc, name)
+                object.__setattr__(self, name, attr)
+                return attr
         raise AttributeError(
             f"{type(self).__name__!s} object has no attribute {name!r}"
         )
@@ -544,19 +568,27 @@ class TradingEngine:
                     svc.stop()
                 except Exception as e:
                     logger.warning("service stop 失敗: %s", e)
-            if getattr(self._maintenance, "join_timed_out", False):
+            maint_stuck = getattr(self._maintenance, "join_timed_out", False)
+            order_stuck = bool(getattr(self, "_order_worker_join_timed_out", False))
+            if maint_stuck or order_stuck:
                 logger.critical(
-                    "維運執行緒 stop 逾時仍可能佔用 API — logout 可能與背景 job 競態"
+                    "背景執行緒 stop 逾時 (maintenance=%s order_worker=%s) "
+                    "— 跳過 logout 以避免 _api_lock 死等；程序以 unclean shutdown 結束",
+                    maint_stuck,
+                    order_stuck,
                 )
             self._archive.shutdown_tick_archive()
             if self._trading_date is not None:
                 self._emit_daily_summary(self._trading_date)
-            try:
-                self._call_api(self.api.logout)
-            except Exception as e:
-                if is_api_session_error(e):
-                    logger.warning("logout 略過（session 已失效）: %s", e)
-                else:
-                    logger.warning("logout 失敗: %s", e)
+            if not (maint_stuck or order_stuck):
+                try:
+                    self._call_api(self.api.logout)
+                except Exception as e:
+                    if is_api_session_error(e):
+                        logger.warning("logout 略過（session 已失效）: %s", e)
+                    else:
+                        logger.warning("logout 失敗: %s", e)
+            else:
+                logger.warning("logout 已略過（背景 thread 仍可能持有 API lock）")
             shutdown_async_logging()
 

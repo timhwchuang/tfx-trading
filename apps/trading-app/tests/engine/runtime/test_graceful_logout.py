@@ -23,6 +23,10 @@ class TestGracefulLogout(unittest.TestCase):
         with (
             patch("trading_engine.engine.time.sleep", side_effect=KeyboardInterrupt),
             patch.object(host, "_start_order_worker"),
+            # Do not leave a live maintenance thread (jobs / join) in unit tests.
+            patch.object(host._maintenance, "start"),
+            patch.object(host._maintenance, "stop"),
+            patch.object(host._maintenance, "join_timed_out", False),
             patch("trading_engine.engine.threading.Thread"),
             patch("trading_engine.engine.shutdown_async_logging"),
         ):

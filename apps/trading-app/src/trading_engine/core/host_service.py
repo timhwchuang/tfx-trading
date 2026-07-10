@@ -42,7 +42,12 @@ def service_defines(service: Any, name: str) -> bool:
 
 
 class HostBoundService:
-    """Service shell: methods bound to host; start/stop for EngineService."""
+    """Service shell: methods bound to host; ``EngineService`` start/stop.
+
+    Passive services (no background threads) leave ``start``/``stop`` as no-ops
+    but still belong on ``TradingEngine._services`` so ``run()`` tears them
+    down LIFO if they later grow autonomous workers.
+    """
 
     def __init__(self, host: Any, *mixin_classes: type) -> None:
         object.__setattr__(self, "_host", host)
@@ -53,9 +58,11 @@ class HostBoundService:
         return object.__getattribute__(self, "_host")
 
     def start(self) -> None:
+        """No-op for passive services; override when owning threads/timers."""
         return None
 
     def stop(self) -> None:
+        """No-op for passive services; override when owning threads/timers."""
         return None
 
 

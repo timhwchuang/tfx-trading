@@ -149,11 +149,13 @@ class OrderPlaceMixin:
         if self._order_worker_started:
             return
         self._order_worker_started = True
-        threading.Thread(
+        t = threading.Thread(
             target=self._order_worker_loop,
             daemon=True,
             name="order-worker",
-        ).start()
+        )
+        self._order_worker_thread = t
+        t.start()
 
 
     def _order_worker_loop(self) -> None:

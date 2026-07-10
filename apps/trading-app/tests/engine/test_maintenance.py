@@ -130,6 +130,41 @@ class TestMaintenanceScheduler(unittest.TestCase):
         # May or may not time out depending on timing; stop must be idempotent.
         sched.stop()
 
+    def test_engine_services_lifecycle_list_includes_passive(self) -> None:
+        """Passive services are on _services for future threads / LIFO teardown."""
+        host = make_host()
+        svcs = host._services
+        self.assertIs(svcs[-1], host._maintenance)
+        self.assertIs(svcs[-2], host.orders)
+        self.assertIn(host.positions, svcs)
+        self.assertIn(host.connectivity, svcs)
+        self.assertIn(host.watchdog, svcs)
+        self.assertIn(host.session, svcs)
+        # Passive today: start/stop no-op
+        host.positions.start()
+        host.positions.stop()
+        host.connectivity.start()
+        host.connectivity.stop()
+
+    def test_order_start_honors_host_patch(self) -> None:
+        host = make_host()
+        host._order_sync_mode = False
+        called = []
+        host._start_order_worker = lambda: called.append(1)  # type: ignore[method-assign]
+        host.orders.start()
+        self.assertEqual(called, [1])
+
+    def test_getattr_cache_then_mock_override(self) -> None:
+        host = make_host()
+        # Prime cache
+        fn = host.place_order
+        self.assertTrue(callable(fn))
+        self.assertIn("place_order", host.__dict__)
+        mock = MagicMock()
+        host.place_order = mock  # type: ignore[method-assign]
+        host.place_order("sig")
+        mock.assert_called_once_with("sig")
+
 
 if __name__ == "__main__":
     unittest.main()
