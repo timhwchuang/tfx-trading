@@ -40,6 +40,14 @@ from trading_engine.ticks import TICK_FIELD_NAMES, TickState
 
 logger = get_logger()
 
+# Hot-path membership check: avoid rebuilding the union on every __setattr__.
+_FORWARDED_FIELD_NAMES: frozenset[str] = (
+    BOOK_FIELD_NAMES
+    | LINK_FIELD_NAMES
+    | INTEGRITY_FIELD_NAMES
+    | TICK_FIELD_NAMES
+)
+
 
 class ReconnectOutcome(Enum):
     HEALTHY = auto()
@@ -148,10 +156,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
     def __setattr__(self, name: str, value: Any) -> None:
         # Avoid recursion before composed state objects exist.
         if name in ("_book", "_link", "_integrity", "_ticks") or name not in (
-            BOOK_FIELD_NAMES
-            | LINK_FIELD_NAMES
-            | INTEGRITY_FIELD_NAMES
-            | TICK_FIELD_NAMES
+            _FORWARDED_FIELD_NAMES
         ):
             object.__setattr__(self, name, value)
             return

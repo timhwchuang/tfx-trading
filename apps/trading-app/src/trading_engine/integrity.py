@@ -6,9 +6,9 @@ Owned by TradingEngine as ``_integrity``. Capital freeze is separate
 
 from __future__ import annotations
 
+import datetime
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Any
 
 INTEGRITY_FIELD_NAMES: frozenset[str] = frozenset(
     {
@@ -62,7 +62,7 @@ class IntegrityState:
     _last_reconcile_wall: float = 0.0
     _exit_order_retry_count: int = 0
     _exit_order_retry_at: float = 0.0
-    _pending_intent_cancel_exchange_dt: Any = None
+    _pending_intent_cancel_exchange_dt: datetime.datetime | None = None
 
     def clear_settling_window(self) -> None:
         """Exit SETTLING (e.g. after pending cleared). HALT flag is sticky."""

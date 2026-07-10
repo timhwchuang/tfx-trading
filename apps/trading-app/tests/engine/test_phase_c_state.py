@@ -48,6 +48,32 @@ class TestPhaseCState(unittest.TestCase):
         ticks.reset_day_counters()
         self.assertEqual(ticks._tick_type_counts[0], 0)
 
+    def test_clear_settling_does_not_lift_halt(self):
+        """P0-5: clearing pending/SETTLING must leave HALT sticky."""
+        host = make_host()
+        host._settling = True
+        host._settle_since = 1.0
+        host._reconcile_last_read = (1, "Long")
+        host._reconcile_read_streak = 2
+        host._position_unconfirmed = True
+
+        host._integrity.clear_settling_window()
+        self.assertFalse(host._settling)
+        self.assertEqual(host._settle_since, 0.0)
+        self.assertIsNone(host._reconcile_last_read)
+        self.assertEqual(host._reconcile_read_streak, 0)
+        self.assertTrue(host._position_unconfirmed)
+
+        # Full pending clear path also must not lift HALT.
+        host._settling = True
+        host._position_unconfirmed = True
+        host.is_pending = True
+        host.pending_intent = "exit"
+        host._clear_pending()
+        self.assertFalse(host.is_pending)
+        self.assertFalse(host._settling)
+        self.assertTrue(host._position_unconfirmed)
+
 
 if __name__ == "__main__":
     unittest.main()
