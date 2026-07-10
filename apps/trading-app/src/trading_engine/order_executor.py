@@ -70,9 +70,10 @@ class OrderExecutorMixin:
             if self.entry_blocked:
                 logger.warning(
                     "拒絕 entry OrderSignal: entry_blocked "
-                    "(block_new_entry=%s capital_frozen=%s)",
+                    "(ops_block=%s capital_frozen=%s mdd_gate=%s)",
                     self.block_new_entry,
                     self.capital_frozen,
+                    self._capital_gate_active(),
                 )
                 return False
             if self.position_qty > 0:
@@ -961,6 +962,7 @@ class OrderExecutorMixin:
                     f"peak={self.equity_peak:.1f} → 已凍結新進場；請檢視策略後 clear_capital_risk()"
                 )
             # Durable progressive book (restart-safe); position still broker-SSOT.
+            # Persist under lock intentionally (durability > latency; max_qty=1).
             self._persist_capital_state()
 
             fill_audit = FillAudit(

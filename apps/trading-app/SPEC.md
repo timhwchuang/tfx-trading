@@ -130,9 +130,10 @@ drawdown       = peak - realized
 capital_frozen = drawdown >= max_mdd_points   # sticky
 ```
 
-- `max_mdd_points <= 0` → 關閉（UAT 預設 **0**）
+- `max_mdd_points <= 0` → **閘門關閉**（UAT 預設 **0**）：不評估、**不套用** sticky `capital_frozen`（JSON 帳本 realized/peak 仍可保留）
+- `max_mdd_points > 0` 時：`entry_blocked = ops_block | capital_frozen`
 - **日切不清** 資本帳；只清日內 ops（`daily_pnl` 顯示、disconnect 計數、日內 HALT…）
-- 解除：`clear_capital_risk()` 或刪檔後重啟（刪檔 = 空白帳）
+- 解除 sticky（在閘門開啟時）：`clear_capital_risk()` 或刪檔後重啟
 
 ### 持久化檔
 
@@ -165,7 +166,8 @@ START
   1. load capital JSON → CapitalRisk
   2. connect broker → sync_positions → position
   3. pending/flight = empty
-  4. capital_frozen → entry 立即 blocked
+  4. capital_frozen AND max_mdd_points > 0 → entry blocked
+     （max_mdd<=0 時 sticky 旗標可仍為 true，但不擋進場）
 ```
 
 ### 三種凍結
@@ -176,7 +178,7 @@ START
 | `block_new_entry`（ops） | 日內 ops / integrity | 日切清 | 重啟清 |
 | settle / unconfirmed | integrity | 日切可 lift | 重啟清；broker 為準 |
 
-合成：`entry_blocked = block_new_entry | capital_frozen`（外加 settle 等執行凍結）。
+合成：`entry_blocked = ops_block | (max_mdd_points > 0 && capital_frozen)`（外加 settle 等執行凍結）。
 
 ### Host FILL_AUDIT
 

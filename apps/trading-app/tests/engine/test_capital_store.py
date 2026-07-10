@@ -113,12 +113,64 @@ class TestCapitalStore(unittest.TestCase):
             host._load_capital_state()
             self.assertTrue(host.capital_frozen)
             self.assertEqual(host.realized_pnl, -25.0)
+            # make_host default max_mdd=0 → sticky freeze must not block entry
+            self.assertFalse(host.entry_blocked)
 
             host.clear_capital_risk()
             self.assertFalse(host.capital_frozen)
             raw = json.loads(p.read_text(encoding="utf-8"))
             self.assertFalse(raw["capital_frozen"])
             self.assertEqual(raw["realized_pnl"], 0.0)
+
+    def test_sticky_freeze_ignored_when_mdd_gate_off(self):
+        """max_mdd<=0 must not apply capital_frozen even if present on disk."""
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "cap.json"
+            store = CapitalStore(p)
+            store.save(
+                CapitalRiskState(
+                    realized_pnl=-40.0, equity_peak=0.0, capital_frozen=True
+                ),
+                product_code="TMFR1",
+            )
+            cfg = RuntimeConfig(
+                default_test_settings(), overlay={"max_mdd_points": 0.0}
+            )
+            api = MagicMock()
+            host = TradingEngine(
+                api=api,
+                strategy=StubStrategy(),
+                runtime_config=cfg,
+                order_adapter=MockOrderAdapter(api),
+                capital_store=store,
+            )
+            self.assertTrue(host.capital_frozen)  # book flag still loaded
+            self.assertFalse(host._capital_gate_active())
+            self.assertFalse(host.entry_blocked)
+
+    def test_sticky_freeze_applies_when_mdd_gate_on(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "cap.json"
+            store = CapitalStore(p)
+            store.save(
+                CapitalRiskState(
+                    realized_pnl=-40.0, equity_peak=0.0, capital_frozen=True
+                ),
+                product_code="TMFR1",
+            )
+            cfg = RuntimeConfig(
+                default_test_settings(), overlay={"max_mdd_points": 10.0}
+            )
+            api = MagicMock()
+            host = TradingEngine(
+                api=api,
+                strategy=StubStrategy(),
+                runtime_config=cfg,
+                order_adapter=MockOrderAdapter(api),
+                capital_store=store,
+            )
+            self.assertTrue(host.capital_frozen)
+            self.assertTrue(host.entry_blocked)
 
     def test_load_re_eval_freezes_when_mdd_enabled(self):
         """Book with deep drawdown + newly enabled max_mdd freezes on load."""

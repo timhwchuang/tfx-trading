@@ -53,6 +53,8 @@ class RiskGate:
     exit_pending: bool
     cooldown_active: bool
     in_trading_session: bool
+    # Composed entry block (ops latch OR active capital freeze). Not the raw
+    # Book.block_new_entry alone — see capital_frozen / entry_blocked on host.
     block_new_entry: bool
     consecutive_loss: int  # metric only; not a capital gate
     daily_pnl: float
@@ -90,6 +92,7 @@ class EngineStateSnapshot:
     filled_qty: int
     daily_pnl: float
     consecutive_loss: int
+    # Composed entry block (ops | active capital freeze), same as RiskGate.
     block_new_entry: bool
     api_connected: bool
     has_position: bool
@@ -97,7 +100,7 @@ class EngineStateSnapshot:
     ticks_since_entry: int
     settling: bool = False
     position_unconfirmed: bool = False
-    capital_frozen: bool = False
+    capital_frozen: bool = False  # sticky book flag; gate may ignore if mdd off
     realized_pnl: float = 0.0
     equity_peak: float = 0.0
     current_drawdown: float = 0.0

@@ -180,6 +180,7 @@ class TestOpeningSessionWindow(unittest.TestCase):
 class TestDailyStateReset(unittest.TestCase):
     def test_reset_on_exchange_date_change(self):
         host = make_host()
+        host._cfg.apply_overlay({"max_mdd_points": 30.0})  # gate on so freeze blocks entry
         host.daily_pnl = -150.0
         host.block_new_entry = True
         host.consecutive_loss = 3

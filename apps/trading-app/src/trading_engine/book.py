@@ -10,7 +10,7 @@ Capital risk (progressive MDD) stays in ``CapitalRiskState`` — not here.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 # Attribute names owned by Book (forwarded from TradingEngine).
@@ -107,7 +107,7 @@ class Book:
         self.entry_exchange_ts = 0
         self.ticks_since_entry = 0
 
-    def clear_flight(self, *, watch_late_fill: bool = False) -> dict[str, Any]:
+    def clear_flight(self) -> dict[str, Any]:
         """Clear pending flight; return snapshot for late-deal registry if needed."""
         snap = {
             "order_id": self.pending_order_id,

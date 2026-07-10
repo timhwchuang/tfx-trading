@@ -201,6 +201,7 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
 
     @property
     def capital_frozen(self) -> bool:
+        """Sticky flag on the capital book (may be ignored when MDD gate is off)."""
         return self._capital.capital_frozen
 
     @property
@@ -215,10 +216,19 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
     def current_drawdown(self) -> float:
         return self._capital.current_drawdown
 
+    def _capital_gate_active(self) -> bool:
+        """True when progressive MDD is configured to block entries (limit > 0)."""
+        return float(getattr(self._cfg, "max_mdd_points", 0) or 0) > 0
+
     @property
     def entry_blocked(self) -> bool:
-        """Ops block or progressive capital freeze."""
-        return self.block_new_entry or self._capital.capital_frozen
+        """Ops latch or active capital freeze.
+
+        When ``max_mdd_points <= 0`` the MDD gate is disabled: sticky
+        ``capital_frozen`` from disk is **not** applied (UAT / gate-off).
+        """
+        capital_blocks = self._capital_gate_active() and self._capital.capital_frozen
+        return self.block_new_entry or capital_blocks
 
     def clear_capital_risk(self) -> None:
         """Operator action: reset progressive MDD book and unfreeze capital.
@@ -236,9 +246,17 @@ class TradingEngine(OrderExecutorMixin, SessionMixin):
         loaded = self._capital_store.load(product_code=str(self._cfg.product_code))
         if loaded is not None:
             self._capital = loaded
+        max_mdd = float(getattr(self._cfg, "max_mdd_points", 0) or 0)
+        if max_mdd <= 0:
+            if self._capital.capital_frozen:
+                logger.info(
+                    "max_mdd_points<=0：MDD 閘門關閉，不套用 sticky capital_frozen "
+                    "（帳本 realized/peak 仍保留）| frozen_on_disk=%s",
+                    self._capital.capital_frozen,
+                )
+            return
         # Re-evaluate limit on start: enabling max_mdd against an existing
         # progressive book must freeze immediately (not wait for next exit).
-        max_mdd = float(getattr(self._cfg, "max_mdd_points", 0) or 0)
         if self._capital.evaluate_mdd(max_mdd):
             logger.warning(
                 "啟動載入後累進 MDD 已達上限 %.1f（drawdown=%.1f）→ capital_frozen",
