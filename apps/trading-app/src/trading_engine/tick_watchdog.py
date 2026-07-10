@@ -1,21 +1,34 @@
-"""Tick arrival bookkeeping + no-tick / clock-skew watchdogs.
+"""Tick arrival bookkeeping + no-tick / clock-skew watchdogs (Phase G3 service).
 
-State lives on ``TickState`` (``_ticks``). Behavior extracted from TradingEngine
-in Phase E Wave 2 so the hot path and timeout loop only delegate here.
+State lives on ``TickState`` (``_ticks``).
 """
 
 from __future__ import annotations
 
 import datetime
+from typing import Any, Protocol
 
+from trading_engine.core.host_service import HostBoundService
 from trading_engine.logging_setup import get_logger
 
 logger = get_logger()
 
 
-class TickWatchdogMixin:
-    """Mixin: tick counters, clock skew, no-tick resubscribe escalation."""
+class TickWatchdogHost(Protocol):
+    """Surface used by tick arrival / no-tick watchdog."""
 
+    lock: Any
+    _cfg: Any
+    _ticks: Any
+    _link: Any
+    _alerts: Any
+    _resubscribe_ticks: Any
+    _clock: Any
+
+    def _mark_disconnected(self, **kwargs) -> bool: ...
+
+
+class _TickWatchdogMethods:
     def _record_tick_arrival_locked(
         self, ts: int, exchange_dt: datetime.datetime, tick_type: int
     ) -> None:
@@ -143,4 +156,11 @@ class TickWatchdogMixin:
         self._alerts.send(msg, level="CRITICAL")
 
 
-__all__ = ["TickWatchdogMixin"]
+class TickWatchdogService(HostBoundService):
+    def __init__(self, host: TickWatchdogHost) -> None:
+        super().__init__(host, _TickWatchdogMethods)
+
+
+TickWatchdogMixin = TickWatchdogService
+
+__all__ = ["TickWatchdogHost", "TickWatchdogService", "TickWatchdogMixin"]

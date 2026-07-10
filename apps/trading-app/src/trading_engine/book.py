@@ -21,7 +21,7 @@ from typing import Any
 
 from trading_engine.core.types import PositionSnapshot
 
-# Attribute names owned by Book (forwarded from TradingEngine).
+# Attribute names owned by Book (explicit ``host._book.*`` access after Phase G1).
 BOOK_FIELD_NAMES: frozenset[str] = frozenset(
     {
         # Position

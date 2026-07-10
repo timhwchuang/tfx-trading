@@ -8,12 +8,14 @@ from collections.abc import Callable
 from typing import Any
 
 from trading_engine.api_errors import is_api_session_error
-from trading_engine.book import Book
+from trading_engine.book import BOOK_FIELD_NAMES, Book
 from trading_engine.calendar.port import MarketCalendarPort, TaifexMarketCalendar
-from trading_engine.connectivity import ConnectivityState
-from trading_engine.connectivity_ops import ConnectivityOpsMixin, ReconnectOutcome
+from trading_engine.connectivity import LINK_FIELD_NAMES, ConnectivityState
+from trading_engine.connectivity_ops import ConnectivityOpsService, ReconnectOutcome
 from trading_engine.capital import CapitalService
 from trading_engine.core.capital_store import CapitalStore
+from trading_engine.core.engine_service import EngineService
+from trading_engine.core.host_service import service_defines
 from trading_engine.core.ports import BrokerPort
 from trading_engine.core.runtime_config import RuntimeConfig
 from trading_engine.core.side_effect_ports import (
@@ -31,35 +33,46 @@ from trading_engine.core.types import (
     RiskGate,
     TickSnapshot,
 )
-from trading_engine.integrity import IntegrityState
+from trading_engine.integrity import INTEGRITY_FIELD_NAMES, IntegrityState
 from trading_engine.locking import DomainLock, assert_api_entry_allowed
 from trading_engine.logging_setup import get_logger, shutdown_async_logging
 from trading_engine.maintenance import MaintenanceScheduler, default_engine_jobs
-from trading_engine.order_executor import OrderExecutorMixin
-from trading_engine.position_sync import PositionSyncMixin
+from trading_engine.order_executor import OrderExecutor
+from trading_engine.position_sync import PositionSyncService
 from trading_engine.reconcile import (
     check_position_reconcile,
     is_severe_drift,
     severe_drift_confirmed,
 )
 from trading_engine.risk_gate import build_risk_gate
-from trading_engine.session import SessionMixin
-from trading_engine.tick_watchdog import TickWatchdogMixin
-from trading_engine.ticks import TickState
+from trading_engine.session import SessionService
+from trading_engine.tick_watchdog import TickWatchdogService
+from trading_engine.ticks import TICK_FIELD_NAMES, TickState
 
 logger = get_logger()
+
+# Former flat surface names (Phase B/C forwarders). Reject writes so callers
+# cannot silently create dead instance attrs after G1 demagic.
+_REJECTED_FLAT_ATTRS: frozenset[str] = (
+    BOOK_FIELD_NAMES
+    | LINK_FIELD_NAMES
+    | INTEGRITY_FIELD_NAMES
+    | TICK_FIELD_NAMES
+)
 
 # Re-export for call sites / tests that imported from engine historically.
 __all__ = ["TradingEngine", "ReconnectOutcome"]
 
 
-class TradingEngine(
-    OrderExecutorMixin,
-    PositionSyncMixin,
-    ConnectivityOpsMixin,
-    TickWatchdogMixin,
-    SessionMixin,
-):
+class TradingEngine:
+    """Execution host dispatcher (Phase G3 — no Mixin MRO).
+
+    Domain state lives on composed owners (``_book`` / ``_link`` / …).
+    Behavior lives on injected services (``orders`` / ``positions`` / …).
+    Public call sites keep ``engine.place_order`` etc. via ``__getattr__``
+    routing to the service that defines the method.
+    """
+
     def __init__(
         self,
         api: BrokerPort,
@@ -134,17 +147,45 @@ class TradingEngine(
         self._order_queue: queue.Queue[OrderSignal | None] = queue.Queue()
         self._order_sync_mode = False
         self._order_worker_started = False
+        # Phase G3: injected services (host-backed; engine is dispatcher only).
+        self.orders = OrderExecutor(self)
+        self.positions = PositionSyncService(self)
+        self.connectivity = ConnectivityOpsService(self)
+        self.watchdog = TickWatchdogService(self)
+        self.session = SessionService(self)
         # Phase G4: isolated jobs replace serial _timeout_loop blob.
         self._maintenance = MaintenanceScheduler(
             default_engine_jobs(self),
             clock=self._clock,
         )
-        # Phase G3 partial: lifecycle list (scheduler first; more services later).
-        self._services: list[Any] = [self._maintenance]
+        # Lifecycle-owned services (start/stop from run()).
+        self._services: list[EngineService] = [self._maintenance, self.orders]
 
         # After staged-alert attr exists (persist fail may stage CRITICAL).
         self._load_capital_state()
         self._flush_staged_critical_alert()
+
+    def __getattr__(self, name: str) -> Any:
+        """Facade: route pipeline methods to the service that defines them."""
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        d = object.__getattribute__(self, "__dict__")
+        for key in ("orders", "positions", "connectivity", "watchdog", "session"):
+            svc = d.get(key)
+            if svc is not None and service_defines(svc, name):
+                return getattr(svc, name)
+        raise AttributeError(
+            f"{type(self).__name__!s} object has no attribute {name!r}"
+        )
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        # Phase G1 follow-up: reject former flat SSOT names (no silent dead attrs).
+        if name in _REJECTED_FLAT_ATTRS:
+            raise AttributeError(
+                f"TradingEngine.{name} is not a writable attribute after Phase G1; "
+                f"use self._book / _link / _integrity / _ticks (or Book mutation API)"
+            )
+        object.__setattr__(self, name, value)
 
     def _call_api(self, fn, *args, **kwargs):
         """Serialize Shioaji mutable calls under ``_api_lock`` (Phase G0).
@@ -242,9 +283,10 @@ class TradingEngine(
     def get_state_snapshot(self) -> EngineStateSnapshot:
         """Return a frozen read-only view of engine state.
 
-        **Do not** assign to ``TradingEngine`` attributes (``position_qty``,
-        ``is_pending``, etc.) from strategy or app code — that bypasses
-        kernel invariants.
+        Flat names like ``position_qty`` / ``is_pending`` are **not** on
+        ``TradingEngine`` after Phase G1 (writes raise; reads AttributeError).
+        Mutate via ``_book`` Book API / services only; prefer this snapshot
+        for app/smoke read paths.
         """
         with self.lock:
             return EngineStateSnapshot(
@@ -451,9 +493,11 @@ class TradingEngine(
         check_position_reconcile(self)
 
     def _timeout_loop(self):
-        """Deprecated entry: prefer ``self._maintenance`` (Phase G4).
+        """Compat alias: one ``MaintenanceScheduler.run_once()`` (not a loop).
 
-        Kept as a thin compat wrapper for tests that still target the old name.
+        Continuous background cadence requires ``self._maintenance.start()``
+        (invoked from ``run()`` via ``_services``). Prefer calling
+        ``self._maintenance.run_once()`` in new tests.
         """
         self._maintenance.run_once()
 
@@ -486,11 +530,9 @@ class TradingEngine(
             self._cfg.simulation,
         )
 
-        for svc in self._services:
-            svc.start()
-        self._start_order_worker()
-
         try:
+            for svc in self._services:
+                svc.start()
             while self._running:
                 time.sleep(1)
         except KeyboardInterrupt:
@@ -502,8 +544,10 @@ class TradingEngine(
                     svc.stop()
                 except Exception as e:
                     logger.warning("service stop 失敗: %s", e)
-            if not self._order_sync_mode:
-                self._order_queue.put_nowait(None)
+            if getattr(self._maintenance, "join_timed_out", False):
+                logger.critical(
+                    "維運執行緒 stop 逾時仍可能佔用 API — logout 可能與背景 job 競態"
+                )
             self._archive.shutdown_tick_archive()
             if self._trading_date is not None:
                 self._emit_daily_summary(self._trading_date)

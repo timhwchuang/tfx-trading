@@ -1,18 +1,31 @@
-"""Session management: login, CA, contract resolve.
+"""Session management: login, CA, contract resolve (Phase G3 SessionService).
 
-Position broker I/O lives in ``position_sync.PositionSyncMixin`` (Phase E).
+Position broker I/O lives in ``position_sync.PositionSyncService``.
 """
 
 from __future__ import annotations
 
 import os
+from typing import Any, Protocol
 
+from trading_engine.core.host_service import HostBoundService
 from trading_engine.logging_setup import get_logger
 
 logger = get_logger()
 
 
-class SessionMixin:
+class SessionHost(Protocol):
+    """Surface used by session login / CA / contract resolve."""
+
+    api: Any
+    contract: Any
+    _cfg: Any
+    _api_lock: Any
+
+    def _call_api(self, fn, *args, **kwargs): ...
+
+
+class _SessionMethods:
     def _activate_ca(self) -> None:
         """P4-10: 先無 person_id；失敗則以 env / 帳號 person_id 重試。"""
         try:
@@ -107,3 +120,13 @@ class SessionMixin:
         if cat is not None and hasattr(cat, code):
             return getattr(cat, code)
         return self.api.Contracts.Futures[code]
+
+class SessionService(HostBoundService):
+    def __init__(self, host: SessionHost) -> None:
+        super().__init__(host, _SessionMethods)
+
+
+SessionMixin = SessionService
+
+__all__ = ["SessionHost", "SessionService", "SessionMixin"]
+

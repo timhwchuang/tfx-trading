@@ -1,14 +1,15 @@
 """Connectivity behavior: disconnect, reconnect, session watchdog, warmup.
 
-State lives on ``ConnectivityState`` (``_link``). This module owns the methods
-that mutate link state and drive resubscribe / relogin (Phase E Wave 2).
+State lives on ``ConnectivityState`` (``_link``). Phase G3: ConnectivityOpsService.
 """
 
 from __future__ import annotations
 
 import threading
 from enum import Enum, auto
+from typing import Any, Protocol
 
+from trading_engine.core.host_service import HostBoundService
 from trading_engine.logging_setup import get_logger
 
 logger = get_logger()
@@ -20,9 +21,25 @@ class ReconnectOutcome(Enum):
     STALE = auto()
 
 
-class ConnectivityOpsMixin:
-    """Mixin: broker link lifecycle (TradingEngine composes this)."""
+class ConnectivityOpsHost(Protocol):
+    """Surface used by disconnect / reconnect / session watchdog."""
 
+    lock: Any
+    _cfg: Any
+    _link: Any
+    _book: Any
+    _alerts: Any
+    _clock: Any
+    _resubscribe_ticks: Any
+    _resubscribe_trade: Any
+    api: Any
+
+    def _call_api(self, fn, *args, **kwargs): ...
+
+    def sync_positions(self, *, force_resync: bool = False) -> None: ...
+
+
+class _ConnectivityOpsMethods:
     def _is_reconnect_warmup_active(self, ts: int) -> bool:
         return self._link._reconnect_warmup_until_ts > 0 and ts < self._link._reconnect_warmup_until_ts
 
@@ -264,4 +281,16 @@ class ConnectivityOpsMixin:
         return ReconnectOutcome.UNHEALTHY
 
 
-__all__ = ["ConnectivityOpsMixin", "ReconnectOutcome"]
+class ConnectivityOpsService(HostBoundService):
+    def __init__(self, host: ConnectivityOpsHost) -> None:
+        super().__init__(host, _ConnectivityOpsMethods)
+
+
+ConnectivityOpsMixin = ConnectivityOpsService
+
+__all__ = [
+    "ConnectivityOpsHost",
+    "ConnectivityOpsService",
+    "ConnectivityOpsMixin",
+    "ReconnectOutcome",
+]

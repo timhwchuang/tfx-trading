@@ -1,7 +1,7 @@
 """Link / connectivity state: broker session health, reconnect, warmup.
 
-Owned by TradingEngine as ``_link``; field names keep leading underscores so
-existing ``self._api_connected`` call sites forward unchanged.
+Owned by TradingEngine as ``_link``. Access explicitly via ``self._link.*``
+(Phase G1 — no engine attribute forwarders).
 
 Behavior (disconnect / reconnect / session watchdog) lives in
 ``connectivity_ops.ConnectivityOpsMixin``.

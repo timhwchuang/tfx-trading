@@ -1,11 +1,9 @@
 """Broker position read / adopt — kernel holds Book; broker is restart SSOT.
 
-Position domain (Phase E):
+Position domain (Phase E / G3):
   - ``Book`` — in-process held qty + flight (mutation API)
-  - ``position_sync`` (this module) — list_positions → adopt into Book
+  - ``PositionSyncService`` — list_positions → adopt into Book
   - ``reconcile`` — periodic drift / severe HALT against broker truth
-
-Does not own session calendar, login, or strategy decisions.
 """
 
 from __future__ import annotations
@@ -14,6 +12,7 @@ import time
 from typing import Any, Protocol
 
 from trading_engine.core.audit.exec_audit import ExecAudit, format_exec_audit
+from trading_engine.core.host_service import HostBoundService
 from trading_engine.logging_setup import get_logger
 
 logger = get_logger()
@@ -27,6 +26,7 @@ class PositionSyncHost(Protocol):
     contract: Any
     _book: Any
     _cfg: Any
+    _ticks: Any
 
     def _call_api(self, fn, *args, **kwargs): ...
 
@@ -46,8 +46,8 @@ def position_matches_contract(contract: Any, pos: Any) -> bool:
     return pos.code in contract_position_codes(contract)
 
 
-class PositionSyncMixin:
-    """Mixin: broker list_positions → Book. Prefer over scattering on Session."""
+class _PositionSyncMethods:
+    """Mixin body; bound to host via PositionSyncService."""
 
     def _contract_position_codes(self) -> set:
         return contract_position_codes(self.contract)
@@ -161,8 +161,19 @@ class PositionSyncMixin:
                 )
 
 
+class PositionSyncService(HostBoundService):
+    """Service: broker list_positions → Book (Phase G3)."""
+
+    def __init__(self, host: PositionSyncHost) -> None:
+        super().__init__(host, _PositionSyncMethods)
+
+
+# Historical mixin name (pre-G3).
+PositionSyncMixin = PositionSyncService
+
 __all__ = [
     "PositionSyncHost",
+    "PositionSyncService",
     "PositionSyncMixin",
     "contract_position_codes",
     "position_matches_contract",

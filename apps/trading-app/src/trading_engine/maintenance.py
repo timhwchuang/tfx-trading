@@ -1,10 +1,21 @@
 """Background maintenance scheduler (Phase G4 Option A).
 
-Single thread, per-job ``next_due`` + soft time budget. Isolates slow broker
-jobs from starving watchdogs without multi-thread lock contention on the
-``on_tick`` hot path.
+**Single thread** runs due jobs **serially within each poll**. Isolation means:
 
-Duration telemetry: log WARNING when a job exceeds ``budget_ms`` (default 100).
+* Per-job ``try/except`` (one failure does not kill the scheduler)
+* Per-job ``next_due`` after completion (skip/defer under load — no backlog pile-up)
+* Soft duration budget + WARNING when a job exceeds ``budget_ms`` (default 100ms)
+
+It does **not** mean concurrent job execution. A multi-second broker call still
+blocks other **co-due** jobs in the same ``run_once`` batch (same as the old
+serial ``_timeout_loop`` within one iteration). Across cycles, a fast job can
+become due again without waiting for a slow job's full post-interval once that
+slow job finishes and releases the thread.
+
+Critical safety jobs are listed first in ``default_engine_jobs`` so they run
+before heavier reconcile work when many jobs share the same due tick.
+
+Duration telemetry: log WARNING when a job exceeds ``budget_ms``.
 """
 
 from __future__ import annotations
@@ -12,7 +23,7 @@ from __future__ import annotations
 import threading
 import time
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from trading_engine.logging_setup import get_logger
@@ -21,6 +32,8 @@ logger = get_logger()
 
 # Soft budget for ops early-warning (not a hard kill).
 DEFAULT_JOB_BUDGET_MS = 100.0
+# Stop join: stuck broker I/O may outlive this; caller should treat timeout as CRITICAL.
+DEFAULT_STOP_JOIN_SEC = 5.0
 
 
 @dataclass(frozen=True)
@@ -51,16 +64,19 @@ class MaintenanceScheduler:
         clock: Callable[[], float] | None = None,
         sleep_fn: Callable[[float], None] | None = None,
         poll_sec: float = 0.05,
+        stop_join_sec: float = DEFAULT_STOP_JOIN_SEC,
     ) -> None:
         self._jobs = list(jobs)
         self._clock = clock if clock is not None else time.time
         self._sleep = sleep_fn if sleep_fn is not None else time.sleep
         self._poll_sec = max(0.01, float(poll_sec))
+        self._stop_join_sec = max(0.1, float(stop_join_sec))
         self._next_due: dict[str, float] = {j.name: 0.0 for j in self._jobs}
         self._stats: dict[str, JobStats] = {j.name: JobStats() for j in self._jobs}
         self._running = False
         self._thread: threading.Thread | None = None
         self._stop = threading.Event()
+        self.join_timed_out: bool = False
 
     @property
     def stats(self) -> dict[str, JobStats]:
@@ -71,6 +87,7 @@ class MaintenanceScheduler:
             return
         self._running = True
         self._stop.clear()
+        self.join_timed_out = False
         now = self._clock()
         for job in self._jobs:
             # First due immediately so cadence matches pre-G4 1s loop intent.
@@ -83,7 +100,12 @@ class MaintenanceScheduler:
         self._thread.start()
 
     def stop(self) -> None:
-        """Idempotent stop; joins the worker briefly."""
+        """Idempotent stop; joins the worker briefly.
+
+        Sets ``join_timed_out`` if the worker is still alive after
+        ``stop_join_sec`` (stuck broker call). Caller should treat that as
+        CRITICAL before logout races the daemon job on the API.
+        """
         if not self._running and self._thread is None:
             return
         self._running = False
@@ -91,25 +113,31 @@ class MaintenanceScheduler:
         t = self._thread
         self._thread = None
         if t is not None and t.is_alive() and t is not threading.current_thread():
-            t.join(timeout=2.0)
+            t.join(timeout=self._stop_join_sec)
+            if t.is_alive():
+                self.join_timed_out = True
+                logger.error(
+                    "維運排程器 stop join 逾時 (%.1fs) — job 可能仍佔用 broker API",
+                    self._stop_join_sec,
+                )
 
     def run_once(self) -> None:
-        """Execute all due jobs once (tests / sync mode)."""
+        """Execute all due jobs once (tests / sync mode). Serial within the batch."""
         now = self._clock()
         for job in self._jobs:
             if now + 1e-9 >= self._next_due.get(job.name, 0.0):
-                self._run_job(job, now)
+                self._run_job(job)
 
     def _loop(self) -> None:
         while self._running and not self._stop.is_set():
             try:
                 self.run_once()
+                self._sleep(self._poll_sec)
             except BaseException as e:
-                # Scheduler itself must not die; per-job already isolates errors.
+                # Scheduler itself must not die (includes sleep_fn failures).
                 logger.error("維運排程器嚴重異常: %s", e)
-            self._sleep(self._poll_sec)
 
-    def _run_job(self, job: Job, now: float) -> None:
+    def _run_job(self, job: Job) -> None:
         t0 = time.perf_counter()
         try:
             job.fn()
@@ -135,7 +163,10 @@ class MaintenanceScheduler:
 
 
 def default_engine_jobs(engine: Any) -> list[Job]:
-    """Preserve pre-Wave-2 / G4 job inventory and ~1s cadence."""
+    """Job inventory: critical safety first, then broker-heavy, then logs.
+
+    Order matters when many jobs share the same due tick (serial within poll).
+    """
     return [
         Job("pending_timeout", 1.0, engine._check_pending_timeout),
         Job("settle_reconcile", 1.0, engine._settle_via_reconcile),
@@ -152,6 +183,7 @@ def default_engine_jobs(engine: Any) -> list[Job]:
 
 __all__ = [
     "DEFAULT_JOB_BUDGET_MS",
+    "DEFAULT_STOP_JOIN_SEC",
     "Job",
     "JobStats",
     "MaintenanceScheduler",

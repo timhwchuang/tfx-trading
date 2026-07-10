@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 import time
 import unittest
 from unittest.mock import MagicMock
@@ -89,13 +90,45 @@ class TestMaintenanceScheduler(unittest.TestCase):
         self.assertIn("position_reconcile", names)
         self.assertEqual(len(names), 10)
 
-    def test_engine_has_no_getattr_forwarder(self) -> None:
+    def test_engine_has_no_ssot_field_forwarder(self) -> None:
+        """G1: flat SSOT names are not readable; G3 may use __getattr__ for services."""
         host = make_host()
-        self.assertFalse(hasattr(type(host), "__getattr__") and type(host).__getattr__ is not object.__getattribute__)
-        # Flat field no longer on engine surface
         with self.assertRaises(AttributeError):
             _ = host.position_qty  # type: ignore[attr-defined]
         self.assertEqual(host._book.position_qty, 0)
+        # Service methods still facaded onto engine
+        self.assertTrue(callable(host.place_order))
+        self.assertTrue(callable(host.sync_positions))
+
+    def test_timeout_loop_is_run_once_compat(self) -> None:
+        host = make_host()
+        host._check_pending_timeout = MagicMock()
+        # Rebuild jobs bound to mocks would need new scheduler; just ensure
+        # _timeout_loop invokes run_once without spinning.
+        calls = {"n": 0}
+        host._maintenance.run_once = lambda: calls.__setitem__("n", calls["n"] + 1)  # type: ignore[method-assign]
+        host._timeout_loop()
+        self.assertEqual(calls["n"], 1)
+
+    def test_stop_join_timeout_flag(self) -> None:
+        block = threading.Event()
+        release = threading.Event()
+
+        def stuck() -> None:
+            block.set()
+            release.wait(timeout=5.0)
+
+        sched = MaintenanceScheduler(
+            [Job("stuck", 0.01, stuck)],
+            poll_sec=0.01,
+            stop_join_sec=0.05,
+        )
+        sched.start()
+        self.assertTrue(block.wait(timeout=2.0))
+        sched.stop()
+        release.set()
+        # May or may not time out depending on timing; stop must be idempotent.
+        sched.stop()
 
 
 if __name__ == "__main__":

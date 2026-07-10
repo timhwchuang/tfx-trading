@@ -253,7 +253,7 @@ Gap 有持倉 → sticky force flatten。
 | **D** | SSOT 定稿、legacy 標記、deprecated 文件化 | **done** |
 | **E** | 行為收斂：position domain + 線性 orchestrator（分 Wave） | **Wave 0–3 done** |
 | **F** | CapitalService 抽出 | **done** |
-| **G** | 結構硬化：鎖契約 / 去魔術 / Protocol / 排程器 | **G0–G2 + G4 done；G3 partial** |
+| **G** | 結構硬化：鎖契約 / 去魔術 / Protocol / 服務注入 / 排程器 | **G0–G4 done** |
 
 ### Phase B notes
 
@@ -295,12 +295,16 @@ Gap 有持倉 → sticky force flatten。
 
 | Wave | 內容 | 狀態 |
 |------|------|------|
-| **G0** | Dual-lock 契約：`DomainLock` + `_call_api` 禁止持 domain lock 進 API；`locking.py`；AST 稽核測試 | **done** |
-| **G1** | 移除 `__getattr__`/`__setattr__`；全站 `self._book.*` 等顯式 SSOT | **done** |
-| **G2** | `RiskGateHost` / `ReconcileHost` / `PositionSyncHost` 改為 composed state ports | **done** |
-| **G3** | `EngineService` Protocol + `run()` lifecycle 列表；**Mixin→獨立 Service 本體仍待後續** | **partial** |
-| **G4** | `MaintenanceScheduler` Option A（單執行緒 + per-job due + 100ms duration warn）；取代 serial `_timeout_loop` | **done** |
+| **G0** | Dual-lock 契約：`DomainLock` + `_call_api` 禁止持 domain lock 進 API；`locking.py`；AST 稽核（含 denylist） | **done** |
+| **G1** | 移除 flat SSOT forwarders；`self._book.*` 等；reject setattr 防 dead attrs | **done** |
+| **G2** | Host Protocols：`OrderHost` / `PositionSyncHost` / `ReconcileHost` / `RiskGateHost` / `ConnectivityOpsHost` / `TickWatchdogHost` / `SessionHost` | **done** |
+| **G3** | `TradingEngine` **無 Mixin MRO**；`OrderExecutor` / `PositionSyncService` / `ConnectivityOpsService` / `TickWatchdogService` / `SessionService` 以 host-bound methods 注入；`run()` lifecycle | **done** |
+| **G4** | `MaintenanceScheduler` Option A（單執行緒 serial within poll + per-job skip/defer + 100ms warn） | **done** |
 
 **Lock order (G0):** never acquire `_api_lock` while current thread holds domain `self.lock`. Hot path `on_tick` = domain lock only.
+
+**G4 honesty:** Option A does **not** run jobs concurrently. A slow co-due broker job still delays later jobs in the same `run_once` batch; critical jobs are listed first. Skip/defer only applies across cycles after a job completes.
+
+**G3 facade:** `engine.place_order` / `engine.sync_positions` etc. still work — methods are bound to the host and routed via service install + engine `__getattr__` for service-defined names. Flat SSOT field names (`position_qty`, …) are rejected.
 
 **Public contracts unchanged:** Strategy still `evaluate(market, position, risk)`；`get_state_snapshot()` 仍為 app/smoke 唯讀面。
