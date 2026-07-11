@@ -23,5 +23,6 @@ Historical research artifacts kept for reference only.
 | `apps/trading-app/src/storage/` | cache_audit / cache_repair / legacy_cache_migrate / taiwan_calendar |
 | `apps/trading-app/src/backfilldata/taiwan_calendar.py` | pin-yi holiday re-export (active CLI no longer uses it) |
 | `docs/` | Old features, UAT, TODO, WeeklyStatus |
+| `workspaces` | old ai traders |
 
 **Active product**: `apps/trading-app`（含 in-tree `src/trading_engine` + `strategy_simple` + storage + live）。
