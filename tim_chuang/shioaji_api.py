@@ -1,41 +1,56 @@
 from __future__ import annotations
 
-from shioaji import KBars, Shioaji, Contract
-import typing
+import logging
 from pathlib import Path
+from types import TracebackType
 
-if typing.TYPE_CHECKING:
-    from config import Config
+from shioaji import Contract, KBars, Shioaji
+
+from config import Config
+
+logger = logging.getLogger(__name__)
+
 
 class ShioajiAPI:
+    def __enter__(self) -> ShioajiAPI:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self.logout()
+
     def __init__(self, shioaji: Shioaji, config: Config) -> None:
         self._shioaji = shioaji
         self._config = config
-        self._contract: Contract | None = None
 
-    def kbars(self, contract: Contract, start: str, end: str) -> KBars:
-        return self._shioaji.kbars(contract=contract, start=start, end=end)
-
-    def login(self) -> None:
         self._shioaji.login(
             api_key=self._config.api_key,
             secret_key=self._config.secret_key,
         )
         api_usage = self._shioaji.usage()
-        self._contract = self._shioaji.Contracts.Futures.TMF.TMFR1
-        print("--------------------------------")
-        print(f"account:{self._shioaji.futopt_account.account_type}{self._shioaji.futopt_account.account_id} |")
-        print(f"contract:{self._contract} |")
-        print(f"api_usage:{api_usage} |")
-        print("--------------------------------")
+        self._contract: Contract = self._shioaji.Contracts.Futures.TMF.TMFR1
+        logger.info("--------------------------------")
+        logger.info(
+            "account:%s%s |",
+            self._shioaji.futopt_account.account_type,
+            self._shioaji.futopt_account.account_id,
+        )
+        logger.info("contract:%s |", self._contract)
+        logger.info("api_usage:%s |", api_usage)
+        logger.info("--------------------------------")
+
+    def kbars(self, contract: Contract, start: str, end: str) -> KBars:
+        return self._shioaji.kbars(contract=contract, start=start, end=end)
 
     def logout(self) -> None:
         self._shioaji.logout()
 
     def get_contract(self) -> Contract:
-        if self._contract is None:
-            raise RuntimeError("API 尚未登入，無法取得合約資訊！請先執行 login()。")
         return self._contract
 
-    def kbar_path(self) -> Path:
+    def kbars_path(self) -> Path:
         return self._config.kbars_path.expanduser()

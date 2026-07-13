@@ -1,0 +1,4 @@
+python -m pytest --cov=. --cov-report=html
+python -m pytest tests/test_config_loader.py
+ruff check --fix .
+ruff check --select I --fix .
