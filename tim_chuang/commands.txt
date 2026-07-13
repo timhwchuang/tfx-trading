@@ -1,4 +1,8 @@
 python -m pytest --cov=. --cov-report=html
 python -m pytest tests/test_config_loader.py
 ruff check --fix .
+ruff format --check .
+ruff format .
 ruff check --select I --fix .
+mypy .
+python -m pip install -e ".[dev]"

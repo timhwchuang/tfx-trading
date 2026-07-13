@@ -6,7 +6,7 @@ from types import TracebackType
 
 from shioaji import Contract, KBars, Shioaji
 
-from config import Config
+from tfx_trading.config import Config
 
 logger = logging.getLogger(__name__)
 

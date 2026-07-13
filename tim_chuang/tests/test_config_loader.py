@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import config_loader
+from tfx_trading import config_loader
 
 
 @pytest.fixture

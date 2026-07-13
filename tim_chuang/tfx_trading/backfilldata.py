@@ -7,13 +7,12 @@ from datetime import datetime, timedelta, timezone
 
 from shioaji import Shioaji
 
-from config_loader import load_config
-from shioaji_api import ShioajiAPI
+from tfx_trading.config_loader import load_config
+from tfx_trading.shioaji_api import ShioajiAPI
 
 
 class BackfillData:
-    def run(self, api: ShioajiAPI) -> None:
-        start_date, end_date = self.parse_date()
+    def run(self, api: ShioajiAPI, start_date: datetime, end_date: datetime) -> None:
         current_date = start_date
         while current_date.date() <= end_date.date():
             kbars = api.kbars(
@@ -39,9 +38,7 @@ class BackfillData:
 
             with filename.open("w", newline="") as file:
                 writer = csv.writer(file)
-                writer.writerow(
-                    ["timestamp", "open", "high", "low", "close", "volume", "amount"]
-                )
+                writer.writerow(["timestamp", "open", "high", "low", "close", "volume", "amount"])
                 for timestamp, open, high, low, close, volume, amount in zipped:
                     dt = datetime.fromtimestamp(timestamp / 1000000000, tz=timezone.utc)
                     writer.writerow(
@@ -59,17 +56,19 @@ class BackfillData:
 
         print("Backfill data completed")
 
-    def parse_ymd(self, s: str) -> datetime:
-        return datetime.strptime(s, "%Y-%m-%d")
+def parse_ymd(s: str) -> datetime:
+    return datetime.strptime(s, "%Y-%m-%d")
 
-    def parse_date(self) -> tuple[datetime, datetime]:
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--start_date", type=self.parse_ymd, required=True)
-        parser.add_argument("--end_date", type=self.parse_ymd, required=True)
-        args = parser.parse_args()
-        if args.start_date > args.end_date:
-            raise ValueError("start_date must be before end_date")
-        return args.start_date, args.end_date
+def parse_date(args: list[str] | None = None) -> tuple[datetime, datetime]:
+    parser = argparse.ArgumentParser(description="Backfill data")
+    parser.add_argument("--start_date", type=parse_ymd, required=True, help="資料回補的開始日期 (格式: YYYY-MM-DD)")
+    parser.add_argument("--end_date", type=parse_ymd, required=True, help="資料回補的結束日期 (格式: YYYY-MM-DD)")
+    parsed_args = parser.parse_args(args)
+    start_date = parsed_args.start_date
+    end_date = parsed_args.end_date
+    if start_date > end_date:
+        raise ValueError("start_date must be before end_date")
+    return start_date, end_date
 
 
 def main() -> None:
@@ -78,7 +77,7 @@ def main() -> None:
     shioaji = Shioaji(simulation=config.simulation)
     with ShioajiAPI(shioaji=shioaji, config=config) as shioaji_api:
         backfilldata = BackfillData()
-        backfilldata.run(shioaji_api)
+        backfilldata.run(shioaji_api, *parse_date())
 
 
 if __name__ == "__main__":

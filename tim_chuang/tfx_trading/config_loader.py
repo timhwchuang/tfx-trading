@@ -3,7 +3,7 @@ from pathlib import Path
 
 import yaml
 
-from config import Config
+from tfx_trading.config import Config
 
 _PACKAGE_ROOT = Path(__file__).resolve().parent
 
