@@ -15,7 +15,13 @@ from tfx_trading.shioaji_api import ShioajiAPI
 
 @pytest.fixture
 def mock_config() -> Config:
-    mock_cfg = MagicMock(spec=Config)
+    mock_cfg = cast(
+        MagicMock,
+        create_autospec(
+            Config,
+            instance=True,
+        ),
+    )
     mock_cfg.simulation = True
     mock_cfg.api_key = "test_api_key"
     mock_cfg.secret_key = "test_secret_key"
@@ -25,9 +31,12 @@ def mock_config() -> Config:
 
 @pytest.fixture
 def mock_shioaji() -> MagicMock:
-    mock_sj = create_autospec(
-        Shioaji,
-        instance=True,
+    mock_sj = cast(
+        MagicMock,
+        create_autospec(
+            Shioaji,
+            instance=True,
+        ),
     )
 
     mock_sj.usage.return_value = "10%"
@@ -36,7 +45,7 @@ def mock_shioaji() -> MagicMock:
     mock_sj.futopt_account.account_id = "123456"
     mock_sj.kbars.return_value = "fake_kbars"
 
-    return cast(MagicMock, mock_sj)
+    return mock_sj
 
 
 @pytest.fixture

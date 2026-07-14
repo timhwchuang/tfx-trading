@@ -2,3 +2,4 @@ shioaji
 PyYAML>=6.0
 pytest
 pytest-cov
+types-PyYAML

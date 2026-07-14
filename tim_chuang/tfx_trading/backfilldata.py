@@ -13,6 +13,7 @@ from tfx_trading.shioaji_api import ShioajiAPI
 
 class BackfillData:
     def run(self, api: ShioajiAPI, start_date: datetime, end_date: datetime) -> None:
+        api.kbars_path().mkdir(parents=True, exist_ok=True)
         current_date = start_date
         while current_date.date() <= end_date.date():
             kbars = api.kbars(
@@ -33,6 +34,7 @@ class BackfillData:
                 kbars.Close,
                 kbars.Volume,
                 kbars.Amount,
+                strict=True,
             )
             filename = api.kbars_path() / f"TMFR1_kbars_{current_date:%Y-%m-%d}.csv"
 
@@ -56,13 +58,15 @@ class BackfillData:
 
         print("Backfill data completed")
 
+
 def parse_ymd(s: str) -> datetime:
     return datetime.strptime(s, "%Y-%m-%d")
 
+
 def parse_date(args: list[str] | None = None) -> tuple[datetime, datetime]:
     parser = argparse.ArgumentParser(description="Backfill data")
-    parser.add_argument("--start_date", type=parse_ymd, required=True, help="資料回補的開始日期 (格式: YYYY-MM-DD)")
-    parser.add_argument("--end_date", type=parse_ymd, required=True, help="資料回補的結束日期 (格式: YYYY-MM-DD)")
+    parser.add_argument("--start_date", type=parse_ymd, required=True, help="YYYY-MM-DD")
+    parser.add_argument("--end_date", type=parse_ymd, required=True, help="YYYY-MM-DD")
     parsed_args = parser.parse_args(args)
     start_date = parsed_args.start_date
     end_date = parsed_args.end_date
