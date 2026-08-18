@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Literal
 
 from tfx_trading.kbar import KBar
 
 KType = Literal["1m", "5m", "15m", "30m", "1h", "4h", "1d"]
+SessionKind = Literal["day", "night"]
 
 
 def _five_min_close(ts: datetime) -> datetime:
@@ -18,12 +19,46 @@ def _five_min_close(ts: datetime) -> datetime:
     return ts + timedelta(minutes=5 - remainder)
 
 
-def _is_session_5m_close(ts: datetime) -> bool:
-    """合法 close：日盤 08:50～13:45；夜盤 15:05～05:00（含跨午夜）。"""
+def session_kind(ts: datetime) -> SessionKind | None:
+    """日盤 08:50～13:45；夜盤 15:05～05:00（含跨午夜）。非盤中則 None。"""
     minutes = ts.hour * 60 + ts.minute
-    day = 8 * 60 + 50 <= minutes <= 13 * 60 + 45
-    night = minutes >= 15 * 60 + 5 or minutes <= 5 * 60
-    return ts.minute % 5 == 0 and (day or night)
+    if 8 * 60 + 50 <= minutes <= 13 * 60 + 45:
+        return "day"
+    if minutes >= 15 * 60 + 5 or minutes <= 5 * 60:
+        return "night"
+    return None
+
+
+def session_key(ts: datetime) -> tuple[date, SessionKind] | None:
+    """
+    同一盤的識別：日盤用當日日期；夜盤用 15:05 那側的日期（05:00 以前算前一日）。
+    週五 13:45 與週一 08:50 都是 day，但 key 不同；夜盤缺 5 分仍同一 key。
+    """
+    kind = session_kind(ts)
+    if kind is None:
+        return None
+    if kind == "day":
+        return (ts.date(), "day")
+    if ts.hour * 60 + ts.minute >= 15 * 60 + 5:
+        return (ts.date(), "night")
+    return (ts.date() - timedelta(days=1), "night")
+
+
+def is_session_5m_close(ts: datetime) -> bool:
+    """合法 5 分 close：日盤 08:50～13:45；夜盤 15:05～05:00。"""
+    return ts.minute % 5 == 0 and session_kind(ts) is not None
+
+
+def is_session_complete(kind: SessionKind, last_bar_ts: datetime) -> bool:
+    """該段是否已印出合法最後一根 5 分（日盤 13:45 / 夜盤 05:00）。"""
+    hm = (last_bar_ts.hour, last_bar_ts.minute)
+    if kind == "day":
+        return hm == (13, 45)
+    return hm == (5, 0)
+
+
+def _is_session_5m_close(ts: datetime) -> bool:
+    return is_session_5m_close(ts)
 
 
 class BarStore:
