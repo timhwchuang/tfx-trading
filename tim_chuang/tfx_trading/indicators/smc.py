@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime
 from typing import Literal
 
@@ -10,6 +10,11 @@ from tfx_trading.kbar import KBar
 LOOKBACK = 2
 MIN_POINTS = 20.0
 SwingSide = Literal["high", "low"]
+InteractKind = Literal["untouched", "swept", "taken"]
+Position = Literal["premium", "discount", "equilibrium", "outside"]
+EventKind = Literal["bos", "choch"]
+EventDirection = Literal["bullish", "bearish"]
+EventScope = Literal["internal", "external"]
 LevelKind = Literal[
     "pdh",
     "pdl",
@@ -36,6 +41,28 @@ class SessionLevel:
     price: float
     source_ts: datetime
     developing: bool
+    interact: InteractKind | None
+    interact_ts: datetime | None
+
+
+@dataclass(frozen=True)
+class DealingRange:
+    high: float
+    high_ts: datetime
+    low: float
+    low_ts: datetime
+    eq: float
+    position: Position
+
+
+@dataclass(frozen=True)
+class StructureEvent:
+    kind: EventKind
+    direction: EventDirection
+    ts: datetime
+    broken_price: float
+    broken_swing_ts: datetime
+    scope: EventScope
 
 
 @dataclass(frozen=True)
@@ -47,6 +74,9 @@ class SmcLevels:
     prev_night_low: SessionLevel | None
     session_high: SessionLevel | None
     session_low: SessionLevel | None
+    last_bar: KBar | None
+    dealing_range: DealingRange | None
+    events: list[StructureEvent]
 
 
 @dataclass(frozen=True)
@@ -58,15 +88,13 @@ class _Segment:
 def compute(bars: list[KBar], min_points: float = MIN_POINTS) -> SmcLevels:
     """
     對已收 5 分 K 算 confirmed swings 與 session 流動性。
-    as_of = bars[-1].timestamp；缺前一段則該欄位為 None。
+    as_of = last_bar.timestamp（有 K 時）；缺前一段則該流動性欄位為 None。
     """
-    if not bars:
-        return SmcLevels([], None, None, None, None, None, None)
-
     bars = [b for b in bars if session_kind(b.timestamp) is not None]
+    last = bars[-1] if bars else None
     segments = _split_sessions(bars)
     swings = _detect_swings(bars, min_points)
-    return _with_liquidity(segments, swings)
+    return _with_liquidity(segments, swings, last)
 
 
 def _split_sessions(bars: list[KBar]) -> list[_Segment]:
@@ -143,9 +171,24 @@ def _detect_swings(bars: list[KBar], min_points: float) -> list[Swing]:
     return out
 
 
-def _with_liquidity(segments: list[_Segment], swings: list[Swing]) -> SmcLevels:
+def _with_liquidity(
+    segments: list[_Segment],
+    swings: list[Swing],
+    last_bar: KBar | None,
+) -> SmcLevels:
     if not segments:
-        return SmcLevels(swings, None, None, None, None, None, None)
+        return SmcLevels(
+            swings=swings,
+            pdh=None,
+            pdl=None,
+            prev_night_high=None,
+            prev_night_low=None,
+            session_high=None,
+            session_low=None,
+            last_bar=last_bar,
+            dealing_range=None,
+            events=[],
+        )
 
     current = segments[-1]
     prior = segments[:-1]
@@ -157,12 +200,149 @@ def _with_liquidity(segments: list[_Segment], swings: list[Swing]) -> SmcLevels:
 
     return SmcLevels(
         swings=swings,
-        pdh=_level_from_segment(last_day, "pdh", "high"),
-        pdl=_level_from_segment(last_day, "pdl", "low"),
-        prev_night_high=_level_from_segment(last_night, "prev_night_high", "high"),
-        prev_night_low=_level_from_segment(last_night, "prev_night_low", "low"),
-        session_high=SessionLevel("session_high", high_bar.high, high_bar.timestamp, developing),
-        session_low=SessionLevel("session_low", low_bar.low, low_bar.timestamp, developing),
+        pdh=_annotate_interact(_level_from_segment(last_day, "pdh", "high"), current.bars, "high"),
+        pdl=_annotate_interact(_level_from_segment(last_day, "pdl", "low"), current.bars, "low"),
+        prev_night_high=_annotate_interact(
+            _level_from_segment(last_night, "prev_night_high", "high"),
+            current.bars,
+            "high",
+        ),
+        prev_night_low=_annotate_interact(
+            _level_from_segment(last_night, "prev_night_low", "low"),
+            current.bars,
+            "low",
+        ),
+        session_high=SessionLevel(
+            kind="session_high",
+            price=high_bar.high,
+            source_ts=high_bar.timestamp,
+            developing=developing,
+            interact=None,
+            interact_ts=None,
+        ),
+        session_low=SessionLevel(
+            kind="session_low",
+            price=low_bar.low,
+            source_ts=low_bar.timestamp,
+            developing=developing,
+            interact=None,
+            interact_ts=None,
+        ),
+        last_bar=last_bar,
+        dealing_range=_dealing_range(swings, current, last_bar),
+        events=_structure_events(swings, current, high_bar.high, low_bar.low),
+    )
+
+
+def _dealing_range(
+    swings: list[Swing],
+    current: _Segment,
+    last_bar: KBar | None,
+) -> DealingRange | None:
+    if last_bar is None:
+        return None
+    start = current.bars[0].timestamp
+    end = current.bars[-1].timestamp
+    sig = [s for s in swings if s.significant and start <= s.timestamp <= end]
+    last_high = next((s for s in reversed(sig) if s.side == "high"), None)
+    last_low = next((s for s in reversed(sig) if s.side == "low"), None)
+    if last_high is None or last_low is None:
+        return None
+    eq = (last_high.price + last_low.price) / 2
+    close = last_bar.close
+    if close < last_low.price or close > last_high.price:
+        position: Position = "outside"
+    elif close > eq:
+        position = "premium"
+    elif close < eq:
+        position = "discount"
+    else:
+        position = "equilibrium"
+    return DealingRange(
+        high=last_high.price,
+        high_ts=last_high.timestamp,
+        low=last_low.price,
+        low_ts=last_low.timestamp,
+        eq=eq,
+        position=position,
+    )
+
+
+def _structure_events(
+    swings: list[Swing],
+    current: _Segment,
+    session_high: float,
+    session_low: float,
+) -> list[StructureEvent]:
+    start = current.bars[0].timestamp
+    end = current.bars[-1].timestamp
+    sig = [s for s in swings if s.significant and start <= s.timestamp <= end]
+    broken: set[datetime] = set()
+    bias: EventDirection | None = None
+    events: list[StructureEvent] = []
+    for bar in current.bars:
+        last_high = next(
+            (
+                s
+                for s in reversed(sig)
+                if s.side == "high" and s.confirmed_at <= bar.timestamp
+            ),
+            None,
+        )
+        last_low = next(
+            (
+                s
+                for s in reversed(sig)
+                if s.side == "low" and s.confirmed_at <= bar.timestamp
+            ),
+            None,
+        )
+        if (
+            last_high is not None
+            and last_high.timestamp not in broken
+            and bar.close > last_high.price
+        ):
+            events.append(
+                _structure_event(
+                    "bullish", bar.timestamp, last_high, bias, session_high, session_low
+                )
+            )
+            broken.add(last_high.timestamp)
+            bias = "bullish"
+        elif (
+            last_low is not None
+            and last_low.timestamp not in broken
+            and bar.close < last_low.price
+        ):
+            events.append(
+                _structure_event(
+                    "bearish", bar.timestamp, last_low, bias, session_high, session_low
+                )
+            )
+            broken.add(last_low.timestamp)
+            bias = "bearish"
+    return events
+
+
+def _structure_event(
+    direction: EventDirection,
+    ts: datetime,
+    swing: Swing,
+    bias: EventDirection | None,
+    session_high: float,
+    session_low: float,
+) -> StructureEvent:
+    kind: EventKind = "bos" if bias == direction else "choch"
+    scope: EventScope = (
+        "external" if swing.price == session_high or swing.price == session_low else "internal"
+    )
+    return StructureEvent(
+        kind=kind,
+        direction=direction,
+        ts=ts,
+        broken_price=swing.price,
+        broken_swing_ts=swing.timestamp,
+        scope=scope,
     )
 
 
@@ -186,4 +366,52 @@ def _level_from_segment(
         else min(segment.bars, key=lambda b: b.low)
     )
     price = bar.high if extreme == "high" else bar.low
-    return SessionLevel(kind, price, bar.timestamp, developing=False)
+    return SessionLevel(
+        kind=kind,
+        price=price,
+        source_ts=bar.timestamp,
+        developing=False,
+        interact=None,
+        interact_ts=None,
+    )
+
+
+def _annotate_interact(
+    level: SessionLevel | None,
+    bars: list[KBar],
+    extreme: Literal["high", "low"],
+) -> SessionLevel | None:
+    if level is None:
+        return None
+    interact: InteractKind = "untouched"
+    interact_ts: datetime | None = None
+    for bar in bars:
+        if bar.timestamp <= level.source_ts:
+            continue
+        hit = _bar_interact(bar, level.price, extreme)
+        if hit is None:
+            continue
+        if hit == "taken":
+            return replace(level, interact="taken", interact_ts=bar.timestamp)
+        if interact == "untouched":
+            interact = "swept"
+            interact_ts = bar.timestamp
+    return replace(level, interact=interact, interact_ts=interact_ts)
+
+
+def _bar_interact(
+    bar: KBar,
+    price: float,
+    extreme: Literal["high", "low"],
+) -> InteractKind | None:
+    if extreme == "high":
+        if bar.close > price:
+            return "taken"
+        if bar.high > price:
+            return "swept"
+        return None
+    if bar.close < price:
+        return "taken"
+    if bar.low < price:
+        return "swept"
+    return None
