@@ -10,13 +10,13 @@ KType = Literal["1m", "5m", "15m", "30m", "1h", "4h", "1d"]
 SessionKind = Literal["day", "night"]
 
 
-def _five_min_close(ts: datetime) -> datetime:
-    """08:46～08:50 → 08:50；已在 5 分整點則維持不變。"""
+def _n_min_close(ts: datetime, n: int) -> datetime:
+    """08:46～08:50 → 08:50；08:46～09:00 → 09:00。已在 n 分整點則維持不變。"""
     ts = ts.replace(second=0, microsecond=0)
-    remainder = ts.minute % 5
+    remainder = ts.minute % n
     if remainder == 0:
         return ts
-    return ts + timedelta(minutes=5 - remainder)
+    return ts + timedelta(minutes=n - remainder)
 
 
 def session_kind(ts: datetime) -> SessionKind | None:
@@ -49,16 +49,17 @@ def is_session_5m_close(ts: datetime) -> bool:
     return ts.minute % 5 == 0 and session_kind(ts) is not None
 
 
+def is_session_15m_close(ts: datetime) -> bool:
+    """合法 15 分 close：日盤 09:00～13:45；夜盤 15:15～05:00。"""
+    return ts.minute % 15 == 0 and session_kind(ts) is not None
+
+
 def is_session_complete(kind: SessionKind, last_bar_ts: datetime) -> bool:
     """該段是否已印出合法最後一根 5 分（日盤 13:45 / 夜盤 05:00）。"""
     hm = (last_bar_ts.hour, last_bar_ts.minute)
     if kind == "day":
         return hm == (13, 45)
     return hm == (5, 0)
-
-
-def _is_session_5m_close(ts: datetime) -> bool:
-    return is_session_5m_close(ts)
 
 
 class BarStore:
@@ -95,15 +96,16 @@ class BarStore:
         顯示指定時間區間的 K 棒。
         """
 
-        if ktype != "1m" and ktype != "5m":
-            raise NotImplementedError(f"Not implemented: {ktype}")
-
         if ktype == "1m":
-            print("========= 1m ==========")
             kbars = self._kbars
         elif ktype == "5m":
             kbars = self.resample_5m()
-            print("========= 5m ==========")
+        elif ktype == "15m":
+            kbars = self.resample_15m()
+        else:
+            raise NotImplementedError(f"Not implemented: {ktype}")
+
+        print(f"========= {ktype} ==========")
 
         print(
             f"{'timestamp':<19}  {'open':<8}  {'high':<8}  {'low':<8}  {'close':<8}  {'volume':<7}"
@@ -133,16 +135,28 @@ class BarStore:
         夜盤：15:01～15:05 → 15:05 … 04:56～05:00 → 05:00
         不滿 5 根 1m 不輸出。
         """
+        return self._resample_minutes(5)
+
+    def resample_15m(self) -> list[KBar]:
+        """
+        從 1m SSOT 組成已收 15m。
+        日盤：08:46～09:00 → 09:00 … 13:31～13:45 → 13:45
+        夜盤：15:01～15:15 → 15:15 … 04:46～05:00 → 05:00
+        不滿 15 根 1m 不輸出。
+        """
+        return self._resample_minutes(15)
+
+    def _resample_minutes(self, n: int) -> list[KBar]:
         buckets: dict[datetime, list[KBar]] = defaultdict(list)
         for kbar in self._kbars:
-            close_ts = _five_min_close(kbar.timestamp)
-            if not _is_session_5m_close(close_ts):
+            close_ts = _n_min_close(kbar.timestamp, n)
+            if close_ts.minute % n != 0 or session_kind(close_ts) is None:
                 continue
             buckets[close_ts].append(kbar)
         out: list[KBar] = []
         for close_ts in sorted(buckets):
             chunk = sorted(buckets[close_ts], key=lambda b: b.timestamp)
-            expected = {close_ts - timedelta(minutes=i) for i in range(5)}
+            expected = {close_ts - timedelta(minutes=i) for i in range(n)}
             actual = {b.timestamp.replace(second=0, microsecond=0) for b in chunk}
             if actual != expected:
                 continue  # 缺分鐘或重複 → 整根丟掉
