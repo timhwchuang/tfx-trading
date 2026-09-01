@@ -71,3 +71,35 @@ def test_resample_15m_817_night_calendar_file() -> None:
 def test_resample_5m_817_day_first_bar() -> None:
     bars = [b for b in _load_817().resample_5m() if b.timestamp <= _DAY_END]
     assert bars[0].timestamp == datetime(2026, 8, 17, 8, 50)
+
+
+def test_resample_30m_full_bucket() -> None:
+    bars_1m = [_bar(i, 100 + i, 120 - i, 80 + i, 110 + i, volume=i + 1) for i in range(30)]
+    out = BarStore(bars_1m).resample_30m()
+    assert len(out) == 1
+    bar = out[0]
+    assert bar.timestamp == datetime(2026, 8, 17, 9, 15)
+    assert bar.open == 100.0
+    assert bar.high == 120.0
+    assert bar.low == 80.0
+    assert bar.close == 139.0
+    assert bar.volume == 465
+    assert bar.amount == 465.0
+
+
+def test_resample_30m_drops_incomplete_bucket() -> None:
+    bars_1m = [_bar(i, 100.0, 101.0, 99.0, 100.0) for i in range(30) if i != 5]
+    assert BarStore(bars_1m).resample_30m() == []
+
+
+def test_resample_30m_817_day_session() -> None:
+    bars = [b for b in _load_817().resample_30m() if b.timestamp <= _DAY_END]
+    assert len(bars) == 10
+    assert bars[0].timestamp == datetime(2026, 8, 17, 9, 15)
+    assert bars[-1].timestamp == datetime(2026, 8, 17, 13, 45)
+
+
+def test_resample_30m_817_night_calendar_file() -> None:
+    night = [b for b in _load_817().resample_30m() if b.timestamp > _DAY_END]
+    assert night[0].timestamp == datetime(2026, 8, 17, 15, 30)
+    assert night[-1].timestamp == datetime(2026, 8, 17, 23, 30)

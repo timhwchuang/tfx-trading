@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import date, datetime, timedelta
-from typing import Literal
+from typing import Callable, Literal
 
 from tfx_trading.kbar import KBar
 
@@ -54,8 +54,52 @@ def is_session_15m_close(ts: datetime) -> bool:
     return ts.minute % 15 == 0 and session_kind(ts) is not None
 
 
+def is_session_30m_close(ts: datetime) -> bool:
+    """合法 30 分 close：日盤 09:15～13:45（:15/:45）；夜盤 15:30～05:00（:00/:30）。"""
+    kind = session_kind(ts)
+    if kind == "day":
+        return ts.minute in (15, 45)
+    if kind == "night":
+        return ts.minute in (0, 30)
+    return False
+
+
+def _ceil_from(origin: datetime, ts: datetime, n: int) -> datetime:
+    elapsed = int((ts - origin).total_seconds() // 60)
+    remainder = elapsed % n
+    if remainder == 0:
+        return ts
+    return origin + timedelta(minutes=elapsed + (n - remainder))
+
+
+def _thirty_min_close(ts: datetime) -> datetime | None:
+    """
+    用錨區間選窗，不能用 session_kind(1m ts)。
+    日盤 08:45 < t ≤ 13:45 → 從 08:45 ceil；夜盤 t > 15:00 或 t ≤ 05:00 → 從 15:00 ceil。
+    """
+    ts = ts.replace(second=0, microsecond=0)
+    minutes = ts.hour * 60 + ts.minute
+    if 8 * 60 + 45 < minutes <= 13 * 60 + 45:
+        origin = ts.replace(hour=8, minute=45)
+        return _ceil_from(origin, ts, 30)
+    if minutes > 15 * 60 or minutes <= 5 * 60:
+        if minutes > 15 * 60:
+            origin = ts.replace(hour=15, minute=0)
+        else:
+            origin = (ts - timedelta(days=1)).replace(hour=15, minute=0)
+        return _ceil_from(origin, ts, 30)
+    return None
+
+
+def _session_30m_bucket(ts: datetime) -> datetime | None:
+    close_ts = _thirty_min_close(ts)
+    if close_ts is None or not is_session_30m_close(close_ts):
+        return None
+    return close_ts
+
+
 def is_session_complete(kind: SessionKind, last_bar_ts: datetime) -> bool:
-    """該段是否已印出合法最後一根 5 分（日盤 13:45 / 夜盤 05:00）。"""
+    """該段是否已印出合法最後一根（日盤 13:45 / 夜盤 05:00）。1/5/15/30m 皆然。"""
     hm = (last_bar_ts.hour, last_bar_ts.minute)
     if kind == "day":
         return hm == (13, 45)
@@ -102,6 +146,8 @@ class BarStore:
             kbars = self.resample_5m()
         elif ktype == "15m":
             kbars = self.resample_15m()
+        elif ktype == "30m":
+            kbars = self.resample_30m()
         else:
             raise NotImplementedError(f"Not implemented: {ktype}")
 
@@ -146,11 +192,33 @@ class BarStore:
         """
         return self._resample_minutes(15)
 
+    def resample_30m(self) -> list[KBar]:
+        """
+        從 1m SSOT 組成已收 30m（session 錨，不是 minute % 30）。
+        日盤：08:46～09:15 → 09:15 … 13:16～13:45 → 13:45
+        夜盤：15:01～15:30 → 15:30 … 04:31～05:00 → 05:00
+        不滿 30 根 1m 不輸出。
+        """
+        return self._resample_from_close(30, _session_30m_bucket)
+
     def _resample_minutes(self, n: int) -> list[KBar]:
+        def close_of(ts: datetime) -> datetime | None:
+            close_ts = _n_min_close(ts, n)
+            if close_ts.minute % n != 0 or session_kind(close_ts) is None:
+                return None
+            return close_ts
+
+        return self._resample_from_close(n, close_of)
+
+    def _resample_from_close(
+        self,
+        n: int,
+        close_of: Callable[[datetime], datetime | None],
+    ) -> list[KBar]:
         buckets: dict[datetime, list[KBar]] = defaultdict(list)
         for kbar in self._kbars:
-            close_ts = _n_min_close(kbar.timestamp, n)
-            if close_ts.minute % n != 0 or session_kind(close_ts) is None:
+            close_ts = close_of(kbar.timestamp)
+            if close_ts is None:
                 continue
             buckets[close_ts].append(kbar)
         out: list[KBar] = []
