@@ -74,6 +74,17 @@ def is_session_60m_close(ts: datetime) -> bool:
     return False
 
 
+def is_session_4h_close(ts: datetime) -> bool:
+    """合法 4h close：日盤僅 12:45；夜盤僅 19:00 / 23:00 / 03:00。"""
+    kind = session_kind(ts)
+    hm = (ts.hour, ts.minute)
+    if kind == "day":
+        return hm == (12, 45)
+    if kind == "night":
+        return hm in ((19, 0), (23, 0), (3, 0))
+    return False
+
+
 def _ceil_from(origin: datetime, ts: datetime, n: int) -> datetime:
     elapsed = int((ts - origin).total_seconds() // 60)
     remainder = elapsed % n
@@ -111,6 +122,35 @@ def _session_30m_bucket(ts: datetime) -> datetime | None:
 def _session_60m_bucket(ts: datetime) -> datetime | None:
     close_ts = _session_n_min_close(ts, 60)
     if close_ts is None or not is_session_60m_close(close_ts):
+        return None
+    return close_ts
+
+
+def _four_hour_close(ts: datetime) -> datetime | None:
+    """
+    時鐘選桶，不能用 session_kind(1m ts)。
+    12:45 是第一根 close；12:46 起丟。
+    """
+    ts = ts.replace(second=0, microsecond=0)
+    minutes = ts.hour * 60 + ts.minute
+    if 8 * 60 + 45 < minutes <= 12 * 60 + 45:
+        return ts.replace(hour=12, minute=45)
+    if 12 * 60 + 45 < minutes <= 13 * 60 + 45:
+        return None
+    if 15 * 60 < minutes <= 19 * 60:
+        return ts.replace(hour=19, minute=0)
+    if 19 * 60 < minutes <= 23 * 60:
+        return ts.replace(hour=23, minute=0)
+    if minutes > 23 * 60:
+        return (ts + timedelta(days=1)).replace(hour=3, minute=0)
+    if minutes <= 3 * 60:
+        return ts.replace(hour=3, minute=0)
+    return None
+
+
+def _session_4h_bucket(ts: datetime) -> datetime | None:
+    close_ts = _four_hour_close(ts)
+    if close_ts is None or not is_session_4h_close(close_ts):
         return None
     return close_ts
 
@@ -167,6 +207,8 @@ class BarStore:
             kbars = self.resample_30m()
         elif ktype == "1h":
             kbars = self.resample_60m()
+        elif ktype == "4h":
+            kbars = self.resample_4h()
         else:
             raise NotImplementedError(f"Not implemented: {ktype}")
 
@@ -231,6 +273,15 @@ class BarStore:
 
     def resample_1h(self) -> list[KBar]:
         return self.resample_60m()
+
+    def resample_4h(self) -> list[KBar]:
+        """
+        從 1m SSOT 組成已收 4h（寫死四根 close，不是 ceil 240）。
+        08:46～12:45 → 12:45；15:01～19:00 → 19:00；
+        19:01～23:00 → 23:00；23:01～03:00 → 03:00。
+        12:46～13:45、03:01～05:00 捨棄。不滿 240 根 1m 不輸出。
+        """
+        return self._resample_from_close(240, _session_4h_bucket)
 
     def _resample_minutes(self, n: int) -> list[KBar]:
         def close_of(ts: datetime) -> datetime | None:

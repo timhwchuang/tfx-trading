@@ -136,3 +136,44 @@ def test_resample_60m_817_night_calendar_file() -> None:
     assert night[0].timestamp == datetime(2026, 8, 17, 16, 0)
     assert night[-1].timestamp == datetime(2026, 8, 17, 23, 0)
     assert _load_817().resample_1h() == _load_817().resample_60m()
+
+
+def test_resample_4h_full_bucket() -> None:
+    bars_1m = [_bar(i, 100 + i, 120 - i, 80 + i, 110 + i, volume=i + 1) for i in range(240)]
+    out = BarStore(bars_1m).resample_4h()
+    assert len(out) == 1
+    bar = out[0]
+    assert bar.timestamp == datetime(2026, 8, 17, 12, 45)
+    assert bar.open == 100.0
+    assert bar.high == 120.0
+    assert bar.low == 80.0
+    assert bar.close == 349.0
+    assert bar.volume == 28920
+    assert bar.amount == 28920.0
+
+
+def test_resample_4h_drops_incomplete_bucket() -> None:
+    bars_1m = [_bar(i, 100.0, 101.0, 99.0, 100.0) for i in range(240) if i != 5]
+    assert BarStore(bars_1m).resample_4h() == []
+
+
+def test_resample_4h_817_day_session() -> None:
+    bars = [b for b in _load_817().resample_4h() if b.timestamp <= _DAY_END]
+    assert len(bars) == 1
+    assert bars[0].timestamp == datetime(2026, 8, 17, 12, 45)
+
+
+def test_resample_4h_817_night_calendar_file() -> None:
+    night = [b for b in _load_817().resample_4h() if b.timestamp > _DAY_END]
+    assert len(night) == 2
+    assert [b.timestamp for b in night] == [
+        datetime(2026, 8, 17, 19, 0),
+        datetime(2026, 8, 17, 23, 0),
+    ]
+    assert datetime(2026, 8, 18, 3, 0) not in {b.timestamp for b in night}
+
+
+def test_resample_4h_overnight_needs_next_file() -> None:
+    kbars = BarReader(_KBARS).load(date(2026, 8, 17), date(2026, 8, 18))
+    bars = BarStore(kbars).resample_4h()
+    assert any(b.timestamp == datetime(2026, 8, 18, 3, 0) for b in bars)
