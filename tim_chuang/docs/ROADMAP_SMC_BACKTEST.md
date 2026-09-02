@@ -10,7 +10,7 @@
 - [x] Phase 0:歷史資料回補與品質報告
 - [x] Phase 1:交易資料模型 + 成本模型
 - [x] Phase 2:回測引擎(Broker 模擬器 + Ledger)
-- [ ] Phase 3:策略層 Setup A(sweep-reversal,純函數)
+- [x] Phase 3:策略層 Setup A(sweep-reversal,純函數)
 - [ ] Phase 4:第一輪回測 + 參數掃描 + walk-forward
 - [ ] Phase 5:Live 對接(paper → 最小口數)
 
@@ -32,6 +32,7 @@
 - 回測引擎:`backtest/{engine,broker,ledger}.py`
   (5m prefix `decide`;`fill_mode`;Broker 呼叫 `close_trade`;Ledger 只記帳。
   6 個月 < 5 分鐘用 `run()` + 空 `FixedTimeStrategy` + `BarReader` 手動驗,不進預設 pytest)
+- 策略 Setup A:`strategy/setup_a.py`(純 `decide`;日盤 sweep-reversal;engine 傳 `closed_trades`/`entry_ts`)
 
 ## 全域不變量(每個 Phase 都要遵守)
 
@@ -161,12 +162,12 @@
 1. **Bias 過濾**:`dealing_range.position == "discount"` 才找多
 2. **前提**:`pdl` 或 `prev_night_low` 的 `interact == "swept"`(swept = 反轉候選;
    `taken` = 趨勢延續,v1 不做)
-3. **確認**:sweep 的 `interact_ts` 之後出現 bullish `StructureEvent`
-   (CHoCH 優先;`scope == "external"` 權重更高——v1 先只要求「有 bullish event」即可,
-   scope 當參數)
+3. **確認**:sweep 的 `interact_ts` **當根或之後** (`event.ts >= interact_ts`;
+   同根 wick sweep + close CHoCH 算確認。CHoCH 優先僅 demo 列印;
+   `scope == "external"` 當參數,v1 先只要求「有 bullish event」)
 4. **進場**:確認後,選最新的 bullish FVG,條件:
-   `state in ("untouched", "mitigated")`、`size >= min_points`、`formed_at` 在 sweep 之後。
-   限價掛 `top` 或 `ce`(參數,見 Phase 4 掃描)
+   `state in ("untouched", "mitigated")`、`size >= min_points`、
+   `formed_at >= interact_ts`。限價掛 `top` 或 `ce`(參數,見 Phase 4 掃描)
 5. **停損**:sweep 低點 − buffer(參數),或 FVG `bottom` − buffer,取較近者為 v1 預設
 6. **停利**:固定 R 倍數(預設 2R);對側流動性(session_high/pdh)當參數選項
 7. **風控**:

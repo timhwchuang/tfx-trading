@@ -7,6 +7,7 @@ from tfx_trading.bar_store import BarStore
 from tfx_trading.kbar import KBar
 from tfx_trading.strategy.protocol import DecisionContext, Strategy
 from tfx_trading.trading.costs import CostConfig
+from tfx_trading.trading.models import TradeRecord
 
 
 def run(
@@ -30,8 +31,11 @@ def run(
     five_ts = {bar.timestamp for bar in bars_5m_all}
     broker = Broker(cost_cfg, backtest_cfg)
     ledger = Ledger(cost_cfg, backtest_cfg.fill_mode, meta)
+    closed: list[TradeRecord] = []
     for bar in ordered:
         _fills, trade = broker.on_bar(bar)
+        if trade is not None:
+            closed.append(trade)
         ledger.on_bar(bar, trade, broker.position)
         if bar.timestamp not in five_ts:
             continue
@@ -41,6 +45,8 @@ def run(
             bars_5m=prefix,
             position=broker.position,
             pending=broker.pending,
+            closed_trades=tuple(closed),
+            entry_ts=broker.entry_ts,
         )
         intents = strategy.decide(ctx)
         broker.submit(intents, now=bar.timestamp)

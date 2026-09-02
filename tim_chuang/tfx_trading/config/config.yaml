@@ -8,3 +8,16 @@ trading:
   fill_mode: conservative
   initial_margin_nt: 35050
   maintenance_margin_nt: 26900
+
+strategy:
+  entry_price: top
+  min_points: 20.0
+  stop_buffer: 5.0
+  take_profit: 2R
+  require_external: false
+  max_daily_losses: 2
+  max_daily_loss_nt: 3000.0
+  flatten_time: "13:40"
+  no_trade_before: "09:15"
+  max_hold_bars: 10000
+  skip_settlement_day: true

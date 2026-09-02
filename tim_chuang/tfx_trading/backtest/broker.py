@@ -50,6 +50,10 @@ class Broker:
     def pending(self) -> tuple[Order, ...]:
         return tuple(o for o in self._book.values() if o.status == "pending")
 
+    @property
+    def entry_ts(self) -> datetime | None:
+        return self._entry_ts
+
     def submit(self, intents: list[Intent], now: object) -> tuple[Order, ...]:
         del now
         created: list[Order] = []

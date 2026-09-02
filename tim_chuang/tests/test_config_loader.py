@@ -81,6 +81,24 @@ def test_load_config_ignores_trading_section(
     assert not hasattr(config, "trading")
 
 
+def test_load_config_ignores_strategy_section(
+    tmp_path: Path,
+    package_root: Path,
+    credentials: dict[str, str],
+) -> None:
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "config.yaml").write_text(
+        "simulation: true\nstrategy:\n  entry_price: top\n  max_daily_loss_nt: 3000\n",
+        encoding="utf-8",
+    )
+    config = config_loader.load_config()
+    assert isinstance(config, Config)
+    assert config.simulation is True
+    assert not hasattr(config, "entry_price")
+    assert not hasattr(config, "strategy")
+
+
 @pytest.mark.parametrize(
     "missing_env",
     [

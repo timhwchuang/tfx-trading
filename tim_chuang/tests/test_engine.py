@@ -203,3 +203,76 @@ def test_conservative_trades_le_optimistic() -> None:
     assert len(cons.trades) <= len(opt.trades)
     assert len(opt.trades) == 1
     assert len(cons.trades) == 0
+
+
+def test_closed_trades_visible_on_same_5m_close() -> None:
+    start = datetime(2026, 8, 17, 8, 46)
+    bars = _minutes(start, 10, 20000.0)
+    bars[5] = _bar(
+        datetime(2026, 8, 17, 8, 51),
+        open_=20000.0,
+        high=20010.0,
+        low=19990.0,
+        close=20000.0,
+    )
+    bars[9] = _bar(
+        datetime(2026, 8, 17, 8, 55),
+        open_=20000.0,
+        high=20000.0,
+        low=19980.0,
+        close=19990.0,
+    )
+    t850 = datetime(2026, 8, 17, 8, 50)
+    cap = _Capture()
+
+    class _PlaceThenWatch:
+        def __init__(self) -> None:
+            self.inner = FixedTimeStrategy(
+                {
+                    t850: [
+                        _intent("e", "place_limit", "long", 20000.0),
+                        _intent("s", "place_stop", "short", 19985.0),
+                    ]
+                }
+            )
+
+        def decide(self, ctx: DecisionContext) -> list[Intent]:
+            cap.ctxs.append(ctx)
+            return self.inner.decide(ctx)
+
+    run(bars, _PlaceThenWatch(), _cfg(), BacktestConfig(fill_mode="optimistic"))
+    at_855 = next(c for c in cap.ctxs if c.bar_1m.timestamp == datetime(2026, 8, 17, 8, 55))
+    assert len(at_855.closed_trades) == 1
+    assert at_855.position.side is None
+    assert at_855.entry_ts is None
+    assert at_855.closed_trades[0].reason == "stop"
+
+
+def test_open_position_carries_entry_ts() -> None:
+    start = datetime(2026, 8, 17, 8, 46)
+    bars = _minutes(start, 10, 20000.0)
+    bars[5] = _bar(
+        datetime(2026, 8, 17, 8, 51),
+        open_=20000.0,
+        high=20010.0,
+        low=19990.0,
+        close=20000.0,
+    )
+    t850 = datetime(2026, 8, 17, 8, 50)
+    cap = _Capture()
+
+    class _PlaceThenWatch:
+        def decide(self, ctx: DecisionContext) -> list[Intent]:
+            cap.ctxs.append(ctx)
+            if ctx.bar_1m.timestamp == t850:
+                return [
+                    _intent("e", "place_limit", "long", 20000.0),
+                    _intent("s", "place_stop", "short", 19900.0),
+                ]
+            return []
+
+    run(bars, _PlaceThenWatch(), _cfg(), BacktestConfig(fill_mode="optimistic"))
+    at_855 = next(c for c in cap.ctxs if c.bar_1m.timestamp == datetime(2026, 8, 17, 8, 55))
+    assert at_855.position.side == "long"
+    assert at_855.entry_ts == datetime(2026, 8, 17, 8, 51)
+    assert at_855.closed_trades == ()
