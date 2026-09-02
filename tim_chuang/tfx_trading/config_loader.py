@@ -16,6 +16,7 @@ def load_config() -> Config:
     with config_path.open(encoding="utf-8") as f:
         config = yaml.safe_load(f) or {}
 
+    config.pop("trading", None)
     config["api_key"], config["secret_key"] = _resolve_credentials()
 
     kbars_path = _PACKAGE_ROOT / "kbars_data"

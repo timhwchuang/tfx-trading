@@ -1,1 +1,9 @@
 simulation: true
+
+# as of 2026-08-12, 期交所會改
+trading:
+  commission_nt: 20
+  slippage_ticks: 1
+  flatten_slippage_ticks: 2
+  initial_margin_nt: 35050
+  maintenance_margin_nt: 26900

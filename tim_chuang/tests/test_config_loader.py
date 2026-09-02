@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from tfx_trading import config_loader
+from tfx_trading.config import Config
 
 
 @pytest.fixture
@@ -60,6 +61,24 @@ def test_load_config_with_no_kbars_data(
     config = config_loader.load_config()
     assert kbars_dir.is_dir()
     assert config.kbars_path == kbars_dir
+
+
+def test_load_config_ignores_trading_section(
+    tmp_path: Path,
+    package_root: Path,
+    credentials: dict[str, str],
+) -> None:
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "config.yaml").write_text(
+        "simulation: true\ntrading:\n  commission_nt: 20\n  fill_mode: conservative\n",
+        encoding="utf-8",
+    )
+    config = config_loader.load_config()
+    assert isinstance(config, Config)
+    assert config.simulation is True
+    assert not hasattr(config, "commission_nt")
+    assert not hasattr(config, "trading")
 
 
 @pytest.mark.parametrize(

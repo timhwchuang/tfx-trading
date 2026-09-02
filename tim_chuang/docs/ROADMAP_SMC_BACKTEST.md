@@ -8,7 +8,7 @@
 ## 進度總覽
 
 - [x] Phase 0:歷史資料回補與品質報告
-- [ ] Phase 1:交易資料模型 + 成本模型
+- [x] Phase 1:交易資料模型 + 成本模型
 - [ ] Phase 2:回測引擎(Broker 模擬器 + Ledger)
 - [ ] Phase 3:策略層 Setup A(sweep-reversal,純函數)
 - [ ] Phase 4:第一輪回測 + 參數掃描 + walk-forward
@@ -26,6 +26,9 @@
 - Shioaji 接口與回補:`shioaji_api.py`、`backfilldata.py`(skip existing、`--overwrite`、fetch 後才 sleep)
 - 交易日曆 / 品質報告:`calendar.py`、`data_quality.py`(tape hole vs 日曆 mismatch 分開)
 - **TMFR1 結算日 13:31 換月、無 back-adjust**(見 `config/tmfr1_rollover.csv`;含順延日 2026-02-23)
+- 交易物件 / 成本:`trading/models.py`、`trading/costs.py`
+  (Intent/Order/Fill/Position/TradeRecord;`close_trade` 只在 costs;
+  `load_config` 忽略 yaml `trading:`)
 
 ## 全域不變量(每個 Phase 都要遵守)
 
