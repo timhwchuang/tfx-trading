@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from argparse import Namespace
 from datetime import datetime
 from pathlib import Path
 from typing import Callable, cast
@@ -133,7 +134,7 @@ def test_run(
     empty_kbars = make_kbars(ts=[], Open=[], High=[], Low=[], Close=[], Volume=[], Amount=[])
     api_client.kbars.side_effect = [kbars_day1, kbars_day2, empty_kbars]
 
-    backfill_data.run(api_client, *args)
+    backfill_data.run(api_client, *args, sleep=lambda _: None)
 
     api_client.kbars.assert_has_calls(
         [
@@ -193,7 +194,7 @@ def test_run_write_csv_error(
     api_client.kbars.side_effect = [kbars_day1, empty_kbars, empty_kbars]
     with patch("pathlib.Path.open", side_effect=OSError):
         with pytest.raises(OSError):
-            backfill_data.run(api_client, *args)
+            backfill_data.run(api_client, *args, sleep=lambda _: None)
 
 
 def test_run_data_not_zippable(
@@ -214,7 +215,7 @@ def test_run_data_not_zippable(
     empty_kbars = make_kbars(ts=[], Open=[], High=[], Low=[], Close=[], Volume=[], Amount=[])
     api_client.kbars.side_effect = [kbars_day1, empty_kbars, empty_kbars]
     with pytest.raises(ValueError):
-        backfill_data.run(api_client, *args)
+        backfill_data.run(api_client, *args, sleep=lambda _: None)
 
 
 def test_main() -> None:
@@ -232,10 +233,11 @@ def test_main() -> None:
             return_value=mock_backfill,
         ),
         patch(
-            "tfx_trading.backfilldata.parse_date",
-            return_value=(
-                datetime(2026, 1, 1),
-                datetime(2026, 1, 2),
+            "tfx_trading.backfilldata.parse_args",
+            return_value=Namespace(
+                start_date=datetime(2026, 1, 1),
+                end_date=datetime(2026, 1, 2),
+                overwrite=False,
             ),
         ),
     ):
@@ -245,4 +247,63 @@ def test_main() -> None:
         mock_api,
         datetime(2026, 1, 1),
         datetime(2026, 1, 2),
+        overwrite=False,
     )
+
+
+def test_run_skips_existing_file_without_kbars_or_sleep(
+    backfill_data: BackfillData,
+    api_client: MagicMock,
+    args: tuple[datetime, datetime],
+) -> None:
+    kbars_dir = api_client.kbars_path()
+    kbars_dir.mkdir(parents=True)
+    existing = kbars_dir / "TMFR1_kbars_2026-01-01.csv"
+    existing.write_text("keep\n", encoding="utf-8")
+    slept: list[float] = []
+
+    empty = MagicMock()
+    empty.ts = []
+    api_client.kbars.return_value = empty
+    backfill_data.run(api_client, *args, sleep=slept.append)
+
+    assert existing.read_text(encoding="utf-8") == "keep\n"
+    assert api_client.kbars.call_count == 2
+    api_client.kbars.assert_has_calls(
+        [
+            call(contract="TMFR1", start="2026-01-02", end="2026-01-02"),
+            call(contract="TMFR1", start="2026-01-03", end="2026-01-03"),
+        ]
+    )
+    assert slept == [0.15, 0.15]
+
+
+def test_run_overwrite_refetches_existing(
+    backfill_data: BackfillData,
+    api_client: MagicMock,
+    args: tuple[datetime, datetime],
+    make_kbars: Callable[..., MagicMock],
+) -> None:
+    kbars_dir = api_client.kbars_path()
+    kbars_dir.mkdir(parents=True)
+    existing = kbars_dir / "TMFR1_kbars_2026-01-01.csv"
+    existing.write_text("stale\n", encoding="utf-8")
+    kbars_day1 = make_kbars(
+        ts=[1767225600000000000],
+        Open=[100.0],
+        High=[105.0],
+        Low=[99.0],
+        Close=[102.0],
+        Volume=[10],
+        Amount=[1000],
+    )
+    empty_kbars = make_kbars(ts=[], Open=[], High=[], Low=[], Close=[], Volume=[], Amount=[])
+    api_client.kbars.side_effect = [kbars_day1, empty_kbars, empty_kbars]
+    slept: list[float] = []
+
+    backfill_data.run(api_client, *args, overwrite=True, sleep=slept.append)
+
+    assert existing.exists()
+    assert "stale" not in existing.read_text(encoding="utf-8")
+    assert api_client.kbars.call_count == 3
+    assert slept == [0.15, 0.15, 0.15]

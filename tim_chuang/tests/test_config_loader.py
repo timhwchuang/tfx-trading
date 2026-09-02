@@ -55,8 +55,11 @@ def test_load_config_with_no_config(package_root: Path) -> None:
 def test_load_config_with_no_kbars_data(
     config_file: Path, package_root: Path, credentials: dict[str, str]
 ) -> None:
-    with pytest.raises(FileNotFoundError, match="找不到 kbars 資料夾: "):
-        config_loader.load_config()
+    kbars_dir = package_root / "kbars_data"
+    assert not kbars_dir.exists()
+    config = config_loader.load_config()
+    assert kbars_dir.is_dir()
+    assert config.kbars_path == kbars_dir
 
 
 @pytest.mark.parametrize(

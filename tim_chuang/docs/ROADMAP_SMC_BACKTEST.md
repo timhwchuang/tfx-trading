@@ -7,7 +7,7 @@
 
 ## 進度總覽
 
-- [ ] Phase 0:歷史資料回補與品質報告
+- [x] Phase 0:歷史資料回補與品質報告
 - [ ] Phase 1:交易資料模型 + 成本模型
 - [ ] Phase 2:回測引擎(Broker 模擬器 + Ledger)
 - [ ] Phase 3:策略層 Setup A(sweep-reversal,純函數)
@@ -23,7 +23,9 @@
   - `indicators/smc.py`:swings、PDH/PDL、prev night H/L、session H/L、
     interact 三態(untouched/swept/taken)、dealing range(premium/discount)、BOS/CHoCH
   - `indicators/fvg.py`:FVG 形成 + mitigation 三態(untouched/mitigated/filled)
-- Shioaji 接口與回補:`shioaji_api.py`、`backfilldata.py`
+- Shioaji 接口與回補:`shioaji_api.py`、`backfilldata.py`(skip existing、`--overwrite`、fetch 後才 sleep)
+- 交易日曆 / 品質報告:`calendar.py`、`data_quality.py`(tape hole vs 日曆 mismatch 分開)
+- **TMFR1 結算日 13:31 換月、無 back-adjust**(見 `config/tmfr1_rollover.csv`;含順延日 2026-02-23)
 
 ## 全域不變量(每個 Phase 都要遵守)
 

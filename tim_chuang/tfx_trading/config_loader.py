@@ -18,10 +18,9 @@ def load_config() -> Config:
 
     config["api_key"], config["secret_key"] = _resolve_credentials()
 
-    config["kbars_path"] = _PACKAGE_ROOT / "kbars_data"
-
-    if not config["kbars_path"].exists():
-        raise FileNotFoundError(f"找不到 kbars 資料夾: {config['kbars_path']}")
+    kbars_path = _PACKAGE_ROOT / "kbars_data"
+    kbars_path.mkdir(parents=True, exist_ok=True)
+    config["kbars_path"] = kbars_path
 
     return Config(**config)
 
