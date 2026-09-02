@@ -155,6 +155,35 @@ def _session_4h_bucket(ts: datetime) -> datetime | None:
     return close_ts
 
 
+def _is_day_settlement_tail(ts: datetime) -> bool:
+    return ts.hour == 13 and ts.minute == 46
+
+
+def _is_dawn_settlement_tail(ts: datetime) -> bool:
+    return ts.hour == 5 and ts.minute == 1
+
+
+def _day_session_date(ts: datetime) -> date | None:
+    minutes = ts.hour * 60 + ts.minute
+    if 8 * 60 + 45 < minutes <= 13 * 60 + 45 or _is_day_settlement_tail(ts):
+        return ts.date()
+    return None
+
+
+def _night_session_date(ts: datetime) -> date | None:
+    minutes = ts.hour * 60 + ts.minute
+    if minutes > 15 * 60:
+        return ts.date()
+    if minutes <= 5 * 60 or _is_dawn_settlement_tail(ts):
+        return ts.date() - timedelta(days=1)
+    return None
+
+
+def _expected_day_1m(day: date) -> set[datetime]:
+    start = datetime(day.year, day.month, day.day, 8, 46)
+    return {start + timedelta(minutes=i) for i in range(300)}
+
+
 def is_session_complete(kind: SessionKind, last_bar_ts: datetime) -> bool:
     """該段是否已印出合法最後一根（日盤 13:45 / 夜盤 05:00）。1/5/15/30/60m 皆然。"""
     hm = (last_bar_ts.hour, last_bar_ts.minute)
@@ -209,6 +238,8 @@ class BarStore:
             kbars = self.resample_60m()
         elif ktype == "4h":
             kbars = self.resample_4h()
+        elif ktype == "1d":
+            kbars = self.resample_1d()
         else:
             raise NotImplementedError(f"Not implemented: {ktype}")
 
@@ -282,6 +313,54 @@ class BarStore:
         12:46～13:45、03:01～05:00 捨棄。不滿 240 根 1m 不輸出。
         """
         return self._resample_from_close(240, _session_4h_bucket)
+
+    def resample_1d(self) -> list[KBar]:
+        """
+        從 1m SSOT 組日 K：上一夜盤（有才併）+ 當日日盤。
+        close label = 當日 13:45。日盤須滿 08:46～13:45；夜盤空仍出棒。
+        磁碟偶見結算尾棒 13:46 / 05:01 一併折入；Close 取含尾棒的最後一根。
+        選窗用時鐘，不能用 session_kind(1m)。8/15 僅 00:00～05:00 不算交易日。
+        """
+        days: dict[date, list[KBar]] = defaultdict(list)
+        nights: dict[date, list[KBar]] = defaultdict(list)
+        for kbar in self._kbars:
+            ts = kbar.timestamp.replace(second=0, microsecond=0)
+            day = _day_session_date(ts)
+            if day is not None:
+                days[day].append(kbar)
+                continue
+            night = _night_session_date(ts)
+            if night is not None:
+                nights[night].append(kbar)
+
+        out: list[KBar] = []
+        for day in sorted(days):
+            day_bars = sorted(days[day], key=lambda b: b.timestamp)
+            actual = {
+                b.timestamp.replace(second=0, microsecond=0)
+                for b in day_bars
+                if not _is_day_settlement_tail(b.timestamp)
+            }
+            if actual != _expected_day_1m(day):
+                continue
+            prev = [d for d in nights if d < day]
+            night_bars = (
+                sorted(nights[max(prev)], key=lambda b: b.timestamp) if prev else []
+            )
+            chunk = night_bars + day_bars
+            close_ts = datetime(day.year, day.month, day.day, 13, 45)
+            out.append(
+                KBar(
+                    timestamp=close_ts,
+                    open=chunk[0].open,
+                    high=max(b.high for b in chunk),
+                    low=min(b.low for b in chunk),
+                    close=chunk[-1].close,
+                    volume=sum(b.volume for b in chunk),
+                    amount=sum(b.amount for b in chunk),
+                )
+            )
+        return out
 
     def _resample_minutes(self, n: int) -> list[KBar]:
         def close_of(ts: datetime) -> datetime | None:
