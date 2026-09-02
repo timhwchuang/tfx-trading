@@ -5,6 +5,7 @@ from datetime import datetime
 import pytest
 
 from tfx_trading.trading.models import (
+    Fill,
     Intent,
     IntentKind,
     Order,
@@ -13,6 +14,7 @@ from tfx_trading.trading.models import (
     Position,
     RejectReason,
     Side,
+    apply_fill,
     transition,
 )
 
@@ -147,3 +149,40 @@ def test_expire_at_is_naive() -> None:
     assert expire_at.tzinfo is None
     intent = _intent(expire_at=expire_at)
     assert intent.expire_at == expire_at
+
+
+def test_apply_fill_opens_and_closes() -> None:
+    flat = Position(side=None, qty=0, avg_price=None)
+    fill_in = Fill(
+        ts=datetime(2026, 6, 15, 9, 0),
+        price=20000.0,
+        qty=1,
+        intent_id="e",
+        order_id="e",
+    )
+    opened = apply_fill(flat, fill_in, "long")
+    assert opened.side == "long"
+    assert opened.avg_price == 20000.0
+    fill_out = Fill(
+        ts=datetime(2026, 6, 15, 9, 1),
+        price=19980.0,
+        qty=1,
+        intent_id="x",
+        order_id="x",
+    )
+    closed = apply_fill(opened, fill_out, "short")
+    assert closed.side is None
+    with pytest.raises(ValueError, match="add"):
+        apply_fill(opened, fill_out, "long")
+    with pytest.raises(ValueError, match="qty"):
+        apply_fill(
+            opened,
+            Fill(
+                ts=datetime(2026, 6, 15, 9, 1),
+                price=19980.0,
+                qty=2,
+                intent_id="x",
+                order_id="x",
+            ),
+            "short",
+        )

@@ -137,6 +137,16 @@ class Position:
             raise ValueError("open position requires qty>=1 and avg_price")
 
 
+def apply_fill(position: Position, fill: Fill, order_side: Side) -> Position:
+    if position.side is None:
+        return Position(side=order_side, qty=fill.qty, avg_price=fill.price)
+    if order_side == position.side:
+        raise ValueError("cannot add to position")
+    if fill.qty != position.qty:
+        raise ValueError("fill qty must equal position qty")
+    return Position(side=None, qty=0, avg_price=None)
+
+
 @dataclass(frozen=True)
 class TradeRecord:
     """Closed round trip. side is the position that was held, not the exit order.
@@ -168,5 +178,6 @@ __all__ = [
     "Side",
     "TradeReason",
     "TradeRecord",
+    "apply_fill",
     "transition",
 ]

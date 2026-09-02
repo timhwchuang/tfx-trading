@@ -24,6 +24,7 @@ from tfx_trading.trading.models import (
     Side,
     TradeReason,
     TradeRecord,
+    apply_fill,
     transition,
 )
 
@@ -43,6 +44,7 @@ __all__ = [
     "Side",
     "TradeReason",
     "TradeRecord",
+    "apply_fill",
     "apply_slippage",
     "close_trade",
     "commission_nt",

@@ -9,7 +9,7 @@
 
 - [x] Phase 0:歷史資料回補與品質報告
 - [x] Phase 1:交易資料模型 + 成本模型
-- [ ] Phase 2:回測引擎(Broker 模擬器 + Ledger)
+- [x] Phase 2:回測引擎(Broker 模擬器 + Ledger)
 - [ ] Phase 3:策略層 Setup A(sweep-reversal,純函數)
 - [ ] Phase 4:第一輪回測 + 參數掃描 + walk-forward
 - [ ] Phase 5:Live 對接(paper → 最小口數)
@@ -29,6 +29,9 @@
 - 交易物件 / 成本:`trading/models.py`、`trading/costs.py`
   (Intent/Order/Fill/Position/TradeRecord;`close_trade` 只在 costs;
   `load_config` 忽略 yaml `trading:`)
+- 回測引擎:`backtest/{engine,broker,ledger}.py`
+  (5m prefix `decide`;`fill_mode`;Broker 呼叫 `close_trade`;Ledger 只記帳。
+  6 個月 < 5 分鐘用 `run()` + 空 `FixedTimeStrategy` + `BarReader` 手動驗,不進預設 pytest)
 
 ## 全域不變量(每個 Phase 都要遵守)
 
