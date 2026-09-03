@@ -344,9 +344,7 @@ class BarStore:
             if actual != _expected_day_1m(day):
                 continue
             prev = [d for d in nights if d < day]
-            night_bars = (
-                sorted(nights[max(prev)], key=lambda b: b.timestamp) if prev else []
-            )
+            night_bars = sorted(nights[max(prev)], key=lambda b: b.timestamp) if prev else []
             chunk = night_bars + day_bars
             close_ts = datetime(day.year, day.month, day.day, 13, 45)
             out.append(

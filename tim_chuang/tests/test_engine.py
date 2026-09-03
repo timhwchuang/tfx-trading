@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 
 from tfx_trading.backtest.config import BacktestConfig
 from tfx_trading.backtest.dummy import FixedTimeStrategy
-from tfx_trading.backtest.engine import run
+from tfx_trading.backtest.engine import prefixes_at_closes, run
+from tfx_trading.bar_store import BarStore
 from tfx_trading.kbar import KBar
 from tfx_trading.strategy.protocol import DecisionContext
 from tfx_trading.trading.costs import CostConfig, round_trip_pnl_nt
@@ -276,3 +277,19 @@ def test_open_position_carries_entry_ts() -> None:
     assert at_855.position.side == "long"
     assert at_855.entry_ts == datetime(2026, 8, 17, 8, 51)
     assert at_855.closed_trades == ()
+
+
+def test_prefix_slice_matches_filter() -> None:
+    start = datetime(2026, 8, 17, 8, 46)
+    bars = _minutes(start, 30, 20000.0)
+    bars = [b for b in bars if b.timestamp != datetime(2026, 8, 17, 8, 47)]
+    ordered = sorted(bars, key=lambda bar: bar.timestamp)
+    five = BarStore(ordered).resample_5m()
+    sliced = prefixes_at_closes(five, ordered)
+    five_ts = {bar.timestamp for bar in five}
+    filtered: list[tuple[KBar, tuple[KBar, ...]]] = []
+    for bar in ordered:
+        if bar.timestamp not in five_ts:
+            continue
+        filtered.append((bar, tuple(item for item in five if item.timestamp <= bar.timestamp)))
+    assert sliced == filtered

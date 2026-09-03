@@ -60,9 +60,7 @@ def main() -> None:
     bars_5m = [b for b in BarStore(kbars).resample_5m() if b.timestamp <= _AS_OF]
     last = bars_5m[-1] if bars_5m else None
     fvgs = [
-        fvg
-        for fvg in compute(bars_5m)
-        if fvg.session == "day" and fvg.formed_at.date() == _DAY
+        fvg for fvg in compute(bars_5m) if fvg.session == "day" and fvg.formed_at.date() == _DAY
     ]
     _print_as_of(last)
     _print_fvgs(fvgs)

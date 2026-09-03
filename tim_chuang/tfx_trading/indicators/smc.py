@@ -282,19 +282,11 @@ def _structure_events(
     events: list[StructureEvent] = []
     for bar in current.bars:
         last_high = next(
-            (
-                s
-                for s in reversed(sig)
-                if s.side == "high" and s.confirmed_at <= bar.timestamp
-            ),
+            (s for s in reversed(sig) if s.side == "high" and s.confirmed_at <= bar.timestamp),
             None,
         )
         last_low = next(
-            (
-                s
-                for s in reversed(sig)
-                if s.side == "low" and s.confirmed_at <= bar.timestamp
-            ),
+            (s for s in reversed(sig) if s.side == "low" and s.confirmed_at <= bar.timestamp),
             None,
         )
         if (
@@ -310,9 +302,7 @@ def _structure_events(
             broken.add(last_high.timestamp)
             bias = "bullish"
         elif (
-            last_low is not None
-            and last_low.timestamp not in broken
-            and bar.close < last_low.price
+            last_low is not None and last_low.timestamp not in broken and bar.close < last_low.price
         ):
             events.append(
                 _structure_event(

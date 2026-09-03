@@ -350,7 +350,8 @@ def test_second_swing_significant_by_min_points() -> None:
 
 def _range_series(close: float) -> list[KBar]:
     """Non-sig SH 30, sig SL 5, sig SH 40. eq = 22.5. Last bar is not a 9:40 neighbor."""
-    last_high, last_low = (24.0, 18.0) if 18 <= close <= 24 else (max(24.0, close), min(18.0, close))
+    in_range = 18 <= close <= 24
+    last_high, last_low = (24.0, 18.0) if in_range else (max(24.0, close), min(18.0, close))
     return [
         _k(_ts(17, 9, 0), 20, 19, close=20),
         _k(_ts(17, 9, 5), 21, 19, close=21),

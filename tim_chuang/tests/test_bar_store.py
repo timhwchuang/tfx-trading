@@ -212,8 +212,9 @@ def test_resample_1d_817_day_only() -> None:
     assert len(out) == 1
     bar = out[0]
     assert bar.timestamp == datetime(2026, 8, 17, 13, 45)
-    first = next(b for b in _load_817().resample_1m() if b.timestamp == datetime(2026, 8, 17, 8, 46))
-    last = next(b for b in _load_817().resample_1m() if b.timestamp == datetime(2026, 8, 17, 13, 45))
+    minutes = _load_817().resample_1m()
+    first = next(b for b in minutes if b.timestamp == datetime(2026, 8, 17, 8, 46))
+    last = next(b for b in minutes if b.timestamp == datetime(2026, 8, 17, 13, 45))
     day = [
         b
         for b in _load_817().resample_1m()
@@ -274,8 +275,7 @@ def test_resample_1d_uses_1346_close() -> None:
 
 def test_resample_1d_includes_0501_night_tail() -> None:
     night = [
-        _bar(i, 50.0, 55.0, 45.0, 50.0, start=datetime(2026, 8, 16, 15, 1))
-        for i in range(599)
+        _bar(i, 50.0, 55.0, 45.0, 50.0, start=datetime(2026, 8, 16, 15, 1)) for i in range(599)
     ]
     dawn_tail = KBar(
         timestamp=datetime(2026, 8, 17, 5, 1),

@@ -1,6 +1,6 @@
 from tfx_trading.backtest.config import BacktestConfig, FillMode, load_backtest_config
 from tfx_trading.backtest.dummy import FixedTimeStrategy
-from tfx_trading.backtest.engine import run
+from tfx_trading.backtest.engine import prefixes_at_closes, run
 from tfx_trading.backtest.ledger import BacktestResult, RunMeta
 
 __all__ = [
@@ -10,5 +10,6 @@ __all__ = [
     "FixedTimeStrategy",
     "RunMeta",
     "load_backtest_config",
+    "prefixes_at_closes",
     "run",
 ]

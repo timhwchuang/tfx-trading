@@ -35,7 +35,11 @@ class Broker:
     def __init__(self, cost_cfg: CostConfig, backtest_cfg: BacktestConfig) -> None:
         self._cost = cost_cfg
         self._bt = backtest_cfg
+        # Working (pending) orders only. Terminal orders are dropped so the
+        # per-bar scans stay O(open orders) over a multi-month tape; _seen keeps
+        # intent-id idempotency across the whole run.
         self._book: dict[str, Order] = {}
+        self._seen: set[str] = set()
         self._position = Position(side=None, qty=0, avg_price=None)
         self._entry_side: Side | None = None
         self._entry_ts: datetime | None = None
@@ -78,7 +82,7 @@ class Broker:
         return self._fill_while_open(bar)
 
     def _submit_one(self, intent: Intent) -> Order:
-        if intent.intent_id in self._book:
+        if intent.intent_id in self._seen:
             return self._reject_untracked(intent)
         if intent.kind == "cancel":
             return self._cancel(intent)
@@ -207,7 +211,11 @@ class Broker:
         )
 
     def _set(self, order: Order) -> None:
-        self._book[order.order_id] = order
+        self._seen.add(order.order_id)
+        if order.status == "pending":
+            self._book[order.order_id] = order
+        else:
+            self._book.pop(order.order_id, None)
 
     def _pending_kind(self, kind: OrderKind, side: Side) -> list[Order]:
         return [
