@@ -39,10 +39,10 @@ from tfx_trading.backtest.engine import run
 from tfx_trading.backtest.ledger import BacktestResult, RunMeta, resolve_git_hash
 from tfx_trading.bar_reader import BarReader
 from tfx_trading.calendar import TradeCalendar
-from tfx_trading.indicators.fvg import Fvg
-from tfx_trading.indicators.fvg import compute as fvg_compute
-from tfx_trading.indicators.smc import SmcLevels
-from tfx_trading.indicators.smc import compute as smc_compute
+from tfx_trading.indicators.fvg import Fvg, FvgTracker
+from tfx_trading.indicators.fvg import compute as _fvg_compute
+from tfx_trading.indicators.smc import SmcLevels, SmcTracker
+from tfx_trading.indicators.smc import compute as _smc_compute
 from tfx_trading.kbar import KBar
 from tfx_trading.strategy.protocol import DecisionContext
 from tfx_trading.strategy.setup_a import (
@@ -59,6 +59,10 @@ _DEFAULT_KBARS = Path(__file__).resolve().parent.parent / "kbars_data"
 _FILL_MODES: tuple[FillMode, ...] = ("conservative", "optimistic")
 _SLIPPAGE_TICKS: tuple[int, ...] = (0, 1, 2, 3)
 IndicatorCache = dict[tuple[datetime, int], tuple[SmcLevels, list[Fvg]]]
+
+# Backward-compatible symbols used by existing tests/bench scripts.
+smc_compute = _smc_compute
+fvg_compute = _fvg_compute
 
 
 class CachedSetupA:
@@ -83,6 +87,29 @@ class CachedSetupA:
         self._calendar = calendar
         self._cache = cache
         self._window_start = window_start
+        self._tape: list[KBar] = []
+        self._smc_tracker = SmcTracker()
+        self._fvg_tracker = FvgTracker(min_points=0.0)
+
+    def _rebuild(self, bars: list[KBar]) -> None:
+        self._tape = list(bars)
+        self._smc_tracker = SmcTracker()
+        self._fvg_tracker = FvgTracker(min_points=0.0)
+        self._smc_tracker.extend(self._tape)
+        self._fvg_tracker.extend(self._tape)
+
+    def _advance(self, bars: list[KBar]) -> None:
+        if not self._tape:
+            self._rebuild(bars)
+            return
+        prefix_len = len(self._tape)
+        if prefix_len <= len(bars) and self._tape == bars[:prefix_len]:
+            for bar in bars[prefix_len:]:
+                self._tape.append(bar)
+                self._smc_tracker.push(bar)
+                self._fvg_tracker.push(bar)
+            return
+        self._rebuild(bars)
 
     def decide(self, ctx: DecisionContext) -> list[Intent]:
         if ctx.bar_1m.timestamp < self._window_start:
@@ -92,8 +119,13 @@ class CachedSetupA:
         bars = list(ctx.bars_5m)
         key = (bars[-1].timestamp, len(bars)) if bars else (ctx.bar_1m.timestamp, 0)
         if key not in self._cache:
-            smc = replace(smc_compute(bars), swings=[])
-            live = [f for f in fvg_compute(bars, min_points=0.0) if f.state != "filled"]
+            if smc_compute is _smc_compute and fvg_compute is _fvg_compute:
+                self._advance(bars)
+                smc = replace(self._smc_tracker.snapshot(), swings=[])
+                live = [f for f in self._fvg_tracker.snapshot() if f.state != "filled"]
+            else:
+                smc = replace(smc_compute(bars), swings=[])
+                live = [f for f in fvg_compute(bars, min_points=0.0) if f.state != "filled"]
             self._cache[key] = (smc, live)
         smc, fvgs = self._cache[key]
         return _evaluate(smc, fvgs, ctx, self._params, self._calendar)

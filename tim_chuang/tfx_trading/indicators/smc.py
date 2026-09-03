@@ -85,15 +85,108 @@ class _Segment:
     bars: list[KBar]
 
 
+class SmcTracker:
+    """Incremental confirmed-swings tracker (L=2) with prefix-equivalent outputs."""
+
+    def __init__(self, min_points: float = MIN_POINTS) -> None:
+        self._min_points = min_points
+        self._bars: list[KBar] = []
+        self._segments: list[_Segment] = []
+        self._current_key: tuple[date, SessionKind] | None = None
+        self._collapsed: list[tuple[int, SwingSide, float]] = []
+        self._swings: list[Swing] = []
+
+    def push(self, bar: KBar) -> None:
+        if session_kind(bar.timestamp) is None:
+            return
+        key = session_key(bar.timestamp)
+        if key is None:
+            return
+        self._bars.append(bar)
+        if not self._segments:
+            self._segments.append(_Segment(key[1], [bar]))
+            self._current_key = key
+        elif key == self._current_key:
+            self._segments[-1].bars.append(bar)
+        else:
+            self._segments.append(_Segment(key[1], [bar]))
+            self._current_key = key
+
+        cand = self._new_raw_pivot()
+        if cand is None:
+            return
+        if self._collapsed and self._collapsed[-1][1] == cand[1]:
+            _, side, prev_price = self._collapsed[-1]
+            price = cand[2]
+            more_extreme = price >= prev_price if side == "high" else price <= prev_price
+            if more_extreme:
+                self._collapsed[-1] = cand
+                self._swings[-1] = self._make_swing(len(self._collapsed) - 1)
+        else:
+            self._collapsed.append(cand)
+            self._swings.append(self._make_swing(len(self._collapsed) - 1))
+
+    def extend(self, bars: list[KBar]) -> None:
+        for bar in bars:
+            self.push(bar)
+
+    def snapshot(self) -> SmcLevels:
+        last = self._bars[-1] if self._bars else None
+        return _with_liquidity(self._segments, list(self._swings), last)
+
+    def _new_raw_pivot(self) -> tuple[int, SwingSide, float] | None:
+        i = len(self._bars) - 1
+        center = i - LOOKBACK
+        if center < LOOKBACK:
+            return None
+        high = self._bars[center].high
+        low = self._bars[center].low
+        neighbors = list(range(center - LOOKBACK, center)) + list(
+            range(center + 1, center + LOOKBACK + 1)
+        )
+        is_high = all(high > self._bars[j].high for j in neighbors)
+        is_low = all(low < self._bars[j].low for j in neighbors)
+        if is_high and is_low:
+            return None
+        if is_high:
+            return (center, "high", high)
+        if is_low:
+            return (center, "low", low)
+        return None
+
+    def _make_swing(self, k: int) -> Swing:
+        i, side, price = self._collapsed[k]
+        kind = session_kind(self._bars[i].timestamp)
+        assert kind is not None
+        significant = (
+            False if k == 0 else abs(price - self._collapsed[k - 1][2]) >= self._min_points
+        )
+        return Swing(
+            timestamp=self._bars[i].timestamp,
+            confirmed_at=self._bars[i + LOOKBACK].timestamp,
+            side=side,
+            price=price,
+            significant=significant,
+            session=kind,
+        )
+
+
 def compute(bars: list[KBar], min_points: float = MIN_POINTS) -> SmcLevels:
     """
     對已收 5 分 K 算 confirmed swings 與 session 流動性。
     as_of = last_bar.timestamp（有 K 時）；缺前一段則該流動性欄位為 None。
     """
-    bars = [b for b in bars if session_kind(b.timestamp) is not None]
-    last = bars[-1] if bars else None
-    segments = _split_sessions(bars)
-    swings = _detect_swings(bars, min_points)
+    tracker = SmcTracker(min_points)
+    tracker.extend(bars)
+    return tracker.snapshot()
+
+
+def compute_from_scratch(bars: list[KBar], min_points: float = MIN_POINTS) -> SmcLevels:
+    """Prefix-wide baseline oracle for incremental equivalence checks."""
+    session_bars = [b for b in bars if session_kind(b.timestamp) is not None]
+    last = session_bars[-1] if session_bars else None
+    segments = _split_sessions(session_bars)
+    swings = _detect_swings(session_bars, min_points)
     return _with_liquidity(segments, swings, last)
 
 
@@ -154,10 +247,7 @@ def _detect_swings(bars: list[KBar], min_points: float) -> list[Swing]:
         kind = session_kind(bars[i].timestamp)
         if kind is None:
             continue
-        if k == 0:
-            significant = False
-        else:
-            significant = abs(price - collapsed[k - 1][2]) >= min_points
+        significant = False if k == 0 else abs(price - collapsed[k - 1][2]) >= min_points
         out.append(
             Swing(
                 timestamp=bars[i].timestamp,
