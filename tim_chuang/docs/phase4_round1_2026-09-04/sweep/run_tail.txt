@@ -1,0 +1,80 @@
+WF-2026-03 ce min=20.0 buf=8.0 tp=opposite_liquidity ext=False hold=10000 conservative slip=1
+FOLD 2026-03 train 178/216
+WF-2026-03 ce min=20.0 buf=8.0 tp=opposite_liquidity ext=True hold=12 conservative slip=1
+FOLD 2026-03 train 179/216
+WF-2026-03 ce min=20.0 buf=8.0 tp=opposite_liquidity ext=True hold=24 conservative slip=1
+FOLD 2026-03 train 180/216
+WF-2026-03 ce min=20.0 buf=8.0 tp=opposite_liquidity ext=True hold=10000 conservative slip=1
+FOLD 2026-03 train 181/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=2R ext=False hold=12 conservative slip=1
+FOLD 2026-03 train 182/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=2R ext=False hold=24 conservative slip=1
+FOLD 2026-03 train 183/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=2R ext=False hold=10000 conservative slip=1
+FOLD 2026-03 train 184/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=2R ext=True hold=12 conservative slip=1
+FOLD 2026-03 train 185/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=2R ext=True hold=24 conservative slip=1
+FOLD 2026-03 train 186/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=2R ext=True hold=10000 conservative slip=1
+FOLD 2026-03 train 187/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=opposite_liquidity ext=False hold=12 conservative slip=1
+FOLD 2026-03 train 188/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=opposite_liquidity ext=False hold=24 conservative slip=1
+FOLD 2026-03 train 189/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=opposite_liquidity ext=False hold=10000 conservative slip=1
+FOLD 2026-03 train 190/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=opposite_liquidity ext=True hold=12 conservative slip=1
+FOLD 2026-03 train 191/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=opposite_liquidity ext=True hold=24 conservative slip=1
+FOLD 2026-03 train 192/216
+WF-2026-03 ce min=30.0 buf=3.0 tp=opposite_liquidity ext=True hold=10000 conservative slip=1
+FOLD 2026-03 train 193/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=2R ext=False hold=12 conservative slip=1
+FOLD 2026-03 train 194/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=2R ext=False hold=24 conservative slip=1
+FOLD 2026-03 train 195/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=2R ext=False hold=10000 conservative slip=1
+FOLD 2026-03 train 196/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=2R ext=True hold=12 conservative slip=1
+FOLD 2026-03 train 197/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=2R ext=True hold=24 conservative slip=1
+FOLD 2026-03 train 198/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=2R ext=True hold=10000 conservative slip=1
+FOLD 2026-03 train 199/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=opposite_liquidity ext=False hold=12 conservative slip=1
+FOLD 2026-03 train 200/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=opposite_liquidity ext=False hold=24 conservative slip=1
+FOLD 2026-03 train 201/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=opposite_liquidity ext=False hold=10000 conservative slip=1
+FOLD 2026-03 train 202/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=opposite_liquidity ext=True hold=12 conservative slip=1
+FOLD 2026-03 train 203/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=opposite_liquidity ext=True hold=24 conservative slip=1
+FOLD 2026-03 train 204/216
+WF-2026-03 ce min=30.0 buf=5.0 tp=opposite_liquidity ext=True hold=10000 conservative slip=1
+FOLD 2026-03 train 205/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=2R ext=False hold=12 conservative slip=1
+FOLD 2026-03 train 206/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=2R ext=False hold=24 conservative slip=1
+FOLD 2026-03 train 207/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=2R ext=False hold=10000 conservative slip=1
+FOLD 2026-03 train 208/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=2R ext=True hold=12 conservative slip=1
+FOLD 2026-03 train 209/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=2R ext=True hold=24 conservative slip=1
+FOLD 2026-03 train 210/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=2R ext=True hold=10000 conservative slip=1
+FOLD 2026-03 train 211/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=opposite_liquidity ext=False hold=12 conservative slip=1
+FOLD 2026-03 train 212/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=opposite_liquidity ext=False hold=24 conservative slip=1
+FOLD 2026-03 train 213/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=opposite_liquidity ext=False hold=10000 conservative slip=1
+FOLD 2026-03 train 214/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=opposite_liquidity ext=True hold=12 conservative slip=1
+FOLD 2026-03 train 215/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=opposite_liquidity ext=True hold=24 conservative slip=1
+FOLD 2026-03 train 216/216
+WF-2026-03 ce min=30.0 buf=8.0 tp=opposite_liquidity ext=True hold=10000 conservative slip=1
+verdict no_go
