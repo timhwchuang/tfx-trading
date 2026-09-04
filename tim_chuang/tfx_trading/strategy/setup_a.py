@@ -4,6 +4,7 @@ Day-session elect is a dead end on the IS tape (nested unique 17 < 30;
 impulse FVG same+next = 0). Do not add CHoCH/impulse gates to grow sample,
 and do not open a second-round Phase 4 grid.
 See docs/phase4_round2_2026-09-04/CLOSED.md.
+Next measurement is day-session ORB: docs/orb_day_2026-09-04/README.md.
 """
 
 from __future__ import annotations

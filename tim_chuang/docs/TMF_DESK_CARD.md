@@ -1,7 +1,9 @@
 # 微台 desk card（寫 `decide()` 之前）
 
 > Setup A / A′ 日盤 elect **這條路不通**：[phase4_round2_2026-09-04/CLOSED.md](phase4_round2_2026-09-04/CLOSED.md)。
+> 下一條測量是日盤 ORB：[orb_day_2026-09-04/README.md](orb_day_2026-09-04/README.md)。
 > 本文仍是下一條 setup 的尺子，不是再開 A′ grid 的許可。
+> ORB 組框用時鐘 **08:46–09:00**，不要用 `session_kind` 過濾 1m；開盤窗數字仍對齊 08:50–09:15，**不改** `session_kind`。
 
 > 基礎功不是再背 SMC 名詞。合約尺度、費用、時段、成交假設要能不查就講得出來。
 > 缺這層，grid 再漂亮也會寫出 3/5/8。
