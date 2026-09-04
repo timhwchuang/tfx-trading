@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import sys
+from collections.abc import Callable
 from dataclasses import replace
 from datetime import date, datetime
 from pathlib import Path
@@ -40,9 +41,9 @@ from tfx_trading.backtest.ledger import BacktestResult, RunMeta, resolve_git_has
 from tfx_trading.bar_reader import BarReader
 from tfx_trading.calendar import TradeCalendar
 from tfx_trading.indicators.fvg import Fvg, FvgTracker
-from tfx_trading.indicators.fvg import compute as _fvg_compute
+from tfx_trading.indicators.fvg import compute as default_fvg_compute
 from tfx_trading.indicators.smc import SmcLevels, SmcTracker
-from tfx_trading.indicators.smc import compute as _smc_compute
+from tfx_trading.indicators.smc import compute as default_smc_compute
 from tfx_trading.kbar import KBar
 from tfx_trading.strategy.protocol import DecisionContext
 from tfx_trading.strategy.setup_a import (
@@ -59,14 +60,15 @@ _DEFAULT_KBARS = Path(__file__).resolve().parent.parent / "kbars_data"
 _FILL_MODES: tuple[FillMode, ...] = ("conservative", "optimistic")
 _SLIPPAGE_TICKS: tuple[int, ...] = (0, 1, 2, 3)
 IndicatorCache = dict[tuple[datetime, int], tuple[SmcLevels, list[Fvg]]]
-
-# Backward-compatible symbols used by existing tests/bench scripts.
-smc_compute = _smc_compute
-fvg_compute = _fvg_compute
+SmcCompute = Callable[[list[KBar]], SmcLevels]
+FvgCompute = Callable[[list[KBar]], list[Fvg]]
 
 
 class CachedSetupA:
     """SetupA.decide with shared SMC/FVG cache and option-A warmup.
+
+    Production default uses incremental trackers. Tests inject ``smc_compute``
+    / ``fvg_compute`` (e.g. ``compute_from_scratch`` or a stub) explicitly.
 
     Cache values are stripped to what ``_evaluate`` actually reads: ``swings``
     is emptied and filled FVGs are dropped. Both grow O(prefix) per entry
@@ -82,32 +84,40 @@ class CachedSetupA:
         calendar: TradeCalendar,
         cache: IndicatorCache,
         window_start: datetime,
+        *,
+        smc_compute: SmcCompute | None = None,
+        fvg_compute: FvgCompute | None = None,
     ) -> None:
         self._params = params
         self._calendar = calendar
         self._cache = cache
         self._window_start = window_start
-        self._tape: list[KBar] = []
+        self._smc_compute = smc_compute
+        self._fvg_compute = fvg_compute
+        self._n = 0
+        self._last_ts: datetime | None = None
         self._smc_tracker = SmcTracker()
         self._fvg_tracker = FvgTracker(min_points=0.0)
 
     def _rebuild(self, bars: list[KBar]) -> None:
-        self._tape = list(bars)
         self._smc_tracker = SmcTracker()
         self._fvg_tracker = FvgTracker(min_points=0.0)
-        self._smc_tracker.extend(self._tape)
-        self._fvg_tracker.extend(self._tape)
+        self._smc_tracker.extend(bars)
+        self._fvg_tracker.extend(bars)
+        self._n = len(bars)
+        self._last_ts = bars[-1].timestamp if bars else None
 
     def _advance(self, bars: list[KBar]) -> None:
-        if not self._tape:
+        if self._n == 0:
             self._rebuild(bars)
             return
-        prefix_len = len(self._tape)
-        if prefix_len <= len(bars) and self._tape == bars[:prefix_len]:
-            for bar in bars[prefix_len:]:
-                self._tape.append(bar)
+        # Same spirit as the cache key (last_ts, len): O(1), not a full prefix compare.
+        if self._n <= len(bars) and self._last_ts == bars[self._n - 1].timestamp:
+            for bar in bars[self._n :]:
                 self._smc_tracker.push(bar)
                 self._fvg_tracker.push(bar)
+            self._n = len(bars)
+            self._last_ts = bars[-1].timestamp if bars else None
             return
         self._rebuild(bars)
 
@@ -119,13 +129,15 @@ class CachedSetupA:
         bars = list(ctx.bars_5m)
         key = (bars[-1].timestamp, len(bars)) if bars else (ctx.bar_1m.timestamp, 0)
         if key not in self._cache:
-            if smc_compute is _smc_compute and fvg_compute is _fvg_compute:
+            if self._smc_compute is None and self._fvg_compute is None:
                 self._advance(bars)
                 smc = replace(self._smc_tracker.snapshot(), swings=[])
                 live = [f for f in self._fvg_tracker.snapshot() if f.state != "filled"]
             else:
-                smc = replace(smc_compute(bars), swings=[])
-                live = [f for f in fvg_compute(bars, min_points=0.0) if f.state != "filled"]
+                smc_fn = self._smc_compute if self._smc_compute is not None else default_smc_compute
+                fvg_fn = self._fvg_compute if self._fvg_compute is not None else default_fvg_compute
+                smc = replace(smc_fn(bars), swings=[])
+                live = [f for f in fvg_fn(bars) if f.state != "filled"]
             self._cache[key] = (smc, live)
         smc, fvgs = self._cache[key]
         return _evaluate(smc, fvgs, ctx, self._params, self._calendar)

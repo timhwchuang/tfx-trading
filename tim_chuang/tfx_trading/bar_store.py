@@ -20,6 +20,8 @@ def _n_min_close(ts: datetime, n: int) -> datetime:
     return ts + timedelta(minutes=n - remainder)
 
 
+# Unbounded is fine for a backtest tape (~100MB over 12 months). Phase 5
+# long-lived live processes should revisit a bounded cache / eviction.
 @lru_cache(maxsize=None)
 def session_kind(ts: datetime) -> SessionKind | None:
     """日盤 08:50～13:45；夜盤 15:05～05:00（含跨午夜）。非盤中則 None。"""
@@ -31,6 +33,7 @@ def session_kind(ts: datetime) -> SessionKind | None:
     return None
 
 
+# See session_kind: unbounded cache is a backtest choice, not a live contract.
 @lru_cache(maxsize=None)
 def session_key(ts: datetime) -> tuple[date, SessionKind] | None:
     """
