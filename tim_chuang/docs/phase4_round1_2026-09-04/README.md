@@ -25,13 +25,17 @@ cd tim_chuang
   --out <out> --seed 42
 ```
 
+## 產物狀態
+
+CSV／`gates.md`／blotter **已齊**（見 commit `3080d40`）。不是佔位目錄。
+
 ## 目錄
 
 - `sweep/` — 正式掃描輸出（`gates.md`、`manifest.json`、`grid.csv`、`walk_forward.csv`…）
 - `blotter/` — 事後單組重跑的成交明細與 `report.json`
 - `LESSONS.md` — 錯誤經驗／省思（給 reviewer）
 
-未納入 repo：完整 `run.log`／`rss.log`（過大）；僅留 `sweep/run_tail.log`。
+未納入 repo：完整 `run.log`／`rss.log`（過大）；僅留 `sweep/run_tail.txt`（完整 log 未入庫）。
 
 ## 跨工作區延續
 
