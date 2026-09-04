@@ -1,9 +1,12 @@
 # SMC 策略回測 → Live 對接 Roadmap
 
 > 來源:2026-09 review 討論(FVG 模組落地後的下一步);2026-09-02 依實務 review 補強;
-> 2026-09-04 第一輪 Phase 4 正式掃描 `no_go` 入檔。
+> 2026-09-04 第一輪 Phase 4 正式掃描 `no_go` 入檔;
+> 2026-09-04 獨立 review 後寫入 Setup A′（先改本文，尚未改策略 code）。
 > 用法:**一個 Phase 開一個 AI plan/chat**,把該 Phase 整段貼給 AI 當需求,完成後勾掉。
 > 規格衝突時以本文為基準;要改規則,先改本文再改 code。
+> 寫 `decide()` 之前先讀:[TMF_DESK_CARD.md](TMF_DESK_CARD.md)（合約尺子／費用點／時段生理）。
+> 沒做完 desk card 檢查清單,不准開 `SetupAParams`、不准開 grid。
 > 上游決策文件:[BAR_MULTI_TF_DECISIONS.md](BAR_MULTI_TF_DECISIONS.md)。
 
 ## 進度總覽
@@ -34,6 +37,7 @@
   (5m prefix `decide`;`fill_mode`;Broker 呼叫 `close_trade`;Ledger 只記帳。
   6 個月 < 5 分鐘用 `run()` + 空 `FixedTimeStrategy` + `BarReader` 手動驗,不進預設 pytest)
 - 策略 Setup A:`strategy/setup_a.py`(純 `decide`;日盤 sweep-reversal;engine 傳 `closed_trades`/`entry_ts`)
+- 寫 `decide()` 前的產品尺:[TMF_DESK_CARD.md](TMF_DESK_CARD.md)(合約／費用點／時段;IS 尺度卡在 `docs/phase4_round2_2026-09-04/census/`)
 
 ## 全域不變量(每個 Phase 都要遵守)
 
@@ -171,7 +175,8 @@
 4. **進場**:確認後,選最新的 bullish FVG,條件:
    `state in ("untouched", "mitigated")`、`size >= min_points`、
    `formed_at >= interact_ts`。限價掛 `top` 或 `ce`(參數,見 Phase 4 掃描)
-5. **停損**:sweep 低點 − buffer(參數),或 FVG `bottom` − buffer,取較近者為 v1 預設
+5. **停損**(v1 歷史,已證偽):sweep 低點 − buffer,或 FVG `bottom` − buffer,**取較近者**。
+   A′ 不再使用本條,見下文 Setup A′。
 6. **停利**:固定 R 倍數(預設 2R);對側流動性(session_high/pdh)當參數選項
 7. **風控**:
    - 一次一單;13:40 強制平倉;v1 只做日盤
@@ -253,24 +258,87 @@
   同根 1m 進場即掃常見
 - 漏斗:arm 後約 **92%** 死在 `no_sweep`;`require_external=True` → intents=0
 - Walk-forward 10 折皆 `insufficient_sample`(train 無任一格 ≥30 筆)
-- **解讀(給人類)**:進出場定義偏空泛;1m 可動很大(數百點量級),
+- **解讀(第一輪當下)**:進出場定義偏空泛;1m 可動很大(數百點量級),
   固定 3/5/8 buffer 尺度不足
+- **解讀修正(2026-09-04 獨立 review,以 blotter 重算)**:`no_sweep` 高是濾網本分,不是第一死因。
+  空單進 FVG `top` +「取較近者」把 R 寫死成 `stop_buffer`;來回費用 ~49 NT ≈ 5 點,3 點 2R 不是交易;
+  中位格 38 次 arm 只有 5 筆成交;216 格裡 `fill_mode` / `max_hold` / `require_external` 近乎空轉。
+  完整核對見 PR #7 review,不以本段第一輪解讀為 A′ 依據。
 
-**下一假設（尚未改 code）**
+**Setup A′（尚未改 code；取代上一節「下一假設」）**
 
-改規則先改本文;下列是待寫進 Setup A′／B 的方向,**尚未實作**:
+Phase 3 規則 1–7 維持 v1 歷史,對應第一輪 216 格。A′ 先改本文再改 `setup_a.py`。
+**禁止**為製造 `go` 降低 `MIN_IS_TRADES`;**禁止**停損晚一棒掛(同根 1m 停損優先維持全域不變量 3);
+**禁止**把 RSI／VWAP／profile／footprint 塞進同一張 A′ grid;
+**禁止**沒有尺度卡就把數字寫進 `GridSpec`。
+寫 `decide()` 之前的產品知識:[TMF_DESK_CARD.md](TMF_DESK_CARD.md)。
+基礎功不是再背 SMC 名詞:合約是尺子(1 點 = NT$10)、來回先換成點、日盤時段不是 24h 均質噪音、固定點數必須指回百分位、限價碰到≠成交、幾何先於掃描、射頻不夠是 `no_go`。沒做完 desk card 檢查清單不准開 `SetupAParams`。
 
-1. **進場定義收斂**:把「有效 sweep／FVG 互動」寫具體,先打 `no_sweep` 漏斗
-   (優先於加 RSI／VWAP)
-2. **波動感知風險**:停損／最小風險距離對費用地板與近期波動(例如 ATR)掛鉤;
-   檢討固定點 buffer grid
-3. **`entry_stopped` 政策**:風險≤費用地板則不進,或停損晚一棒掛——寫成明規則
-4. **`require_external`**:本輪視為已知死路;下一張 grid 不指望它救命
-   (可留參數但預設 false／移出主掃描)
-5. RSI／VWAP／profile／footprint:仍排在 A′ 進場收斂之後,各自獨立 Setup,
-   不塞進同一張超大 grid
+**尺度卡硬閘(開任何 grid 之前必須存在,每個數字能指回百分位)**
 
-**非目標**:ML 調參、組合多策略。
+同一段 IS(`2025-03-03`→`2025-11-06`, 194,149 根 1m)已量:
+[phase4_round2_2026-09-04/census/SCALE_CARD.md](phase4_round2_2026-09-04/census/SCALE_CARD.md)。
+三層**禁止混用**:
+
+| 層 | 這張 tape | 用途 |
+|---|---|---|
+| 費用地板 | 中位日盤收 ~22585 → 來回 **4.9 點**(價 23000 時 4.92 點 ≈ 49 NT) | R 低於此**不交易**(必要,不夠) |
+| 雜訊地板 | 日盤 1m P50=**10** P90=**23**(≥5 點佔 90%、≥3 點佔 98%);arm 窗 1m P50=10 P90=21;開盤 08:50–09:14 的 1m P50=19 P90=39;日盤 5m P50=**25** P90=55;Wilder ATR(14) 日盤 5m 串接 P50=**30** P90=48 | buffer、同根 1m 掃、min_r 至少跟這一層比 |
+| 結構距離 | join 後改 sweep 極值停:A′ R P50=**119**(多 162／空 105),最小 29 | 真正的停損;2R≈238,日盤高低 P50=**243** P90=421 — 很多 2R 會在 13:40 走不完 |
+
+時段生理(同一 tape,1m 振幅;開盤最肥但禁做,**可交易窗 09:15–10:30 最肥**):
+
+| 時段 | P50 | P90 |
+|---|---:|---:|
+| 08:50–09:15(禁做) | 19 | 39 |
+| 09:15–10:30 | 14 | 28 |
+| 11:00–13:00 | 8 | 16 |
+| 13:30–13:45 | 8 | 18 |
+| 夜盤 | 6 | 15 |
+
+v1 把三層壓成 `stop_buffer∈{3,5,8}`。那不是參數差一點,是停損比一根普通 1m 還小、比來回成本還小。
+A′ 修結構層之後,**不得**把 `min_r_points=15`(3× 費用)假裝成雜訊地板 — 15 < 5m 中位 25、< ATR 30、< 1m P90 21。
+`stop_buffer` 在 A′ 只是 sweep 外幾 tick 的墊片,主掃描不該再把它當風險模型來掃 3/5/8。
+
+執行順序(一次一個主軸;未完成不得跳):
+
+0. **指標普查 + 尺度卡(先於任何策略 diff)**  
+   普查:[phase4_round2_2026-09-04/census/](phase4_round2_2026-09-04/census/)(`census.json`、`FINDINGS.md`)。  
+   尺度卡:`python -m tfx_trading.backtest.scale_card`(同上目錄 `SCALE_CARD.md`)。  
+   結論:detector 有印;external 整段 0 筆;bias+sweep+event+FVG≥15 的 unique **17**(空 12／多 5);
+   12 筆空單 v1 的 R **全部** = 3;A′ 改 sweep 極值後 R 沒有任何一組 < 15。
+   下一步是停損幾何,不是放寬 sweep,也不是把 15 當「已懂微台」。
+
+1. **停損幾何**  
+   拿掉「取較近者」。停損 = sweep 極值 ± `stop_buffer`(墊片,不是 R)。
+   **禁止**進場在 FVG `top` 時用 FVG `top ± buffer` 當停損。A′ 停損不算 FVG 邊。
+   單元測試必須鎖死:空單 + `entry=top` +「取較近者」⇒ R == `stop_buffer`(v1 恆等式);
+   A′ 落地後該測試要改成 **R ≠ buffer**,停損在 sweep 極值。
+   `min_r_points`:只作費用殺閘(R ≤ 來回點數不 arm)。預設 15 是 3× 費用,**不是**雜訊地板,幾何改完後在這批 join 上幾乎不會觸發。
+
+2. **R 不夠不 arm**  
+   R ≤ 費用地板 → 不發 intent,記 `r_below_floor`。  
+   驗證:第一輪高頻格 8 筆時間戳、約 20 個交易日 smoke,`fill_mode=conservative`。
+   smoke 必須報:A′ R 分布、持倉是否 13:40 強平、2R 相對當日高低。不開 432 格。
+
+3. **`entry_stopped` 政策**  
+   R ≤ 費用地板則不進。**不要**停損晚一棒掛。同根進+停仍立刻停損。
+
+4. **進場收斂(普查 + smoke 之後才動)**  
+   確認改為 **CHoCH**。FVG 落在 sweep impulse。先報漏斗與限價成交率。
+   普查顯示 CHoCH vs 任意 event 幾乎一樣,別指望這刀變出 30 筆。
+
+5. **第二輪主掃描(A′ code + 尺度卡 + smoke 過了才跑)**  
+   - 只跑 `conservative`;拿掉 `max_hold` 與 `require_external`
+   - `stop_buffer` **不是**主軸(墊片最多 0/1×tick,不掃 3/5/8 當風險)
+   - 主軸:進場 top/ce、FVG size、結構停損是否再加 k×ATR(k 的格子必須寫在尺度卡上)、TP 是 1R／對側／當日極值 — 每一維先回答「在改什麼?」
+   - 報告拆多/空與多頭/震盪
+   - `MIN_IS_TRADES=30` 不變;17 個 unique join 本來就選不出 plateau,`no_go` 可以,「R 比 tick 雜訊小」不行
+   - 滑價敏感度只對 elected 跑
+
+RSI／VWAP／profile／footprint:仍排在 A′ 進場站穩之後,各自獨立 Setup B。
+
+**非目標**:ML 調參、組合多策略、新開一份 roadmap、Phase 5。
 
 ---
 
@@ -323,20 +391,23 @@
 
 ## 附錄:開放參數一覽(Phase 4 掃描對象)
 
+第一輪(v1)掃過的維度保留作歷史。A′ 主掃描只動標了「A′ 主掃」的列。
+
 | 參數 | 預設 | 說明 |
 |---|---|---|
-| `entry_price` | `top` | FVG 進場價:`top` 或 `ce` |
-| `min_points` | 20.0 | FVG 最小 size(比照 SMC MIN_POINTS 起手) |
-| `stop_buffer` | 5.0 | 停損 buffer(點) |
-| `take_profit` | `2R` | `2R` 或 `opposite_liquidity` |
-| `require_external` | False | 確認 event 是否要求 `scope == "external"` |
+| `entry_price` | `top` | FVG 進場價:`top` 或 `ce`(A′ 主掃) |
+| `min_points` | 20.0 | FVG 最小 size(A′ 主掃) |
+| `stop_buffer` | 5.0 | v1 當風險掃 3/5/8(已證偽)。A′ 只是 sweep 極值外的墊片,**不是主掃維度** |
+| `min_r_points` | 15.0 | 費用殺閘(約 3× 來回),**不是**雜訊地板。雜訊見尺度卡 1m P90=21 / 5m ATR≈30 |
+| `take_profit` | `2R` | `2R` 或 `opposite_liquidity`(A′ 主掃) |
+| `require_external` | False | v1 掃描維度;A′ **移出主掃描**(detector 上 external 與 sweep 未共存) |
 | `max_daily_losses` | 2 | 日虧停手次數 |
 | `max_daily_loss_nt` | (config) | 日虧停手金額(NT$),與次數雙軌先到先停 |
 | `flatten_time` | 13:40 | 日盤強平時間 |
 | `no_trade_before` | 09:15 | 開盤禁做窗,此前的 5m close 不進場 |
-| `max_hold_bars` | (大值) | Time stop:持倉超過 N 根 5m 未觸 SL/TP → flatten |
-| `fill_mode` | `conservative` | 限價成交模式:`optimistic`(touch)/ `conservative`(trade-through) |
-| `slippage_ticks` | 1 | 市價/停損單滑價(tick);敏感度掃 0–3 |
+| `max_hold_bars` | (大值) | Time stop;v1 掃過、本輪零差異。A′ **移出主掃描**(參數可留、預設關閉) |
+| `fill_mode` | `conservative` | A′ 主掃描只跑 conservative;optimistic 僅診斷 |
+| `slippage_ticks` | 1 | 市價/停損單滑價(tick);敏感度只對 elected 掃 0–3 |
 | `flatten_slippage_ticks` | 2 | 強平(市價性質)滑價,獨立於一般滑價 |
 | `skip_settlement_day` | True | 結算日整天不交易 |
 
@@ -346,6 +417,8 @@
 
 **回測可信度(Phase 2/4)**
 
+- [ ] 尺度卡 + [TMF_DESK_CARD.md](TMF_DESK_CARD.md) 檢查清單做完;主掃每個維度能指回百分位
+- [ ] 單元測試:空單 + entry=top 不得再讓 R 恆等於 `stop_buffer`(A′ 落地後 xfail 必須轉正)
 - [ ] `conservative` fill_mode 下 OOS 期望值 > 0,且相對 in-sample 衰退 < 50%
 - [ ] 滑價 2 tick 壓力下期望值仍 > 0
 - [ ] 候選參數是 plateau 不是孤峰(鄰近參數組合皆獲利)

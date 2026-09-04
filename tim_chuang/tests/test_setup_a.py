@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, time, timedelta
 
+import pytest
+
 from tfx_trading.backtest.config import BacktestConfig
 from tfx_trading.backtest.engine import run
 from tfx_trading.calendar import TradeCalendar
@@ -565,6 +567,51 @@ def test_short_mirror() -> None:
     assert intents[0].price == 20050.0
     assert intents[1].side == "long"
     assert intents[1].expire_at is None
+
+
+def test_v1_short_entry_at_top_risk_equals_stop_buffer() -> None:
+    """v1 identity: short + FVG top + closer-of stops ⇒ R == stop_buffer."""
+    params = SetupAParams(entry_price="top", stop_buffer=3.0)
+    sweep = SWEEP_TS
+    smc = _smc(
+        dealing=_range("premium"),
+        pdh=_level("pdh", 20100.0, "swept", sweep),
+        events=[_event(sweep, direction="bearish")],
+    )
+    fvg = _fvg("bearish", top=20050.0, bottom=19980.0, formed_at=FVG_TS)
+    bars = (
+        _k(sweep, 20120.0, 20040.0, 20060.0),
+        _k(NOW, 20080.0, 20020.0, 20040.0),
+    )
+    intents = _run(smc, [fvg], _ctx(bars_5m=bars), params)
+    entry = intents[0].price
+    stop = intents[1].price
+    assert entry == 20050.0
+    assert stop is not None
+    assert stop - entry == params.stop_buffer
+
+
+@pytest.mark.xfail(strict=True, reason="A-prime stop geometry not in setup_a.py yet")
+def test_a_prime_short_stop_is_sweep_extreme_not_fvg_top_buffer() -> None:
+    params = SetupAParams(entry_price="top", stop_buffer=3.0)
+    sweep = SWEEP_TS
+    smc = _smc(
+        dealing=_range("premium"),
+        pdh=_level("pdh", 20100.0, "swept", sweep),
+        events=[_event(sweep, direction="bearish")],
+    )
+    fvg = _fvg("bearish", top=20050.0, bottom=19980.0, formed_at=FVG_TS)
+    sweep_high = 20120.0
+    bars = (
+        _k(sweep, sweep_high, 20040.0, 20060.0),
+        _k(NOW, 20080.0, 20020.0, 20040.0),
+    )
+    intents = _run(smc, [fvg], _ctx(bars_5m=bars), params)
+    entry = intents[0].price
+    stop = intents[1].price
+    assert entry is not None and stop is not None
+    assert stop == sweep_high + params.stop_buffer
+    assert stop - entry != params.stop_buffer
 
 
 def test_night_leftover_flatten_1505_and_0200() -> None:

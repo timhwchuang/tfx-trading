@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "git_hash": "14c56c2fc8aa19363e50cc90bd12a60a62a8c34b",
+    "start": "2025-03-03",
+    "end": "2025-11-06",
+    "n_1m": 194149,
+    "n_5m": 38552
+  },
+  "totals": {
+    "n_5m": 38552,
+    "n_day_5m": 10176,
+    "n_arm_window_5m": 8559,
+    "n_settlement_day_5m": 480,
+    "n_day_sessions": 171,
+    "sweep_onset": {
+      "pdh": 50,
+      "pdl": 48,
+      "prev_night_high": 52,
+      "prev_night_low": 42
+    },
+    "taken_onset": {
+      "pdh": 187,
+      "pdl": 131,
+      "prev_night_high": 185,
+      "prev_night_low": 125
+    },
+    "live_swept_bars": {
+      "pdh": 836,
+      "pdl": 1005,
+      "prev_night_high": 956,
+      "prev_night_low": 1041
+    },
+    "live_taken_bars": {
+      "pdh": 14781,
+      "pdl": 11055,
+      "prev_night_high": 18027,
+      "prev_night_low": 12336
+    },
+    "events_new": {
+      "choch|bullish|internal": 752,
+      "choch|bearish|internal": 770,
+      "bos|bearish|internal": 510,
+      "bos|bullish|internal": 677
+    },
+    "fvg_formed": {
+      "ge_15": 1354,
+      "ge_20": 880,
+      "ge_30": 411,
+      "any": 7558
+    },
+    "arm_window": {
+      "bars": 8559,
+      "long_swept": 243,
+      "short_swept": 272,
+      "long_any_event": 87,
+      "short_any_event": 166,
+      "long_choch": 87,
+      "short_choch": 155,
+      "long_external": 0,
+      "short_external": 0,
+      "long_fvg15": 52,
+      "short_fvg15": 104,
+      "long_fvg20": 45,
+      "short_fvg20": 89,
+      "long_fvg30": 29,
+      "short_fvg30": 63
+    },
+    "unique_sweeps": {
+      "short_swept": 30,
+      "short_any_event": 17,
+      "short_choch": 16,
+      "short_fvg15": 12,
+      "short_fvg20": 11,
+      "long_swept": 21,
+      "long_any_event": 10,
+      "long_choch": 10,
+      "short_fvg30": 8,
+      "long_fvg15": 7,
+      "long_fvg20": 6,
+      "long_fvg30": 3
+    }
+  }
+}

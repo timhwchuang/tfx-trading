@@ -2,6 +2,10 @@
 
 > 本輪證偽的是「現行 Setup A 猜測／這張 grid」，不是「程式交易沒救」。
 > 改規則須先改 `ROADMAP_SMC_BACKTEST.md`，再改 code。
+>
+> **解讀以 roadmap Setup A′ 與 [TMF_DESK_CARD.md](../../TMF_DESK_CARD.md) 為準。**
+> 下文 §3「1m 可動數百點」過大（日盤高低才是數百點；1m P50/P90 = 10/23，見尺度卡）。
+> §5「停損晚一棒掛」已作廢。空單第一死因是 R 恆等於 `stop_buffer`，不是 `no_sweep`。
 
 ## 1. 結果一句話
 

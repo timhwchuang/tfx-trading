@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "git_hash": "14c56c2fc8aa19363e50cc90bd12a60a62a8c34b",
+    "start": "2025-03-03",
+    "end": "2025-11-06"
+  },
+  "card": {
+    "n_1m": 194149,
+    "median_day_close": 22585.0,
+    "round_trip_pts": 4.9,
+    "day_1m": {
+      "n": 50429,
+      "p50": 10.0,
+      "p90": 23.0,
+      "share_ge_3": 0.9797,
+      "share_ge_5": 0.8987,
+      "share_ge_10": 0.5326,
+      "share_ge_15": 0.2795
+    },
+    "arm_1m": {
+      "n": 45131,
+      "p50": 10.0,
+      "p90": 21.0,
+      "share_ge_3": 0.9791,
+      "share_ge_5": 0.8923,
+      "share_ge_10": 0.5037,
+      "share_ge_15": 0.246
+    },
+    "open_1m": {
+      "n": 4275,
+      "p50": 19.0,
+      "p90": 39.0,
+      "share_ge_3": 0.9883,
+      "share_ge_5": 0.9848,
+      "share_ge_10": 0.8828,
+      "share_ge_15": 0.6699
+    },
+    "day_5m": {
+      "n": 10176,
+      "p50": 25.0,
+      "p90": 55.0,
+      "share_ge_3": 0.9965,
+      "share_ge_5": 0.9959,
+      "share_ge_10": 0.9615,
+      "share_ge_15": 0.8222
+    },
+    "atr14_day_5m_chained": {
+      "n": 10162,
+      "p50": 30.25,
+      "p90": 48.15,
+      "share_ge_3": 1.0,
+      "share_ge_5": 1.0,
+      "share_ge_10": 1.0,
+      "share_ge_15": 0.9925
+    },
+    "atr14_day_5m_reset": {
+      "n": 171,
+      "p50": 21.26,
+      "p90": 30.8,
+      "share_ge_3": 0.9883,
+      "share_ge_5": 0.9883,
+      "share_ge_10": 0.9883,
+      "share_ge_15": 0.9649
+    },
+    "day_hl_1m": {
+      "n": 171,
+      "p50": 243.0,
+      "p90": 421.0,
+      "share_ge_3": 0.9883,
+      "share_ge_5": 0.9883,
+      "share_ge_10": 0.9883,
+      "share_ge_15": 0.9883
+    },
+    "session_1m": {
+      "open_0850_0915": {
+        "n": 4275,
+        "p50": 19.0,
+        "p90": 39.0,
+        "share_ge_3": 0.9883,
+        "share_ge_5": 0.9848,
+        "share_ge_10": 0.8828,
+        "share_ge_15": 0.6699
+      },
+      "am_0915_1030": {
+        "n": 12807,
+        "p50": 14.0,
+        "p90": 28.0,
+        "share_ge_3": 0.9896,
+        "share_ge_5": 0.9836,
+        "share_ge_10": 0.8124,
+        "share_ge_15": 0.4955
+      },
+      "mid_1100_1300": {
+        "n": 20409,
+        "p50": 8.0,
+        "p90": 16.0,
+        "share_ge_3": 0.9726,
+        "share_ge_5": 0.8399,
+        "share_ge_10": 0.3487,
+        "share_ge_15": 0.1247
+      },
+      "close_1330_1345": {
+        "n": 2724,
+        "p50": 8.0,
+        "p90": 18.0,
+        "share_ge_3": 0.9728,
+        "share_ge_5": 0.844,
+        "share_ge_10": 0.3785,
+        "share_ge_15": 0.1667
+      },
+      "night": {
+        "n": 142325,
+        "p50": 6.0,
+        "p90": 15.0,
+        "share_ge_3": 0.8354,
+        "share_ge_5": 0.6034,
+        "share_ge_10": 0.2463,
+        "share_ge_15": 0.1126
+      }
+    },
+    "join_r": {
+      "n": 17,
+      "n_short": 12,
+      "n_long": 5,
+      "n_short_v1_r_eq_buffer": 12,
+      "v1_r_p50": 3.0,
+      "a_prime_r_p50": 119.0,
+      "a_prime_r_min": 29.0,
+      "a_prime_long_p50": 162.0,
+      "a_prime_short_p50": 105.0,
+      "a_prime_below_min_r15": 0
+    },
+    "notes": {
+      "atr14_day_5m_chained": "Wilder ATR(14) on concatenated day 5m (overnight gap in TR)",
+      "atr14_day_5m_reset": "Wilder ATR(14) last value of each day session (no overnight TR)",
+      "join_r": "First (date, side, interact_ts) with bias+sweep+any event+FVG>=15; v1 vs A' sweep-extreme stop, buffer=3"
+    }
+  }
+}
