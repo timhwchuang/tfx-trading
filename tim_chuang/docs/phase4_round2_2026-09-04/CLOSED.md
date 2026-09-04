@@ -13,10 +13,10 @@
 
 ## 若你是下一個 agent
 
-1. 讀完本文就停。不要開 A′ Step 3b plan，不要改 `preferred_event` / FVG 窗去養 n。
+1. 讀完本文就停 **A′**。不要開 Step 3b plan，不要改 `preferred_event` / FVG 窗去養 n。下一刀見第 4 點。
 2. 不要跑第二輪 `python -m tfx_trading.backtest.sweep`。第一輪 `no_go` 產物在 `docs/phase4_round1_2026-09-04/`，那是複核檔，不是許可再掃。
 3. `setup_a.py` 的 sweep 極值停損與 `min_r_points=15` 留著；那是幾何與費用，不是 elect。
-4. 下一條若要做：獨立 **Setup B（`taken` 延續）**，先日盤普查，先改 roadmap 再開 plan。不是把 A′ 接到夜盤 15:05。
+4. 下一刀是日盤 **ORB**（測量，不是 elect）：[orb_day_2026-09-04/README.md](../orb_day_2026-09-04/README.md)。不是 A′ 接到夜盤 15:05。Setup B（`taken` 延續）仍停放。
 
 ## 證據
 
