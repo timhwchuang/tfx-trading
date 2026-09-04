@@ -18,7 +18,7 @@
 
 - 1m SSOT + 嚴格 resample(缺分鐘整根丟):`bar_store.py`
 - 資料讀取:`bar_reader.py`(每日 CSV `TMFR1_kbars_YYYY-MM-DD.csv`)
-- 指標(皆為批次 `compute()`、frozen dataclass、無 lookahead):
+- 指標(`compute()` 可增量、frozen dataclass、無 lookahead;等價不變量見全域 #6):
   - `indicators/sma.py`:MA5/20/60
   - `indicators/smc.py`:swings、PDH/PDL、prev night H/L、session H/L、
     interact 三態(untouched/swept/taken)、dealing range(premium/discount)、BOS/CHoCH
@@ -51,7 +51,8 @@
 5. **touch ≠ fill**:限價單「碰到價位」不保證成交,且有系統性偏差——
    最賺的單(碰到就反彈)最容易沒排到,最虧的單(直接穿過)100% 成交。
    所有成交假設都要往保守方向偏。
-6. 指標維持批次全量重算(5m 頻率跑得動);增量化是之後的優化,不在本 roadmap。
+6. 指標**可以增量**,但必須保留 `compute_from_scratch` oracle 與逐 prefix 等價測試。
+   `compute()` 輸出與全量重算位元一致是不變量;lookahead 仍是 bug。
 7. 風格比照現有 code:frozen dataclass、pytest、ruff、mypy。
 
 ---
@@ -124,7 +125,8 @@
 - `tfx_trading/backtest/engine.py`:主迴圈
   - 逐根走 1m;每到合法 5m close(`is_session_5m_close`)→ 組出截至該刻的 5m bars
     → 呼叫 Strategy 的 `decide` → 把 Intent 交給 Broker
-  - 效能:全量重算可接受;若太慢,允許在引擎層快取 5m bars 的 list(不改指標)
+  - 效能:指標可增量(見全域不變量 6);引擎層仍可快取 5m prefix list。
+    Phase 4 `CachedSetupA` 用增量 tracker,不再假設批次永遠重算。
 - `tfx_trading/backtest/broker.py`:模擬成交
   - **限價單雙模式 `fill_mode`(config,兩種都要實作)**:
     - `optimistic`:之後的 1m `low <= 限價` 即成交(賣方對稱)
