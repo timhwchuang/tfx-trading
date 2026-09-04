@@ -83,9 +83,14 @@ does not change the identity: shorts pay `stop_buffer`, not sweep-reversal.
 - Chained ATR 30/48 vs an earlier 27/47 quote is the same order of magnitude,
   not a 3-point stop.
 
-## Next (roadmap Setup A′ step 3)
+## Next (roadmap Setup A′ step 3b)
 
-Cost-floor kill is in `setup_a.py` (`_below_cost_floor` / `min_r_points=15`).
-Smoke (not go/no-go): [../smoke/SMOKE.md](../smoke/SMOKE.md).
-Next: entry convergence (CHoCH; FVG on the sweep impulse). Report funnel and
-limit fill rate before touching a second-round grid. No 432-cell grid.
+Funnel (not go/no-go): [../funnel/FUNNEL.md](../funnel/FUNNEL.md).
+Nested any-event+FVG≥15 is 17; nested CHoCH+FVG≥15 is computed (16 on this tape).
+CHoCH barely moves unique. The 3b confirmation number is same+next FVG and
+shadowed impulse (0/0/17 later, shadowed 0): a same-session impulse gate would
+drop these joins to zero first. Limit fill vs expire/cancel is the other
+number that can still move. CHoCH / impulse are **not** in `decide()` yet.
+If 3b changes the impulse window, `next_5m_after` stays inside `session_key`
+(day 13:45 does not take night 15:05). Read the funnel before changing
+confirmation. No 432-cell grid.

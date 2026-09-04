@@ -10,6 +10,7 @@
 - PR #7 已合進 `main`。獨立 review 修正了死因排序；細則寫進 roadmap Setup A′。
 - `setup_a.py` 停損幾何與費用殺閘已落地（sweep 極值 ± 墊片;`min_r_points=15` 不 arm）;**Phase 4 checkbox 仍不勾**;不上 live。
 - 費用殺閘 + conservative smoke **已完成**。載入 `2025-05-07`→`2025-09-16`(不是 20 個孤立日)。產物:`docs/phase4_round2_2026-09-04/smoke/`。沒有尺度卡不准開 grid。
+- 漏斗 + conservative 成交率 **已報**（IS `2025-03-03`→`2025-11-06`）。產物:`docs/phase4_round2_2026-09-04/funnel/`。CHoCH / impulse **尚未**改 `decide()`。
 
 ## 請讀什麼
 
@@ -18,6 +19,7 @@
 3. 本目錄 `LESSONS.md` + `sweep/` + `blotter/` — 第一輪事實
 4. `docs/phase4_round2_2026-09-04/census/` — 普查 + 尺度卡
 5. `docs/phase4_round2_2026-09-04/smoke/` — Step 2 一格 conservative smoke(**不是 go/no-go**)
+6. `docs/phase4_round2_2026-09-04/funnel/` — Step 3a 漏斗 + 限價成交率(**不是 go/no-go**;CHoCH 尚未改 `decide()`)
 
 **故意不做的事：** 不降低 `MIN_IS_TRADES`；不停損晚一棒掛；不把 RSI／VWAP 塞進 A′ grid；不上 live／不勾 Phase 5；**不准把 `min_r=15` 或 `buffer∈{3,5,8}` 當成已量過的微台尺度**。
 
@@ -53,11 +55,20 @@ cd tim_chuang
 .venv/bin/python -m tfx_trading.backtest.smoke
 ```
 
-產物:`docs/phase4_round2_2026-09-04/smoke/`。**不是 go/no-go**;n≪30 是預期。下一步仍是進場收斂(漏斗看完才動)。
+產物:`docs/phase4_round2_2026-09-04/smoke/`。**不是 go/no-go**;n≪30 是預期。
 
-### Step 3 — 進場收斂（漏斗與成交率看完才動）
+### Step 3 — 進場收斂（漏斗已報；CHoCH / impulse 尚未改 `decide()`）
 
-確認改 CHoCH；FVG 落在 sweep impulse。然後才談第二輪主掃描
+漏斗 + conservative 成交率:[FUNNEL.md](../phase4_round2_2026-09-04/funnel/FUNNEL.md)。
+重跑:
+
+```bash
+cd tim_chuang
+.venv/bin/python -m tfx_trading.backtest.funnel
+```
+
+確認改 CHoCH；FVG 落在 sweep impulse。**看完漏斗才動 `decide()`。** 若改 impulse 窗，
+`next_5m_after` 已限制在同一 `session_key`（日盤 13:45 不是夜盤 15:05）。然後才談第二輪主掃描
 （conservative only；拿掉 `max_hold` 與 `require_external`；多空 × 多頭／震盪分開報）。
 
 ### Step 4 — 再跑一輪 Phase 4
@@ -71,7 +82,7 @@ A′ 站穩後再獨立開 Setup B。禁止與 A′ 全交叉。
 ## 給跨工作區 agent 的硬約束
 
 1. 只動 `tim_chuang/`；當 `apps/`、`legacy/`、`tick_cache/`、根 `docs/AGENTS.md` 不存在。
-2. 改規則 **先改 roadmap 再改 code**。Setup A′ 停損幾何與費用殺閘已落地;策略下一刀是 Step 3(進場收斂;漏斗看完才動)。
+2. 改規則 **先改 roadmap 再改 code**。Setup A′ 停損幾何、費用殺閘、漏斗已落地;策略下一刀是 Step 3b(CHoCH / impulse;看完 FUNNEL 才改 `decide()`)。
 3. 不要為了製造 `go` 而放寬硬閘或調參作弊。
 4. 不要把本目錄的 `no_go` 產物當成「可 live」證據。
 5. Python ≥ 3.14；長 tape 只用 CLI，不要塞進 pytest。
@@ -85,4 +96,5 @@ A′ 站穩後再獨立開 Setup B。禁止與 A′ 全交叉。
 - [x] 寫 `TMF_DESK_CARD.md`（合約／費用／時段；寫 `decide()` 前硬閘）
 - [x] 停損幾何：sweep 極值 ± 墊片（不是再掃 3/5/8 當 R）
 - [x] 費用殺閘 + 8 日 / `2025-05-07`→`2025-09-16` smoke(含 13:40 vs 2R)
+- [x] 漏斗 + conservative 成交率（CHoCH / impulse 尚未改 `decide()`）
 - [ ] 再跑正式 sweep，更新新一輪 `docs/phase4_round*_*/`

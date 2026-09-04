@@ -323,9 +323,10 @@ A′ 修結構層之後,**不得**把 `min_r_points=15`(3× 費用)假裝成雜�
 3. **`entry_stopped` 政策**  
    R ≤ 費用地板則不進。**不要**停損晚一棒掛。同根進+停仍立刻停損。
 
-4. **進場收斂(普查 + smoke 之後才動)**  
-   確認改為 **CHoCH**。FVG 落在 sweep impulse。先報漏斗與限價成交率。
-   普查顯示 CHoCH vs 任意 event 幾乎一樣,別指望這刀變出 30 筆。
+4. **進場收斂(普查 + smoke 之後才動;漏斗已報)**  
+   確認改為 **CHoCH**。FVG 落在 sweep impulse。先報漏斗與限價成交率。  
+   產物:[phase4_round2_2026-09-04/funnel/](phase4_round2_2026-09-04/funnel/)(`FUNNEL.md`、`funnel.json`)。**不是 go/no-go**。CHoCH / impulse **尚未**改 `decide()`。  
+   普查顯示 CHoCH vs 任意 event 幾乎一樣,別指望這刀變出 30 筆。漏斗:same+next FVG 才是 3b 切點;`next_5m_after` 同一 `session_key`。
 
 5. **第二輪主掃描(A′ code + 尺度卡 + smoke 過了才跑)**  
    - 只跑 `conservative`;拿掉 `max_hold` 與 `require_external`

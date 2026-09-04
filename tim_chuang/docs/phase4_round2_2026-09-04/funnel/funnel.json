@@ -1,0 +1,44 @@
+{
+  "git_hash": "57fb0b5096b2d7615aa0d18de737754f8494ba9e",
+  "start": "2025-03-03T08:46:00",
+  "end": "2025-11-06T23:59:00",
+  "n_1m": 194149,
+  "fill_mode": "conservative",
+  "cell": {
+    "entry_price": "top",
+    "min_points": 15.0,
+    "stop_buffer": 3.0,
+    "take_profit": "2R",
+    "require_external": false,
+    "min_r_points": 15.0,
+    "max_hold_bars": 10000
+  },
+  "detector": {
+    "n_nested_any": 17,
+    "n_nested_choch": 16,
+    "n_long_any": 5,
+    "n_short_any": 12,
+    "n_long_choch": 5,
+    "n_short_choch": 11,
+    "fvg_same": 0,
+    "fvg_next": 0,
+    "fvg_later": 17,
+    "shadowed_impulse": 0
+  },
+  "spells": {
+    "n_spells": 42,
+    "n_fills": 8,
+    "fill_rate": 0.19047619047619047,
+    "n_cancel_thesis": 32,
+    "n_unfilled_flatten": 2,
+    "n_still_open": 0,
+    "raw_arm_closes": 42
+  },
+  "fill_reasons": {
+    "entry_stopped": 0,
+    "stop": 3,
+    "target": 0,
+    "flatten": 5
+  },
+  "n_result_trades": 8
+}
