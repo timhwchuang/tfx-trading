@@ -83,9 +83,9 @@ does not change the identity: shorts pay `stop_buffer`, not sweep-reversal.
 - Chained ATR 30/48 vs an earlier 27/47 quote is the same order of magnitude,
   not a 3-point stop.
 
-## Next (roadmap Setup A′ step 2)
+## Next (roadmap Setup A′ step 3)
 
-Stop geometry is in `setup_a.py` (`_structural_stop`). Next: cost-floor kill
-(`min_r_points` / `r_below_floor`, still not implemented) + 8 timestamps /
-~20 days conservative smoke. Report A′ R, 13:40 flatten share vs 2R.
-No 432-cell grid.
+Cost-floor kill is in `setup_a.py` (`_below_cost_floor` / `min_r_points=15`).
+Smoke (not go/no-go): [../smoke/SMOKE.md](../smoke/SMOKE.md).
+Next: entry convergence (CHoCH; FVG on the sweep impulse). Report funnel and
+limit fill rate before touching a second-round grid. No 432-cell grid.

@@ -21,3 +21,4 @@ strategy:
   no_trade_before: "09:15"
   max_hold_bars: 10000
   skip_settlement_day: true
+  min_r_points: 15.0

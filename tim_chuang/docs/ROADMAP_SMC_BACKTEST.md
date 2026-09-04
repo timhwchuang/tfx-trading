@@ -2,7 +2,7 @@
 
 > 來源:2026-09 review 討論(FVG 模組落地後的下一步);2026-09-02 依實務 review 補強;
 > 2026-09-04 第一輪 Phase 4 正式掃描 `no_go` 入檔;
-> 2026-09-04 獨立 review 後寫入 Setup A′；停損幾何已落地,費用殺閘尚未做。
+> 2026-09-04 獨立 review 後寫入 Setup A′；費用殺閘已做；進場尚未收斂。
 > 用法:**一個 Phase 開一個 AI plan/chat**,把該 Phase 整段貼給 AI 當需求,完成後勾掉。
 > 規格衝突時以本文為基準;要改規則,先改本文再改 code。
 > 寫 `decide()` 之前先讀:[TMF_DESK_CARD.md](TMF_DESK_CARD.md)（合約尺子／費用點／時段生理）。
@@ -36,7 +36,7 @@
 - 回測引擎:`backtest/{engine,broker,ledger}.py`
   (5m prefix `decide`;`fill_mode`;Broker 呼叫 `close_trade`;Ledger 只記帳。
   6 個月 < 5 分鐘用 `run()` + 空 `FixedTimeStrategy` + `BarReader` 手動驗,不進預設 pytest)
-- 策略 Setup A:`strategy/setup_a.py`(純 `decide`;日盤 sweep-reversal;A′ 停損 = sweep 那根 K 極值 ± 墊片,不算 FVG 邊)
+- 策略 Setup A:`strategy/setup_a.py`(純 `decide`;日盤 sweep-reversal;A′ 停損 = sweep 那根 K 極值 ± 墊片,不算 FVG 邊;`min_r_points=15` 不 arm)
 - 寫 `decide()` 前的產品尺:[TMF_DESK_CARD.md](TMF_DESK_CARD.md)(合約／費用點／時段;IS 尺度卡在 `docs/phase4_round2_2026-09-04/census/`)
 
 ## 全域不變量(每個 Phase 都要遵守)
@@ -265,9 +265,9 @@
   中位格 38 次 arm 只有 5 筆成交;216 格裡 `fill_mode` / `max_hold` / `require_external` 近乎空轉。
   完整核對見 PR #7 review,不以本段第一輪解讀為 A′ 依據。
 
-**Setup A′（停損幾何已落地；費用殺閘尚未做）**
+**Setup A′（費用殺閘已做；進場尚未收斂）**
 
-Phase 3 規則 1–7 維持 v1 歷史,對應第一輪 216 格。停損幾何已寫進 `setup_a.py`;`min_r_points` / `r_below_floor` 仍未做。
+Phase 3 規則 1–7 維持 v1 歷史,對應第一輪 216 格。停損幾何與 `min_r_points` 已寫進 `setup_a.py`。
 **禁止**為製造 `go` 降低 `MIN_IS_TRADES`;**禁止**停損晚一棒掛(同根 1m 停損優先維持全域不變量 3);
 **禁止**把 RSI／VWAP／profile／footprint 塞進同一張 A′ grid;
 **禁止**沒有尺度卡就把數字寫進 `GridSpec`。
@@ -307,18 +307,18 @@ A′ 修結構層之後,**不得**把 `min_r_points=15`(3× 費用)假裝成雜�
    尺度卡:`python -m tfx_trading.backtest.scale_card`(同上目錄 `SCALE_CARD.md`)。  
    結論:detector 有印;external 整段 0 筆;bias+sweep+event+FVG≥15 的 unique **17**(空 12／多 5);
    12 筆空單 v1 的 R **全部** = 3;A′ 改 sweep 極值後 R 沒有任何一組 < 15。
-   停損幾何已落地。下一步是費用殺閘 + smoke,不是放寬 sweep。
+   停損幾何與費用殺閘已落地。下一步是進場收斂,不是放寬 sweep。
 
 1. **停損幾何(已落地)**  
    `setup_a.py`:`_structural_stop(side, extreme, buffer)`。極值 = sweep 那根 5m 的 high/low,不是 PDH/PDL `SessionLevel.price`。
    拿掉「取較近者」。**禁止**進場在 FVG `top` 時用 FVG `top ± buffer` 當停損。不算 FVG 邊。
    單元測試鎖死:空單 `stop == sweep_high + buffer` 且 **R ≠ buffer**;多單對偶 `stop == sweep_low - buffer` 且 ≠ `fvg.bottom - buffer`。
-   `min_r_points` / `r_below_floor` **仍未做**(第 2 點)。
+   `min_r_points` / `r_below_floor` 見第 2 點。
 
-2. **R 不夠不 arm**  
-   R ≤ 費用地板 → 不發 intent,記 `r_below_floor`。  
-   驗證:第一輪高頻格 8 筆時間戳、約 20 個交易日 smoke,`fill_mode=conservative`。
-   smoke 必須報:A′ R 分布、持倉是否 13:40 強平、2R 相對當日高低。不開 432 格。
+2. **R 不夠不 arm(已落地)**  
+   R ≤ 費用地板 → 不發 intent;`decide()` 仍只回 `list[Intent]`。smoke 以雙次 `decide()`（`min_r=0` vs 15）比對記 `r_below_floor`(unique `(date, side)` + raw 5m close)。  
+   驗證:第一輪高頻格 8 個日曆日、連續載入 `2025-05-07`→`2025-09-16`(PDH / `prev_night`;不是 20 個孤立日),`fill_mode=conservative`。  
+   產物:[phase4_round2_2026-09-04/smoke/](phase4_round2_2026-09-04/smoke/)(`SMOKE.md`、`smoke.json`)。**不是 go/no-go**。不開 432 格。
 
 3. **`entry_stopped` 政策**  
    R ≤ 費用地板則不進。**不要**停損晚一棒掛。同根進+停仍立刻停損。

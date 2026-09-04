@@ -14,6 +14,7 @@ from tfx_trading.strategy.protocol import DecisionContext
 from tfx_trading.strategy.setup_a import (
     SetupA,
     SetupAParams,
+    _below_cost_floor,
     _evaluate,
     load_setup_a_params,
 )
@@ -242,6 +243,7 @@ def test_load_setup_a_params_defaults() -> None:
     assert params.no_trade_before == time(9, 15)
     assert params.skip_settlement_day is True
     assert params.max_fvg_age_bars is None
+    assert params.min_r_points == 15.0
 
 
 def test_long_happy_path_three_intents() -> None:
@@ -256,6 +258,8 @@ def test_long_happy_path_three_intents() -> None:
     assert stop.side == "short"
     assert stop.price == 19785.0
     assert tp.price == 20190.0
+    assert entry.price is not None and stop.price is not None
+    assert abs(entry.price - stop.price) == 135.0
     assert entry.intent_id == "202608171000-entry"
 
 
@@ -545,6 +549,59 @@ def test_same_bar_close_then_rearm_unless_halt() -> None:
     assert len(intents) == 3
     halted = (_trade(-50.0), _trade(-40.0))
     assert _run(_long_smc(), [_long_fvg()], _ctx(closed=halted)) == []
+
+
+def test_below_cost_floor_inclusive() -> None:
+    assert _below_cost_floor(15.0, 15.0) is True
+    assert _below_cost_floor(15.1, 15.0) is False
+    assert _below_cost_floor(5.0, 15.0) is True
+
+
+def _tight_short_ctx(sweep_high: float = 20054.0) -> tuple[SmcLevels, list[Fvg], DecisionContext]:
+    sweep = SWEEP_TS
+    smc = _smc(
+        dealing=_range("premium"),
+        pdh=_level("pdh", 20100.0, "swept", sweep),
+        events=[_event(sweep, direction="bearish")],
+    )
+    fvg = _fvg("bearish", top=20050.0, bottom=19980.0, formed_at=FVG_TS)
+    bars = (
+        _k(sweep, sweep_high, 20040.0, 20048.0),
+        _k(NOW, 20080.0, 20020.0, 20040.0),
+    )
+    return smc, [fvg], _ctx(bars_5m=bars)
+
+
+def test_tight_short_r5_does_not_arm() -> None:
+    smc, fvgs, ctx = _tight_short_ctx()
+    params = SetupAParams(entry_price="top", stop_buffer=1.0)
+    assert params.min_r_points == 15.0
+    assert _run(smc, fvgs, ctx, params) == []
+
+
+def test_tight_short_r5_arms_when_floor_off() -> None:
+    smc, fvgs, ctx = _tight_short_ctx()
+    params = SetupAParams(entry_price="top", stop_buffer=1.0, min_r_points=0.0)
+    intents = _run(smc, fvgs, ctx, params)
+    assert _kinds(intents) == ["place_limit", "place_stop", "place_limit"]
+    entry, stop, _tp = intents
+    assert entry.price == 20050.0
+    assert stop.price == 20055.0
+    assert entry.price is not None and stop.price is not None
+    assert abs(entry.price - stop.price) == 5.0
+
+
+def test_short_r15_equals_floor_does_not_arm() -> None:
+    smc, fvgs, ctx = _tight_short_ctx(sweep_high=20064.0)
+    params = SetupAParams(entry_price="top", stop_buffer=1.0)
+    assert params.min_r_points == 15.0
+    assert _run(smc, fvgs, ctx, params) == []
+    open_floor = SetupAParams(entry_price="top", stop_buffer=1.0, min_r_points=0.0)
+    intents = _run(smc, fvgs, ctx, open_floor)
+    assert _kinds(intents) == ["place_limit", "place_stop", "place_limit"]
+    entry, stop, _tp = intents
+    assert entry.price is not None and stop.price is not None
+    assert abs(entry.price - stop.price) == 15.0
 
 
 def test_short_mirror() -> None:

@@ -53,6 +53,7 @@ class SetupAParams:
     max_hold_bars: int = 10_000
     skip_settlement_day: bool = True
     max_fvg_age_bars: int | None = None
+    min_r_points: float = 15.0
 
 
 def load_setup_a_params(path: Path | None = None) -> SetupAParams:
@@ -83,6 +84,7 @@ def load_setup_a_params(path: Path | None = None) -> SetupAParams:
         max_hold_bars=int(section.get("max_hold_bars", defaults.max_hold_bars)),
         skip_settlement_day=bool(section.get("skip_settlement_day", defaults.skip_settlement_day)),
         max_fvg_age_bars=None if age is None else int(age),
+        min_r_points=float(section.get("min_r_points", defaults.min_r_points)),
     )
 
 
@@ -244,6 +246,8 @@ def _bracket_for_side(
     extreme = sweep_bar.low if side == "long" else sweep_bar.high
     stop = _structural_stop(side, extreme, params.stop_buffer)
     if (side == "long" and stop >= entry) or (side == "short" and stop <= entry):
+        return []
+    if _below_cost_floor(abs(entry - stop), params.min_r_points):
         return []
     target = _take_profit_price(side, entry, stop, smc, params)
     expire_at = datetime.combine(session_date, params.flatten_time)
@@ -466,6 +470,11 @@ def _bar_at(bars: tuple[KBar, ...], ts: datetime) -> KBar | None:
     return None
 
 
+def _below_cost_floor(risk: float, min_r: float) -> bool:
+    """R at or below the cost floor is not a trade (3× round-trip, not noise)."""
+    return risk <= min_r
+
+
 def _structural_stop(side: Side, extreme: float, buffer: float) -> float:
     """Sweep-bar extreme ± pad. Extreme is that K's high/low, not a SessionLevel price."""
     if side == "long":
@@ -495,6 +504,7 @@ __all__ = [
     "SetupA",
     "SetupAParams",
     "_EMPTY_SMC",
+    "_below_cost_floor",
     "_evaluate",
     "_select_active_fvg",
     "_skip_indicators",
