@@ -25,6 +25,9 @@ def _build_tape() -> list[KBar]:
         close = pivot + (10.0 if i % 2 == 0 else -8.0)
         open_ = pivot - (6.0 if i % 3 == 0 else -4.0)
         bars.append(_bar(ts, open_, high, low, close))
+    # Off-session bars (settlement tail / lunch) must be skipped by the tracker.
+    bars.append(_bar(datetime(2026, 8, 17, 13, 46), 20050.0, 20080.0, 20020.0, 20040.0))
+    bars.append(_bar(datetime(2026, 8, 17, 14, 0), 20040.0, 20100.0, 19900.0, 20010.0))
     # add a night segment so session transitions are included.
     nbase = datetime(2026, 8, 17, 15, 5)
     for i in range(18):
@@ -45,6 +48,17 @@ def test_incremental_fvg_matches_from_scratch_each_prefix() -> None:
         assert fvg_compute(prefix, min_points=0.0) == fvg_compute_from_scratch(
             prefix, min_points=0.0
         )
+
+
+def test_off_session_bars_are_skipped_by_trackers() -> None:
+    bars = _build_tape()
+    off = {datetime(2026, 8, 17, 13, 46), datetime(2026, 8, 17, 14, 0)}
+    assert off <= {bar.timestamp for bar in bars}
+    smc = smc_compute(bars)
+    fvgs = fvg_compute(bars)
+    assert smc.last_bar is not None
+    assert smc.last_bar.timestamp not in off
+    assert all(fvg.formed_at not in off and fvg.gap_start_ts not in off for fvg in fvgs)
 
 
 def test_incremental_smc_matches_from_scratch_each_prefix() -> None:
