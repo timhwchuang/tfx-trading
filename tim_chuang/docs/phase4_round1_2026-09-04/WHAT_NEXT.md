@@ -53,5 +53,5 @@ Setup B（`taken` 延續）仍停放：先日盤普查，先改 roadmap，再另
 - [x] 普查 + 尺度卡 + desk card
 - [x] 停損幾何 + 費用殺閘 + smoke + 漏斗
 - [x] A′ 日盤 elect 宣告不通（CLOSED.md）
-- [ ] 日盤 ORB：`setup_orb.py` + conservative `2025-06-02`→`2025-08-29`（見 orb_day README；不是 elect）
+- [ ] 日盤 ORB：`setup_orb.py` + conservative `2025-06-02`→`2025-08-29`（進場=**追價停損單**；見 orb_day README；不是 elect）
 - [ ] Setup B `taken` 延續：日盤普查（獨立 setup；停放，尚未開 plan）

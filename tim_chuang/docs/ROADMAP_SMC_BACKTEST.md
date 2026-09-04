@@ -6,6 +6,7 @@
 > 2026-09-04 A′ 日盤 elect **這條路不通**（漏斗 same+next=0；17 < 30；不實作 3b、不開第二輪主掃描）。
 > 收工結論:[phase4_round2_2026-09-04/CLOSED.md](phase4_round2_2026-09-04/CLOSED.md)。
 > 2026-09-04 下一條測量是**日盤 ORB**（不是 Setup B、不是再開 A′）:[orb_day_2026-09-04/README.md](orb_day_2026-09-04/README.md)。
+> 2026-09-05 ORB 進場鎖定**追價停損單**（不是回踩）；缺棒 skip 與三個月殺閘見該 README。Phase 4 勾選仍指 A/A′,不因 ORB 偷勾。
 > 用法:**一個 Phase 開一個 AI plan/chat**,把該 Phase 整段貼給 AI 當需求,完成後勾掉。
 > 規格衝突時以本文為基準;要改規則,先改本文再改 code。
 > 寫 `decide()` 之前先讀:[TMF_DESK_CARD.md](TMF_DESK_CARD.md)（合約尺子／費用點／時段生理）。
@@ -21,7 +22,7 @@
 - [ ] Phase 4:第一輪回測 `no_go`；A′ 第二輪**取消**（這條路不通，見 CLOSED.md）
 - [ ] Phase 5:Live 對接(paper → 最小口數)
 
-**不要**為 Setup A / A′ 再開確認條件或第二輪 grid。下一條測量是日盤 ORB,見 [orb_day_2026-09-04/README.md](orb_day_2026-09-04/README.md)。Setup B(`taken` 延續)仍停放,獨立 setup,尚未開 plan。
+**不要**為 Setup A / A′ 再開確認條件或第二輪 grid。下一條測量是日盤 ORB,見 [orb_day_2026-09-04/README.md](orb_day_2026-09-04/README.md)（進場鎖定**追價停損單**,不是回踩；三個月 conservative 殺閘寫在該 README）。Setup B(`taken` 延續)仍停放,獨立 setup,尚未開 plan。Phase 4 checkbox 仍指 Setup A/A′ 那輪驗收,**不要**因開始做 ORB 勾成完成。
 
 ## 現況盤點(已完成、不重做)
 
@@ -343,7 +344,7 @@ A′ 修結構層之後,**不得**把 `min_r_points=15`(3× 費用)假裝成雜�
 5. **第二輪主掃描 — 取消**  
    17 < `MIN_IS_TRADES=30`;impulse 窗下樣本是 0。不開 `GridSpec`。`no_go` 已成立,不是還沒掃。
 
-下一條測量是日盤 **ORB**,見 [orb_day_2026-09-04/README.md](orb_day_2026-09-04/README.md)。禁止與 A′ 全交叉。不准把 RSI／VWAP／profile／footprint 塞進 A′。夜盤不是 A′ 延到 15:05。Setup B(`taken` 延續)仍停放,獨立 setup,尚未開 plan。
+下一條測量是日盤 **ORB**,見 [orb_day_2026-09-04/README.md](orb_day_2026-09-04/README.md)（進場鎖定**追價停損單**,不是回踩）。禁止與 A′ 全交叉。不准把 RSI／VWAP／profile／footprint 塞進 A′。夜盤不是 A′ 延到 15:05。Setup B(`taken` 延續)仍停放,獨立 setup,尚未開 plan。
 
 **非目標**:ML 調參、組合多策略、新開一份 roadmap、Phase 5。
 
