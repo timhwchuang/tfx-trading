@@ -117,3 +117,4 @@ def test_render_smoke_md_not_go_nogo() -> None:
     assert "not go/no-go" in text
     assert "no_trade" in text
     assert "Do not read n or flatten share as edge." in text
+    assert "elect is a dead end" in text

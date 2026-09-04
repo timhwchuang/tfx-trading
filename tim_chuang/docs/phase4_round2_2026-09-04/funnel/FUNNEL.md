@@ -66,3 +66,5 @@ Fill exit reasons (A′ trades, not v1):
 - flatten: 5
 
 Do not read n or fill rate as edge. CHoCH / impulse FVG are **not** in `decide()`.
+A′ day-session elect on this geometry is **closed**. Do not implement 3b
+to keep sample, and do not open a second-round grid.

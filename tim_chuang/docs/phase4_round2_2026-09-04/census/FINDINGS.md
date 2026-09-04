@@ -8,6 +8,8 @@ Raw JSON: [census.json](census.json).
 
 **Detector prints. External does not. Join is rare. Fills are rarer.**
 **v1 shorts do not have a risk model: R is identically `stop_buffer`.**
+**A′ day-session elect is a dead end** ([CLOSED.md](../CLOSED.md)): nested unique
+17 < 30; chosen FVG same+next = 0. Do not implement 3b. Do not open a grid.
 
 Do not loosen sweep. Do not treat `min_r_points=15` as a TMF noise floor.
 Scale card: [SCALE_CARD.md](SCALE_CARD.md).
@@ -83,14 +85,15 @@ does not change the identity: shorts pay `stop_buffer`, not sweep-reversal.
 - Chained ATR 30/48 vs an earlier 27/47 quote is the same order of magnitude,
   not a 3-point stop.
 
-## Next (roadmap Setup A′ step 3b)
+## Closed (roadmap Setup A′ elect)
 
-Funnel (not go/no-go): [../funnel/FUNNEL.md](../funnel/FUNNEL.md).
-Nested any-event+FVG≥15 is 17; nested CHoCH+FVG≥15 is computed (16 on this tape).
-CHoCH barely moves unique. The 3b confirmation number is same+next FVG and
-shadowed impulse (0/0/17 later, shadowed 0): a same-session impulse gate would
-drop these joins to zero first. Limit fill vs expire/cancel is the other
-number that can still move. CHoCH / impulse are **not** in `decide()` yet.
-If 3b changes the impulse window, `next_5m_after` stays inside `session_key`
-(day 13:45 does not take night 15:05). Read the funnel before changing
-confirmation. No 432-cell grid.
+A′ day-session elect is **closed**. Funnel: [../funnel/FUNNEL.md](../funnel/FUNNEL.md).
+Write-up: [../CLOSED.md](../CLOSED.md).
+
+Nested any-event+FVG≥15 is 17; nested CHoCH+FVG≥15 is 16. same+next = 0,
+shadowed = 0. Hard-cutting impulse would drop these joins to zero first.
+17 < `MIN_IS_TRADES=30` even if every join filled. Do not implement 3b.
+Do not open a grid. `decide()` stays as A′ geometry + cost floor + latest-wins.
+
+Next research is independent Setup B (`taken` continuation): day census first,
+then a new plan. Not A′ after 15:05. No 432-cell grid.

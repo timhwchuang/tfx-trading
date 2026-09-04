@@ -3,6 +3,7 @@
 Detector-only. Does not call `SetupA.decide`. Same IS window as round-1 blotter.
 Join counts apply Setup A bias (`discount` long / `premium` short).
 Interpretation: [FINDINGS.md](FINDINGS.md).
+**A′ elect is a dead end:** [../CLOSED.md](../CLOSED.md).
 
 - git: `14c56c2fc8aa19363e50cc90bd12a60a62a8c34b`
 - range: `2025-03-03` → `2025-11-06`

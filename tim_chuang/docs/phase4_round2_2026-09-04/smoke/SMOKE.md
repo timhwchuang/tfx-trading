@@ -47,3 +47,4 @@ A′ stops will not replay the v1 blotter rows. `no_trade` is a valid outcome.
 No other fills in the load window.
 
 Do not read n or flatten share as edge.
+A′ day-session elect is a dead end; this smoke is not a license to grid.

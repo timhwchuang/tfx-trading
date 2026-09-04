@@ -1,3 +1,11 @@
+"""Setup A: day-session sweep-reversal.
+
+Day-session elect is a dead end on the IS tape (nested unique 17 < 30;
+impulse FVG same+next = 0). Do not add CHoCH/impulse gates to grow sample,
+and do not open a second-round Phase 4 grid.
+See docs/phase4_round2_2026-09-04/CLOSED.md.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

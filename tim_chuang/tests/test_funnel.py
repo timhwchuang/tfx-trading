@@ -211,3 +211,4 @@ def test_render_funnel_md_not_go_nogo() -> None:
     assert "nested CHoCH + FVG≥15: **2**" in text
     assert "n_fills == n_result_trades == 1" in text
     assert "Hard-cutting impulse to same/next" in text
+    assert "elect on this geometry is **closed**" in text

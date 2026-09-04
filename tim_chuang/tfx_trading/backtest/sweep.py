@@ -773,7 +773,12 @@ def run_sweep(
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Setup A Phase 4 parameter sweep")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Setup A Phase 4 parameter sweep (v1 historical). "
+            "A′ second-round grid is cancelled; see docs/phase4_round2_2026-09-04/CLOSED.md"
+        )
+    )
     parser.add_argument("--start", required=True, help="YYYY-MM-DD")
     parser.add_argument("--end", required=True, help="YYYY-MM-DD")
     parser.add_argument("--out", required=True, type=Path)

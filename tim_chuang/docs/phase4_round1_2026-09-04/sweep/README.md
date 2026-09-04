@@ -1,7 +1,8 @@
 # sweep/
 
-Phase 4 harness（`tfx_trading/backtest/sweep.py`）第一輪正式掃描輸出。
+Phase 4 harness（`tfx_trading/backtest.sweep`）第一輪正式掃描輸出。
 產物已在 commit `3080d40` 入庫（同源 `/tmp/phase4_go`）。
+**不要**用本目錄當第二輪 A′ grid 的起點。這條路不通：[CLOSED.md](../../phase4_round2_2026-09-04/CLOSED.md)。
 
 ## 本目錄檔案
 

@@ -1,9 +1,11 @@
 # Phase 4 round-2
 
-Setup A′：普查、尺度卡、停損幾何、費用殺閘、**漏斗 + 限價成交率** 已落地。
-規格在 `docs/ROADMAP_SMC_BACKTEST.md`（Setup A′：**費用殺閘已做；進場尚未收斂**）。
-**不要勾 Phase 4。** CHoCH / impulse 尚未改 `decide()`。Smoke 與 funnel **不是 go/no-go**。
+**這條路不通。** Setup A′ 日盤 elect 已收工：[CLOSED.md](CLOSED.md)。
+普查、尺度卡、停損幾何、費用殺閘、漏斗是證據，不是再開 grid 的許可。
+規格在 `docs/ROADMAP_SMC_BACKTEST.md`。
+**不要勾 Phase 4。** 不實作 3b。不開第二輪 grid。Smoke 與 funnel **不是 go/no-go**。
 
+- [CLOSED.md](CLOSED.md) — A′ elect 收工
 - [census/FINDINGS.md](census/FINDINGS.md) — detector vs join
 - [census/SCALE_CARD.md](census/SCALE_CARD.md) — 費用／雜訊／結構三層
 - [census/census.json](census/census.json) / [census/scale_card.json](census/scale_card.json)

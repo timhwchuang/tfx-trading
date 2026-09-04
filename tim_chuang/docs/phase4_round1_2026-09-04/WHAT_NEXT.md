@@ -1,88 +1,45 @@
-# What’s next（跨工作區延續說明）
+# 這條路不通 — 給下一位（Setup A / A′）
 
-> 給**下一位人類 reviewer**與**另一個工作區的 agent**。
-> 聊天紀錄不保證可見；請以 `ROADMAP_SMC_BACKTEST.md` 的 **Setup A′** 與 [TMF_DESK_CARD.md](../../TMF_DESK_CARD.md) 為準。
-> 本目錄是第一輪 `no_go` 產物；契約已更新，下面舊的「先收斂進場／晚一棒掛停」**作廢**。
+> 聊天紀錄不保證可見。請先讀
+> [CLOSED.md](../phase4_round2_2026-09-04/CLOSED.md)
+> 與 `ROADMAP_SMC_BACKTEST.md`。
+> 本目錄是第一輪 `no_go` 產物，不是「再掃一次」的許可。
+
+**日盤 sweep → event → 回踩 FVG 選不出 plateau。**  
+不要開 A′ 3b、不要改 `decide()` 養樣本、不要跑第二輪 `sweep.py`、不要勾 Phase 4、不上 live。
 
 ## 我們現在站在哪
 
 - Setup A 第一輪正式掃描 → **`verdict = no_go`**（`elected = null`）。產物在本目錄。
-- PR #7 已合進 `main`。獨立 review 修正了死因排序；細則寫進 roadmap Setup A′。
-- `setup_a.py` 停損幾何與費用殺閘已落地（sweep 極值 ± 墊片;`min_r_points=15` 不 arm）;**Phase 4 checkbox 仍不勾**;不上 live。
-- 費用殺閘 + conservative smoke **已完成**。載入 `2025-05-07`→`2025-09-16`(不是 20 個孤立日)。產物:`docs/phase4_round2_2026-09-04/smoke/`。沒有尺度卡不准開 grid。
-- 漏斗 + conservative 成交率 **已報**（IS `2025-03-03`→`2025-11-06`）。產物:`docs/phase4_round2_2026-09-04/funnel/`。CHoCH / impulse **尚未**改 `decide()`。
+- PR #7 已合進 `main`。獨立 review 修正了死因排序。
+- A′ 停損幾何與費用殺閘已落地；普查、尺度卡、smoke、漏斗已完成。
+- 漏斗：same+next FVG = **0**；nested unique **17** < 30。這條路不通。
+- `setup_a.py` 維持幾何 + 費用殺閘；那不是 elect。
 
 ## 請讀什麼
 
-1. `ROADMAP_SMC_BACKTEST.md` — **Setup A′**
-2. `docs/TMF_DESK_CARD.md` — 寫 decide() 前的合約／費用／時段／成交假設
-3. 本目錄 `LESSONS.md` + `sweep/` + `blotter/` — 第一輪事實
-4. `docs/phase4_round2_2026-09-04/census/` — 普查 + 尺度卡
-5. `docs/phase4_round2_2026-09-04/smoke/` — Step 2 一格 conservative smoke(**不是 go/no-go**)
-6. `docs/phase4_round2_2026-09-04/funnel/` — Step 3a 漏斗 + 限價成交率(**不是 go/no-go**;CHoCH 尚未改 `decide()`)
+1. [CLOSED.md](../phase4_round2_2026-09-04/CLOSED.md) — **這條路不通**
+2. `ROADMAP_SMC_BACKTEST.md` — Phase 4 文首同一句
+3. `docs/TMF_DESK_CARD.md` — 下一條 setup 仍要的尺子
+4. 本目錄 `LESSONS.md` + `sweep/` + `blotter/` — 第一輪事實
+5. `docs/phase4_round2_2026-09-04/census/` — 普查 + 尺度卡
+6. `docs/phase4_round2_2026-09-04/smoke/` — 一格 smoke（不是 elect）
+7. `docs/phase4_round2_2026-09-04/funnel/` — 漏斗數字
 
-**故意不做的事：** 不降低 `MIN_IS_TRADES`；不停損晚一棒掛；不把 RSI／VWAP 塞進 A′ grid；不上 live／不勾 Phase 5；**不准把 `min_r=15` 或 `buffer∈{3,5,8}` 當成已量過的微台尺度**。
+**禁止：** 降低 `MIN_IS_TRADES`；停損晚一棒；RSI／VWAP 塞進 A′；把 `min_r=15` 或 `buffer∈{3,5,8}` 當微台尺度；為救 17 去改 CHoCH / impulse。
 
-## 建議順序（契約）
+## A′ 已走完（不要重做）
 
-### Step 0 — 指標普查 + 尺度卡（已完成；不改策略）
+普查 → 停損幾何 → 費用殺閘 + smoke → 漏斗。3b **不做**。第二輪主掃描 **取消**。
 
-產物在 `docs/phase4_round2_2026-09-04/census/`。重跑：
+## 下一條（尚未開 plan）
 
-```bash
-cd tim_chuang
-.venv/bin/python -m tfx_trading.backtest.census \
-  --start 2025-03-03 --end 2025-11-06 \
-  --out docs/phase4_round2_2026-09-04/census
-.venv/bin/python -m tfx_trading.backtest.scale_card \
-  --start 2025-03-03 --end 2025-11-06 \
-  --out docs/phase4_round2_2026-09-04/census
-```
-
-### Step 1 — 停損幾何（已完成）
-
-拿掉「取較近者」。停損 = sweep 那根 5m 的 high/low ± 墊片。進 FVG top 不得 `top±buffer`。
-單元測試：空／多各一則，`R != stop_buffer`。**禁止**晚一棒掛停。
-
-### Step 2 — 費用殺閘 + smoke（已完成）
-
-`min_r_points` / `r_below_floor`:R ≤ 來回費用不 arm。預設 15 只殺費用地板,不是雜訊地板。
-驗證:8 個 v1 高頻格日曆日;連續載入 `2025-05-07`→`2025-09-16`(PDH / `prev_night`)。
-重跑:
-
-```bash
-cd tim_chuang
-.venv/bin/python -m tfx_trading.backtest.smoke
-```
-
-產物:`docs/phase4_round2_2026-09-04/smoke/`。**不是 go/no-go**;n≪30 是預期。
-
-### Step 3 — 進場收斂（漏斗已報；CHoCH / impulse 尚未改 `decide()`）
-
-漏斗 + conservative 成交率:[FUNNEL.md](../phase4_round2_2026-09-04/funnel/FUNNEL.md)。
-重跑:
-
-```bash
-cd tim_chuang
-.venv/bin/python -m tfx_trading.backtest.funnel
-```
-
-確認改 CHoCH；FVG 落在 sweep impulse。**看完漏斗才動 `decide()`。** 若改 impulse 窗，
-`next_5m_after` 已限制在同一 `session_key`（日盤 13:45 不是夜盤 15:05）。然後才談第二輪主掃描
-（conservative only；拿掉 `max_hold` 與 `require_external`；多空 × 多頭／震盪分開報）。
-
-### Step 4 — 再跑一輪 Phase 4
-
-同一硬閘。仍可能 `no_go`。過了才談 Phase 5。
-
-### Step 5 — 組合拳
-
-A′ 站穩後再獨立開 Setup B。禁止與 A′ 全交叉。
+獨立 **Setup B：`taken` 延續**。先日盤普查，先改 roadmap，再另開 plan。不是 A′ 延到 15:05。不要開第二份 roadmap。
 
 ## 給跨工作區 agent 的硬約束
 
 1. 只動 `tim_chuang/`；當 `apps/`、`legacy/`、`tick_cache/`、根 `docs/AGENTS.md` 不存在。
-2. 改規則 **先改 roadmap 再改 code**。Setup A′ 停損幾何、費用殺閘、漏斗已落地;策略下一刀是 Step 3b(CHoCH / impulse;看完 FUNNEL 才改 `decide()`)。
+2. 改規則 **先改 roadmap 再改 code**。A′ 這條路不通；下一刀是 Setup B 普查，不是 3b、不是 A′ grid。
 3. 不要為了製造 `go` 而放寬硬閘或調參作弊。
 4. 不要把本目錄的 `no_go` 產物當成「可 live」證據。
 5. Python ≥ 3.14；長 tape 只用 CLI，不要塞進 pytest。
@@ -91,10 +48,7 @@ A′ 站穩後再獨立開 Setup B。禁止與 A′ 全交叉。
 ## 人類下一步（checklist）
 
 - [x] Review／merge 第一輪 no_go PR
-- [x] 拍板：普查 → 停損／min R → 不晚掛 → 再收斂進場（寫進 Setup A′）
-- [x] 跑 IS 指標普查 + 尺度卡（`census/`、`SCALE_CARD.md`）
-- [x] 寫 `TMF_DESK_CARD.md`（合約／費用／時段；寫 `decide()` 前硬閘）
-- [x] 停損幾何：sweep 極值 ± 墊片（不是再掃 3/5/8 當 R）
-- [x] 費用殺閘 + 8 日 / `2025-05-07`→`2025-09-16` smoke(含 13:40 vs 2R)
-- [x] 漏斗 + conservative 成交率（CHoCH / impulse 尚未改 `decide()`）
-- [ ] 再跑正式 sweep，更新新一輪 `docs/phase4_round*_*/`
+- [x] 普查 + 尺度卡 + desk card
+- [x] 停損幾何 + 費用殺閘 + smoke + 漏斗
+- [x] A′ 日盤 elect 宣告不通（CLOSED.md）
+- [ ] Setup B `taken` 延續：日盤普查（獨立 setup；尚未開 plan）

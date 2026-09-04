@@ -2,7 +2,9 @@
 
 > 來源:2026-09 review 討論(FVG 模組落地後的下一步);2026-09-02 依實務 review 補強;
 > 2026-09-04 第一輪 Phase 4 正式掃描 `no_go` 入檔;
-> 2026-09-04 獨立 review 後寫入 Setup A′；費用殺閘已做；進場尚未收斂。
+> 2026-09-04 獨立 review 後寫入 Setup A′；停損幾何與費用殺閘已落地。
+> 2026-09-04 A′ 日盤 elect **這條路不通**（漏斗 same+next=0；17 < 30；不實作 3b、不開第二輪主掃描）。
+> 收工結論:[phase4_round2_2026-09-04/CLOSED.md](phase4_round2_2026-09-04/CLOSED.md)。
 > 用法:**一個 Phase 開一個 AI plan/chat**,把該 Phase 整段貼給 AI 當需求,完成後勾掉。
 > 規格衝突時以本文為基準;要改規則,先改本文再改 code。
 > 寫 `decide()` 之前先讀:[TMF_DESK_CARD.md](TMF_DESK_CARD.md)（合約尺子／費用點／時段生理）。
@@ -15,8 +17,10 @@
 - [x] Phase 1:交易資料模型 + 成本模型
 - [x] Phase 2:回測引擎(Broker 模擬器 + Ledger)
 - [x] Phase 3:策略層 Setup A(sweep-reversal,純函數)
-- [ ] Phase 4:第一輪回測 + 參數掃描 + walk-forward（第一輪 no_go，見下文）
+- [ ] Phase 4:第一輪回測 `no_go`；A′ 第二輪**取消**（這條路不通，見 CLOSED.md）
 - [ ] Phase 5:Live 對接(paper → 最小口數)
+
+**不要**為 Setup A / A′ 再開確認條件或第二輪 grid。下一條研究是獨立 Setup B,另開 plan。
 
 ## 現況盤點(已完成、不重做)
 
@@ -205,10 +209,15 @@
 
 ## Phase 4:第一輪回測 + 參數掃描 + walk-forward
 
-**目標**:回答「sweep → CHoCH → 回踩 FVG 在台指 5m 上有沒有 edge」——
-且答案要在**保守成交假設與滑價壓力下仍然成立**才算數。
+**這條路不通（2026-09-04）。**「sweep → CHoCH → 回踩 FVG」在這年日盤 IS 選不出 plateau。
+不要再開 A′ 確認條件、不要開第二輪 `sweep.py`。
+證據與禁令:[phase4_round2_2026-09-04/CLOSED.md](phase4_round2_2026-09-04/CLOSED.md)。
+下文第一輪規格與 `no_go` 是複核檔,不是「再掃一次」的許可。
 
-**產出**
+**原目標(v1,已回答)**:有沒有 edge——且答案要在**保守成交假設與滑價壓力下仍然成立**才算數。
+第一輪 `no_go`;A′ 修幾何與費用後漏斗仍不通。
+
+**產出（v1 已跑完;不要當 A′ 待辦）**
 
 - `tfx_trading/backtest/sweep.py`(或 notebook):參數掃描
   - 掃描維度:進場價(top vs ce)、`min_points`、停損 buffer、TP(2R vs 對側流動性)、
@@ -234,6 +243,7 @@
   - 滑價 2 tick 下期望值仍 > 0
 - 全部組合都不行 → 回頭調 Setup A 規則(改本文後再改 code),不硬上 live
 - 第一輪已依準則得到 `no_go` → 進入改規則(本文)而非 Phase 5
+- **A′ 改完仍不通**:見 CLOSED.md。不要再改 Setup A 確認條件、不要再掃、不要進 Phase 5
 
 **第一輪正式掃描結果（2026-09-04）**
 
@@ -265,7 +275,7 @@
   中位格 38 次 arm 只有 5 筆成交;216 格裡 `fill_mode` / `max_hold` / `require_external` 近乎空轉。
   完整核對見 PR #7 review,不以本段第一輪解讀為 A′ 依據。
 
-**Setup A′（費用殺閘已做；進場尚未收斂）**
+**Setup A′（日盤 elect 已收工）**
 
 Phase 3 規則 1–7 維持 v1 歷史,對應第一輪 216 格。停損幾何與 `min_r_points` 已寫進 `setup_a.py`。
 **禁止**為製造 `go` 降低 `MIN_IS_TRADES`;**禁止**停損晚一棒掛(同根 1m 停損優先維持全域不變量 3);
@@ -300,14 +310,14 @@ v1 把三層壓成 `stop_buffer∈{3,5,8}`。那不是參數差一點,是停損�
 A′ 修結構層之後,**不得**把 `min_r_points=15`(3× 費用)假裝成雜訊地板 — 15 < 5m 中位 25、< ATR 30、< 1m P90 21。
 `stop_buffer` 在 A′ 只是 sweep 外幾 tick 的墊片,主掃描不該再把它當風險模型來掃 3/5/8。
 
-執行順序(一次一個主軸;未完成不得跳):
+執行順序(A′ 已走完;日盤 elect 收工,不得再開 A′ grid):
 
 0. **指標普查 + 尺度卡(先於任何策略 diff)**  
    普查:[phase4_round2_2026-09-04/census/](phase4_round2_2026-09-04/census/)(`census.json`、`FINDINGS.md`)。  
    尺度卡:`python -m tfx_trading.backtest.scale_card`(同上目錄 `SCALE_CARD.md`)。  
    結論:detector 有印;external 整段 0 筆;bias+sweep+event+FVG≥15 的 unique **17**(空 12／多 5);
    12 筆空單 v1 的 R **全部** = 3;A′ 改 sweep 極值後 R 沒有任何一組 < 15。
-   停損幾何與費用殺閘已落地。下一步是進場收斂,不是放寬 sweep。
+   停損幾何與費用殺閘已落地。進場漏斗已報;日盤 elect 已收工,不是放寬 sweep。
 
 1. **停損幾何(已落地)**  
    `setup_a.py`:`_structural_stop(side, extreme, buffer)`。極值 = sweep 那根 5m 的 high/low,不是 PDH/PDL `SessionLevel.price`。
@@ -323,20 +333,16 @@ A′ 修結構層之後,**不得**把 `min_r_points=15`(3× 費用)假裝成雜�
 3. **`entry_stopped` 政策**  
    R ≤ 費用地板則不進。**不要**停損晚一棒掛。同根進+停仍立刻停損。
 
-4. **進場收斂(普查 + smoke 之後才動;漏斗已報)**  
-   確認改為 **CHoCH**。FVG 落在 sweep impulse。先報漏斗與限價成交率。  
-   產物:[phase4_round2_2026-09-04/funnel/](phase4_round2_2026-09-04/funnel/)(`FUNNEL.md`、`funnel.json`)。**不是 go/no-go**。CHoCH / impulse **尚未**改 `decide()`。  
-   普查顯示 CHoCH vs 任意 event 幾乎一樣,別指望這刀變出 30 筆。漏斗:same+next FVG 才是 3b 切點;`next_5m_after` 同一 `session_key`。
+4. **進場漏斗(已報;elect 收工)**  
+   產物:[phase4_round2_2026-09-04/funnel/](phase4_round2_2026-09-04/funnel/);收工:[phase4_round2_2026-09-04/CLOSED.md](phase4_round2_2026-09-04/CLOSED.md)。  
+   nested unique 17;CHoCH nested 16;chosen FVG **0 same / 0 next / 17 later**(shadowed 0)。  
+   **不實作 3b**:硬切 same/next(同一 `session_key`)會先把 17 變成 0。只改 CHoCH 幾乎不動射頻。  
+   `decide()` 維持 A′ 幾何 + 費用殺閘 + latest-wins FVG。
 
-5. **第二輪主掃描(A′ code + 尺度卡 + smoke 過了才跑)**  
-   - 只跑 `conservative`;拿掉 `max_hold` 與 `require_external`
-   - `stop_buffer` **不是**主軸(墊片最多 0/1×tick,不掃 3/5/8 當風險)
-   - 主軸:進場 top/ce、FVG size、結構停損是否再加 k×ATR(k 的格子必須寫在尺度卡上)、TP 是 1R／對側／當日極值 — 每一維先回答「在改什麼?」
-   - 報告拆多/空與多頭/震盪
-   - `MIN_IS_TRADES=30` 不變;17 個 unique join 本來就選不出 plateau,`no_go` 可以,「R 比 tick 雜訊小」不行
-   - 滑價敏感度只對 elected 跑
+5. **第二輪主掃描 — 取消**  
+   17 < `MIN_IS_TRADES=30`;impulse 窗下樣本是 0。不開 `GridSpec`。`no_go` 已成立,不是還沒掃。
 
-RSI／VWAP／profile／footprint:仍排在 A′ 進場站穩之後,各自獨立 Setup B。
+下一條研究是獨立 **Setup B**(`taken` 延續):先日盤普查,再另開 plan。禁止與 A′ 全交叉。不准把 RSI／VWAP／profile／footprint 塞進 A′。夜盤不是 A′ 延到 15:05。
 
 **非目標**:ML 調參、組合多策略、新開一份 roadmap、Phase 5。
 
@@ -391,7 +397,7 @@ RSI／VWAP／profile／footprint:仍排在 A′ 進場站穩之後,各自獨立 
 
 ## 附錄:開放參數一覽(Phase 4 掃描對象)
 
-第一輪(v1)掃過的維度保留作歷史。A′ 主掃描只動標了「A′ 主掃」的列。
+第一輪(v1)掃過的維度保留作歷史。A′ 第二輪主掃描**已取消**;下表「A′ 主掃」列不再執行。
 
 | 參數 | 預設 | 說明 |
 |---|---|---|

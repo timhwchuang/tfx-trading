@@ -1,7 +1,9 @@
 # Phase 4 第一輪正式掃描產物（2026-09-04）
 
 本目錄保存 Setup A 第一輪 **no_go** 的可複核產物與事後 blotter，供 review／省思用。
-**不是** Phase 4 驗收通過；roadmap 進度總覽的 Phase 4 checkbox 仍不勾。
+**不是** Phase 4 驗收通過；**不是**再開第二輪 grid 的許可。
+A′ 日盤 elect 這條路不通：[CLOSED.md](../phase4_round2_2026-09-04/CLOSED.md)。
+roadmap 進度總覽的 Phase 4 checkbox 仍不勾。
 
 ## 跑法摘要
 
@@ -39,7 +41,7 @@ CSV／`gates.md`／blotter **已齊**（見 commit `3080d40`）。不是佔位�
 
 ## 跨工作區延續
 
-請先讀 [`WHAT_NEXT.md`](WHAT_NEXT.md)（站在哪、Step 0–4、給下一位 agent 的約束）。
+請先讀 [`WHAT_NEXT.md`](WHAT_NEXT.md)。A′ 日盤 elect 已收工，見 [CLOSED.md](../phase4_round2_2026-09-04/CLOSED.md)。
 
 ## Review 請看
 

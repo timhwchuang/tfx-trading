@@ -337,6 +337,8 @@ def render_funnel_md(payload: dict[str, object]) -> str:
         f"- flatten: {reasons.get('flatten', 0)}",
         "",
         "Do not read n or fill rate as edge. CHoCH / impulse FVG are **not** in `decide()`.",
+        "A′ day-session elect on this geometry is **closed**. Do not implement 3b",
+        "to keep sample, and do not open a second-round grid.",
         "",
     ]
     return "\n".join(lines)
@@ -436,7 +438,10 @@ def run_funnel(
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="A′ funnel + conservative fill rate (not go/no-go)"
+        description=(
+            "A′ funnel + conservative fill rate (closed elect; not go/no-go). "
+            "Do not treat output as a license to implement 3b or open a grid."
+        )
     )
     parser.add_argument("--start", default=_DEFAULT_START.isoformat())
     parser.add_argument("--end", default=_DEFAULT_END.isoformat())

@@ -10,6 +10,7 @@
 ## 1. 結果一句話
 
 **`verdict = no_go`**：無 plateau／elect。有成交的格子全部 `expected_nt < 0`，且一年 IS 最多 **8** 筆（≪ `MIN_IS_TRADES=30`）。
+A′ 修完幾何與費用後仍不通：[CLOSED.md](../phase4_round2_2026-09-04/CLOSED.md)。
 
 ## 2. 硬數字（可複核 `sweep/grid.csv`）
 
@@ -51,7 +52,7 @@ Plateau 要同時：`n_trades >= 30` **且** `expected_nt > 0` **且** 鄰居也
 2. **波動感知風險**：停損／最小風險對費用地板與近期波動（如 ATR）掛鉤。
 3. **`entry_stopped` 明規則**：風險≤費用地板則不進，或停損晚一棒掛。
 4. **`require_external`**：本輪當已知死路；下一張主掃描不指望它。
-5. RSI／VWAP／profile／footprint：排在進場收斂之後，各自獨立 Setup。
+5. RSI／VWAP／profile／footprint：各自獨立 Setup；**不要**塞進 A′。A′ elect 已收工。
 
 ## 6. Reviewer 請幫忙看
 

@@ -259,6 +259,7 @@ def render_smoke_md(payload: dict[str, object]) -> str:
         "",
         *_appendix_lines(fills),
         "Do not read n or flatten share as edge.",
+        "A′ day-session elect is a dead end; this smoke is not a license to grid.",
         "",
     ]
     return "\n".join(lines)
@@ -336,7 +337,10 @@ def run_smoke(
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="A′ cost-floor smoke (one conservative cell; not go/no-go)"
+        description=(
+            "A′ cost-floor smoke (one conservative cell; not elect). "
+            "Day-session A′ elect is closed; see docs/phase4_round2_2026-09-04/CLOSED.md"
+        )
     )
     parser.add_argument("--start", default=_DEFAULT_START.isoformat())
     parser.add_argument("--end", default=_DEFAULT_END.isoformat())
