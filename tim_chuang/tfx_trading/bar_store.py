@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import date, datetime, timedelta
+from functools import lru_cache
 from typing import Callable, Literal
 
 from tfx_trading.kbar import KBar
@@ -19,6 +20,9 @@ def _n_min_close(ts: datetime, n: int) -> datetime:
     return ts + timedelta(minutes=n - remainder)
 
 
+# Unbounded is fine for a backtest tape (~100MB over 12 months). Phase 5
+# long-lived live processes should revisit a bounded cache / eviction.
+@lru_cache(maxsize=None)
 def session_kind(ts: datetime) -> SessionKind | None:
     """日盤 08:50～13:45；夜盤 15:05～05:00（含跨午夜）。非盤中則 None。"""
     minutes = ts.hour * 60 + ts.minute
@@ -29,6 +33,8 @@ def session_kind(ts: datetime) -> SessionKind | None:
     return None
 
 
+# See session_kind: unbounded cache is a backtest choice, not a live contract.
+@lru_cache(maxsize=None)
 def session_key(ts: datetime) -> tuple[date, SessionKind] | None:
     """
     同一盤的識別：日盤用當日日期；夜盤用 15:05 那側的日期（05:00 以前算前一日）。

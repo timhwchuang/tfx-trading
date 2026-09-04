@@ -104,13 +104,9 @@ def test_in_window_flatten_still_fires() -> None:
     assert any(item.kind == "flatten" for item in intents)
 
 
-def test_cache_hit_and_entry_price_changes_intent(monkeypatch: MonkeyPatch) -> None:
-    from tfx_trading.backtest import sweep as sweep_mod
-
+def test_cache_hit_and_entry_price_changes_intent() -> None:
     smc = _long_smc()
     fvgs = [_long_fvg()]
-    monkeypatch.setattr(sweep_mod, "smc_compute", lambda bars: smc)
-    monkeypatch.setattr(sweep_mod, "fvg_compute", lambda bars, min_points=0.0: fvgs)
     cal = TradeCalendar()
     cache: dict[tuple[datetime, int], tuple[object, list[object]]] = {}
     ctx = _ctx()
@@ -119,12 +115,16 @@ def test_cache_hit_and_entry_price_changes_intent(monkeypatch: MonkeyPatch) -> N
         cal,
         cache,  # type: ignore[arg-type]
         datetime(2026, 8, 17, 0, 0),
+        smc_compute=lambda bars: smc,
+        fvg_compute=lambda bars: fvgs,
     )
     ce = CachedSetupA(
         SetupAParams(entry_price="ce"),
         cal,
         cache,  # type: ignore[arg-type]
         datetime(2026, 8, 17, 0, 0),
+        smc_compute=lambda bars: smc,
+        fvg_compute=lambda bars: fvgs,
     )
     first = top.decide(ctx)
     size = len(cache)
@@ -357,12 +357,10 @@ def test_fold_empty_test_month_is_noted(tmp_path: Path, monkeypatch: MonkeyPatch
     assert may["note"] == ""
 
 
-def test_cache_strips_swings_and_filled_fvgs(monkeypatch: MonkeyPatch) -> None:
+def test_cache_strips_swings_and_filled_fvgs() -> None:
     """Stripping is behavior-preserving: `_evaluate` never reads `smc.swings`
     and filters FVGs to untouched/mitigated, so decisions match the unstripped
     inputs while the cache stays O(active) per entry."""
-    from tfx_trading.backtest import sweep as sweep_mod
-
     swing = Swing(
         timestamp=NOW,
         confirmed_at=NOW,
@@ -373,13 +371,18 @@ def test_cache_strips_swings_and_filled_fvgs(monkeypatch: MonkeyPatch) -> None:
     )
     smc = replace(_long_smc(), swings=[swing])
     fvgs = [_long_fvg(), _long_fvg(state="filled", top=19910.0, bottom=19840.0)]
-    monkeypatch.setattr(sweep_mod, "smc_compute", lambda bars: smc)
-    monkeypatch.setattr(sweep_mod, "fvg_compute", lambda bars, min_points=0.0: fvgs)
     cal = TradeCalendar()
     cache: IndicatorCache = {}
     params = SetupAParams()
     ctx = _ctx()
-    wrapper = CachedSetupA(params, cal, cache, datetime(2026, 8, 17, 0, 0))
+    wrapper = CachedSetupA(
+        params,
+        cal,
+        cache,
+        datetime(2026, 8, 17, 0, 0),
+        smc_compute=lambda bars: smc,
+        fvg_compute=lambda bars: fvgs,
+    )
     intents = wrapper.decide(ctx)
     assert intents == _evaluate(smc, fvgs, ctx, params, cal)
     assert intents
