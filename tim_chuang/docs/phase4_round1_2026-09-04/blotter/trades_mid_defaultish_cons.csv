@@ -1,0 +1,17 @@
+# git_hash: 159b6515e81cfa5ddabc42ea52787c6aff843966
+# fill_mode: conservative
+# commission_nt: 20.0
+# slippage_ticks: 1
+# flatten_slippage_ticks: 2
+# initial_margin_nt: 35050.0
+# maintenance_margin_nt: 26900.0
+# start: 2025-03-03T08:46:00
+# end: 2025-11-06T23:59:00
+# n_1m: 194149
+# source_files: diag
+side,entry_ts,entry_price,exit_ts,exit_price,qty,pnl_nt,r_multiple,reason
+short,2025-05-14T11:26:00,21662.0,2025-05-14T11:27:00,21668.0,1,-108.666,-2.17332,stop
+short,2025-05-15T09:51:00,21748.0,2025-05-15T09:53:00,21738.0,1,51.3028,1.0260559999999999,target
+long,2025-07-15T13:21:00,22829.0,2025-07-15T13:40:00,22802.0,1,-319.1262,-1.2274084615384615,stop
+long,2025-07-21T10:51:00,23236.0,2025-07-21T11:13:00,23208.0,1,-329.2888,-1.219588148148148,stop
+short,2025-09-15T11:49:00,25381.0,2025-09-15T11:49:00,25387.0,1,-110.1536,-2.203072,entry_stopped

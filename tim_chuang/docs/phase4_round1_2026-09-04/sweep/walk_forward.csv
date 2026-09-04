@@ -1,0 +1,11 @@
+test_month,train_months,status,note,fold_entry_price,fold_min_points,fold_stop_buffer,fold_take_profit,fold_require_external,fold_max_hold_bars,fold_test_n_trades,fold_test_expected_nt,fold_test_mdd_nt,frozen_test_n_trades,frozen_test_expected_nt,frozen_test_mdd_nt
+2025-06,"2025-03,2025-04,2025-05",insufficient_sample,,,,,,,,,,,,,
+2025-07,"2025-04,2025-05,2025-06",insufficient_sample,,,,,,,,,,,,,
+2025-08,"2025-05,2025-06,2025-07",insufficient_sample,,,,,,,,,,,,,
+2025-09,"2025-06,2025-07,2025-08",insufficient_sample,,,,,,,,,,,,,
+2025-10,"2025-07,2025-08,2025-09",insufficient_sample,,,,,,,,,,,,,
+2025-11,"2025-08,2025-09,2025-10",insufficient_sample,,,,,,,,,,,,,
+2025-12,"2025-09,2025-10,2025-11",insufficient_sample,,,,,,,,,,,,,
+2026-01,"2025-10,2025-11,2025-12",insufficient_sample,,,,,,,,,,,,,
+2026-02,"2025-11,2025-12,2026-01",insufficient_sample,,,,,,,,,,,,,
+2026-03,"2025-12,2026-01,2026-02",insufficient_sample,,,,,,,,,,,,,

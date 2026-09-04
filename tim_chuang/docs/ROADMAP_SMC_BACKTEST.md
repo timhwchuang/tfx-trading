@@ -1,6 +1,7 @@
 # SMC 策略回測 → Live 對接 Roadmap
 
-> 來源:2026-09 review 討論(FVG 模組落地後的下一步);2026-09-02 依實務 review 補強。
+> 來源:2026-09 review 討論(FVG 模組落地後的下一步);2026-09-02 依實務 review 補強;
+> 2026-09-04 第一輪 Phase 4 正式掃描 `no_go` 入檔。
 > 用法:**一個 Phase 開一個 AI plan/chat**,把該 Phase 整段貼給 AI 當需求,完成後勾掉。
 > 規格衝突時以本文為基準;要改規則,先改本文再改 code。
 > 上游決策文件:[BAR_MULTI_TF_DECISIONS.md](BAR_MULTI_TF_DECISIONS.md)。
@@ -11,7 +12,7 @@
 - [x] Phase 1:交易資料模型 + 成本模型
 - [x] Phase 2:回測引擎(Broker 模擬器 + Ledger)
 - [x] Phase 3:策略層 Setup A(sweep-reversal,純函數)
-- [ ] Phase 4:第一輪回測 + 參數掃描 + walk-forward
+- [ ] Phase 4:第一輪回測 + 參數掃描 + walk-forward（第一輪 no_go，見下文）
 - [ ] Phase 5:Live 對接(paper → 最小口數)
 
 ## 現況盤點(已完成、不重做)
@@ -227,6 +228,47 @@
   - 相對 in-sample 衰退 < 50%
   - 滑價 2 tick 下期望值仍 > 0
 - 全部組合都不行 → 回頭調 Setup A 規則(改本文後再改 code),不硬上 live
+- 第一輪已依準則得到 `no_go` → 進入改規則(本文)而非 Phase 5
+
+**第一輪正式掃描結果（2026-09-04）**
+
+事實紀錄,不是慶祝。本輪證偽的是「現行 Setup A 猜測／這張 grid」,不是「程式交易沒救」。
+上方 Phase 3 規則區塊維持歷史 v1;改規則先改本文再改 code。
+
+- 區間:`2025-03-03` → `2026-03-02`;seed `42`;grid **216** 組
+  (`entry` top/ce × `min_points` 15/20/30 × `stop_buffer` 3/5/8 ×
+  tp 2R/`opposite_liquidity` × `require_external` T/F × `max_hold` 12/24/10000);
+  IS 另跑 conservative+optimistic → 進度上 432;無 `--max-combos`
+- git(跑當下):`159b651`(incremental FVG/SMC harness);產物 `/tmp/phase4_go`(本機)
+- 本輪紀錄與錯誤日記:[phase4_round1_2026-09-04/](phase4_round1_2026-09-04/)
+  (`README.md`、`LESSONS.md`;`sweep/`、`blotter/` CSV 由後續 commit 補上)
+- **verdict:`no_go`**;`elected = null`;五條硬閘全未過(無 plateau)
+- IS 實證:
+  - `require_external=True`:108/108 組 `n_trades=0`
+  - `require_external=False`:108/108 有成交,但**全部 `expected_nt < 0`**;
+    最多 **8** 筆(≪ `MIN_IS_TRADES=30`)
+  - conservative 與 optimistic **逐格相同**(fill 差異未分開這批單)
+- Blotter(代表格,IS 171 日盤):高頻格(ext=False, min=15, buf=3, 2R) 8 筆
+  → `entry_stopped`×4 / stop×3 / target×1;費用來回約 49 NT 放大小虧;
+  同根 1m 進場即掃常見
+- 漏斗:arm 後約 **92%** 死在 `no_sweep`;`require_external=True` → intents=0
+- Walk-forward 10 折皆 `insufficient_sample`(train 無任一格 ≥30 筆)
+- **解讀(給人類)**:進出場定義偏空泛;1m 可動很大(數百點量級),
+  固定 3/5/8 buffer 尺度不足
+
+**下一假設（尚未改 code）**
+
+改規則先改本文;下列是待寫進 Setup A′／B 的方向,**尚未實作**:
+
+1. **進場定義收斂**:把「有效 sweep／FVG 互動」寫具體,先打 `no_sweep` 漏斗
+   (優先於加 RSI／VWAP)
+2. **波動感知風險**:停損／最小風險距離對費用地板與近期波動(例如 ATR)掛鉤;
+   檢討固定點 buffer grid
+3. **`entry_stopped` 政策**:風險≤費用地板則不進,或停損晚一棒掛——寫成明規則
+4. **`require_external`**:本輪視為已知死路;下一張 grid 不指望它救命
+   (可留參數但預設 false／移出主掃描)
+5. RSI／VWAP／profile／footprint:仍排在 A′ 進場收斂之後,各自獨立 Setup,
+   不塞進同一張超大 grid
 
 **非目標**:ML 調參、組合多策略。
 
