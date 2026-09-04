@@ -240,6 +240,8 @@
   tp 2R/`opposite_liquidity` × `require_external` T/F × `max_hold` 12/24/10000);
   IS 另跑 conservative+optimistic → 進度上 432;無 `--max-combos`
 - git(跑當下):`159b651`(incremental FVG/SMC harness);產物 `/tmp/phase4_go`(本機)
+- 本輪紀錄與錯誤日記:[phase4_round1_2026-09-04/](phase4_round1_2026-09-04/)
+  (`README.md`、`LESSONS.md`;`sweep/`、`blotter/` CSV 由後續 commit 補上)
 - **verdict:`no_go`**;`elected = null`;五條硬閘全未過(無 plateau)
 - IS 實證:
   - `require_external=True`:108/108 組 `n_trades=0`
