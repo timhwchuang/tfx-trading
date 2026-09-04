@@ -2,7 +2,7 @@
 
 > 來源:2026-09 review 討論(FVG 模組落地後的下一步);2026-09-02 依實務 review 補強;
 > 2026-09-04 第一輪 Phase 4 正式掃描 `no_go` 入檔;
-> 2026-09-04 獨立 review 後寫入 Setup A′（先改本文，尚未改策略 code）。
+> 2026-09-04 獨立 review 後寫入 Setup A′；停損幾何已落地,費用殺閘尚未做。
 > 用法:**一個 Phase 開一個 AI plan/chat**,把該 Phase 整段貼給 AI 當需求,完成後勾掉。
 > 規格衝突時以本文為基準;要改規則,先改本文再改 code。
 > 寫 `decide()` 之前先讀:[TMF_DESK_CARD.md](TMF_DESK_CARD.md)（合約尺子／費用點／時段生理）。
@@ -36,7 +36,7 @@
 - 回測引擎:`backtest/{engine,broker,ledger}.py`
   (5m prefix `decide`;`fill_mode`;Broker 呼叫 `close_trade`;Ledger 只記帳。
   6 個月 < 5 分鐘用 `run()` + 空 `FixedTimeStrategy` + `BarReader` 手動驗,不進預設 pytest)
-- 策略 Setup A:`strategy/setup_a.py`(純 `decide`;日盤 sweep-reversal;engine 傳 `closed_trades`/`entry_ts`)
+- 策略 Setup A:`strategy/setup_a.py`(純 `decide`;日盤 sweep-reversal;A′ 停損 = sweep 那根 K 極值 ± 墊片,不算 FVG 邊)
 - 寫 `decide()` 前的產品尺:[TMF_DESK_CARD.md](TMF_DESK_CARD.md)(合約／費用點／時段;IS 尺度卡在 `docs/phase4_round2_2026-09-04/census/`)
 
 ## 全域不變量(每個 Phase 都要遵守)
@@ -265,9 +265,9 @@
   中位格 38 次 arm 只有 5 筆成交;216 格裡 `fill_mode` / `max_hold` / `require_external` 近乎空轉。
   完整核對見 PR #7 review,不以本段第一輪解讀為 A′ 依據。
 
-**Setup A′（尚未改 code；取代上一節「下一假設」）**
+**Setup A′（停損幾何已落地；費用殺閘尚未做）**
 
-Phase 3 規則 1–7 維持 v1 歷史,對應第一輪 216 格。A′ 先改本文再改 `setup_a.py`。
+Phase 3 規則 1–7 維持 v1 歷史,對應第一輪 216 格。停損幾何已寫進 `setup_a.py`;`min_r_points` / `r_below_floor` 仍未做。
 **禁止**為製造 `go` 降低 `MIN_IS_TRADES`;**禁止**停損晚一棒掛(同根 1m 停損優先維持全域不變量 3);
 **禁止**把 RSI／VWAP／profile／footprint 塞進同一張 A′ grid;
 **禁止**沒有尺度卡就把數字寫進 `GridSpec`。
@@ -307,14 +307,13 @@ A′ 修結構層之後,**不得**把 `min_r_points=15`(3× 費用)假裝成雜�
    尺度卡:`python -m tfx_trading.backtest.scale_card`(同上目錄 `SCALE_CARD.md`)。  
    結論:detector 有印;external 整段 0 筆;bias+sweep+event+FVG≥15 的 unique **17**(空 12／多 5);
    12 筆空單 v1 的 R **全部** = 3;A′ 改 sweep 極值後 R 沒有任何一組 < 15。
-   下一步是停損幾何,不是放寬 sweep,也不是把 15 當「已懂微台」。
+   停損幾何已落地。下一步是費用殺閘 + smoke,不是放寬 sweep。
 
-1. **停損幾何**  
-   拿掉「取較近者」。停損 = sweep 極值 ± `stop_buffer`(墊片,不是 R)。
-   **禁止**進場在 FVG `top` 時用 FVG `top ± buffer` 當停損。A′ 停損不算 FVG 邊。
-   單元測試必須鎖死:空單 + `entry=top` +「取較近者」⇒ R == `stop_buffer`(v1 恆等式);
-   A′ 落地後該測試要改成 **R ≠ buffer**,停損在 sweep 極值。
-   `min_r_points`:只作費用殺閘(R ≤ 來回點數不 arm)。預設 15 是 3× 費用,**不是**雜訊地板,幾何改完後在這批 join 上幾乎不會觸發。
+1. **停損幾何(已落地)**  
+   `setup_a.py`:`_structural_stop(side, extreme, buffer)`。極值 = sweep 那根 5m 的 high/low,不是 PDH/PDL `SessionLevel.price`。
+   拿掉「取較近者」。**禁止**進場在 FVG `top` 時用 FVG `top ± buffer` 當停損。不算 FVG 邊。
+   單元測試鎖死:空單 `stop == sweep_high + buffer` 且 **R ≠ buffer**;多單對偶 `stop == sweep_low - buffer` 且 ≠ `fvg.bottom - buffer`。
+   `min_r_points` / `r_below_floor` **仍未做**(第 2 點)。
 
 2. **R 不夠不 arm**  
    R ≤ 費用地板 → 不發 intent,記 `r_below_floor`。  
@@ -418,7 +417,7 @@ RSI／VWAP／profile／footprint:仍排在 A′ 進場站穩之後,各自獨立 
 **回測可信度(Phase 2/4)**
 
 - [ ] 尺度卡 + [TMF_DESK_CARD.md](TMF_DESK_CARD.md) 檢查清單做完;主掃每個維度能指回百分位
-- [ ] 單元測試:空單 + entry=top 不得再讓 R 恆等於 `stop_buffer`(A′ 落地後 xfail 必須轉正)
+- [x] 單元測試:空單 + entry=top 不得再讓 R 恆等於 `stop_buffer`
 - [ ] `conservative` fill_mode 下 OOS 期望值 > 0,且相對 in-sample 衰退 < 50%
 - [ ] 滑價 2 tick 壓力下期望值仍 > 0
 - [ ] 候選參數是 plateau 不是孤峰(鄰近參數組合皆獲利)

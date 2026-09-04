@@ -8,8 +8,8 @@
 
 - Setup A 第一輪正式掃描 → **`verdict = no_go`**（`elected = null`）。產物在本目錄。
 - PR #7 已合進 `main`。獨立 review 修正了死因排序；細則寫進 roadmap Setup A′。
-- **尚未**修改 `strategy/setup_a.py`；**Phase 4 checkbox 仍不勾**；不上 live。
-- 下一輪：**普查與尺度卡已落地**；下一步才改 `setup_a.py` 停損幾何。沒有尺度卡不准開 grid。
+- `setup_a.py` 停損幾何已落地（sweep 那根 K 極值 ± 墊片）；**Phase 4 checkbox 仍不勾**；不上 live。
+- `min_r_points` / `r_below_floor` 與 20 日 smoke **尚未做**。沒有尺度卡不准開 grid。
 
 ## 請讀什麼
 
@@ -36,31 +36,33 @@ cd tim_chuang
   --out docs/phase4_round2_2026-09-04/census
 ```
 
-### Step 1 — 停損幾何（現在；先改 code）
+### Step 1 — 停損幾何（已完成）
 
-拿掉「取較近者」。停損 = sweep 極值 ± 墊片。進 FVG top 不得 `top±buffer`。
-`min_r=15` 只殺費用地板，不是雜訊地板。單元測試 `test_v1_short_entry_at_top_risk_equals_stop_buffer` 鎖 v1 恆等式；A′ 落地後 `test_a_prime_short_stop_is_sweep_extreme_not_fvg_top_buffer` 的 xfail 必須轉正。
-**禁止**晚一棒掛停。
+拿掉「取較近者」。停損 = sweep 那根 5m 的 high/low ± 墊片。進 FVG top 不得 `top±buffer`。
+單元測試：空／多各一則，`R != stop_buffer`。**禁止**晚一棒掛停。
 
+### Step 2 — 費用殺閘 + smoke（現在）
+
+`min_r_points` / `r_below_floor`：R ≤ 來回費用不 arm。預設 15 只殺費用地板，不是雜訊地板。
 驗證：8 筆時間戳、約 20 日 conservative smoke。必須報 A′ R、13:40 強平佔比、2R vs 當日高低。不開 432 格。
 
-### Step 2 — 進場收斂（漏斗與成交率看完才動）
+### Step 3 — 進場收斂（漏斗與成交率看完才動）
 
 確認改 CHoCH；FVG 落在 sweep impulse。然後才談第二輪主掃描
 （conservative only；拿掉 `max_hold` 與 `require_external`；多空 × 多頭／震盪分開報）。
 
-### Step 3 — 再跑一輪 Phase 4
+### Step 4 — 再跑一輪 Phase 4
 
 同一硬閘。仍可能 `no_go`。過了才談 Phase 5。
 
-### Step 4 — 組合拳
+### Step 5 — 組合拳
 
 A′ 站穩後再獨立開 Setup B。禁止與 A′ 全交叉。
 
 ## 給跨工作區 agent 的硬約束
 
 1. 只動 `tim_chuang/`；當 `apps/`、`legacy/`、`tick_cache/`、根 `docs/AGENTS.md` 不存在。
-2. 改規則 **先改 roadmap 再改 code**。Setup A′ 已在 roadmap；策略 diff 從 Step 1 開始。
+2. 改規則 **先改 roadmap 再改 code**。Setup A′ 停損幾何已落地；策略下一刀是 Step 2（費用殺閘 + smoke）。
 3. 不要為了製造 `go` 而放寬硬閘或調參作弊。
 4. 不要把本目錄的 `no_go` 產物當成「可 live」證據。
 5. Python ≥ 3.14；長 tape 只用 CLI，不要塞進 pytest。
@@ -72,6 +74,6 @@ A′ 站穩後再獨立開 Setup B。禁止與 A′ 全交叉。
 - [x] 拍板：普查 → 停損／min R → 不晚掛 → 再收斂進場（寫進 Setup A′）
 - [x] 跑 IS 指標普查 + 尺度卡（`census/`、`SCALE_CARD.md`）
 - [x] 寫 `TMF_DESK_CARD.md`（合約／費用／時段；寫 `decide()` 前硬閘）
-- [ ] 開實作 PR：停損幾何（墊片，不是再掃 3/5/8 當 R）
-- [ ] 8 筆／20 日 smoke（含 13:40 vs 2R）
+- [x] 停損幾何：sweep 極值 ± 墊片（不是再掃 3/5/8 當 R）
+- [ ] 費用殺閘 + 8 筆／20 日 smoke（含 13:40 vs 2R）
 - [ ] 再跑正式 sweep，更新新一輪 `docs/phase4_round*_*/`

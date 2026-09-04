@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime, time, timedelta
 
-import pytest
-
 from tfx_trading.backtest.config import BacktestConfig
 from tfx_trading.backtest.engine import run
 from tfx_trading.calendar import TradeCalendar
@@ -256,8 +254,8 @@ def test_long_happy_path_three_intents() -> None:
     assert stop.expire_at is None
     assert tp.expire_at is None
     assert stop.side == "short"
-    assert stop.price == 19845.0
-    assert tp.price == 20070.0
+    assert stop.price == 19785.0
+    assert tp.price == 20190.0
     assert entry.intent_id == "202608171000-entry"
 
 
@@ -277,7 +275,7 @@ def test_opposite_liquidity_rounds_off_entry_falls_back_to_2r() -> None:
     smc = _long_smc(session_high=_level("session_high", 19920.4, None, NOW))
     intents = _run(smc, [_long_fvg()], _ctx(), params)
     assert intents[0].price == 19920.0
-    assert intents[2].price == 20070.0
+    assert intents[2].price == 20190.0
     assert intents[2].price > intents[0].price
 
 
@@ -307,7 +305,7 @@ def test_opposite_liquidity_short_round_falls_back_to_2r() -> None:
     )
     intents = _run(smc, [fvg], _ctx(bars_5m=bars), params)
     assert intents[0].price == 20050.0
-    assert intents[2].price == 20040.0
+    assert intents[2].price == 19900.0
     assert intents[2].price < intents[0].price
 
 
@@ -569,29 +567,6 @@ def test_short_mirror() -> None:
     assert intents[1].expire_at is None
 
 
-def test_v1_short_entry_at_top_risk_equals_stop_buffer() -> None:
-    """v1 identity: short + FVG top + closer-of stops ⇒ R == stop_buffer."""
-    params = SetupAParams(entry_price="top", stop_buffer=3.0)
-    sweep = SWEEP_TS
-    smc = _smc(
-        dealing=_range("premium"),
-        pdh=_level("pdh", 20100.0, "swept", sweep),
-        events=[_event(sweep, direction="bearish")],
-    )
-    fvg = _fvg("bearish", top=20050.0, bottom=19980.0, formed_at=FVG_TS)
-    bars = (
-        _k(sweep, 20120.0, 20040.0, 20060.0),
-        _k(NOW, 20080.0, 20020.0, 20040.0),
-    )
-    intents = _run(smc, [fvg], _ctx(bars_5m=bars), params)
-    entry = intents[0].price
-    stop = intents[1].price
-    assert entry == 20050.0
-    assert stop is not None
-    assert stop - entry == params.stop_buffer
-
-
-@pytest.mark.xfail(strict=True, reason="A-prime stop geometry not in setup_a.py yet")
 def test_a_prime_short_stop_is_sweep_extreme_not_fvg_top_buffer() -> None:
     params = SetupAParams(entry_price="top", stop_buffer=3.0)
     sweep = SWEEP_TS
@@ -612,6 +587,20 @@ def test_a_prime_short_stop_is_sweep_extreme_not_fvg_top_buffer() -> None:
     assert entry is not None and stop is not None
     assert stop == sweep_high + params.stop_buffer
     assert stop - entry != params.stop_buffer
+
+
+def test_a_prime_long_stop_is_sweep_extreme_not_fvg_bottom_buffer() -> None:
+    params = SetupAParams(entry_price="top", stop_buffer=5.0)
+    intents = _run(_long_smc(), [_long_fvg()], _ctx(), params)
+    entry = intents[0].price
+    stop = intents[1].price
+    sweep_low = 19790.0
+    fvg_bottom = 19850.0
+    assert entry == 19920.0
+    assert stop is not None
+    assert stop == sweep_low - params.stop_buffer
+    assert stop != fvg_bottom - params.stop_buffer
+    assert entry - stop != params.stop_buffer
 
 
 def test_night_leftover_flatten_1505_and_0200() -> None:

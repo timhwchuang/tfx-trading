@@ -242,14 +242,9 @@ def _bracket_for_side(
         return []
     entry = _round_tick(_fvg_limit(fvg, params))
     extreme = sweep_bar.low if side == "long" else sweep_bar.high
-    if side == "long":
-        stop = _round_tick(max(extreme - params.stop_buffer, fvg.bottom - params.stop_buffer))
-        if stop >= entry:
-            return []
-    else:
-        stop = _round_tick(min(extreme + params.stop_buffer, fvg.top + params.stop_buffer))
-        if stop <= entry:
-            return []
+    stop = _structural_stop(side, extreme, params.stop_buffer)
+    if (side == "long" and stop >= entry) or (side == "short" and stop <= entry):
+        return []
     target = _take_profit_price(side, entry, stop, smc, params)
     expire_at = datetime.combine(session_date, params.flatten_time)
     opp: Side = "short" if side == "long" else "long"
@@ -469,6 +464,13 @@ def _bar_at(bars: tuple[KBar, ...], ts: datetime) -> KBar | None:
         if bar.timestamp == ts:
             return bar
     return None
+
+
+def _structural_stop(side: Side, extreme: float, buffer: float) -> float:
+    """Sweep-bar extreme ± pad. Extreme is that K's high/low, not a SessionLevel price."""
+    if side == "long":
+        return _round_tick(extreme - buffer)
+    return _round_tick(extreme + buffer)
 
 
 def _round_tick(price: float) -> float:

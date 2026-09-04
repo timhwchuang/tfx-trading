@@ -45,7 +45,7 @@ Plateau 要同時：`n_trades >= 30` **且** `expected_nt > 0` **且** 鄰居也
 3. `require_external` 當掃描維度 → 本段 tape 上是全滅開關，不是品質旋鈕。
 4. 以為 fill_mode 會分出 optimistic edge → 這批單 cons≡opt，不是故事主軸。
 
-## 5. 下一假設（尚未改 code）
+## 5. 下一假設（停損幾何已落地，以下為作廢假設）
 
 1. **收斂進場**：把有效 sweep／FVG 互動寫具體，先打 `no_sweep`（優先於加 RSI／VWAP）。
 2. **波動感知風險**：停損／最小風險對費用地板與近期波動（如 ATR）掛鉤。
